@@ -1,8 +1,8 @@
 [tool.setuptools.packages.find]
-include = ["lauepp"]
+include = ["laueimproc"]
 
 [project]
-name = "lauepp"
+name = "laueimproc"
 dynamic = ["version"]
 requires-python = ">=3.9"
 dependencies = [
@@ -42,7 +42,7 @@ gui = [
 ]
 
 [project.urls]
-Repository = "https://framagit.org/robinechuca/lauepp/"
+Repository = "https://framagit.org/robinechuca/laueimproc/"
 
 [tool.setuptools.dynamic]
-version = {attr = "lauepp.__version__"}
+version = {attr = "laueimproc.__version__"}
