@@ -40,6 +40,11 @@ classifiers = [
 gui = [
   "matplotlib",
 ]
+optional = [
+  "matplotlib",
+  "sphinx",
+  "sphinx-rtd-theme",
+]
 
 [project.urls]
 Repository = "https://framagit.org/robinechuca/laueimproc/"

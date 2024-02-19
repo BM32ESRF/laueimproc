@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-"""
-** Basic function for reading a laue image. **
-----------------------------------------------
-"""
+"""Read an image of laue diagram."""
 
 import pathlib
 import typing
@@ -14,8 +11,7 @@ import numpy as np
 
 
 def read_image(filename: typing.Union[str, bytes, pathlib.Path]) -> np.ndarray:
-    """
-    ** Read and decode a grayscale image into a numpy array. **
+    """Read and decode a grayscale image into a numpy array.
 
     Use cv2 as possible, and fabio if cv2 failed.
 
