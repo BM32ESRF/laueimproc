@@ -36,10 +36,10 @@ def read_image(filename: typing.Union[str, bytes, pathlib.Path]) -> np.ndarray:
         raise OSError(f"the filename {filename} is not a file")
 
     if (image := cv2.imread(str(filename), cv2.IMREAD_ANYDEPTH | cv2.IMREAD_GRAYSCALE)) is not None:
-        return image.astype(np.uint16, copy=False) # cv2 9% faster than fabio on .mccd files
+        return image # cv2 9% faster than fabio on .mccd files
     try:
         with fabio.open(filename) as raw:
             image = raw.data
     except KeyError as err:
         raise OSError(f"failed to read {filename} with cv2 and fabio") from err
-    return image.astype(np.uint16, copy=False)
+    return image

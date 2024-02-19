@@ -11,11 +11,11 @@ class Image(torch.Tensor):
 
     Attributes
     ----------
-    matadata : object
+    context : object
         Any information to throw during the operations.
     """
 
-    def __new__(cls, data, metadata: object = None):
+    def __new__(cls, data, context: object = None):
         """Create an image.
 
         If the image is not in floating point, it is converting in float32
@@ -23,8 +23,9 @@ class Image(torch.Tensor):
 
         Parameters
         ----------
-        metadata : object
+        context : object
             Any value to throw between the tensor operations.
+            It can be everything, like metadata or contextual informations.
         data : arraylike
             The torch tensor or the numpy array to decorate.
             It can be a native python container like a list or a tuple but it is slowler.
@@ -90,7 +91,7 @@ class Image(torch.Tensor):
                 data -= float(iinfo.min)
                 data *= 1.0 / float(iinfo.max - iinfo.min)
             image = super().__new__(cls, data) # no copy
-            image.metadata = metadata
+            image.context = context
             return image
         if isinstance(data, np.ndarray):
             if not np.issubdtype(data.dtype, np.floating):
@@ -98,12 +99,12 @@ class Image(torch.Tensor):
                 data = data.astype(np.float32)
                 data -= float(iinfo.min)
                 data *= 1.0 / float(iinfo.max - iinfo.min)
-            return Image.__new__(cls, torch.from_numpy(data), metadata=metadata) # no copy
-        return Image.__new__(cls, torch.tensor(data), metadata=metadata) # copy
+            return Image.__new__(cls, torch.from_numpy(data), context=context) # no copy
+        return Image.__new__(cls, torch.tensor(data), context=context) # copy
 
     @classmethod
     def __torch_function__(cls, func, types, args=(), kwargs=None):
-        """Enable to throw `metadata` into the new generations.
+        """Enable to throw `context` into the new generations.
 
         Examples
         --------
@@ -111,31 +112,28 @@ class Image(torch.Tensor):
         >>> import torch
         >>> from laueimproc.classes.image import Image
         >>>
-        >>> # transmission metadata
-        >>> (img := Image([.5], metadata="matadata_value")).metadata
-        'matadata_value'
-        >>> img.clone().metadata  # deep copy
-        'matadata_value'
-        >>> torch.sin(img).metadata  # external call
-        'matadata_value'
-        >>> (img / 2).metadata  # internal method
-        'matadata_value'
+        >>> # transmission context
+        >>> (img := Image([.5], context="matadata")).context
+        'matadata'
+        >>> img.clone().context  # deep copy
+        'matadata'
+        >>> torch.sin(img).context  # external call
+        'matadata'
+        >>> (img / 2).context  # internal method
+        'matadata'
         >>> img *= 2  # inplace
-        >>> img.metadata
-        'matadata_value'
-        >>> np.sin(img).metadata  # numpy external call
-        'matadata_value'
+        >>> img.context
+        'matadata'
+        >>> np.sin(img).context  # numpy external call
+        'matadata'
         >>>
         """
         if kwargs is None:
             kwargs = {}
         result = super().__torch_function__(func, types, args, kwargs)
-        print("result", result)
         if isinstance(result, cls):
-            print("result is subclass of self")
             if isinstance(args[0], cls):  # args[0] is self
-                print("add metadata")
-                result.metadata = args[0].metadata  # args[0] is self
+                result.context = args[0].context  # args[0] is self
             else:
                 return torch.Tensor(result)
         return result
