@@ -10,24 +10,28 @@ import cv2
 import numpy as np
 import torch
 
-from laueimproc.io import read_image
+from laueimproc.io.read import read_image
 from .image import Image
 from .spot import Spot
 
 
-class Diagram(Image):
+class Diagram:
     """A Laue diagram image.
 
     Attributes
     ----------
     experiment : laueimproc.classes.experiment.Experiment or None
         The parent experiment.
+    file : pathlib.Path or None
+        The absolute file path to the image, if it is provided (readonly).
+    image : laueimproc.classes.image.Image
+        The complete image of the diagram.
     spots : set[laueimproc.classes.spot.Spot]
         All the spots contained in this diagram.
     """
 
-    def __new__(
-        cls,
+    def __init__(
+        self,
         data: typing.Union[np.ndarray, torch.Tensor, str, bytes, pathlib.Path],
         experiment=None,
         *, _check: bool = True,
@@ -39,33 +43,62 @@ class Diagram(Image):
         data : path or arraylike
             The filename or the array/tensor use as a diagram.
         experiment : Experiment, optional
-            If it is provide, it corresponds to the organized set of laue diagrams.
+            If it is provided, it corresponds to the organized set of laue diagrams.
             The information linked to the global organization
             is recorded into the experiment instance, not here.
         """
+        self._cache = {}
         if isinstance(data, (str, bytes, pathlib.Path)):
-            data = read_image(data)
-        context = {}
-        if experiment is not None:
-            context["experiment"] = experiment
-        diagram = super().__new__(cls, data, context)
-        if _check:
-            assert diagram.ndim == 2, diagram.shape
+            self._file = data
+            if _check:
+                self._file = pathlib.Path(self._file).expanduser().resolve()
+                assert self._file.is_file(), self._file
+        else:
+            self._file, self._cache["image"] = None, Image(data)
+            if _check:
+                assert self._cache["image"].ndim == 2, self._cache["image"].shape
+        self._experiment = experiment
+
+    @classmethod
+    def _from_spot(cls, spot: Spot, roi: Image):
+        """Return a new fake diagram containing one spot."""
+        diagram = cls(roi, _check=False)
+        diagram._cache["tensor_spots"] = torch.unsqueeze(spot, 0)
+        diagram._cache["spots"] = {spot, (0, 0)}
         return diagram
+
+    @property
+    def _tensor_spots(self) -> Image:
+        """Return the batch of the spots."""
+        if "tensor_spots" not in self._cache:  # case spots are never been searched
+            self.reset_spots()  # called with default parameters
+        return self._cache["tensor_spots"]
 
     @property
     def experiment(self):
         """Return the parent experiment if it is defined, None otherwise."""
-        return self.context.get("experiment", None)
+        return self._experiment
+
+    @property
+    def file(self) -> typing.Union[None, pathlib.Path]:
+        """Return the absolute file path to the image, if it is provided."""
+        return self._file
+
+    @property
+    def image(self) -> Image:
+        """Return the complete image of the diagram."""
+        if "image" not in self._cache:
+            self._cache["image"] = Image(read_image(self._file))
+        return self._cache["image"]
 
     @property
     def spots(self) -> set[Spot]:
-        """Return the spots."""
-        if "spots" not in self.context:  # case spots are never been searched
+        """Return the spots in a setlike object."""
+        if "spots" not in self._cache:  # case spots are never been searched
             self.reset_spots()  # called with default parameters
-        return self.context["spots"]
+        return self._cache["spots"].keys()
 
-    def init_all_spots(
+    def reset_spots(
         self,
         threshold: typing.Optional[float] = None,
         kernel_font: typing.Optional[np.ndarray[np.uint8, np.uint8]] = None,
@@ -93,6 +126,13 @@ class Diagram(Image):
             when we acces to the ``spots`` attribute.
         * If you wish to fine tune the pic search with specifics parameters,
             and only in this case, you should to run this method.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.diagram import Diagram
+        >>> img = Diagram("ge_blanc.mccd")
+        >>> img.reset_spots()
+        >>>
         """
         # get and check the parameters
         experiment = self.experiment
@@ -124,25 +164,41 @@ class Diagram(Image):
             kernel_aglo = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
 
         # pic search
-        src = self.numpy(force=True)  # not nescessary copy
+        src = self.image.numpy(force=True)  # not nescessary copy
         bg_image = cv2.morphologyEx(src, cv2.MORPH_OPEN, kernel_font, iterations=1)
-        if self.data_ptr() == src.__array_interface__["data"][0]:
+        if self.image.data_ptr() == src.__array_interface__["data"][0]:
             fg_image = src - bg_image  # copy to keep self unchanged
         else:
             fg_image = src
             fg_image -= bg_image  # inplace
-        thresh_image = (fg_image > threshold * fg_image.std()).view(np.uint8)
-        dilated_image = cv2.dilate(thresh_image, kernel_aglo, dst=bg_image, iterations=1)
-        outlines, _ = cv2.findContours(dilated_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        bbox = [cv2.boundingRect(outl) for outl in outlines]
+        bbox = list(
+            map(
+                cv2.boundingRect,
+                cv2.findContours(
+                    cv2.dilate(
+                        (fg_image > threshold * fg_image.std()).view(np.uint8),
+                        kernel_aglo,
+                        dst=bg_image,
+                        iterations=1,
+                    ),
+                    cv2.RETR_EXTERNAL,
+                    cv2.CHAIN_APPROX_SIMPLE,
+                )[0],
+            )
+        )
 
-        # update context
-        self.context["spots"] = [ # TODO convert in spot
-            fg_image[i:i+h, j:j+w]
-            for j, i, w, h in bbox
-        ]
-        import matplotlib.pyplot as plt
-        for spot in self.context["spots"]:
-            plt.imshow(spot)
-            plt.show()
-
+        # update cache
+        for _ in range(1000):
+            self._cache["tensor_spots"] = np.zeros( # zeros 2 times faster than empty + fill
+                (len(bbox), max(h for _, _, _, h in bbox), max(w for _, _, w, _ in bbox)),
+                dtype=fg_image.dtype
+            )
+            for index, (j, i, width, height) in enumerate(bbox):  # write the right values
+                self._cache["tensor_spots"][index, :height, :width] = (
+                    fg_image[i:i+height, j:j+width]
+                )
+        self._cache["tensor_spots"] = torch.from_numpy(self._cache["tensor_spots"])
+        self._cache["spots"] = {
+            Spot(Image(self._cache["tensor_spots"], context=(index, h, w)), _diagram=self): (i, j)
+            for index, (j, i, w, h) in enumerate(bbox)
+        }

@@ -2,8 +2,11 @@
 
 """Defines the basic structure of a spot, inerit from torch array."""
 
+import warnings
+
 import numpy as np
 import torch
+
 
 
 class Image(torch.Tensor):
@@ -100,6 +103,9 @@ class Image(torch.Tensor):
                 data -= float(iinfo.min)
                 data *= 1.0 / float(iinfo.max - iinfo.min)
             return Image.__new__(cls, torch.from_numpy(data), context=context) # no copy
+        warnings.warn(
+            "to instanciate a image from a non arraylike data will be forbiden", DeprecationWarning
+        )
         return Image.__new__(cls, torch.tensor(data), context=context) # copy
 
     @classmethod
