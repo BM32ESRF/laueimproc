@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Defines the basic structure of a spot, inerit from torch array."""
+"""Define the basic structure of a spot, inerit from torch array."""
 
 import warnings
 

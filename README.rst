@@ -36,7 +36,7 @@ To install ``laueimproc`` from `GitHub <https://github.com/BM32ESRF/laueimproc>`
     git clone https://github.com/BM32ESRF/laueimproc.git
     cd laueimproc/
     python -m pip install --upgrade pip setuptools wheel
-    python -m pip -v install --user --editable .[gui]
+    python -m pip -v install --user --editable .[all]
     python -m laueimproc test
 
 

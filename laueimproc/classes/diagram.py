@@ -2,25 +2,45 @@
 
 """Define the data sructure of a single Laue diagram image."""
 
-from .base import BaseDiagram
+import typing
 
+import numpy as np
+
+from laueimproc.improc.spot.basic import compute_barycenters, compute_pxl_intensities
+from .base_diagram import BaseDiagram
+from .spot import Spot
+from .image import Image
 
 
 class Diagram(BaseDiagram):
-    """A Laue diagram image.
+    """A Laue diagram image."""
 
-    Attributes
-    ----------
-    experiment : laueimproc.classes.experiment.Experiment or None
-        The parent experiment.
-    file : pathlib.Path or None
-        The absolute file path to the image, if it is provided (readonly).
-    image : laueimproc.classes.image.Image
-        The complete image of the diagram.
-    spots : set[laueimproc.classes.spot.Spot]
-        All the spots contained in this diagram.
-    """
 
-    def show(self):
-        import matplotlib.pyplot as plt
-        plt.imshow(self.image)
+    # @BaseDiagram.spot_property("barycenter")
+    # def get_barycenters(self, *, _return_tensor : bool = False) -> dict[Spot, tuple[float, float]]:
+    #     """Compute the barycenter of each spots."""
+    #     if "barycenters" not in self._cache:
+    #         barycenters = compute_barycenters(self._tensor_spots)  # relative barycenters
+    #         barycenters += self.get_anchors(_return_tensor=True)  # absolute position
+    #         self._cache["barycenters"] = barycenters
+    #     if _return_tensor:
+    #         return self._cache["barycenters"]
+    #     return {
+    #         spot: (
+    #             self._cache["barycenters"][index, 0].item(),
+    #             self._cache["barycenters"][index, 1].item(),
+    #         )
+    #         for index, spot in enumerate(self.spots)
+    #     }
+
+    # @BaseDiagram.spot_property("pxl_intensity")
+    # def get_pxl_intensities(self, *, _return_tensor : bool = False) -> dict[Spot, float]:
+    #     """Compute the total pixel intensity for each spots."""
+    #     if "pxl_intensities" not in self._cache:
+    #         self._cache["pxl_intensities"] = compute_pxl_intensities(self._tensor_spots)
+    #     if _return_tensor:
+    #         return self._cache["pxl_intensities"]
+    #     return {
+    #         spot: self._cache["pxl_intensities"][index].item()
+    #         for index, spot in enumerate(self.spots)
+    #     }

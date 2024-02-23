@@ -2,4 +2,7 @@
 
 """Group some image processing tools to annalyse Laue diagrams."""
 
+from .classes import Diagram
+
 __version__ = "0.0.dev1"  # pep 440
+__all__ = ["Diagram"]
