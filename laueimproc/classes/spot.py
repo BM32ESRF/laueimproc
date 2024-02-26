@@ -3,7 +3,7 @@
 """Define the data sructure of a single spot in a Laue diagram image."""
 
 
-from .image import Image
+from .tensor import Tensor
 
 
 
@@ -18,9 +18,9 @@ class Spot:
         The concatenation of `anchor` and `shape`.
     diagram : laueimproc.classes.Diagram
         The parent diagram.
-    roi : laueimproc.classes.image.Image
+    roi : laueimproc.classes.tensor.Tensor
         The image of the complete spot zone (or the provided rois).
-    roi_brut : laueimproc.classes.image.Image
+    roi_brut : laueimproc.classes.tensor.Tensor
         The image of the complete spot zone (in the direct image).
     shape : tuple[int, int]
         The shape of the roi in the numpy convention (readonly).
@@ -31,6 +31,10 @@ class Spot:
         if cache:
             return (self._diagram, self._index, self._bbox, self._cache)
         return (self._diagram, self._index, self._bbox)
+
+    def __repr__(self) -> str:
+        """Give a compact representation."""
+        return f"{self.__class__.__name__}({', '.join(map(str, self._bbox))})"
 
     def __setstate__(self, state: tuple):
         """Fill the internal attributes.
@@ -100,13 +104,13 @@ class Spot:
         return self._diagram
 
     @property
-    def roi(self) -> Image:
+    def roi(self) -> Tensor:
         """Return the patch of the filtered image of the region of interest."""
-        anch_i, anch_j, height, width = self._bbox
-        return self._diagram.rois[self._index]  # share underground data
+        _, _, height, width = self._bbox
+        return self._diagram.rois[self._index, :height, :width]  # share underground data
 
     @property
-    def roi_brut(self) -> Image:
+    def roi_brut(self) -> Tensor:
         """Return the patch of the brut image of the region of interest."""
         anch_i, anch_j, height, width = self._bbox
         return self._diagram.image[anch_i, anch_j, :height, :width]

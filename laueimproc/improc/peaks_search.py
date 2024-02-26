@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 import torch
 
-from laueimproc.classes.image import Image
+from laueimproc.classes.tensor import Tensor
 
 
 
@@ -29,7 +29,7 @@ def estimate_background(
 
     Parameters
     ----------
-    brut_image : Image
+    brut_image : Tensor
         The 2d array brut image of the Laue diagram in float between 0 and 1.
     kernel_font : np.ndarray[np.uint8, np.uint8], optional
         The structurant element used for the morphological opening.
@@ -59,12 +59,12 @@ def estimate_background(
 
 
 def peaks_search(
-    brut_image: Image,
+    brut_image: Tensor,
     threshold: typing.Optional[float] = None,
     kernel_aglo: typing.Optional[np.ndarray[np.uint8, np.uint8]] = None,
     *, _check: bool = True,
     **kwargs,
-):
+) -> tuple[Tensor, Tensor]:
     """Search all the spots roi in this diagram, return the roi tensor.
 
     Parameters
@@ -83,14 +83,14 @@ def peaks_search(
 
     Returns
     -------
-    rois_no_background : Image
-        The tensor of each regions of interest without background, shape (n, h, w).
-    bboxes : Image
+    rois_no_background : Tensor
+        The tensor of each regions of interest without background, shape (n, h, w) and type float.
+    bboxes : Tensor
         The positions of the corners point (0, 0) and the shape (i, j, h, w)
         of the roi of each spot in the brut_image, and the height and width of each roi.
-        The shape is (n, 4).
+        The shape is (n, 4) and the type is int.
     """
-    assert isinstance(brut_image, Image), brut_image.__class__.__name__
+    assert isinstance(brut_image, Tensor), brut_image.__class__.__name__
     assert brut_image.ndim == 2, brut_image.shape
     if threshold is not None:
         assert isinstance(threshold, numbers.Real), threshold.__class__.__type__
@@ -140,9 +140,9 @@ def peaks_search(
         )
         for index, (i, j, height, width) in enumerate(bboxes):  # write the right values
             rois[index, :height, :width] = fg_image[i:i+height, j:j+width]
-        rois = Image(rois).to(device=brut_image.device)
-        bboxes = Image(torch.tensor(bboxes, dtype=rois.dtype, device=brut_image.device))
+        rois = Tensor(rois, to_float=True).to(device=brut_image.device)
+        bboxes = Tensor(torch.tensor(bboxes, dtype=int))
     else:
-        rois = Image(torch.empty((0, 1, 1), dtype=torch.float32, device=brut_image.device))
-        bboxes = Image(torch.empty((0, 4), dtype=torch.float32, device=brut_image.device))
+        rois = Tensor(torch.empty((0, 1, 1), dtype=torch.float32, device=brut_image.device))
+        bboxes = Tensor(torch.empty((0, 4), dtype=int))
     return rois, bboxes

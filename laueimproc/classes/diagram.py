@@ -8,13 +8,18 @@ import numpy as np
 
 from laueimproc.improc.spot.basic import compute_barycenters, compute_pxl_intensities
 from .base_diagram import BaseDiagram
-from .spot import Spot
-from .image import Image
+from .tensor import Tensor
 
 
 class Diagram(BaseDiagram):
     """A Laue diagram image."""
 
+    @BaseDiagram.enable_caching  # put the result in cache
+    def get_barycenters(self) -> Tensor:
+        """Compute the barycenter of each spots."""
+        barycenters = compute_barycenters(self.rois)
+        barycenters += self.bboxes[:, :2].to(barycenters.dtype)
+        return barycenters
 
     # @BaseDiagram.spot_property("barycenter")
     # def get_barycenters(self, *, _return_tensor : bool = False) -> dict[Spot, tuple[float, float]]:
