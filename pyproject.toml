@@ -7,9 +7,9 @@ dynamic = ["version"]
 requires-python = ">=3.9"
 dependencies = [
   "fabio",
-  "matplotlib",
   "opencv-contrib-python-headless",
   "torch",
+  "tqdm",
 ]
 authors = [
   {name = "Robin RICHARD (robinechuca)", email = "serveurpython.oz@hmail.com"},
@@ -32,13 +32,14 @@ classifiers = [
   "Natural Language :: French",
   "Programming Language :: Python :: 3",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
-  "Topic :: Scientific/Engineering :: Image Processing",
+  "Topic :: Scientific/Engineering :: Tensor Processing",
   "Topic :: Scientific/Engineering :: Information Analysis",
   "Topic :: Scientific/Engineering :: Physics",
 ]
 
 [project.optional-dependencies]
 all = [
+  "matplotlib",
   "sphinx",
   "sphinx-rtd-theme",
 ]

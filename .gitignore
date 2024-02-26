@@ -1,0 +1,15 @@
+*.so
+*.tar.gz
+*.whl
+.benchmarks/
+.ipynb_checkpoints/
+.mypy_cache/
+.pytest_cache/
+.python-version
+__pycache__/
+bin/
+build/
+dist/
+html/
+laueimproc.egg-info/
+venv
