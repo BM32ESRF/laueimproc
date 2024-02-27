@@ -30,7 +30,7 @@ class BaseDiagram:
     file : pathlib.Path or None
         The absolute file path to the image if provided, None otherwise (readonly).
     bboxes : laueimproc.classes.tensor.Tensor or None
-        The tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        The tensor of the bounding boxes (anchor_x, anchor_y, width, height)
         for each spots of shape (n, 4) (readonly).
         Return None until spots are initialized.
     image : laueimproc.classes.tensor.Tensor
@@ -150,7 +150,7 @@ class BaseDiagram:
             The tensor of the bounding boxes of the spots.
         """
         bboxes = Tensor(torch.tensor(
-            [(i, j, *roi.shape) for (i, j), roi in zip(anchors.tolist(), rois)], dtype=int
+            [(x, y, *roi.shape) for (x, y), roi in zip(anchors.tolist(), rois)], dtype=int
         ))
         self._set_spots_from_bboxes(bboxes, _check=_check)
         image = self.image
@@ -161,8 +161,8 @@ class BaseDiagram:
                 device=image.device,
             ),
         )
-        for index, (roi, (height, width)) in enumerate(zip(rois, bboxes[:, 2:].tolist())):
-            self._rois[index, :height, :width] = roi
+        for index, (roi, (width, height)) in enumerate(zip(rois, bboxes[:, 2:].tolist())):
+            self._rois[index, :width, :height] = roi
 
     def _set_spots_from_bboxes(self, bboxes: Tensor, _check: bool = True) -> None:
         """Set the new spots from bboxes, in a cleared diagram.
@@ -203,11 +203,11 @@ class BaseDiagram:
         if _check:  # very slow
             new_spots_ = [
                 s for s in new_spots
-                if (
-                    s.bbox[0] >= 0  # overflow on left
-                    and s.bbox[1] >= 0   # on top
-                    and s.bbox[0]+s.bbox[2] <= image.shape[0]  # on right
-                    and s.bbox[1]+s.bbox[3] <= image.shape[1]  # on bottom
+                if (  # tests overflow
+                    s.bbox[0] >= 0
+                    and s.bbox[1] >= 0
+                    and s.bbox[0]+s.bbox[2] <= image.shape[0]
+                    and s.bbox[1]+s.bbox[3] <= image.shape[1]
                 )
             ]
             if nbr := len(new_spots) - len(new_spots_):
@@ -229,17 +229,19 @@ class BaseDiagram:
                 device=image.device,
             )
         )
-        for index, (roi, (height, width)) in enumerate(zip(rois, bboxes[:, 2:].tolist())):
-            self._rois[index, :height, :width] = roi
+        for index, (roi, (width, height)) in enumerate(zip(rois, bboxes[:, 2:].tolist())):
+            self._rois[index, :width, :height] = roi
 
     @property
     def bboxes(self) -> typing.Union[None, Tensor]:
-        """Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width)."""
+        """Return the tensor of the bounding boxes (anchor_x, anchor_y, width, height)."""
         if self._spots is None:
             return None
         if "bboxes" not in self._cache:
             if self._spots:
-                self._cache["bboxes"] = Tensor(torch.tensor([s.bbox for s in self._spots], dtype=int))
+                self._cache["bboxes"] = Tensor(
+                    torch.tensor([s.bbox for s in self._spots], dtype=int)
+                )
             else:
                 self._cache["bboxes"] = Tensor(torch.empty((0, 4), dtype=int))
         return self._cache["bboxes"]
@@ -275,9 +277,9 @@ class BaseDiagram:
         @functools.wraps(meth)
         def cached_meth(self, *args, **kwargs):
             signature = f"{meth.__name__}_{hashlib.md5(pickle.dumps((args, kwargs))).hexdigest()}"
-            if signature not in self._cache:
-                self._cache[signature] = meth(self, *args, **kwargs)
-            return self._cache[signature]
+            if signature not in self._cache:  # pylint: disable=W0212
+                self._cache[signature] = meth(self, *args, **kwargs)  # pylint: disable=W0212
+            return self._cache[signature]  # pylint: disable=W0212
         return cached_meth
 
     @property
@@ -390,24 +392,23 @@ class BaseDiagram:
         if self._spots:
             axes.plot(
                 np.vstack((
-                    self.bboxes[:, 1],
-                    self.bboxes[:, 1],
-                    self.bboxes[:, 1]+self.bboxes[:, 3],
-                    self.bboxes[:, 1]+self.bboxes[:, 3],
-                    self.bboxes[:, 1],
+                    self.bboxes[:, 0],
+                    self.bboxes[:, 0]+self.bboxes[:, 2],
+                    self.bboxes[:, 0]+self.bboxes[:, 2],
+                    self.bboxes[:, 0],
+                    self.bboxes[:, 0],
                 )),
                 np.vstack((
-                    self.bboxes[:, 0],
-                    self.bboxes[:, 0]+self.bboxes[:, 2],
-                    self.bboxes[:, 0]+self.bboxes[:, 2],
-                    self.bboxes[:, 0],
-                    self.bboxes[:, 0],
+                    self.bboxes[:, 1],
+                    self.bboxes[:, 1],
+                    self.bboxes[:, 1]+self.bboxes[:, 3],
+                    self.bboxes[:, 1]+self.bboxes[:, 3],
+                    self.bboxes[:, 1],
                 )),
                 color="blue",
                 scalex=False,
                 scaley=False,
             )
-            # axes.scatter(self.bboxes[:, 1], self.bboxes[:, 0], color="blue")
 
     @property
     def rois(self) -> typing.Union[None, Tensor]:
@@ -431,8 +432,8 @@ class BaseDiagram:
                         device=image.device,
                     )
                 )
-                for index, (i, j, height, width) in enumerate(bboxes.tolist()):  # copy patches
-                    self._cache["rois"][index, :height, :width] = image[i:i+height, j:j+width]
+                for index, (x, y, width, height) in enumerate(bboxes.tolist()):  # copy patches
+                    self._cache["rois"][index, :width, :height] = image[x:x+width, y:y+height]
         return self._cache["rois"]
 
     def set_spots(self, *args) -> None:
@@ -441,7 +442,7 @@ class BaseDiagram:
 
     def show(self) -> None:
         """Display the diagram, ccreate the matplotlib context of `self.plot`."""
-        fig = plt.Figure(layout="tight")
+        fig = plt.Figure(layout="tight", figsize=(10, 10))
         self.plot(fig)
         plt.show()
 

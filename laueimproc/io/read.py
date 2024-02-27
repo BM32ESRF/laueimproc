@@ -23,7 +23,7 @@ def read_image(filename: typing.Union[str, bytes, pathlib.Path]) -> np.ndarray:
     Returns
     -------
     np.ndarray
-        The grayscale laue image matrix in uint16.
+        The grayscale laue image matrix in native type, in general uint16.
 
     Raises
     ------

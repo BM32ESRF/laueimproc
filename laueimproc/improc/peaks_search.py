@@ -84,9 +84,9 @@ def peaks_search(
     Returns
     -------
     rois_no_background : Tensor
-        The tensor of each regions of interest without background, shape (n, h, w) and type float.
+        The tensor of each regions of interest without background, shape (n, w, h) and type float.
     bboxes : Tensor
-        The positions of the corners point (0, 0) and the shape (i, j, h, w)
+        The positions of the corners point (0, 0) and the shape (x, y, w, h)
         of the roi of each spot in the brut_image, and the height and width of each roi.
         The shape is (n, 4) and the type is int.
     """
@@ -116,7 +116,7 @@ def peaks_search(
         fg_image = src
         fg_image -= bg_image  # inplace
     bboxes = [
-        (i, j, h, w) for j, i, w, h in map(  # cv2 to numpy convention
+        (x, y, w, h) for x, y, w, h in map(
             cv2.boundingRect,
             cv2.findContours(
                 cv2.dilate(
@@ -129,17 +129,21 @@ def peaks_search(
                 cv2.RETR_EXTERNAL,
                 cv2.CHAIN_APPROX_SIMPLE,
             )[0],
-        ) if max(h, w) <= 200 # remove too big spots
+        ) if max(w, h) <= 200 # remove too big spots
     ]
 
     # vectorisation
     if bboxes:
         rois = np.zeros( # zeros 2 times faster than empty + fill 0
-            (len(bboxes), max(h for _, _, h, _ in bboxes), max(w for _, _, _, w in bboxes)),
+            (len(bboxes), max(w for _, _, w, _ in bboxes), max(h for _, _, _, h in bboxes)),
             dtype=fg_image.dtype
         )
-        for index, (i, j, height, width) in enumerate(bboxes):  # write the right values
-            rois[index, :height, :width] = fg_image[i:i+height, j:j+width]
+        for index, (x, y, width, height) in enumerate(bboxes):  # write the right values
+            assert rois.shape[1] >= width
+            assert rois.shape[2] >= height
+            assert fg_image.shape[0] >= x+width
+            assert fg_image.shape[1] >= y+height
+            rois[index, :width, :height] = fg_image[x:x+width, y:y+height]
         rois = Tensor(rois, to_float=True).to(device=brut_image.device)
         bboxes = Tensor(torch.tensor(bboxes, dtype=int))
     else:

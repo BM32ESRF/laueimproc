@@ -13,7 +13,7 @@ class Spot:
     Attributes
     ----------
     anchor : tuple[int, int]
-        The position (i, j) of the corner point (0, 0) of the roi in the diagram.
+        The position (x, y) of the corner point (0, 0) of the roi in the diagram.
     bbox : tuple[int, int, int, int]
         The concatenation of `anchor` and `shape`.
     diagram : laueimproc.classes.Diagram
@@ -23,7 +23,7 @@ class Spot:
     roi_brut : laueimproc.classes.tensor.Tensor
         The image of the complete spot zone (in the direct image).
     shape : tuple[int, int]
-        The shape of the roi in the numpy convention (readonly).
+        The shape of the roi in the cv2 convention (readonly).
     """
 
     def __getstate__(self, cache: bool = False):
@@ -48,7 +48,7 @@ class Spot:
         """
         # declaration
         from .diagram import Diagram  # pylint: disable=C0415
-        # the region of interest anchors (i, j, h, w)
+        # the region of interest anchors (x, y, w, h)
         self._bbox: tuple[int, int, int, int]  # pylint: disable=W0201
         # contains the optional cached data
         self._cache: dict[str] = {}  # pylint: disable=W0201
@@ -90,7 +90,7 @@ class Spot:
 
     @property
     def anchor(self):
-        """Return the position (i, j) of the corner point (0, 0) of the roi in the diagram."""
+        """Return the position (x, y) of the corner point (0, 0) of the roi in the diagram."""
         return self._bbox[:2]
 
     @property
@@ -106,16 +106,16 @@ class Spot:
     @property
     def roi(self) -> Tensor:
         """Return the patch of the filtered image of the region of interest."""
-        _, _, height, width = self._bbox
-        return self._diagram.rois[self._index, :height, :width]  # share underground data
+        _, _, width, height = self._bbox
+        return self._diagram.rois[self._index, :width, :height]  # share underground data
 
     @property
     def roi_brut(self) -> Tensor:
         """Return the patch of the brut image of the region of interest."""
-        anch_i, anch_j, height, width = self._bbox
-        return self._diagram.image[anch_i, anch_j, :height, :width]
+        anch_x, anch_y, width, height = self._bbox
+        return self._diagram.image[anch_x, anch_y, :width, :height]
 
     @property
     def shape(self) -> tuple[int, int]:
-        """Return the shape of the roi in the numpy convention."""
+        """Return the shape of the roi in the cv2 convention."""
         return self._bbox[2:]
