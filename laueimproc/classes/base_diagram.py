@@ -378,6 +378,9 @@ class BaseDiagram:
             cache["image"] = self._cache["image"]
         self._cache = cache
 
+        # update history
+        self._history.append("general filtering")
+
         return self
 
     def find_spots(self, **kwargs) -> None:

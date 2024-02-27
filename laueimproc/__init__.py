@@ -4,5 +4,5 @@
 
 from .classes import Diagram
 
-__version__ = "0.0.dev2"  # pep 440
+__version__ = "0.0.dev5"  # pep 440
 __all__ = ["Diagram"]
