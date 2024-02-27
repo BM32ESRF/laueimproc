@@ -143,6 +143,6 @@ def peaks_search(
         rois = Tensor(rois, to_float=True).to(device=brut_image.device)
         bboxes = Tensor(torch.tensor(bboxes, dtype=int))
     else:
-        rois = Tensor(torch.empty((0, 1, 1), dtype=torch.float32, device=brut_image.device))
-        bboxes = Tensor(torch.empty((0, 4), dtype=int))
+        rois = Tensor(torch.empty((0, 1, 1), dtype=brut_image.dtype, device=brut_image.device))
+        bboxes = Tensor(torch.empty((0, 4), dtype=int, device=brut_image.device))
     return rois, bboxes

@@ -31,7 +31,11 @@ class BaseDiagram:
         The absolute file path to the image if provided, None otherwise (readonly).
     bboxes : laueimproc.classes.tensor.Tensor or None
         The tensor of the bounding boxes (anchor_i, anchor_j, height, width)
-        for each spots of shape (n, 4) (readonly).
+        for each spots, of shape (n, 4) (readonly).
+        Return None until spots are initialized.
+    centers : laueimproc.classes.tensor.Tensor or None
+        The tensor of the centers for each spots, of shape (n, 2).
+        The tensor is of type int, so if the size is odd, the middle is rounded down.
         Return None until spots are initialized.
     image : laueimproc.classes.tensor.Tensor
         The complete brut image of the diagram (readonly).
@@ -149,14 +153,21 @@ class BaseDiagram:
         bboxes : np.ndarray[int]
             The tensor of the bounding boxes of the spots.
         """
-        bboxes = Tensor(torch.tensor(
-            [(i, j, *roi.shape) for (i, j), roi in zip(anchors.tolist(), rois)], dtype=int
-        ))
+        if anchors.shape[0]:
+            bboxes = Tensor(torch.tensor(
+                [(i, j, *roi.shape) for (i, j), roi in zip(anchors.tolist(), rois)], dtype=int
+            ))
+        else:
+            bboxes = Tensor(torch.empty((0, 4), dtype=int))
         self._set_spots_from_bboxes(bboxes, _check=_check)
         image = self.image
         self._rois = Tensor(
             torch.zeros( # zeros 2 times faster than empty + fill 0
-                (len(rois), torch.max(bboxes[:, 2]).item(), torch.max(bboxes[:, 3]).item()),
+                (
+                    len(rois),
+                    torch.max(bboxes[:, 2]).item() if bboxes.shape[0] else 1,
+                    torch.max(bboxes[:, 3]).item() if bboxes.shape[0] else 1,
+                ),
                 dtype=image.dtype,
                 device=image.device,
             ),
@@ -224,13 +235,29 @@ class BaseDiagram:
         bboxes = self.bboxes  # reachable because self._spots is defined
         self._rois = Tensor(
             torch.zeros( # zeros 2 times faster than empty + fill 0
-                (bboxes.shape[0], torch.max(bboxes[:, 2]).item(), torch.max(bboxes[:, 3]).item()),
+                (
+                    bboxes.shape[0],
+                    torch.max(bboxes[:, 2]).item() if bboxes.shape[0] else 1,
+                    torch.max(bboxes[:, 3]).item() if bboxes.shape[0] else 1,
+                ),
                 dtype=image.dtype,
                 device=image.device,
             )
         )
         for index, (roi, (height, width)) in enumerate(zip(rois, bboxes[:, 2:].tolist())):
             self._rois[index, :height, :width] = roi
+
+    @classmethod
+    def auto_cache(cls, meth: callable) -> callable:
+        """Decorator to manage the cache of this method."""
+        assert hasattr(meth, "__call__"), f"{meth} has to be a method of {cls}"
+        @functools.wraps(meth)
+        def cached_meth(self, *args, **kwargs):
+            signature = f"{meth.__name__}_{hashlib.md5(pickle.dumps((args, kwargs))).hexdigest()}"
+            if signature not in self._cache:  # pylint: disable=W0212
+                self._cache[signature] = meth(self, *args, **kwargs)  # pylint: disable=W0212
+            return self._cache[signature]  # pylint: disable=W0212
+        return cached_meth
 
     @property
     def bboxes(self) -> typing.Union[None, Tensor]:
@@ -239,10 +266,25 @@ class BaseDiagram:
             return None
         if "bboxes" not in self._cache:
             if self._spots:
-                self._cache["bboxes"] = Tensor(torch.tensor([s.bbox for s in self._spots], dtype=int))
+                self._cache["bboxes"] = Tensor(
+                    torch.tensor([s.bbox for s in self._spots], dtype=int)
+                )
             else:
                 self._cache["bboxes"] = Tensor(torch.empty((0, 4), dtype=int))
         return self._cache["bboxes"]
+
+    @property
+    def centers(self) -> typing.Union[None, Tensor]:
+        """Return the tensor of the centers."""
+        if self._spots is None:
+            return None
+        if "centers" not in self._cache:
+            if self._spots:
+                bboxes = self.bboxes
+                self._cache["centers"] = bboxes[:, :2] + bboxes[:, 2:]//2
+            else:
+                self._cache["centers"] = Tensor(torch.empty((0, 2), dtype=int))
+        return self._cache["centers"]
 
     def clone(self, deep: bool = True, cache: bool = True):
         """Instanciate a new identical diagram.
@@ -268,18 +310,6 @@ class BaseDiagram:
         new_diagram.__setstate__(state)  # initialise (fill) the new diagram
         return new_diagram
 
-    @classmethod
-    def enable_caching(cls, meth: callable) -> callable:
-        """Decorator to manage the cache of this method."""
-        assert hasattr(meth, "__call__"), f"{meth} has to be a method of {cls}"
-        @functools.wraps(meth)
-        def cached_meth(self, *args, **kwargs):
-            signature = f"{meth.__name__}_{hashlib.md5(pickle.dumps((args, kwargs))).hexdigest()}"
-            if signature not in self._cache:
-                self._cache[signature] = meth(self, *args, **kwargs)
-            return self._cache[signature]
-        return cached_meth
-
     @property
     def file(self) -> typing.Union[None, pathlib.Path]:
         """Return the absolute file path to the image, if it is provided."""
@@ -290,7 +320,7 @@ class BaseDiagram:
     def filter_spots(self, indexs: typing.Container, inplace: bool = True):
         """Keep only the given spots, delete the rest.
 
-        This method can be used for filtering.
+        This method can be used for filtering or sorting spots.
 
         Parameters
         ----------
@@ -301,35 +331,54 @@ class BaseDiagram:
             If True, modify the diagram self (no copy) and return a reference to self.
             If False, first clone the diagram, then apply the selection on the new diagram,
             It create a checkpoint (real copy) (but it is slowler).
+
+        Returns
+        -------
+        filtered_diagram : BaseDiagram
+            Return self if inplace is True or a modified clone of self otherwise.
         """
         # verifications and cast
+        if self._spots is None:
+            raise RuntimeWarning(
+                "you must to initialize the spots (`self.find_spots()`) before to filter it"
+            )
         assert hasattr(indexs, "__iter__"), indexs.__class__.__name__
         assert isinstance(inplace, bool), inplace.__class__.__name__
-        if not isinstance(indexs, (torch.tensor, np.ndarray)):
+        if not isinstance(indexs, (torch.Tensor, np.ndarray)):
             indexs = Tensor(torch.tensor(indexs))
         else:
             indexs = Tensor(indexs)
         indexs = torch.squeeze(indexs)
-        assert index.ndim == 1, f"only a 1d vector is accepted, shape is {indexs.shape}"
-        if indexs.dtype is torch.bool:
-            mask = indexs
-            assert mask.shape[0] == len(self.spots), (
+        assert indexs.ndim == 1, f"only a 1d vector is accepted, shape is {indexs.shape}"
+        if indexs.dtype is torch.bool:  # case mask -> convert into index list
+            assert indexs.shape[0] == len(self.spots), (
                 "the mask has to have the same lenght as the number of spots, "
-                f"there are {len(self.spots)} spots and mask is of len {mask.shape[0]}"
+                f"there are {len(self.spots)} spots and mask is of len {indexs.shape[0]}"
             )
+            indexs = Tensor(torch.arange(len(self.spots)))[indexs]  # bool -> indexs
         else:
-            mask = Tensor(torch.full((len(self.spots),), False, dtype=torch.bool))
-            # TODO verifier max, min et duplication?
-            mask[indexs.to(int)] = True
+            assert len(set(indexs.tolist())) == indexs.shape[0], \
+                "each index must be unique, bu some of them appear more than once"
+            assert not indexs.shape[0] or torch.min(indexs).item() >= 0, \
+                "negative index is not allowed"
+            assert not indexs.shape[0] or torch.max(indexs).item() < len(self.spots), \
+                "some indexes are out of range"
 
-        # remove the spots
+        # manage inplace
+        if not inplace:
+            self = self.clone()
+
+        # filter the spots and the rois
+        self._rois = self.rois[indexs]
+        self._spots = [self._spots[new_index] for new_index in indexs.tolist()]
+        for new_index, spot in enumerate(self._spots):
+            spot._index = new_index  # pylint: disable=W0212
         cache = {}
         if "image" in self._cache:
             cache["image"] = self._cache["image"]
         self._cache = cache
 
-        rois = self.rois[mask]
-        raise NotImplementedError
+        return self
 
     def find_spots(self, **kwargs) -> None:
         """Search all the spots in this diagram, store the result into the `spots` attribute.
@@ -386,28 +435,42 @@ class BaseDiagram:
         else:
             fig.suptitle(f"Diagram from Tensor of id {id(self._file_or_data)}")
         axes = fig.add_subplot()
-        axes.imshow(self.image, aspect="equal", interpolation="bicubic", norm="log", cmap="gray")
+        axes.set_ylabel("i (first axis)")
+        axes.set_xlabel("j (second axis)")
+        axes.imshow(
+            self.image.numpy(force=True).transpose(),
+            aspect="equal",
+            interpolation="bicubic",
+            norm="log",
+            cmap="gray",
+        )
         if self._spots:
             axes.plot(
                 np.vstack((
-                    self.bboxes[:, 1],
-                    self.bboxes[:, 1],
-                    self.bboxes[:, 1]+self.bboxes[:, 3],
-                    self.bboxes[:, 1]+self.bboxes[:, 3],
-                    self.bboxes[:, 1],
+                    self.bboxes[:, 0],
+                    self.bboxes[:, 0]+self.bboxes[:, 2],
+                    self.bboxes[:, 0]+self.bboxes[:, 2],
+                    self.bboxes[:, 0],
+                    self.bboxes[:, 0],
                 )),
                 np.vstack((
-                    self.bboxes[:, 0],
-                    self.bboxes[:, 0]+self.bboxes[:, 2],
-                    self.bboxes[:, 0]+self.bboxes[:, 2],
-                    self.bboxes[:, 0],
-                    self.bboxes[:, 0],
+                    self.bboxes[:, 1],
+                    self.bboxes[:, 1],
+                    self.bboxes[:, 1]+self.bboxes[:, 3],
+                    self.bboxes[:, 1]+self.bboxes[:, 3],
+                    self.bboxes[:, 1],
                 )),
                 color="blue",
                 scalex=False,
                 scaley=False,
             )
-            # axes.scatter(self.bboxes[:, 1], self.bboxes[:, 0], color="blue")
+
+    def reset(self) -> None:
+        """Clear everithing, like if the diagram has just been borned."""
+        self._cache = {}  # clear cache
+        self._history = []  # clear the history
+        self._rois = None  # clear the rois
+        self._spots = None  # clear all spots
 
     @property
     def rois(self) -> typing.Union[None, Tensor]:
@@ -424,8 +487,8 @@ class BaseDiagram:
                     torch.zeros( # zeros 2 times faster than empty + fill 0
                         (
                             bboxes.shape[0],
-                            torch.max(bboxes[:, 2]).item(),
-                            torch.max(bboxes[:, 3]).item(),
+                            torch.max(bboxes[:, 2]).item() if bboxes.shape[0] else 1,
+                            torch.max(bboxes[:, 3]).item() if bboxes.shape[0] else 1,
                         ),
                         dtype=image.dtype,
                         device=image.device,
@@ -435,51 +498,22 @@ class BaseDiagram:
                     self._cache["rois"][index, :height, :width] = image[i:i+height, j:j+width]
         return self._cache["rois"]
 
-    def set_spots(self, *args) -> None:
-        """Alias to self.spots = args"""
-        self.spots = args
+    def set_spots(self, new_spots: typing.Container) -> None:
+        """Set the new spots as the current spots, reset the history and the cache.
 
-    def show(self) -> None:
-        """Display the diagram, ccreate the matplotlib context of `self.plot`."""
-        fig = plt.Figure(layout="tight")
-        self.plot(fig)
-        plt.show()
+        Paremeters
+        ----------
+        new_spots : typing.Container
+            * Can be an iterable (list, tuple, set, ...) of `Spot` instances.
+            * Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width)
+            * Can be a tuple of anchors (arraylike of shape n * (anchor_i, anchor_i))
+                and rois (iterable of images patches).
+            * Can be None for reset all (same as calling the `reset` method)
+        """
+        # case reset
+        if new_spots is None:
+            return self.reset()
 
-    # @classmethod
-    # def spot_property(cls, name: str) -> callable:
-    #     """Decorate a method to include it in the filters.
-
-    #     Parameters
-    #     ----------
-    #     name : str
-    #         The name of the property.
-    #         It became the name of the spot attribute.
-    #     """
-    #     assert isinstance(name, str), name.__class__.__name__
-    #     assert name, "the property name can not be ''"
-    #     def meth_decorator(meth):
-    #         assert name not in cls._spot_property, \
-    #             f"the {name} property of {meth} is already defined for {cls._spot_property[name]}"
-    #         assert "_return_tensor" in inspect.signature(meth).parameters, \
-    #             f"the method {meth} requiere the bool parameter '_return_tensor'"
-    #         ret_param = inspect.signature(meth).parameters["_return_tensor"]
-    #         assert ret_param.kind == ret_param.KEYWORD_ONLY, \
-    #             f"the parameter '_return_tensor' of the method {meth} has to be keyword only"
-    #         cls._spot_property[name] = meth
-    #         return meth
-    #     return meth_decorator
-
-
-    @property
-    def spots(self) -> typing.Union[list[Spot]]:
-        """Return the spots in a unordered set container."""
-        if self._spots is None:  # case spots are never been searched
-            return None
-        return self._spots.copy()  # copy is slow but it is a strong protection against the user
-
-    @spots.setter
-    def spots(self, new_spots: typing.Container):
-        """Set the new spots as the current spots, reset the history and the cache."""
         assert hasattr(new_spots, "__iter__"), new_spots.__class__.__name__
 
         # clear history and internal state (self._rois is cleared later)
@@ -498,7 +532,7 @@ class BaseDiagram:
             if new_spots.ndim == 2 and new_spots.shape[1] == 4:  # case from bounding boxes
                 self._set_spots_from_bboxes(new_spots)
                 self._history = [f"{len(self._spots)} spots from external bboxes"]
-                return
+                return None
 
             raise NotImplementedError(
                 f"impossible to set new spots from an array of shape {new_spots.shape}, "
@@ -511,10 +545,10 @@ class BaseDiagram:
 
         # case from Spot instances
         cls = {s.__class__ for s in new_spots}
-        if len(cls) == 1 and next(iter(cls)) is Spot:
+        if not cls or (len(cls) == 1 and next(iter(cls)) is Spot):  # catch empty case
             self._set_spots_from_spots(new_spots)  # reset self._rois
             self._history = [f"{len(self._spots)} spots from external spots"]
-            return
+            return None
 
         # case from anchors, rois
         if (
@@ -523,19 +557,36 @@ class BaseDiagram:
             and isinstance(new_spots[1], (list, tuple))
             and len(new_spots[0]) == len(new_spots[1])
         ):
-            anchors = Tensor(torch.tensor(new_spots[0], dtype=int))
+            anchors = Tensor(torch.as_tensor(new_spots[0], dtype=int))
             rois = [Tensor(roi, to_float=True) for roi in new_spots[1]]
             self._set_spots_from_anchors_rois(anchors, rois)
             self._history = [f"{len(self._spots)} spots from external anchors and rois"]
-            return
+            return None
 
         # case tensor (recursive delegation)
         if len(cls) == 1 and issubclass(next(iter(cls)), (list, tuple, np.ndarray, torch.Tensor)):
-            self.spots = Tensor(torch.tensor(new_spots, dtype=int))
-            return
+            return self.set_spots(Tensor(torch.as_tensor(new_spots, dtype=int)))
 
         raise NotImplementedError(
             f"impossible to set new spots from {new_spots}, "
             "it has to be a container of Spot instance "
             "or a container of bounding boxes"
         )
+
+    def show(self) -> None:
+        """Display the diagram, ccreate the matplotlib context of `self.plot`."""
+        fig = plt.Figure(layout="tight")
+        self.plot(fig)
+        plt.show()
+
+    @property
+    def spots(self) -> typing.Union[list[Spot]]:
+        """Return the spots in a unordered set container."""
+        if self._spots is None:  # case spots are never been searched
+            return None
+        return self._spots.copy()  # copy is slow but it is a strong protection against the user
+
+    @spots.setter
+    def spots(self, new_spots: typing.Container):
+        """Alias to ``set_spots``."""
+        self.set_spots(new_spots)

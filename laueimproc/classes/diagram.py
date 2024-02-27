@@ -14,14 +14,14 @@ from .tensor import Tensor
 class Diagram(BaseDiagram):
     """A Laue diagram image."""
 
-    @BaseDiagram.enable_caching  # put the result in cache
+    @BaseDiagram.auto_cache  # put the result in cache
     def compute_barycenters(self) -> Tensor:
         """Compute the barycenter of each spots."""
         barycenters = compute_barycenters(self.rois)  # relative to each spots
         barycenters += self.bboxes[:, :2].to(barycenters.dtype)  # absolute
         return barycenters
 
-    @BaseDiagram.enable_caching  # put the result in cache
+    @BaseDiagram.auto_cache  # put the result in cache
     def compute_pxl_intensities(self) -> Tensor:
         """Compute the total pixel intensity for each spots."""
         return compute_pxl_intensities(self.rois)

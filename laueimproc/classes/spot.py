@@ -16,6 +16,8 @@ class Spot:
         The position (i, j) of the corner point (0, 0) of the roi in the diagram.
     bbox : tuple[int, int, int, int]
         The concatenation of `anchor` and `shape`.
+    center : tuple[int, int]
+        The middle point of the spot in the diagram. If shape is odd, it is rounded down.
     diagram : laueimproc.classes.Diagram
         The parent diagram.
     roi : laueimproc.classes.tensor.Tensor
@@ -65,29 +67,6 @@ class Spot:
         # to return self allows you to create and instanciate a Spot in the same time
         return self
 
-    # def __getattr__(self, attr):
-    #     """Link automaticaly the idiagram spot properties as a spot attribute."""
-    #     def obj_meth(*args, **kwargs):
-    #         props = meth(self.diagram, *args, **kwargs)
-    #         if not isinstance(props, dict):
-    #             raise ValueError(
-    #                 f"the method {meth} must return a dictionary with a spot key, not {props}"
-    #             )
-    #         if self not in props:
-    #             raise ValueError(
-    #                 f"the spot {self} must be a key of the returned dictionary of the meth {meth}"
-    #             )
-    #         return props[self]
-
-    #     if (meth := self.diagram._spot_property.get(attr, None)) is not None:
-    #         return obj_meth()
-    #     if (
-    #         attr.startswith("get_")
-    #         and (meth := self.diagram._spot_property.get(attr[4:], None)) is not None
-    #     ):
-    #         return obj_meth
-    #     raise AttributeError(f"{self} has not attribute {attr}")
-
     @property
     def anchor(self):
         """Return the position (i, j) of the corner point (0, 0) of the roi in the diagram."""
@@ -97,6 +76,11 @@ class Spot:
     def bbox(self):
         """Return the concatenation of `anchor` and `shape`."""
         return self._bbox
+
+    @property
+    def center(self):
+        """Return the middle point of the spot in the diagram."""
+        return (self._bbox[0] + self._bbox[2]//2, self._bbox[1] + self._bbox[3]//2)
 
     @property
     def diagram(self):
