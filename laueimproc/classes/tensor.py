@@ -143,7 +143,7 @@ class Tensor(torch.Tensor):
         result = super().__torch_function__(func, types, args, kwargs)
         if isinstance(result, cls):
             if isinstance(args[0], cls):  # args[0] is self
-                result.context = args[0].context  # args[0] is self
+                result.context = getattr(args[0], "context", None)  # args[0] is self
             else:
                 return torch.Tensor(result)
         return result

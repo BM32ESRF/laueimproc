@@ -23,8 +23,6 @@ Dependencies
 
 If you have a GPU, please install CUDA or ROC then follow the `PyTorch installation guide <https://pytorch.org/>`_. Without CUDA or ROC, ``laueimproc`` is not able to use the GPU (CPU only).
 
-It is preferable to install laueimproc in a virtual environment. Please refer to the `pyenv installation guide <https://github.com/pyenv/pyenv>`_. It is possible to use ``python3-venv`` as well.
-
 
 Installation of the lastest version
 -----------------------------------
@@ -36,8 +34,7 @@ To install ``laueimproc`` from `GitHub <https://github.com/BM32ESRF/laueimproc>`
     git clone https://github.com/BM32ESRF/laueimproc.git
     cd laueimproc/
     python -m pip install --upgrade pip setuptools wheel
-    python -m pip -v install --user --editable .[all]
-    python -m laueimproc test
+    python -m pip -v install --editable .[all]
 
 
 Example
@@ -46,4 +43,5 @@ Example
 
 .. code:: python
 
-    from laueimproc.io import read_image
+    from laueimproc import Diagram
+    

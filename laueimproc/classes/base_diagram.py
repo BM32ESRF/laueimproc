@@ -4,9 +4,10 @@
 
 import functools
 import hashlib
+import numbers
 import pathlib
 import pickle
-import sys
+import threading
 import typing
 import warnings
 
@@ -15,10 +16,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-from laueimproc.io.read import read_image
 from laueimproc.improc.peaks_search import peaks_search
-from .tensor import Tensor
+from laueimproc.io.read import read_image
+from laueimproc.opti.cache import auto_cache, delete_values_in_dict, getsizeof
+from laueimproc.opti.manager import DiagramManager
 from .spot import Spot
+from .tensor import Tensor
 
 
 
@@ -63,12 +66,15 @@ class BaseDiagram:
             The filename or the array/tensor use as a diagram.
             For memory management, it is better to provide a pathlike rather than an array.
         """
+        # declaration
         self._cache: dict[str] = {}  # contains the optional cached data
+        self._cache_lock = threading.Lock()  # make the cache acces thread safe
         self._file_or_data: typing.Union[pathlib.Path, Tensor]  # the path to the image file
         self._history: list[str] = []  # the history of the actions performed
         self._rois: typing.Union[None, Tensor] = None  # if rois aren't a patch of the brut image
         self._spots: typing.Optional[list[Spot]] = None  # the spots of the diagram
 
+        # initialisation
         if isinstance(data, (str, bytes, pathlib.Path)):
             self._file_or_data = data
             if _check:
@@ -78,6 +84,9 @@ class BaseDiagram:
             warnings.warn("please provide a path rather than an array", RuntimeWarning)
             self._file_or_data = Tensor(data, to_float=True)
             assert self._file_or_data.ndim == 2, self._file_or_data.shape
+
+        # global context
+        DiagramManager().add_diagram(self)
 
     def __getstate__(self, cache: bool = False):
         """Make the object pickleable."""
@@ -90,8 +99,15 @@ class BaseDiagram:
             ]
             for spot in spots_no_diagram:
                 spot._diagram = None  # in order to avoid cyclic reference
-        if cache:
-            return (self._file_or_data, self._history, self._rois, spots_no_diagram, self._cache)
+        with self._cache_lock:
+            if cache:
+                return (
+                    self._file_or_data,
+                    self._history,
+                    self._rois,
+                    spots_no_diagram,
+                    self._cache.copy(),
+                )
         return (self._file_or_data, self._history, self._rois, spots_no_diagram)
 
     def __setstate__(self, state: tuple):
@@ -108,8 +124,9 @@ class BaseDiagram:
         if self._spots is not None:
             for spot in self._spots:
                 spot._diagram = self
-        if len(state) == 5:
-            self._cache = state[4]
+        self._cache = state[4] if len(state) == 5 else {}
+        self._cache_lock = threading.Lock()
+        DiagramManager().add_diagram(self)
 
     def __str__(self) -> str:
         """Return a nice sumary of the history of this diagram."""
@@ -131,7 +148,8 @@ class BaseDiagram:
         # stats
         text += "\n    Current state:"
         text += f"\n        * id: {id(self)}"
-        cache_size = sum(sys.getsizeof(k) + sys.getsizeof(v) for k, v in self._cache.items())
+        with self._cache_lock:
+            cache_size = sum(getsizeof(v) for v in self._cache.values())
         unit, factor = {
             (True, True, True): ("GB", 1e9),
             (False, True, True): ("MB", 1e6),
@@ -199,7 +217,8 @@ class BaseDiagram:
             Spot.__new__(Spot).__setstate__((self, index, (i, j, h, w)))
             for index, (i, j, h, w) in enumerate(bboxes.tolist())
         ]
-        self._cache["bboxes"] = bboxes  # facultative, but it is a little optimization
+        with self._cache_lock:
+            self._cache["bboxes"] = bboxes  # facultative, but it is a little optimization
 
     def _set_spots_from_spots(self, new_spots: list[Spot], _check: bool = True) -> None:
         """Set the new spots, in a cleared diagram (not cleard for self._rois).
@@ -247,44 +266,48 @@ class BaseDiagram:
         for index, (roi, (height, width)) in enumerate(zip(rois, bboxes[:, 2:].tolist())):
             self._rois[index, :height, :width] = roi
 
-    @classmethod
-    def auto_cache(cls, meth: callable) -> callable:
-        """Decorator to manage the cache of this method."""
-        assert hasattr(meth, "__call__"), f"{meth} has to be a method of {cls}"
-        @functools.wraps(meth)
-        def cached_meth(self, *args, **kwargs):
-            signature = f"{meth.__name__}_{hashlib.md5(pickle.dumps((args, kwargs))).hexdigest()}"
-            if signature not in self._cache:  # pylint: disable=W0212
-                self._cache[signature] = meth(self, *args, **kwargs)  # pylint: disable=W0212
-            return self._cache[signature]  # pylint: disable=W0212
-        return cached_meth
-
     @property
     def bboxes(self) -> typing.Union[None, Tensor]:
         """Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width)."""
         if self._spots is None:
             return None
-        if "bboxes" not in self._cache:
-            if self._spots:
-                self._cache["bboxes"] = Tensor(
-                    torch.tensor([s.bbox for s in self._spots], dtype=int)
-                )
-            else:
-                self._cache["bboxes"] = Tensor(torch.empty((0, 4), dtype=int))
-        return self._cache["bboxes"]
+        with self._cache_lock:
+            if "bboxes" not in self._cache:
+                if self._spots:
+                    self._cache["bboxes"] = Tensor(
+                        torch.tensor([s.bbox for s in self._spots], dtype=int)
+                    )
+                else:
+                    self._cache["bboxes"] = Tensor(torch.empty((0, 4), dtype=int))
+            return self._cache["bboxes"]
 
     @property
-    def centers(self) -> typing.Union[None, Tensor]:
+    def centers(self) -> typing.Union[None, Tensor]:  # very fast -> no cache
         """Return the tensor of the centers."""
         if self._spots is None:
             return None
-        if "centers" not in self._cache:
-            if self._spots:
-                bboxes = self.bboxes
-                self._cache["centers"] = bboxes[:, :2] + bboxes[:, 2:]//2
-            else:
-                self._cache["centers"] = Tensor(torch.empty((0, 2), dtype=int))
-        return self._cache["centers"]
+        if self._spots:
+            bboxes = self.bboxes
+            return bboxes[:, :2] + bboxes[:, 2:]//2
+        return Tensor(torch.empty((0, 2), dtype=int))
+
+    def clear_cache(self, target_size: typing.Optional[int] = None):
+        """Delete the biggers element of the cache.
+
+        Paremeters
+        ----------
+        target_size : int, optional
+            If provided, it corresponds to quantity of bytes to remove from the cache.
+            If it is not provided, all the cache is deleted.
+        """
+        if target_size is None:
+            with self._cache_lock:
+                self._cache = {}
+            return
+        assert isinstance(target_size, numbers.Integral), target_size.__class__.__name__
+        assert target_size >= 0, target_size
+        with self._cache_lock:
+            delete_values_in_dict(self._cache, target_size)
 
     def clone(self, deep: bool = True, cache: bool = True):
         """Instanciate a new identical diagram.
@@ -374,9 +397,10 @@ class BaseDiagram:
         for new_index, spot in enumerate(self._spots):
             spot._index = new_index  # pylint: disable=W0212
         cache = {}
-        if "image" in self._cache:
-            cache["image"] = self._cache["image"]
-        self._cache = cache
+        with self._cache_lock:
+            if "image" in self._cache:
+                cache["image"] = self._cache["image"]
+            self._cache = cache
 
         # update history
         self._history.append("general filtering")
@@ -396,7 +420,8 @@ class BaseDiagram:
         rois, bboxes = peaks_search(image, **kwargs)
 
         # cast into spots objects
-        self._cache = {"image": image, "bboxes": bboxes}  # reset cache to prevent wrong data
+        with self._cache_lock:
+            self._cache = {"image": image, "bboxes": bboxes}  # reset cache to prevent wrong data
         self._rois = rois
         self._spots = [
             Spot.__new__(Spot).__setstate__((self, index, bbox))
@@ -410,14 +435,12 @@ class BaseDiagram:
         return self.spots
 
     @property
+    @auto_cache
     def image(self) -> Tensor:
         """Return the complete image of the diagram."""
-        if "image" not in self._cache:
-            if isinstance(self._file_or_data, pathlib.Path):
-                self._cache["image"] = Tensor(read_image(self._file_or_data), to_float=True)
-            else:
-                self._cache["image"] = self._file_or_data
-        return self._cache["image"]
+        if isinstance(self._file_or_data, pathlib.Path):
+            return Tensor(read_image(self._file_or_data), to_float=True)
+        return self._file_or_data
 
     def plot(self, fig: Figure) -> None:
         """Prepare for display the diagram and the spots.
@@ -470,7 +493,8 @@ class BaseDiagram:
 
     def reset(self) -> None:
         """Clear everithing, like if the diagram has just been borned."""
-        self._cache = {}  # clear cache
+        with self._cache_lock:
+            self._cache = {}  # clear cache
         self._history = []  # clear the history
         self._rois = None  # clear the rois
         self._spots = None  # clear all spots
@@ -480,26 +504,21 @@ class BaseDiagram:
         """Return the tensor of the rois of the spots."""
         if self._spots is None:
             return None
-        if "rois" not in self._cache:
-            if self._rois is not None:
-                self._cache["rois"] = self._rois
-            else:
-                image = self.image
-                bboxes = self.bboxes
-                self._cache["rois"] = Tensor(
-                    torch.zeros( # zeros 2 times faster than empty + fill 0
-                        (
-                            bboxes.shape[0],
-                            torch.max(bboxes[:, 2]).item() if bboxes.shape[0] else 1,
-                            torch.max(bboxes[:, 3]).item() if bboxes.shape[0] else 1,
-                        ),
-                        dtype=image.dtype,
-                        device=image.device,
-                    )
+        if self._rois is not None:
+            image = self.image
+            bboxes = self.bboxes
+            self._rois = Tensor(
+                torch.zeros( # zeros 2 times faster than empty + fill 0
+                    (
+                        bboxes.shape[0],
+                        torch.max(bboxes[:, 2]).item() if bboxes.shape[0] else 1,
+                        torch.max(bboxes[:, 3]).item() if bboxes.shape[0] else 1,
+                    ),
+                    dtype=image.dtype,
+                    device=image.device,
                 )
-                for index, (i, j, height, width) in enumerate(bboxes.tolist()):  # copy patches
-                    self._cache["rois"][index, :height, :width] = image[i:i+height, j:j+width]
-        return self._cache["rois"]
+            )
+        return self._rois
 
     def set_spots(self, new_spots: typing.Container) -> None:
         """Set the new spots as the current spots, reset the history and the cache.
@@ -520,7 +539,8 @@ class BaseDiagram:
         assert hasattr(new_spots, "__iter__"), new_spots.__class__.__name__
 
         # clear history and internal state (self._rois is cleared later)
-        self._cache = {}
+        with self._cache_lock:
+            self._cache = {}
         self._history = []
         self._spots = None
 

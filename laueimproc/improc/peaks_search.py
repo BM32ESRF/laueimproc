@@ -13,9 +13,53 @@ from laueimproc.classes.tensor import Tensor
 
 
 
-DEFAULT_KERNEL_FONT = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21))
+DEFAULT_KERNEL_FONT = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (17, 17))
 DEFAULT_KERNEL_AGLO = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
 
+
+
+def unfold(img: Tensor, kernel_h: int, kernel_w: int) -> Tensor:
+    """Return patched version of img with a stride of 1.
+
+    Parameters
+    ----------
+    img : Tensor
+        A 2d tensor of shape (h, w).
+    kernel_h : int
+        The size of the height of the kernel <= h.
+    kernel_w : int
+        The size of the width of the kernel <= w.
+
+    Returns
+    -------
+    patched_verstion : Tensor
+        An image of shape (h+1-kernel_h, w+1-kernel_w, kernel_h, kernel_w)
+        with overlapping non contiguous references on undeground data.
+
+    Notes
+    -----
+    Call the method `contiguous` if you want to write on it.
+    """
+    assert isinstance(img, Tensor), img.__class__.__name__
+    assert img.ndim == 2, img.shape
+    assert isinstance(kernel_h, numbers.Integral), kernel_h.__class__.__name__
+    assert kernel_h <= img.shape[0], (kernel_h, img.shape)
+    assert isinstance(kernel_w, numbers.Integral), kernel_w.__class__.__name__
+    assert kernel_w <= img.shape[1], (kernel_w, img.shape)
+
+    img = torch.squeeze(
+        torch.nn.functional.pad(
+            torch.unsqueeze(img, 0),  # not implemented for 2d, only for 3d in torch 2.2.1
+            (kernel_w//2, kernel_w//2 + kernel_w%2 - 1, kernel_h//2, kernel_h//2 + kernel_h%2 - 1),
+            mode="replicate",
+        ).contiguous(),  # maybe contiguous is useless but it is a security
+        0,
+    )
+    return torch.as_strided(
+        img,
+        (img.shape[0]+1-kernel_h, img.shape[1]+1-kernel_w, kernel_h, kernel_w),  # shape
+        (*img.stride(), *img.stride()),  # stride a step of 1
+    )
 
 
 def estimate_background(
@@ -97,7 +141,7 @@ def peaks_search(
         assert threshold > 0.0, threshold
         threshold = float(threshold)
     else:
-        threshold = 3.0
+        threshold = 3.5
     if kernel_aglo is None:
         kernel_aglo = DEFAULT_KERNEL_AGLO
     else:
@@ -129,7 +173,7 @@ def peaks_search(
                 cv2.RETR_EXTERNAL,
                 cv2.CHAIN_APPROX_SIMPLE,
             )[0],
-        ) if max(h, w) <= 200 # remove too big spots
+        ) if max(h, w) <= 100 # remove too big spots
     ]
 
     # vectorisation

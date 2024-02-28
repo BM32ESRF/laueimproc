@@ -120,7 +120,7 @@ def get_samples(**kwargs) -> pathlib.Path:
         The folder containing all the samples.
     """
     url = (
-        "https://www.dropbox.com/scl/fi/btupeuluolj1vlrcu357a/samples.tar.xz"
-        "?rlkey=s4bhv7mi98vntrbjjnnavaed0&dl=1"
+        "https://www.dropbox.com/scl/fi/gjztukorqs181xpv0ruiy/samples.tar.xz"
+        "?rlkey=oykxuap4bc3x3qfimk0ftq1vp&dl=1"
     )
     return download(url, **kwargs)

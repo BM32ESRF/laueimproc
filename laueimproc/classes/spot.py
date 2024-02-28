@@ -62,7 +62,7 @@ class Spot:
         # fill the attributes
         self._diagram, self._index, self._bbox = state[:3]  # pylint: disable=W0201
         if len(state) == 4:
-            self._cache = state[3]  # pylint: disable=W0201
+            self._cache = state[3] # pylint: disable=W0201
 
         # to return self allows you to create and instanciate a Spot in the same time
         return self
