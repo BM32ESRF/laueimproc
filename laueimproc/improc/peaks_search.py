@@ -2,6 +2,7 @@
 
 """Atomic function for finding spots."""
 
+import math
 import numbers
 import typing
 
@@ -13,9 +14,47 @@ from laueimproc.classes.tensor import Tensor
 
 
 
-DEFAULT_KERNEL_FONT = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (17, 17))
+DEFAULT_KERNEL_FONT = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (19, 19))  # 17 - 21
 DEFAULT_KERNEL_AGLO = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
 
+
+
+def _density_to_threshold_numpy(img: np.ndarray, density: float) -> float:
+    """Analyse the image histogram in order to find the correspondant threshold."""
+    hist, bin_edges = np.histogram(
+        img,
+        bins=np.logspace(-5.0, np.log10(np.max(img)+1e-5), 101) - 1e-5,  # borns are [0, max(img)]
+        density=False,
+    )
+    hist = hist.astype(float) / float(img.size)  # density hist
+    cum_hist = np.flip(np.cumsum(np.flip(hist), out=hist))  # repartition function
+    real_density = (
+        density**(np.log(0.01)/np.log(0.5))  # make density linear [0, 0.5, 1] -> [0, 0.01, 1]
+        * np.pi * 0.25  # circle to square <=> bbox to spot
+        * 0.25  # max 25% filled
+    )
+    threshold = bin_edges[np.argmin(cum_hist >= real_density) + 1]
+    return threshold
+
+
+def _density_to_threshold_torch(img: torch.Tensor, density: float) -> float:
+    """Analyse the image histogram in order to find the correspondant threshold."""
+    bins = torch.logspace(
+        start=-5.0, end=math.log10(torch.max(img).item()+1e-5), steps=101, device=img.device
+    )
+    bins -= 1e-5  # borns are [0, max(img)]
+    hist = torch.histogram(img, bins=bins, density=False).hist
+    hist /= float(img.shape[0]*img.shape[1])
+    hist = torch.flip(hist, (0,))  # from white to black
+    hist = torch.cumsum(hist, 0, out=hist)  # repartition function
+    hist = torch.flip(hist, (0,))  # from black to white
+    real_density = (
+        density**(math.log(0.01)/math.log(0.5))  # make density linear [0, 0.5, 1] -> [0, 0.01, 1]
+        * math.pi * 0.25  # circle to square <=> bbox to spot
+        * 0.25  # max 25% filled
+    )
+    threshold = bins[torch.argmin((hist >= real_density).to(torch.uint8)).item() + 1].item()
+    return threshold
 
 
 def unfold(img: Tensor, kernel_h: int, kernel_w: int) -> Tensor:
@@ -69,8 +108,6 @@ def estimate_background(
 ) -> np.ndarray:
     """Estimate and Return the background of the image.
 
-    The method is based on morphological opening.
-
     Parameters
     ----------
     brut_image : Tensor
@@ -99,12 +136,14 @@ def estimate_background(
             f"the kernel has to be odd, current shape is {kernel_font.shape}"
 
     # extraction of the background
-    return cv2.morphologyEx(brut_image, cv2.MORPH_OPEN, kernel_font)
+    bg_image = cv2.GaussianBlur(brut_image, kernel_font.shape, 0)
+    # bg_image = cv2.medianBlur(brut_image, 5)  # 5 is the max size
+    return cv2.morphologyEx(brut_image, dst=bg_image, op=cv2.MORPH_OPEN, kernel=kernel_font)
 
 
 def peaks_search(
     brut_image: Tensor,
-    threshold: typing.Optional[float] = None,
+    density: float = 0.5,
     kernel_aglo: typing.Optional[np.ndarray[np.uint8, np.uint8]] = None,
     *, _check: bool = True,
     **kwargs,
@@ -113,10 +152,10 @@ def peaks_search(
 
     Parameters
     ----------
-    threshold : float, optional
-        Only keep the peaks having a max intensity divide by the standard deviation
-        of the image without background > threshold.
-        If it is not provide, it takes a threshold that catch a lot of peaks.
+    density : float, default=0.5
+        Correspond to the density of spots found.
+        This value is normalized so that it can evolve 'linearly' between ]0, 1].
+        The smaller the value, the fewer spots will be captured.
     kernel_aglo : np.ndarray[np.uint8, np.uint8], optional
         The structurant element for the aglomeration of close grain
         by morhpological dilatation applied on the thresholed image.
@@ -136,16 +175,13 @@ def peaks_search(
     """
     assert isinstance(brut_image, Tensor), brut_image.__class__.__name__
     assert brut_image.ndim == 2, brut_image.shape
-    if threshold is not None:
-        assert isinstance(threshold, numbers.Real), threshold.__class__.__type__
-        assert threshold > 0.0, threshold
-        threshold = float(threshold)
-    else:
-        threshold = 3.5
+    assert isinstance(density, numbers.Real), density.__class__.__type__
+    assert density > 0.0, density
+    density = float(density)
     if kernel_aglo is None:
         kernel_aglo = DEFAULT_KERNEL_AGLO
     else:
-        assert isinstance(kernel_aglo, np.ndarray), threshold.__class__.__type__
+        assert isinstance(kernel_aglo, np.ndarray), kernel_aglo.__class__.__type__
         assert kernel_aglo.dtype == np.uint8, kernel_aglo.dtype
         assert kernel_aglo.ndim == 2, kernel_aglo.shape
         assert kernel_aglo.shape[0] % 2 and kernel_aglo.shape[1] % 2, \
@@ -155,28 +191,43 @@ def peaks_search(
     src = brut_image.numpy(force=True)  # not nescessary copy
     bg_image = estimate_background(src, **kwargs, _check=_check)
     if brut_image.data_ptr() == src.__array_interface__["data"][0]:
-        fg_image = src - bg_image  # copy to keep self unchanged
+        fg_image = src - bg_image  # copy to keep brut_image unchanged
     else:
         fg_image = src
         fg_image -= bg_image  # inplace
+    binary = (
+        # 2 times faster than cv2.threshold(fg_image, thresh, 1, cv2.THRESH_BINARY)
+        # 3 times faster with torch than numpy
+        (fg_image > _density_to_threshold_torch(Tensor(fg_image), density)).view(np.uint8)
+        # (fg_image > _density_to_threshold_numpy(fg_image, density)).view(np.uint8)
+    )
+    binary = cv2.dilate(binary, kernel_aglo, dst=bg_image, iterations=1)
     bboxes = [
         (i, j, h, w) for j, i, w, h in map(  # cv2 to numpy convention
             cv2.boundingRect,
-            cv2.findContours(
-                cv2.dilate(
-                    (fg_image > threshold * fg_image.std()).view(np.uint8),
-                    # (fg_image > threshold).view(np.uint8),  # absolute threshold
-                    kernel_aglo,
-                    dst=bg_image,
-                    iterations=1,
-                ),
-                cv2.RETR_EXTERNAL,
-                cv2.CHAIN_APPROX_SIMPLE,
-            )[0],
-        ) if max(h, w) <= 100 # remove too big spots
+            cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0],
+        ) if max(h, w) <= 200 # remove too big spots
     ]
 
     # vectorisation
+    # bboxes = (
+    #     Tensor(torch.tensor(bboxes, dtype=int, device=brut_image.device))
+    #     if bboxes else
+    #     Tensor(torch.empty((0, 4), dtype=int))
+    # )
+    # rois = Tensor(
+    #     torch.zeros( # zeros 2 times faster than empty + fill 0
+    #         (
+    #             bboxes.shape[0],
+    #             torch.max(bboxes[:, 2]).item() if bboxes.shape[0] else 1,
+    #             torch.max(bboxes[:, 3]).item() if bboxes.shape[0] else 1,
+    #         ),
+    #         dtype=brut_image.dtype,
+    #         device=brut_image.device,
+    #     )
+    # )
+    # for index, (i, j, height, width) in enumerate(bboxes.tolist()):  # write the right values
+    #     rois[index, :height, :width] = torch.from_numpy(fg_image[i:i+height, j:j+width])
     if bboxes:
         rois = np.zeros( # zeros 2 times faster than empty + fill 0
             (len(bboxes), max(h for _, _, h, _ in bboxes), max(w for _, _, _, w in bboxes)),

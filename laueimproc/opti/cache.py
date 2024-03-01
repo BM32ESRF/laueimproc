@@ -26,7 +26,7 @@ def auto_cache(meth: callable) -> callable:
     return cached_meth
 
 
-def delete_values_in_dict(obj: dict, target_size: int) -> None:
+def delete_values_in_dict(obj: dict, size: int) -> None:
     """Delete `size` bytes of elements.
 
     Notes
@@ -35,10 +35,10 @@ def delete_values_in_dict(obj: dict, target_size: int) -> None:
     """
     size_to_key = {getsizeof(v): k for k, v in obj.items()}
     size_cum = 0
-    for size in sorted(size_to_key, reverse=True):  # delete biggest elements first
-        del obj[size_to_key[size]]
-        size_cum += size
-        if size_cum >= target_size:
+    for item_size in sorted(size_to_key, reverse=True):  # delete biggest elements first
+        del obj[size_to_key[item_size]]
+        size_cum += item_size
+        if size_cum >= size:
             break
 
 
@@ -48,7 +48,7 @@ def getsizeof(obj: object, *, _processed: set = None) -> int:
     if id(obj) in _processed:
         return 0
     mem = sys.getsizeof(obj)
-    _processed.add(obj)
+    _processed.add(id(obj))
     if isinstance(obj, torch.Tensor):
         return mem + obj.element_size() * obj.nelement()
     if isinstance(obj, (list, tuple, set, frozenset)):

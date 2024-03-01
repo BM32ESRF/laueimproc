@@ -61,6 +61,8 @@ class Spot:
 
         # fill the attributes
         self._diagram, self._index, self._bbox = state[:3]  # pylint: disable=W0201
+        if not isinstance(self._bbox, tuple):  # case list
+            self._bbox = tuple(self._bbox)
         if len(state) == 4:
             self._cache = state[3] # pylint: disable=W0201
 
