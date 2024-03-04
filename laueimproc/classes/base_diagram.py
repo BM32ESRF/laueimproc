@@ -475,7 +475,7 @@ class BaseDiagram:
             return Tensor(read_image(self._file_or_data), to_float=True)
         return self._file_or_data
 
-    def plot(self, fig: Figure) -> None:
+    def plot(self, fig: Figure, vmin, vmax) -> None:
         """Prepare for display the diagram and the spots.
 
         Parameters
@@ -502,6 +502,8 @@ class BaseDiagram:
             interpolation="bicubic",
             norm="log",
             cmap="gray",
+            vmin=vmin,
+            vmax=vmax,
         )
         if self.spots:
             axes.plot(
