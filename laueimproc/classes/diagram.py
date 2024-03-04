@@ -12,7 +12,7 @@ from .tensor import Tensor
 class Diagram(BaseDiagram):
     """A Laue diagram image."""
 
-    @auto_cache  # put the result in thread safe cache
+    @auto_cache  # put the result in thread safe cache (no multiprocessing)
     @auto_parallel  # automaticaly multithreading
     def compute_barycenters(self) -> Tensor:
         """Compute the barycenter of each spots."""
@@ -24,8 +24,8 @@ class Diagram(BaseDiagram):
         barycenters += self.bboxes[:, :2].to(barycenters.dtype)  # absolute
         return barycenters
 
-    @auto_cache  # put the result in thread safe cache
-    @auto_parallel  # automaticaly multithreading
+    @auto_cache
+    @auto_parallel
     def compute_pxl_intensities(self) -> Tensor:
         """Compute the total pixel intensity for each spots."""
         if self.spots is None:

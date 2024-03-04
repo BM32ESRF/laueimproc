@@ -16,12 +16,12 @@ def get_swappiness() -> int:
         return int(raw.read())
 
 
-def mem_to_free(swappiness: int = get_swappiness()) -> int:
+def mem_to_free(ram_limit: float) -> int:
     """Return the number of bytes to be removed from the cache."""
-    assert isinstance(swappiness, int), swappiness.__class__.__name__
-    assert 0 <= swappiness <= 100
+    assert isinstance(ram_limit, float), ram_limit.__class__.__name__
+    assert 0 < ram_limit < 1
     memory = psutil.virtual_memory()
-    swappiness = max(5, min(95, swappiness))
-    swap_limit = (100 - swappiness) * memory.total // 100
+    ram_limit = max(0.05, min(0.95, ram_limit))
+    swap_limit = round(ram_limit * memory.total)
     size = max(0, (memory.total - swap_limit) - memory.available)
     return size
