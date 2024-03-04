@@ -103,22 +103,20 @@ def auto_parallel(meth: callable) -> callable:
         if not parallel or threading.current_thread().name != "MainThread":
             return meth(diagram, *args, **kwargs)
         # case cached
-        param_sig = hashlib.md5(pickle.dumps((args, kwargs))).hexdigest()
-        signature = f"{meth.__name__}_{id(diagram)}_{param_sig}"
+        param_sig = hashlib.md5(pickle.dumps((args, kwargs)), usedforsecurity=False).hexdigest()
+        signature = f"thread_{meth.__name__}_{diagram.signature}_{param_sig}"
         with diagram._cache_lock:  # pylint: disable=W0212
             if signature in diagram._cache:  # pylint: disable=W0212
                 return diagram._cache.pop(signature)  # pylint: disable=W0212
         # case thread calculus
+        job = Calculator(meth, diagram, args, kwargs)
+        job.start()
         thread_manager = ThreadManager()
-        if not thread_manager.contains(signature):
-            all_diagrams = DiagramManager().diagrams
-            index = all_diagrams.index(diagram)
-            for other_diagram in all_diagrams[index:index+os.cpu_count()]:
-            # for other_diagram in DiagramManager().diagrams:
-                thread_manager.submit_job(
-                    meth, other_diagram, args, kwargs,
-                    signature=f"{meth.__name__}_{id(other_diagram)}_{param_sig}",
-                )
-        return thread_manager.get_job(meth, diagram, args, kwargs, signature)
+        for other_diagram in DiagramManager().get_nexts_diagrams(diagram, nbr=os.cpu_count()):
+            thread_manager.submit_job(
+                meth, other_diagram, args, kwargs,
+                signature=f"thread_{meth.__name__}_{other_diagram.signature}_{param_sig}",
+            )
+        return job.get()
 
     return multithreaded_meth

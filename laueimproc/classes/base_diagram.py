@@ -44,6 +44,9 @@ class BaseDiagram:
         The tensor of the regions of interest for each spots (readonly).
         For writing, use `self.spots = ...`.
         Return None until spots are initialized.
+    signature : int
+        hash of the state of the diagram (readonly).
+        The hash takes in account the diagram iteself and this state.
     spots : list[laueimproc.classes.spot.Spot] or None
         All the spots contained in this diagram (read and write).
         Return None until spots are initialized.
@@ -191,7 +194,6 @@ class BaseDiagram:
             for index, bbox in enumerate(bboxes.tolist())
         ]
         self._history = [f"{len(self._spots)} spots from self.find_spots(...)"]
-        self._find_spots_kwargs = None
 
     def _set_spots_from_anchors_rois(
         self, anchors: Tensor, rois: list[Tensor], _check: bool = True
@@ -458,7 +460,7 @@ class BaseDiagram:
             for key in list(self._cache):  # copy keys: dictionary changed size during iteration
                 if key != "image":
                     del self._cache[key]
-        self._history = None
+        self._history = ["x spots from self.find_spots(...)"]
         self._rois = None
         self._spots = None
 
@@ -475,13 +477,22 @@ class BaseDiagram:
             return Tensor(read_image(self._file_or_data), to_float=True)
         return self._file_or_data
 
-    def plot(self, fig: Figure, vmin, vmax) -> None:
+    def plot(
+        self,
+        fig: Figure,
+        vmin: typing.Optional[numbers.Real] = None,
+        vmax: typing.Optional[numbers.Real] = None,
+    ) -> None:
         """Prepare for display the diagram and the spots.
 
         Parameters
         ----------
         fig : matplotlib.figure.Figure
             The matplotlib figure to complete.
+        vmin : float, optional
+            The minimum intensity ploted.
+        vmax : float, optional
+            The maximum intensity ploted.
 
         Notes
         -----
@@ -489,6 +500,13 @@ class BaseDiagram:
         Use `self.show()` to Display the diagram from scratch.
         """
         assert isinstance(fig, Figure), fig.__class__.__name__
+        if vmin is None:
+            vmin = torch.min(self.image).item()
+        assert vmin is None or isinstance(vmin, numbers.Real), vmin.__class__.__name__
+        if vmax is None:
+            vmax = torch.mean(self.image).item() + 5.0*torch.std(self.image).item()
+        assert isinstance(vmax, numbers.Real), vmax.__class__.__name__
+
         if isinstance(self._file_or_data, pathlib.Path):
             fig.suptitle(f"Diagram {self._file_or_data.name}")
         else:
@@ -637,9 +655,14 @@ class BaseDiagram:
         plt.show()
 
     @property
+    def signature(self) -> int:
+        """Return a hash of the diagram and the state."""
+        return hash((id(self), id(self._find_spots_kwargs), "\n".join(self._history[1:])))
+
+    @property
     def spots(self) -> typing.Union[list[Spot]]:
         """Return the spots in a unordered set container."""
-        if self._find_spots_kwargs is not None:
+        if self._spots is None and self._find_spots_kwargs is not None:
             self._find_spots(**self._find_spots_kwargs)
         if self._spots is None:  # case spots are never been searched
             return None

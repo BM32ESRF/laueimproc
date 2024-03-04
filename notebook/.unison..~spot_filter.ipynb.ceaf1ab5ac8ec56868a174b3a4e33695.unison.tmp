@@ -1,0 +1,223 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "7057f608",
+   "metadata": {},
+   "source": [
+    "## This notebook shows the fastest mean to select some spots with a simple filter\n",
+    "* It is possible to interact with external libraries, have a look on the `init_diagram` notebook.\n",
+    "* To instanciate a `Diagram` allows you to apply efficiently filters based on image processing.\n",
+    "* They are several means to instanciate a `diagram` some of them are betters than overs."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "1f43a2ab",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%matplotlib inline\n",
+    "\n",
+    "import multiprocessing.pool\n",
+    "import pathlib\n",
+    "\n",
+    "import matplotlib.pyplot as plt\n",
+    "import torch\n",
+    "import tqdm\n",
+    "\n",
+    "# sys.path.insert(0, \"/data/bm32/inhouse/laueimproc\")\n",
+    "# sys.path.insert(0, \"/data/bm32/inhouse/laueimprocenv/lib/python3.11/site-packages\")\n",
+    "from laueimproc.io.download import get_samples  # gives access to the dataset\n",
+    "from laueimproc import Diagram"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0bc3a6f8",
+   "metadata": {},
+   "source": [
+    "## Set and take control of the global configuration parameters\n",
+    "* The cache is automaticaly managed, but you can control it a bit."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 40,
+   "id": "89a34d25",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "there are 2000 diagrams tracked\n",
+      "the ram threshold is 80.0%\n",
+      "update tracked diagrams, 1000 are freed, 1000 remain\n"
+     ]
+    }
+   ],
+   "source": [
+    "# manage context\n",
+    "\n",
+    "from laueimproc.opti.manager import DiagramManager\n",
+    "\n",
+    "manager = DiagramManager()\n",
+    "\n",
+    "print(f\"there are {len(manager.diagrams)} diagrams tracked\")\n",
+    "print(f\"the ram threshold is {100*manager.ram_limit:.1f}%\")\n",
+    "\n",
+    "manager.verbose = True  # to display the operations in background\n",
+    "manager.ram_limit = 0.8  # triger cache clear after 80% of ram full\n",
+    "\n",
+    "manager.update()  # dereference unreachable diagrams"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3d154742",
+   "metadata": {},
+   "source": [
+    "## Initialise the diagrams\n",
+    "* The different ways of initializing a diagram are described in detail in the `init_diagram` notebook."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 39,
+   "id": "e6d516d9",
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "all_files = list(get_samples().iterdir())*10  # the list of all images path\n",
+    "# all_files = list(pathlib.Path(\"my_folder/\").iterdir())\n",
+    "diagrams = [Diagram(f) for f in all_files]\n",
+    "for diagram in diagrams:\n",
+    "    diagram.find_spots(density=0.6)\n",
+    "    # diagram.plot(plt.figure(layout=\"tight\", figsize=(10, 10))); plt.show()"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "id": "bd06a9ca",
+   "metadata": {},
+   "source": [
+    "# for timing peaks search\n",
+    "in_parallel = True\n",
+    "if in_parallel:\n",
+    "    with multiprocessing.pool.ThreadPool() as pool:\n",
+    "        for _ in tqdm.tqdm(\n",
+    "            pool.imap(lambda d: (d.find_spots(density=0.6), d.spots), diagrams, chunksize=2),\n",
+    "            total=len(diagrams),\n",
+    "        ):\n",
+    "            pass\n",
+    "else:       \n",
+    "    for diagram in tqdm.tqdm(diagrams):\n",
+    "        diagram.find_spots(density=0.6)\n",
+    "        diagram.spots"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "eedd61ed",
+   "metadata": {},
+   "source": [
+    "## Keeps the 10 most intense spots for each diagram"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "id": "54c5524c",
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "100%|██████████████████████████████████████████████████| 1000/1000 [03:47<00:00,  4.40it/s]\n"
+     ]
+    }
+   ],
+   "source": [
+    "for diagram in tqdm.tqdm(diagrams):\n",
+    "    indexs = torch.argsort(diagram.compute_pxl_intensities(parallel=False), descending=True)[:10]\n",
+    "    diagram.filter_spots(indexs)\n",
+    "    # diagram.plot(plt.figure(layout=\"tight\", figsize=(10, 10))); plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "fd88971a",
+   "metadata": {},
+   "source": [
+    "## Debug memory leaks..."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 41,
+   "id": "3e9a1950",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "(38, 0, 0)\n",
+      "il y a 2 tenseurs\n",
+      "il y a 1000 diagrams\n",
+      "[]\n"
+     ]
+    }
+   ],
+   "source": [
+    "import gc\n",
+    "import pprint\n",
+    "from laueimproc.opti.manager import DiagramManager\n",
+    "from laueimproc.classes.tensor import Tensor\n",
+    "if 0:\n",
+    "    for diagram in diagrams:\n",
+    "        diagram.clear_cache()\n",
+    "if 0:\n",
+    "    for obj in gc.get_objects():\n",
+    "        gc.get_referrers(obj)\n",
+    "        gc.get_referents(obj)\n",
+    "gc.collect()\n",
+    "gc.set_debug(gc.DEBUG_UNCOLLECTABLE)\n",
+    "print(gc.get_count())\n",
+    "print(f\"il y a {len([None for obj in gc.get_objects() if isinstance(obj, torch.Tensor)])} tenseurs\")\n",
+    "print(f\"il y a {len([None for obj in gc.get_objects() if isinstance(obj, Diagram)])} diagrams\")\n",
+    "print(gc.garbage)\n",
+    "# pprint.pprint([obj.shape for obj in gc.get_objects() if isinstance(obj, torch.Tensor)])\n",
+    "# pprint.pprint([obj for obj in gc.get_objects() if isinstance(obj, Diagram)])"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "laueimproc",
+   "language": "python",
+   "name": "laueimproc"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.2"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

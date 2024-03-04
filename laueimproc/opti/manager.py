@@ -13,6 +13,14 @@ from laueimproc.opti.singleton import MetaSingleton
 from laueimproc.opti.memory import get_swappiness, mem_to_free
 
 
+def free_malloc():
+    """Clear the allocated malloc on linux."""
+    try:
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except OSError:
+        pass
+
+
 class DiagramManager(threading.Thread, metaclass=MetaSingleton):
     """Manage a group of diagram asynchronousely.
 
@@ -26,7 +34,8 @@ class DiagramManager(threading.Thread, metaclass=MetaSingleton):
 
     def __init__(self, verbose=False):
         # declaration
-        self._diagrams: collections.OrderedDict = collections.OrderedDict()  # diagram: index
+        self._diagrams_dict: dict = {}  # dict for fast acces
+        self._diagrams_list: list = []  # list for order
         self._lock = threading.Lock()
         self._ram_limit: float = float((100-get_swappiness())) / 100.0
         self._verbose: bool
@@ -42,13 +51,16 @@ class DiagramManager(threading.Thread, metaclass=MetaSingleton):
     def add_diagram(self, diagram):
         """Track the new diagram."""
         with self._lock:
-            self._diagrams[diagram] = len(self._diagrams)
+            if diagram not in self._diagrams_dict:
+                self._diagrams_dict[diagram] = len(self._diagrams_list)
+                self._diagrams_list.append(diagram)
 
-    @property
-    def diagrams(self) -> list:
-        """Return the diagrams in a list."""
+    def get_nexts_diagrams(self, diagram, nbr: int) -> list:
+        """Get the `nbr` next diagrams after the given one."""
         with self._lock:
-            return list(self._diagrams)  # slow but thread safe
+            if (index := self._diagrams_dict.get(diagram, None)) is None:
+                return []
+            return self._diagrams_list[index+1:index+nbr+1]
 
     @property
     def ram_limit(self) -> float:
@@ -66,31 +78,31 @@ class DiagramManager(threading.Thread, metaclass=MetaSingleton):
         while True:
             # memory free
             with self._lock:
-                if self._diagrams and (size := mem_to_free(self._ram_limit) // len(self._diagrams)):
+                nbr = len(self._diagrams_list)
+                if nbr and (size := mem_to_free(self._ram_limit) // nbr):
                     if self._verbose:
                         print(f"try to clear {size} bytes of cache")
-                    for diagram in self._diagrams:
+                    for diagram in self._diagrams_list:
                         diagram.clear_cache(size)
-                    try:
-                        ctypes.CDLL("libc.so.6").malloc_trim(0)
-                    except OSError:
-                        pass
+                    free_malloc()
             time.sleep(1)
 
     def update(self):
         """Try to keep only reachable diagrams."""
         from laueimproc.classes.diagram import Diagram  # pylint: disable=C0415
         with self._lock:
-            before = len(self._diagrams)
-            ordered = [id(diagram) for diagram in self._diagrams]
-            self._diagrams = collections.OrderedDict()
+            before = len(self._diagrams_list)
+            diagrams_id = [id(diagram) for diagram in self._diagrams_list]
+            self._diagrams_dict = {}
+            self._diagrams_list = []
             gc.collect()
             new_diagrams = {id(o): o for o in gc.get_objects() if isinstance(o, Diagram)}
-            ordered = [new_diagrams[id_] for id_ in ordered if id_ in new_diagrams]
-            self._diagrams = collections.OrderedDict(
-                (diagram, index) for index, diagram in enumerate(ordered)
-            )
-            after = len(self._diagrams)
+            self._diagrams_list = [new_diagrams[id_] for id_ in diagrams_id if id_ in new_diagrams]
+            self._diagrams_dict = {
+                diagram: index for index, diagram in enumerate(self._diagrams_list)
+            }
+            after = len(self._diagrams_list)
+        free_malloc()
         if self._verbose:
             print(f"update tracked diagrams, {before-after} are freed, {after} remain")
 
