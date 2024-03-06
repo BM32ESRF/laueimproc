@@ -4,5 +4,6 @@
 
 from .classes import Diagram
 
-__version__ = "0.0.dev5"  # pep 440
 __all__ = ["Diagram"]
+__author__ = "J.S. Micha, O. Robach., S. Tardif, R. Richard"
+__version__ = "0.0.dev5"  # pep 440

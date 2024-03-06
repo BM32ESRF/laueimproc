@@ -7,15 +7,16 @@ dynamic = ["version"]
 requires-python = ">=3.9"
 dependencies = [
   "fabio",
+  "numpy",
   "opencv-contrib-python-headless",
   "torch",
   "tqdm",
 ]
 authors = [
-  {name = "Robin RICHARD (robinechuca)", email = "serveurpython.oz@hmail.com"},
+  {name = "Robin RICHARD (robinechuca)", email = "serveurpython.oz@gmail.com"},
 ]
 maintainers = [
-  {name = "Robin RICHARD (robinechuca)", email = "serveurpython.oz@hmail.com"},
+  {name = "Robin RICHARD (robinechuca)", email = "serveurpython.oz@gmail.com"},
 ]
 readme = "README.rst"
 license = {file = "LICENSE"}
@@ -40,12 +41,17 @@ classifiers = [
 [project.optional-dependencies]
 all = [
   "matplotlib",
+  "pdoc3",
+  "recommonmark",
   "sphinx",
+  "sphinx-copybutton",
+  "sphinx-inline-tabs",
   "sphinx-rtd-theme",
+  "sphinxext-opengraph",
 ]
 
 [project.urls]
-Repository = "https://framagit.org/robinechuca/laueimproc/"
+Repository = "https://github.com/BM32ESRF/laueimproc"
 
 [tool.setuptools.dynamic]
 version = {attr = "laueimproc.__version__"}

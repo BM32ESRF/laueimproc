@@ -1,6 +1,6 @@
-#######################################
-Welcome to LaueTools's DOCUMENTATION!
-#######################################
+######################################
+Welcome to LaueImProc's DOCUMENTATION!
+######################################
 
 You have data to analyse? You are at the right place! You can also contact us for more assistance.
 
@@ -9,6 +9,8 @@ You have data to analyse? You are at the right place! You can also contact us fo
 
    usage/installation
    usage/quickstart
+   api
+
 
 Indices and tables
 ==================
