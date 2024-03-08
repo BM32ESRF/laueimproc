@@ -2,7 +2,7 @@
 
 """Gaussian mixture model fited by the expequancy maximisation."""
 
-
+import logging
 import math
 import numbers
 import pickle
@@ -100,6 +100,44 @@ def _bic(
     return bic
 
 
+def _likelihood(
+    obs: Tensor, dup_w: Tensor, mean: Tensor, cov: Tensor, eta: Tensor
+) -> Tensor:
+    """Compute the likelihood.
+
+    Parameters
+    ----------
+    obs : Tensor
+        The observations of shape (..., nbr_observation, nbr_variables).
+    dup_w : Tensor, optional
+        The duplication weights of shape (..., nbr_observation).
+    mean : Tensor
+        The column mean vector of shape (..., nbr_clusters, nbr_variables, 1).
+        This is an output parameter changed inplace.
+    cov : Tensor
+        The covariance matrix of shape (..., nbr_clusters, nbr_variables, nbr_variables).
+        This is an output parameter changed inplace.
+    eta : Tensor
+        The relative mass of each gaussian of shape (..., nbr_clusters).
+        This is an output parameter changed inplace.
+
+    Returns
+    -------
+    likelihood : Tensor
+        A real positive scalar of shape (...,).
+
+    Notes
+    -----
+    * No verifications are performed for performance reason.
+    """
+    prob = _gauss(obs, mean, cov)  # (..., n_clu, n_obs)
+    prob **= dup_w.unsqueeze(-2)
+    prob *= eta.unsqueeze(-1)
+    ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)
+    likelihood = torch.prod(ind_prob, axis=-1, keepdim=False)  # (...,)
+    return likelihood
+
+
 def _log_likelihood(
     obs: Tensor, dup_w: Tensor, mean: Tensor, cov: Tensor, eta: Tensor
 ) -> Tensor:
@@ -134,7 +172,7 @@ def _log_likelihood(
     prob **= dup_w.unsqueeze(-2)
     prob *= eta.unsqueeze(-1)
     ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)
-    ind_prob = torch.log(ind_prob, out=ind_prob)
+    ind_prob = torch.log(ind_prob, out=None if ind_prob.requires_grad else ind_prob)
     log_likelihood = torch.sum(ind_prob, axis=-1, keepdim=False)  # (...,)
     return log_likelihood
 
@@ -165,7 +203,7 @@ def _gauss(obs: Tensor, mean: Tensor, cov: Tensor) -> Tensor:
     prob = cent_obs.transpose(-1, -2) @ cov_inv @ cent_obs  # (..., n_clu, n_obs, 1, 1)
     prob = prob.squeeze(-1).squeeze(-1)  # (..., n_clu, n_obs)
     prob *= -.5
-    prob = torch.exp(prob, out=prob)
+    prob = torch.exp(prob, out=None if prob.requires_grad else prob)
     del cov_inv, cent_obs
     norm = torch.linalg.det(cov).unsqueeze(-1)  # (..., n_clu, 1)
     norm *= (2.0*torch.pi)**obs.shape[-1]
@@ -197,22 +235,34 @@ def _fit_one_cluster(obs: Tensor, std_w: Tensor, dup_w: Tensor) -> tuple[Tensor,
     -----
     * No verifications are performed for performance reason.
     """
-    weights_prod = std_w * dup_w  # (..., n_obs)
-    mean = torch.sum((weights_prod.unsqueeze(-1) * obs), axis=-2, keepdim=True)  # (..., 1, n_var)
-    mean /= torch.sum(weights_prod.unsqueeze(-1), axis=-2, keepdim=True)  # (..., 1, n_var)
+    weights_prod = (  # (..., n_obs)
+        (1.0 if std_w is None else std_w)
+        * (1.0 if dup_w is None else dup_w)
+    )
+    if std_w is None and dup_w is None:
+        mean = torch.mean(obs, axis=-2, keepdim=True)  # (..., 1, n_var)
+    else:
+        mean = torch.sum((weights_prod.unsqueeze(-1) * obs), axis=-2, keepdim=True)
+        mean /= torch.sum(weights_prod.unsqueeze(-1), axis=-2, keepdim=True)  # (..., 1, n_var)
     cent_obs = (obs - mean).unsqueeze(-1)  # (..., n_obs, n_var, 1)
     mean = mean.squeeze(-2).unsqueeze(-1)  # (..., n_var, 1)
-    cov = torch.sum(  # (..., n_var, n_var)
-        weights_prod.unsqueeze(-1).unsqueeze(-1) * cent_obs @ cent_obs.transpose(-1, -2),
-        axis=-3, keepdim=False  # (..., n_obs, n_var, n_var) -> (..., n_var, n_var)
-    )
-    cov /= torch.sum(dup_w, axis=-1, keepdim=False).unsqueeze(-1).unsqueeze(-1)
+    if std_w is None and dup_w is None:
+        cov = torch.mean(  # (..., n_var, n_var)
+            cent_obs @ cent_obs.transpose(-1, -2),
+            axis=-3, keepdim=False  # (..., n_obs, n_var, n_var) -> (..., n_var, n_var)
+        )
+    else:
+        cov = torch.sum(  # (..., n_var, n_var)
+            weights_prod.unsqueeze(-1).unsqueeze(-1) * cent_obs @ cent_obs.transpose(-1, -2),
+            axis=-3, keepdim=False  # (..., n_obs, n_var, n_var) -> (..., n_var, n_var)
+        )
+        cov /= torch.sum(dup_w, axis=-1, keepdim=False).unsqueeze(-1).unsqueeze(-1)
     return mean, cov
 
 
 def _fit_n_clusters_one_step(
     obs: Tensor, std_w: Tensor, dup_w: Tensor, mean: Tensor, cov: Tensor, eta: Tensor
-) -> tuple[Tensor, Tensor, Tensor, Tensor]:
+) -> tuple[Tensor, Tensor, Tensor]:
     """One step of the EM algorithme.
 
     Parameters
@@ -241,16 +291,16 @@ def _fit_n_clusters_one_step(
         A reference to the input parameter `cov`.
     eta : Tensor
         A reference to the input parameter `eta`.
-    post : Tensor
-        Posterior probability that observation j belongs to cluster i.
-        Shape (..., nbr_clusters, nbr_observation).
 
     Notes
     -----
     * No verifications are performed for performance reason.
     """
+    eps = torch.finfo(obs.dtype).eps
+
     # posterior probability that observation j belongs to cluster i
     post = _gauss(obs, mean, cov)  # (..., n_clu, n_obs)
+    post += eps  # prevention again division by 0
     post *= eta.unsqueeze(-1)  # (..., n_clu, n_obs)
     post /= torch.sum(post, axis=-2, keepdim=True)  # (..., n_clu, n_obs)
 
@@ -277,21 +327,70 @@ def _fit_n_clusters_one_step(
     # normalize eta
     eta /= torch.sum(dup_w.unsqueeze(-2), axis=-1, keepdim=False)  # (..., n_clu)
 
-    return mean, cov, eta, post
+    return mean, cov, eta
+
+
+def _fit_n_clusters_serveral_steps(
+    obs: Tensor, std_w: Tensor, dup_w: Tensor, mean: Tensor, cov: Tensor, eta: Tensor
+) -> tuple[Tensor, Tensor, Tensor, Tensor]:
+    """Same as `_fit_n_clusters_one_step` but iterates until it converges."""
+    log_likelihood = _log_likelihood(obs, dup_w, mean, cov, eta)  # (...,)
+    ongoing = torch.ones_like(log_likelihood, dtype=bool)  # mask for clusters converging
+
+    for _ in range(1000):  # not while True for security
+        new_mean, new_cov, new_eta = _fit_n_clusters_one_step(
+            obs[ongoing], std_w[ongoing], dup_w[ongoing],
+            mean[ongoing], cov[ongoing], eta[ongoing],
+        )
+        mean[ongoing], cov[ongoing], eta[ongoing] = new_mean, new_cov, new_eta
+        new_log_likelihood = _log_likelihood(obs[ongoing], dup_w[ongoing], new_mean, new_cov, new_eta)
+        converged = new_log_likelihood - log_likelihood[ongoing] <= 1e-3  # the mask of the converged clusters
+        log_likelihood[ongoing] = new_log_likelihood
+        if torch.all(converged):
+            break
+        # we want to do ongoing[ongoing][improvement] = False
+        ongoing_ = ongoing[ongoing]
+        ongoing_[converged] = False
+        ongoing[ongoing.clone()] = ongoing_
+        # print("ongoing", ongoing)  # to visualize the evolution of the convergence
+    else:
+        logging.warning("some gmm clusters failed to converge")
+
+    return mean, cov, eta, log_likelihood
+
 
 
 def em(
-    obs: Tensor, *,
+    obs: Tensor,
     std_w: typing.Optional[Tensor] = None,
     dup_w: typing.Optional[Tensor] = None,
+    *,
     nbr_clusters: numbers.Integral = 1,
-    nbr_tries: numbers.Integral = 1,
+    nbr_tries: numbers.Integral = 2,
 ) -> tuple[Tensor, Tensor, Tensor]:
     r"""
     ** An implementation of the EM algorithm. **
 
     Notations
     ---------
+    * \(
+        \mathbf{\mu}_j =
+        \begin{pmatrix}
+            \mu_1  \\
+            \vdots \\
+            \mu_d  \\
+        \end{pmatrix}_j
+    \), the center of the gaussian \(j\), with \(d\) the space dimension or the number of variables.
+    * \(
+        \mathbf{\Sigma}_j =
+        \begin{pmatrix}
+            \sigma_{1,1} & \dots  & \sigma_{1,d} \\
+            \vdots       & \ddots & \vdots       \\
+            \sigma_{d,1} & \dots  & \sigma_{d,d} \\
+        \end{pmatrix}_j
+    \), the full symetric positive covariance matrix of the gaussian \(j\),
+        with \(d\) the space dimension or the number of variables.
+    * \(\eta_j\), the relative mass of the gaussian \(j\). We have \(\sum\limits_{j=1}^c \eta_j = 1\), with \(c\) the number of clusters.
     * \(
         \Gamma(\mathbf{x}) =
         \sum\limits_{j=1}^k \eta_j \mathcal{N}_{\mathbf{\mu}_j, \mathbf{\Sigma}_j}(\mathbf{x})
@@ -375,39 +474,22 @@ def em(
                 \mathbf{\Sigma}_1 & \dots & \mathbf{\Sigma}_k
             \end{bmatrix}
         \), ``shape=(n_components, space_dim, space_dim)``
-    weights : np.ndarray
-        The vectors of relative weights associated with each Gaussian.
-
-        \(
-            weights =
-            \begin{pmatrix}
-                \eta_1 & \dots & \eta_k
-            \end{pmatrix}
-        \) with \(
-            \begin{cases}
-                \sum\limits_{j=1}^k \eta_j = 1 \\
-                \eta_j > 0, \forall j \in [\!\![ 1, k ]\!\!] \\
-            \end{cases}
-        \), ``shape=(n_components,)``
     """
     # verifications
     if not isinstance(obs, Tensor):
         obs = Tensor(obs)
     assert obs.ndim >= 2, obs.shape
-    *batch_obs, n_obs, n_var = obs.shape
+    *batch, n_obs, n_var = obs.shape
     if std_w is not None:
         std_w = Tensor(std_w)
         assert std_w.ndim >= 1, std_w.shape
         *batch_w, n_obs_w = std_w.shape
         assert n_obs == n_obs_w, f"the number of observation doesn't match, {n_obs} vs {n_obs_w}"
-        assert len(batch_obs) == len(batch_w), \
-            f"batches are not broadcastables {batch_obs} vs {batch_w}"
+        assert len(batch) == len(batch_w), f"batches are not broadcastables {batch} vs {batch_w}"
         try:
-            torch.broadcast_shapes(batch_obs, batch_w)
+            torch.broadcast_shapes(batch, batch_w)
         except RuntimeError as err:
-            raise AssertionError(
-                f"batches are not broadcastables {batch_obs} vs {batch_w}"
-            ) from err
+            raise AssertionError(f"batches are not broadcastables {batch} vs {batch_w}") from err
         assert std_w.dtype == obs.dtype, (std_w.dtype, obs.dtype)
         assert std_w.device == obs.device, (std_w.device, obs.device)
     if dup_w is not None:
@@ -415,14 +497,11 @@ def em(
         assert dup_w.ndim >= 1, dup_w.shape
         *batch_w, n_obs_w = dup_w.shape
         assert n_obs == n_obs_w, f"the number of observation doesn't match, {n_obs} vs {n_obs_w}"
-        assert len(batch_obs) == len(batch_w), \
-            f"batches are not broadcastables {batch_obs} vs {batch_w}"
+        assert len(batch) == len(batch_w), f"batches are not broadcastables {batch} vs {batch_w}"
         try:
-            torch.broadcast_shapes(batch_obs, batch_w)
+            torch.broadcast_shapes(batch, batch_w)
         except RuntimeError as err:
-            raise AssertionError(
-                f"batches are not broadcastables {batch_obs} vs {batch_w}"
-            ) from err
+            raise AssertionError(f"batches are not broadcastables {batch} vs {batch_w}") from err
         assert dup_w.dtype == obs.dtype, (dup_w.dtype, obs.dtype)
         assert dup_w.device == obs.device, (dup_w.device, obs.device)
     assert isinstance(nbr_clusters, numbers.Integral), nbr_clusters.__class__.__name__
@@ -432,58 +511,75 @@ def em(
     assert nbr_tries > 0, nbr_tries
     nbr_tries = int(nbr_tries)
 
-    # initialization
+    # general
     mean, cov = _fit_one_cluster(obs, std_w, dup_w)  # (..., n_var, 1) and (..., n_var, n_var)
+    eta = torch.full((*batch, nbr_clusters), 1.0/nbr_clusters, dtype=obs.dtype, device=obs.device)
+    if nbr_clusters != 1:
+        # draw random points for initialization
+        mean = (  # (n_tries, ..., n_clu, n_var, 1)
+            mean.unsqueeze(-3).unsqueeze(0)
+            + (
+                torch.randn(
+                    (nbr_tries, *batch, nbr_clusters, n_var),
+                    dtype=obs.dtype, device=obs.device
+                ) @ cov
+            ).unsqueeze(-1)
+        )
+        cov = (  # (n_tries, ..., n_clu, n_var, n_var)
+            cov
+            .unsqueeze(-3).unsqueeze(0)
+            .expand(nbr_tries, *batch, nbr_clusters, n_var, n_var)
+            .clone()
+        )
+        eta = ( # (n_tries, ..., n_clu)
+            eta.unsqueeze(0).expand(nbr_tries, *batch, nbr_clusters).clone()
+        )
+        # prepare data for several draw
+        obs = obs.unsqueeze(0).expand(nbr_tries, *batch, n_obs, n_var)
+        std_w = std_w.unsqueeze(0).expand(nbr_tries, *batch, n_obs)
+        dup_w = dup_w.unsqueeze(0).expand(nbr_tries, *batch, n_obs)
+        # run em on each cluster and each tries
+        mean, cov, eta, criteria = (
+            _fit_n_clusters_serveral_steps(obs, std_w, dup_w, mean, cov, eta)
+        )
+        # keep the best
+        if nbr_clusters == 1:
+            mean, cov, eta = mean.unsqueeze(0), cov.unsqueeze(0), eta.unsqueeze(0)
+        else:
+            criteria, best = torch.max(criteria, axis=0)
+            mean = mean[best, range(mean.shape[1])]
+            cov = cov[best, range(cov.shape[1])]
+            eta = eta[best, range(eta.shape[1])]
+    else:  # case one cluster
+        mean = mean.unsqueeze(-3)  # (..., 1, n_var, 1)
+        cov = cov.unsqueeze(-3)  # (..., 1, n_var, n_var)
 
-    raise NotImplementedError
+    # finalization
+    return mean, cov, eta  # (..., n_clu, n_var, 1), (..., n_clu, n_var, n_var), (..., n_clu)
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    import matplotlib.pyplot as plt
-    import time
+#     import matplotlib.pyplot as plt
+#     import time
 
-    # samples test
-    n_obs, n_var = 10000, 2
-    obs = torch.cat([  # (..., n_obs, n_var)
-        torch.randn((n_obs, n_var)) @ torch.tensor([[0.5, 0], [0, 0.5]]) + torch.tensor([[-1, -1]]),
-        # torch.randn((n_obs, n_var)) @ torch.tensor([[0.2, 0], [0, 0.7]]) + torch.tensor([[-1, 1]]),
-        torch.randn((n_obs, n_var)) @ torch.tensor([[0.4, -0.3], [-0.3, 0.4]]) + torch.tensor([[1, 1]]),
-        torch.randn((n_obs, n_var)) @ torch.tensor([[.1, 0], [0, .1]]) + torch.tensor([[1, -1]]),
-    ], axis=-2)
-    n_obs = obs.shape[-2]
-    std_w = torch.ones((n_obs,))  # (..., n_obs)
-    dup_w = torch.ones((n_obs,))  # (..., n_obs)
-    plt.scatter(obs[..., 0], obs[..., 1], label="observation")
+#     # samples test
+#     n_obs, n_var = 10000, 2
+#     obs = torch.cat([  # (..., n_obs, n_var)
+#         torch.randn((n_obs, n_var)) @ torch.tensor([[0.5, 0], [0, 0.5]]) + torch.tensor([[-1, -1]]),
+#         # torch.randn((n_obs, n_var)) @ torch.tensor([[0.2, 0], [0, 0.7]]) + torch.tensor([[-1, 1]]),
+#         torch.randn((n_obs, n_var)) @ torch.tensor([[0.4, -0.3], [-0.3, 0.4]]) + torch.tensor([[1, 1]]),
+#         torch.randn((n_obs, n_var)) @ torch.tensor([[.1, 0], [0, .1]]) + torch.tensor([[1, -1]]),
+#     ], axis=-2)
+#     n_obs = obs.shape[-2]
+#     std_w = torch.ones((n_obs,))  # (..., n_obs)
+#     dup_w = torch.ones((n_obs,))  # (..., n_obs)
+#     plt.scatter(obs[..., 0], obs[..., 1], label="observation")
 
-    # initialization
-    mean_init, cov_init = _fit_one_cluster(obs, std_w, dup_w)  # (..., n_var, 1) and (..., n_var, n_var)
+#     obs, std_w, dup_w = obs.unsqueeze(0).expand(10, -1, -1).clone(), std_w.unsqueeze(0).expand(10, -1).clone(), dup_w.unsqueeze(0).expand(10, -1).clone()
 
-    for n_clu in range(1, 7):
+#     estimated_mean, estimated_cov, estimated_eta = em(obs, std_w, dup_w, nbr_clusters=3, nbr_tries=2)
+#     plt.scatter(estimated_mean[..., 0, 0], estimated_mean[..., 1, 0], label=f"final means")
 
-        eta = torch.ones((*cov_init.shape[:-2], n_clu)) / n_clu
-        # plt.scatter(mean_init[..., 0, 0], mean_init[..., 1, 0], label="mean init ref")
+#     plt.show()
 
-        means = mean_init.unsqueeze(-3) + (torch.randn((*mean_init.shape[:-2], n_clu, n_var)) @ cov_init).unsqueeze(-1)
-        covs = cov_init.expand(*cov_init.shape[:-2], n_clu, -1, -1).clone()
-        etas = eta.clone()
-        # plt.scatter(means[..., 0, 0], means[..., 1, 0], label=f"means init {n_clu} clusters")
-
-        # feet n clusters
-        means_hash = {hash(pickle.dumps(means))}
-        for i in range(1000):
-            means, covs, etas, _ = _fit_n_clusters_one_step(obs, std_w, dup_w, means, covs, etas)
-            if torch.any(torch.isnan(means)):
-                print("hahahahahaha")
-            if (new_hash := hash(pickle.dumps(means))) in means_hash:
-                plt.scatter(means[..., 0, 0], means[..., 1, 0], label=f"final means, {n_clu} clusters and {i} iterations")
-                break
-            means_hash.add(new_hash)
-
-        # evaluation of quality
-        bic = _bic(obs, dup_w, means, covs, etas)
-        aic = _aic(obs, dup_w, means, covs, etas)
-        print(f"for {n_clu} clusters, bic={bic:.2f}, aic={aic:.2f}")
-
-    plt.legend()
-    plt.show()

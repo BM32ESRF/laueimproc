@@ -7,8 +7,10 @@ dynamic = ["version"]
 requires-python = ">=3.9"
 dependencies = [
   "fabio",
+  "matplotlib",
   "numpy",
   "opencv-contrib-python-headless",
+  "psutil",
   "torch",
   "tqdm",
 ]
@@ -40,7 +42,6 @@ classifiers = [
 
 [project.optional-dependencies]
 all = [
-  "matplotlib",
   "pdoc3",
   "recommonmark",
   "sphinx",

@@ -5,13 +5,11 @@
 
 import functools
 import hashlib
-import multiprocessing.pool
 import os
 import pickle
+import queue
 import threading
-import time
 
-from laueimproc.opti.cache import auto_cache
 from laueimproc.opti.manager import DiagramManager
 from laueimproc.opti.singleton import MetaSingleton
 
@@ -22,6 +20,7 @@ class ThreadManager(threading.Thread, metaclass=MetaSingleton):
     def __init__(self, verbose=False):
         self.jobs = {}  # each signature, associate the thread
         self.lock = threading.Lock()
+        self.submit_event = queue.Queue(maxsize=1)  # faor passive waiting base on event
         super().__init__(daemon=True)  # daemon has to be true to allow to exit python
         self.start()
 
@@ -58,12 +57,19 @@ class ThreadManager(threading.Thread, metaclass=MetaSingleton):
             if job is not None:
                 job.join()  # passive waiting
             else:
-                time.sleep(0.01)
+                try:
+                    self.submit_event.get(timeout=0.1)
+                except queue.Empty:  # beter than a short time.sleep
+                    pass
 
     def submit_job(self, meth, diagram, args, kwargs, signature):
         with self.lock:
             if signature not in self.jobs:
                 self.jobs[signature] = Calculator(meth, diagram, args, kwargs)
+            try:
+                self.submit_event.put_nowait(None)  # just for trigger main thread
+            except queue.Full:
+                pass
             return self.jobs[signature]
 
     def get_job(self, meth, diagram, args, kwargs, signature):

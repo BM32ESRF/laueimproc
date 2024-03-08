@@ -209,7 +209,7 @@ def peaks_search(
         ) if max(h, w) <= 200 # remove too big spots
     ]
 
-    # vectorisation
+    # this vectorizated version seams slowler than the iterative one
     # bboxes = (
     #     Tensor(torch.tensor(bboxes, dtype=int, device=brut_image.device))
     #     if bboxes else
@@ -228,6 +228,7 @@ def peaks_search(
     # )
     # for index, (i, j, height, width) in enumerate(bboxes.tolist()):  # write the right values
     #     rois[index, :height, :width] = torch.from_numpy(fg_image[i:i+height, j:j+width])
+
     if bboxes:
         rois = np.zeros( # zeros 2 times faster than empty + fill 0
             (len(bboxes), max(h for _, _, h, _ in bboxes), max(w for _, _, _, w in bboxes)),
