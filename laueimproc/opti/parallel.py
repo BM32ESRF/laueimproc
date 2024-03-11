@@ -59,7 +59,7 @@ class ThreadManager(threading.Thread, metaclass=MetaSingleton):
             else:
                 try:
                     self.submit_event.get(timeout=0.1)
-                except queue.Empty:  # beter than a short time.sleep
+                except queue.Empty:  # beter than a short time.sleep active waiting
                     pass
 
     def submit_job(self, meth, diagram, args, kwargs, signature):

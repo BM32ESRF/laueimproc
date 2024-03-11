@@ -29,7 +29,7 @@ Tensor Terminology
 \): The full symetric positive covariance matrix of the gaussian \(j\).
 * \(\eta_j\), the relative mass of the gaussian \(j\). We have \(\sum\limits_{j=1}^K \eta_j = 1\).
 * \(\alpha_i\): The weights has the relative number of time the individual has been drawn.
-* \(\omega_i\): The weights has the inverse of the standard deviation of each individual.
+* \(\omega_i\): The weights has the inverse of the relative covariance of each individual.
 * \(
     \mathbf{x}_i =
     \begin{pmatrix}
@@ -76,6 +76,7 @@ GMM = collections.namedtuple("GMM", (  # It is just a compact way to pack gmm pa
     "cov",  # The covariance matrix of shape (..., nbr_clusters, nbr_variables, nbr_variables).
     "eta",  # The relative mass of each gaussian of shape (..., nbr_clusters).
 ))
+__pdoc__ = {"GMM": False}
 
 
 def _aic(obs: Tensor, dup_w: Tensor, std_w: Tensor, gmm: GMM, *, log_likelihood=None) -> Tensor:
@@ -88,7 +89,7 @@ def _aic(obs: Tensor, dup_w: Tensor, std_w: Tensor, gmm: GMM, *, log_likelihood=
     dup_w : Tensor, optional
         The duplication weights of shape (..., nbr_observation).
     std_w : Tensor, optional
-        The inv std weights of shape (..., nbr_observation).
+        The inverse var weights of shape (..., nbr_observation).
     gmm : GMM
         The gaussians mixture params (mean, cov and eta).
 
@@ -278,7 +279,7 @@ def _fit_one_cluster(obs: Tensor, dup_w: Tensor, std_w: Tensor) -> tuple[Tensor,
     dup_w : Tensor, optional
         The duplication weights of shape (..., nbr_observation).
     std_w : Tensor, optional
-        The inv std weights of shape (..., nbr_observation).
+        The inverse var weights of shape (..., nbr_observation).
 
     Returns
     -------
@@ -326,7 +327,7 @@ def _fit_n_clusters_one_step(obs: Tensor, dup_w: Tensor, std_w: Tensor, gmm: GMM
     dup_w : Tensor, optional
         The duplication weights of shape (..., nbr_observation).
     std_w : Tensor, optional
-        The inv std weights of shape (..., nbr_observation).
+        The inverse var weights of shape (..., nbr_observation).
     gmm : GMM
         The gaussians mixture params (mean, cov and eta).
 
@@ -464,7 +465,7 @@ def _mse(obs: Tensor, dup_w: Tensor, gmm: GMM) -> Tensor:
     mass = torch.sum(dup_w, axis=-1, keepdim=True)  # (..., 1)
     surface = torch.sum(prob, axis=-2)  # (..., n_pxl)
     surface *= mass
-    mse = torch.sum((surface - dup_w)**2, axis=-1)  # (...,)
+    mse = torch.mean((surface - dup_w)**2, axis=-1)  # (...,)
     return mse
 
 def em(
@@ -485,11 +486,11 @@ def em(
     * \(
         p_{i,j} = \frac{
             \eta_j^{(s)}
-            \mathcal{N}_{\mathbf{\mu}_j^{(s)}, \mathbf{\Sigma}_j^{(s)}}(\mathbf{x}_i)
+            \mathcal{N}_{\mathbf{\mu}_j^{(s)}, \mathbf{\Sigma}_j^{(s)}}\left(\mathbf{x}_i\right)
         }{
             \sum\limits_{k=1}^K
             \eta_k^{(s)}
-            \mathcal{N}_{\mathbf{\mu}_k^{(s)}, \mathbf{\Sigma}_k^{(s)}}(\mathbf{x}_i)
+            \mathcal{N}_{\mathbf{\mu}_k^{(s)}, \mathbf{\Sigma}_k^{(s)}}\left(\mathbf{x}_i\right)
         }
     \) Posterior probability that observation \(i\) belongs to cluster \(j\).
     * \(
@@ -497,17 +498,17 @@ def em(
     \) The relative weight of each gaussian.
     * \(
         \mathbf{\mu}_j^{(s+1)} = \frac{
-            \sum\limits_{i=1}^N \omega_i \alpha_i p_{i,j} \mathbf{x}_i
+            \sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j} \mathbf{x}_i
         }{
-            \sum\limits_{i=1}^N \omega_i \alpha_i p_{i,j}
+            \sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j}
         }
     \) The mean of each gaussian.
     * \(
         \mathbf{\Sigma}_j^{(s+1)} = \frac{
             \sum\limits_{i=1}^N
             \omega_i \alpha_i p_{i,j}
-            (\mathbf{x}_i - \mathbf{\mu}_j^{(s+1)})
-            (\mathbf{x}_i - \mathbf{\mu}_j^{(s+1)})^{\intercal}
+            \left(\mathbf{x}_i - \mathbf{\mu}_j^{(s+1)}\right)
+            \left(\mathbf{x}_i - \mathbf{\mu}_j^{(s+1)}\right)^{\intercal}
         }{
             \sum\limits_{i=1}^N \alpha_i p_{i,j}
         }
@@ -531,8 +532,58 @@ def em(
         The number of times that the algorithm converges
         in order to have the best possible solution.
         It is ignored in the case `nbr_clusters` = 1.
-    aic, bic, likelihood, log_likelihood, mse : boolean, default=False
+    aic, bic, log_likelihood, mean_std, mse : boolean, default=False
         If set to True, the metric is happend into `infodict`. Shape (...,).
+
+        * aic: Akaike Information Criterion. \(aic = 2p-2\log(L_{\alpha,\omega})\),
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        * bic: Bayesian Information Criterion. \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        * log_likelihood: \(
+            L_{\alpha,\omega} = \log\left(
+                \prod\limits_{i=1}^N \sum\limits_{j=1}^K
+                \eta_j \left(
+                    \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+                \right)^{\alpha_i}
+            \right)
+        \)
+        * mean_std: The std of the mean estimator.
+        Let \(\widehat{\mathbf{\mu}}\) be the estimator of the mean.
+
+            * \(\begin{cases}
+                std(\widehat{\mathbf{\mu}_j}) = \sqrt{var(\widehat{\mathbf{\mu}})} \\
+                var(\widehat{\mathbf{\mu}_j}) = var\left( \frac{
+                        \sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j} \mathbf{x}_i
+                    }{
+                        \sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j}
+                    } \right) = \frac{
+                        \sum\limits_{i=1}^N (\alpha_i \omega_i p_{i,j})^2 var(\mathbf{x}_i)
+                    }{
+                        \left( \sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j} \right)^2
+                    } \\
+                var(\mathbf{x}_i) = max(eigen( \frac{1}{\omega_i}\mathbf{\Sigma}_j )) \\
+            \end{cases}\)
+            * \(
+                std(\widehat{\mathbf{\mu}_j}) = \frac{
+                    \sqrt{
+                        max(eigen( \mathbf{\Sigma}_j ))
+                        \sum\limits_{i=1}^N (\alpha_i p_{i,j})^2 \omega_i
+                    }
+                }{
+                    \left( \sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j} \right)
+                }
+            \)
+
+        * mse: Mean Square Error. \(
+            mse = \frac
+                {
+                    \sum\limits_{i=1}^N
+                    \left(
+                        \left(\sum\limits_{i=1}^N\alpha_i\right)\Gamma(\mathbf{X}_i)-\alpha_i
+                    \right)^2
+                }
+                {\sum\limits_{i=1}^N\alpha_i}
+        \)
 
     Returns
     -------
@@ -545,10 +596,10 @@ def em(
     infodict : dict[str]
         A dictionary of optional outputs.
     """
-    metrics = {"aic", "bic", "likelihood", "log_likelihood", "mse"}
+    metrics = {"aic", "bic", "log_likelihood", "mean_std", "mse"}
 
     # verifications
-    if kwargs.get("_check"):
+    if kwargs.get("_check", True):
         obs, dup_w, std_w = _check(obs, dup_w, std_w)
         assert isinstance(nbr_clusters, numbers.Integral), nbr_clusters.__class__.__name__
         assert nbr_clusters > 0, nbr_clusters
@@ -557,7 +608,8 @@ def em(
         assert nbr_tries > 0, nbr_tries
         nbr_tries = int(nbr_tries)
         assert all(isinstance(kwargs.get(k, False), bool) for k in metrics), kwargs
-        assert kwargs.keys().issubset(metrics), f"unrecognise parameter {kwargs.keys()-metrics}"
+        assert set(kwargs).issubset(metrics|{"_check", "mean_std"}), \
+            f"unrecognise parameter {set(kwargs)-metrics}"
 
     # main gmm
     *batch, _, _ = obs.shape
@@ -584,8 +636,18 @@ def em(
         infodict["bic"] = _bic(
             obs, dup_w, std_w, GMM(mean, cov, eta), log_likelihood=log_likelihood
         )
+    if kwargs.get("log_likelihood", False):
+        infodict["log_likelihood"] = log_likelihood
     if kwargs.get("mse", False):
         infodict["mse"] = _mse(obs, dup_w, GMM(mean, cov, eta))
+    if kwargs.get("mean_std", False):
+        logging.warning("wrong and stupid mean std estimation!!!!")
+        assert nbr_clusters == 1, "notimplemented"
+        eig = torch.linalg.eigvalsh(cov)  # (..., n_clu, n_var)
+        eig = torch.max(eig, axis=-1).values  # (..., n_clu)
+        eig = eig.squeeze(-1)  # (...,)
+        mass = torch.sum(dup_w, axis=-1)  # (...,)
+        infodict["mean_std"] = torch.sqrt(eig / mass)
     # if kwargs.get("tol", False):
     #     # def local_mse(mean):  # (..., n_clu, n_var, 1)
     #     #     return torch.sum(_mse(obs, dup_w, mean, cov, eta))

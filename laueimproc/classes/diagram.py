@@ -39,7 +39,7 @@ class Diagram(BaseDiagram):
 
     @auto_cache
     @auto_parallel
-    def fit_gaussian(self, **metrics) -> tuple[Tensor, Tensor, dict]:
+    def fit_gaussian(self, **extra_info) -> tuple[Tensor, Tensor, dict]:
         r"""Fit each roi by one gaussian.
 
         See ``laueimproc.improc.gmm`` for terminology.
@@ -72,7 +72,7 @@ class Diagram(BaseDiagram):
         obs = torch.cat([points_i.unsqueeze(-1), points_j.unsqueeze(-1)], axis=1)
         obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
         dup_w = torch.reshape(rois, (rois.shape[0], -1))
-        mean, cov, _, infodict = em(obs, dup_w, **metrics, nbr_clusters=1, _check=False)
+        mean, cov, _, infodict = em(obs, dup_w, **extra_info, nbr_clusters=1)
         mean, cov = mean.squeeze(-3), cov.squeeze(-3)
 
         # spot base to diagram base
