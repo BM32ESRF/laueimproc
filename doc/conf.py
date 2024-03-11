@@ -49,10 +49,15 @@ todo_include_todos = True
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 
-# -- Options for LaTeX output ------------------------------------------------
-latex_elements = {
-    "papersize": "letterpaper",
-    "pointsize": "10pt",
-    "preamble": "",
-    "figure_align": "htbp",
-}
+# -- Pdoc3 auto generation----------------------------------------------------
+import subprocess
+subprocess.run(  # build with pdoc3
+    [
+        "python", "-m", "pdoc",
+        "--html", "--force", "--config", "latex_math=True",
+        "--output-dir", str(pathlib.Path(__file__).resolve().parent / "build" / "html"),
+        str(pathlib.Path(__file__).resolve().parent.parent / "laueimproc"),
+    ],
+    shell=False,
+    check=True,
+)

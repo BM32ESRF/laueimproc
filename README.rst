@@ -49,7 +49,7 @@ To install the lastest development version from `GitHub <https://github.com/BM32
     pip install --upgrade pip setuptools wheel
     pip -v install --editable .[all]
 
-Then, you can generate the documentation with sphinx:
+Then, you can generate the documentation:
 
 .. code::
 
@@ -57,14 +57,6 @@ Then, you can generate the documentation with sphinx:
     make clean && make html
     firefox build/html/index.html
     cd -
-
-Or with pdoc3:
-
-.. code::
-
-    pip install pdoc3
-    python -m pdoc --force --config latex_math=True --html --output-dir doc/build/pdoc laueimproc
-    firefox doc/build/pdoc/laueimproc/index.html
 
 
 Example
