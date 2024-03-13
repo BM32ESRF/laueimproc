@@ -5,6 +5,7 @@
 
 import functools
 import hashlib
+import logging
 import os
 import pickle
 import queue
@@ -24,33 +25,33 @@ class ThreadManager(threading.Thread, metaclass=MetaSingleton):
         super().__init__(daemon=True)  # daemon has to be true to allow to exit python
         self.start()
 
-    def contains(self, signature):
-        with self.lock:
-            return signature in self.jobs
-
     def run(self):
         """Asynchrone control loop."""
         while True:
             # starts waiting threads
             with self.lock:
                 running = [job for job in self.jobs.values() if job.is_alive()]
-                if nbr_to_append := max(0, os.cpu_count()-len(running)):
+                if nbr_to_append := max(0, 3*os.cpu_count()//2-len(running)):
                     for job in self.jobs.values():
                         if not job._started.is_set():
                             job.start()
                             if (nbr_to_append := nbr_to_append-1) == 0:
                                 break
 
-            # transfere finish thread in cache
+            # transfere terminated result thread in cache
             with self.lock:
                 finish = {
                     signature: job for signature, job in self.jobs.items()
                     if job._started.is_set() and not job.is_alive()
-                }.items()
-                for signature, job in finish:
-                    with job.diagram._cache_lock:
-                        job.diagram._cache[signature] = job.get()
+                }
+                for signature in finish:
                     del self.jobs[signature]
+            for signature, job in finish.items():
+                with job.diagram._cache_lock:
+                    try:
+                        job.diagram._cache[signature] = job.get()
+                    except Exception as err:  # assumed to be durty
+                        logging.warning(err)  # dont raise because could come from not thread safe
 
             # wait to free up resources
             job = running.pop(0) if running else None
@@ -58,26 +59,37 @@ class ThreadManager(threading.Thread, metaclass=MetaSingleton):
                 job.join()  # passive waiting
             else:
                 try:
-                    self.submit_event.get(timeout=0.1)
+                    self.submit_event.get(timeout=0.5)
                 except queue.Empty:  # beter than a short time.sleep active waiting
                     pass
 
     def submit_job(self, meth, diagram, args, kwargs, signature):
+        if not self.is_alive():
+            raise RuntimeError("the thread manager is dead")
         with self.lock:
             if signature not in self.jobs:
                 self.jobs[signature] = Calculator(meth, diagram, args, kwargs)
-            try:
-                self.submit_event.put_nowait(None)  # just for trigger main thread
-            except queue.Full:
-                pass
-            return self.jobs[signature]
+            job = self.jobs[signature]
+        try:
+            self.submit_event.put_nowait(None)  # just for trigger main thread
+        except queue.Full:
+            pass
+        return job
 
-    def get_job(self, meth, diagram, args, kwargs, signature):
+    def pop(self, meth, diagram, args, kwargs, signature):
         job = self.submit_job(meth, diagram, args, kwargs, signature)
         with self.lock:
             if not job._started.is_set():
                 job.start()
-        return job.get()  # job is deleted from `run`.
+        # return job.get()
+        res = job.get()
+        with self.lock:  # delete all references
+            if signature in self.jobs:
+                del self.jobs[signature]
+        with diagram._cache_lock:
+            if signature in diagram._cache:
+                del diagram._cache[signature]
+        return res
 
 
 class Calculator(threading.Thread):
@@ -110,19 +122,17 @@ def auto_parallel(meth: callable) -> callable:
             return meth(diagram, *args, **kwargs)
         # case cached
         param_sig = hashlib.md5(pickle.dumps((args, kwargs)), usedforsecurity=False).hexdigest()
-        signature = f"thread_{meth.__name__}_{diagram.signature}_{param_sig}"
+        signature = f"thread: {diagram.signature}.{meth.__name__}({param_sig})"
         with diagram._cache_lock:  # pylint: disable=W0212
             if signature in diagram._cache:  # pylint: disable=W0212
                 return diagram._cache.pop(signature)  # pylint: disable=W0212
         # case thread calculus
-        job = Calculator(meth, diagram, args, kwargs)
-        job.start()
         thread_manager = ThreadManager()
-        for other_diagram in DiagramManager().get_nexts_diagrams(diagram, nbr=os.cpu_count()):
-            thread_manager.submit_job(
-                meth, other_diagram, args, kwargs,
-                signature=f"thread_{meth.__name__}_{other_diagram.signature}_{param_sig}",
-            )
-        return job.get()
+        for next_diagram in DiagramManager().get_nexts_diagrams(diagram, 3*os.cpu_count()):
+            next_signature = f"thread: {next_diagram.signature}.{meth.__name__}({param_sig})"
+            with next_diagram._cache_lock:  # pylint: disable=W0212
+                if next_signature not in next_diagram._cache:  # pylint: disable=W0212
+                    thread_manager.submit_job(meth, next_diagram, args, kwargs, next_signature)
+        return thread_manager.pop(meth, diagram, args, kwargs, signature)
 
     return multithreaded_meth

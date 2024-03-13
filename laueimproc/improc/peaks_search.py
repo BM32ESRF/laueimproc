@@ -13,10 +13,8 @@ import torch
 from laueimproc.classes.tensor import Tensor
 
 
-
 DEFAULT_KERNEL_FONT = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (19, 19))  # 17 - 21
 DEFAULT_KERNEL_AGLO = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-
 
 
 def _density_to_threshold_numpy(img: np.ndarray, density: float) -> float:
@@ -39,11 +37,12 @@ def _density_to_threshold_numpy(img: np.ndarray, density: float) -> float:
 
 def _density_to_threshold_torch(img: torch.Tensor, density: float) -> float:
     """Analyse the image histogram in order to find the correspondant threshold."""
+    device = img.device
     bins = torch.logspace(
-        start=-5.0, end=math.log10(torch.max(img).item()+1e-5), steps=101, device=img.device
+        start=-5.0, end=math.log10(torch.max(img).item()+1e-5), steps=101, device=device
     )
     bins -= 1e-5  # borns are [0, max(img)]
-    hist = torch.histogram(img, bins=bins, density=False).hist
+    hist = torch.histogram(img.to("cpu"), bins=bins.to("cpu"), density=False).hist.to(device)
     hist /= float(img.shape[0]*img.shape[1])
     hist = torch.flip(hist, (0,))  # from white to black
     hist = torch.cumsum(hist, 0, out=hist)  # repartition function
@@ -53,7 +52,7 @@ def _density_to_threshold_torch(img: torch.Tensor, density: float) -> float:
         * math.pi * 0.25  # circle to square <=> bbox to spot
         * 0.25  # max 25% filled
     )
-    threshold = bins[torch.argmin((hist >= real_density).to(torch.uint8)).item() + 1].item()
+    threshold = bins[torch.argmin((hist >= real_density).view(torch.uint8)).item() + 1].item()
     return threshold
 
 
@@ -136,9 +135,13 @@ def estimate_background(
             f"the kernel has to be odd, current shape is {kernel_font.shape}"
 
     # extraction of the background
-    bg_image = cv2.GaussianBlur(brut_image, kernel_font.shape, 0)
-    # bg_image = cv2.medianBlur(brut_image, 5)  # 5 is the max size
-    return cv2.morphologyEx(brut_image, dst=bg_image, op=cv2.MORPH_OPEN, kernel=kernel_font)
+    bg_image = cv2.medianBlur(brut_image, 5)  # 5 is the max size
+    # from scipy import signal
+    # bg_image = signal.medfilt2d(brut_image, 5)  # no limitation but very slow!
+    bg_image = cv2.morphologyEx(brut_image, dst=bg_image, op=cv2.MORPH_OPEN, kernel=kernel_font)
+    # ksize = (3*kernel_font.shape[0], 3*kernel_font.shape[1])
+    # bg_image = cv2.GaussianBlur(brut_image, dst=bg_image, ksize=ksize, sigmaX=0)
+    return bg_image
 
 
 def peaks_search(
@@ -176,7 +179,7 @@ def peaks_search(
     assert isinstance(brut_image, Tensor), brut_image.__class__.__name__
     assert brut_image.ndim == 2, brut_image.shape
     assert isinstance(density, numbers.Real), density.__class__.__type__
-    assert density > 0.0, density
+    assert 0.0 < density <= 1.0, density
     density = float(density)
     if kernel_aglo is None:
         kernel_aglo = DEFAULT_KERNEL_AGLO
@@ -241,4 +244,5 @@ def peaks_search(
     else:
         rois = Tensor(torch.empty((0, 1, 1), dtype=brut_image.dtype, device=brut_image.device))
         bboxes = Tensor(torch.empty((0, 4), dtype=int, device=brut_image.device))
+
     return rois, bboxes

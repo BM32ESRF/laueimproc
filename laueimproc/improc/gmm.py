@@ -106,6 +106,7 @@ def _aic(obs: Tensor, dup_w: Tensor, std_w: Tensor, gmm: GMM, *, log_likelihood=
     free_parameters: int = (
         (obs.shape[-1] * (obs.shape[-1]+1))**2 // 2  # nbr of parameters in cov matrix
         + obs.shape[-1]  # nbr of parameters in mean vector
+        + 1  # eta
     ) * gmm.eta.shape[-1]  # nbr of gaussians
     aic = (
         _log_likelihood(obs, dup_w, std_w, gmm)
@@ -142,6 +143,7 @@ def _bic(obs: Tensor, dup_w: Tensor, std_w: Tensor, gmm: GMM, *, log_likelihood=
     free_parameters: int = (
         (obs.shape[-1] * (obs.shape[-1]+1))**2 // 2  # nbr of parameters in cov matrix
         + obs.shape[-1]  # nbr of parameters in mean vector
+        + 1  # eta
     ) * gmm.eta.shape[-1]  # nbr of gaussians
     if dup_w is None:
         log_n_obs = math.log(obs.shape[-2])
@@ -532,7 +534,7 @@ def em(
         The number of times that the algorithm converges
         in order to have the best possible solution.
         It is ignored in the case `nbr_clusters` = 1.
-    aic, bic, log_likelihood, mean_std, mse : boolean, default=False
+    aic, bic, log_likelihood, mse : boolean, default=False
         If set to True, the metric is happend into `infodict`. Shape (...,).
 
         * aic: Akaike Information Criterion. \(aic = 2p-2\log(L_{\alpha,\omega})\),
@@ -547,33 +549,6 @@ def em(
                 \right)^{\alpha_i}
             \right)
         \)
-        * mean_std: The std of the mean estimator.
-        Let \(\widehat{\mathbf{\mu}}\) be the estimator of the mean.
-
-            * \(\begin{cases}
-                std(\widehat{\mathbf{\mu}_j}) = \sqrt{var(\widehat{\mathbf{\mu}})} \\
-                var(\widehat{\mathbf{\mu}_j}) = var\left( \frac{
-                        \sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j} \mathbf{x}_i
-                    }{
-                        \sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j}
-                    } \right) = \frac{
-                        \sum\limits_{i=1}^N (\alpha_i \omega_i p_{i,j})^2 var(\mathbf{x}_i)
-                    }{
-                        \left( \sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j} \right)^2
-                    } \\
-                var(\mathbf{x}_i) = max(eigen( \frac{1}{\omega_i}\mathbf{\Sigma}_j )) \\
-            \end{cases}\)
-            * \(
-                std(\widehat{\mathbf{\mu}_j}) = \frac{
-                    \sqrt{
-                        max(eigen( \mathbf{\Sigma}_j ))
-                        \sum\limits_{i=1}^N (\alpha_i p_{i,j})^2 \omega_i
-                    }
-                }{
-                    \left( \sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j} \right)
-                }
-            \)
-
         * mse: Mean Square Error. \(
             mse = \frac
                 {
@@ -596,7 +571,7 @@ def em(
     infodict : dict[str]
         A dictionary of optional outputs.
     """
-    metrics = {"aic", "bic", "log_likelihood", "mean_std", "mse"}
+    metrics = {"aic", "bic", "log_likelihood", "mse"}
 
     # verifications
     if kwargs.get("_check", True):
@@ -640,25 +615,8 @@ def em(
         infodict["log_likelihood"] = log_likelihood
     if kwargs.get("mse", False):
         infodict["mse"] = _mse(obs, dup_w, GMM(mean, cov, eta))
-    if kwargs.get("mean_std", False):
-        logging.warning("wrong and stupid mean std estimation!!!!")
-        assert nbr_clusters == 1, "notimplemented"
-        eig = torch.linalg.eigvalsh(cov)  # (..., n_clu, n_var)
-        eig = torch.max(eig, axis=-1).values  # (..., n_clu)
-        eig = eig.squeeze(-1)  # (...,)
-        mass = torch.sum(dup_w, axis=-1)  # (...,)
-        infodict["mean_std"] = torch.sqrt(eig / mass)
-    # if kwargs.get("tol", False):
-    #     # def local_mse(mean):  # (..., n_clu, n_var, 1)
-    #     #     return torch.sum(_mse(obs, dup_w, mean, cov, eta))
-    #     # infodict["tol"] = torch.autograd.functional.hessian(local_mse, mean)
-    #     mse = _mse(obs, dup_w, mean, cov, eta)
-    #     d1mse = torch.autograd.grad(torch.sum(mse), mean, create_graph=True)[0]
-    #     d2mse = torch.autograd.grad(torch.sum(torch.abs(d1mse)), mean)[0]
-    #     infodict["tol"] = d2mse / mse
-    #     # torch.sum(infodict["mse"]).backward()
-    #     # infodict["tol"] = mean.grad / infodict["mse"]
 
+    # cast
     return collections.namedtuple(
         "GMMSolution", ("mean", "cov", "eta", "infodict")
     )(mean, cov, eta, infodict)

@@ -9,6 +9,7 @@ import threading
 import typing
 import warnings
 
+from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
@@ -43,7 +44,7 @@ class BaseDiagram:
     rois : laueimproc.classes.tensor.Tensor or None
         The tensor of the regions of interest for each spots (readonly).
         For writing, use `self.spots = ...`.
-        Return None until spots are initialized.
+        Return None until spots are initialized. The shape is (n, h, w).
     signature : int
         hash of the state of the diagram (readonly).
         The hash takes in account the diagram iteself and this state.
@@ -380,7 +381,9 @@ class BaseDiagram:
             return self._file_or_data
         return None
 
-    def filter_spots(self, indexs: typing.Container, inplace: bool = True):
+    def filter_spots(
+        self, indexs: typing.Container, inplace: bool = True, msg: str = "general filter"
+    ):
         """Keep only the given spots, delete the rest.
 
         This method can be used for filtering or sorting spots.
@@ -426,10 +429,15 @@ class BaseDiagram:
                 "negative index is not allowed"
             assert not indexs.shape[0] or torch.max(indexs).item() < len(self.spots), \
                 "some indexes are out of range"
+        assert isinstance(msg, str), msg.__class__.__name__
 
         # manage inplace
+        nb_spots = len(self.spots)
         if not inplace:
             self = self.clone()
+
+        # update history, it has to be done before changing state to be catched by signature
+        self._history.append(f"{nb_spots} to {len(indexs)} spots: {msg}")
 
         # filter the spots and the rois
         self._rois = self.rois[indexs]
@@ -441,9 +449,6 @@ class BaseDiagram:
             for key in list(self._cache):  # copy keys: dictionary changed size during iteration
                 if key != "image":
                     del self._cache[key]
-
-        # update history
-        self._history.append("general filtering")
 
         return self
 
@@ -482,7 +487,7 @@ class BaseDiagram:
         fig: Figure,
         vmin: typing.Optional[numbers.Real] = None,
         vmax: typing.Optional[numbers.Real] = None,
-    ) -> None:
+    ) -> Axes:
         """Prepare for display the diagram and the spots.
 
         Parameters
@@ -517,32 +522,35 @@ class BaseDiagram:
         axes.imshow(
             self.image.numpy(force=True).transpose(),
             aspect="equal",
-            interpolation="bicubic",
+            extent=(0, self.image.shape[1], self.image.shape[0], 0),  # origin to corner of pxl
+            interpolation=None,  # antialiasing is True
             norm="log",
             cmap="gray",
             vmin=vmin,
             vmax=vmax,
         )
         if self.spots:
+            bboxes = self.bboxes.numpy(force=True)
             axes.plot(
                 np.vstack((
-                    self.bboxes[:, 0],
-                    self.bboxes[:, 0]+self.bboxes[:, 2],
-                    self.bboxes[:, 0]+self.bboxes[:, 2],
-                    self.bboxes[:, 0],
-                    self.bboxes[:, 0],
+                    bboxes[:, 0],
+                    bboxes[:, 0]+bboxes[:, 2],
+                    bboxes[:, 0]+bboxes[:, 2],
+                    bboxes[:, 0],
+                    bboxes[:, 0],
                 )),
                 np.vstack((
-                    self.bboxes[:, 1],
-                    self.bboxes[:, 1],
-                    self.bboxes[:, 1]+self.bboxes[:, 3],
-                    self.bboxes[:, 1]+self.bboxes[:, 3],
-                    self.bboxes[:, 1],
+                    bboxes[:, 1],
+                    bboxes[:, 1],
+                    bboxes[:, 1]+bboxes[:, 3],
+                    bboxes[:, 1]+bboxes[:, 3],
+                    bboxes[:, 1],
                 )),
                 color="blue",
                 scalex=False,
                 scaley=False,
             )
+        return axes
 
     def reset(self) -> None:
         """Clear everithing, like if the diagram has just been borned."""

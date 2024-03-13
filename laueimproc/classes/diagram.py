@@ -2,10 +2,16 @@
 
 """Define the data sructure of a single Laue diagram image."""
 
+import collections
+import numbers
+import typing
+
+from matplotlib.axes import Axes
+import numpy as np
 import torch
 
-from laueimproc.improc.gmm import em
 from laueimproc.improc.spot.basic import compute_barycenters, compute_pxl_intensities
+from laueimproc.improc.spot.fit import fit_gaussian
 from laueimproc.opti.cache import auto_cache
 from laueimproc.opti.parallel import auto_parallel
 from .base_diagram import BaseDiagram
@@ -39,45 +45,104 @@ class Diagram(BaseDiagram):
 
     @auto_cache
     @auto_parallel
-    def fit_gaussian(self, **extra_info) -> tuple[Tensor, Tensor, dict]:
+    def fit_gaussian(
+        self,
+        photon_density: typing.Union[torch.Tensor, np.ndarray, numbers.Real] = 1.0,
+        **kwargs,
+    ) -> tuple[Tensor, Tensor, dict]:
         r"""Fit each roi by one gaussian.
 
         See ``laueimproc.improc.gmm`` for terminology.
 
         Parameters
         ----------
-        **extra_infos : dict
-            See ``laueimproc.improc.gmm.em`` for the available metrics.
+        photon_density : arraylike, optional
+            See to ``laueimproc.improc.spot.fit.fit_gaussian``.
+        **kwargs : dict
+            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussian``.
 
         Returns
         -------
         mean : Tensor
-            The vectors \(\mathbf{\mu}\). Shape (..., \(D\), 1).
+            The vectors \(\mathbf{\mu}\). Shape (..., \(D\), 1). In the absolute diagram base.
         cov : Tensor
             The matrices \(\mathbf{\Sigma}\). Shape (..., \(D\), \(D\)).
         infodict : dict[str]
             A dictionary of optional outputs (see ``laueimproc.improc.gmm.em``).
         """
+        photon_density = (
+            float(photon_density)
+            if isinstance(photon_density, numbers.Real)
+            else Tensor(photon_density)
+        )
+
+        # preparation
         if self.spots is None:
             raise RuntimeWarning(
                 "you must to initialize the spots (`self.find_spots()`)"
             )
         rois = self.rois
-        points_i, points_j = torch.meshgrid(
-            torch.arange(rois.shape[1], dtype=rois.dtype, device=rois.device),
-            torch.arange(rois.shape[2], dtype=rois.dtype, device=rois.device),
-            indexing="ij",
-        )
-        points_i, points_j = points_i.ravel(), points_j.ravel()
-        obs = torch.cat([points_i.unsqueeze(-1), points_j.unsqueeze(-1)], axis=1)
-        obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
-        dup_w = torch.reshape(rois, (rois.shape[0], -1))
-        mean, cov, _, infodict = em(obs, dup_w, **extra_info, nbr_clusters=1)
-        mean, cov = mean.squeeze(-3), cov.squeeze(-3)
+        shift = self.bboxes[:, :2]
+
+        # main fit
+        mean, cov, infodict = fit_gaussian(rois, photon_density, **kwargs)
 
         # spot base to diagram base
         if mean.requires_grad:
-            mean = mean + self.bboxes[:, :2].unsqueeze(-1)
+            mean = mean + shift.unsqueeze(-1)
         else:
-            mean += self.bboxes[:, :2].unsqueeze(-1)
-        return mean, cov, infodict
+            mean += shift.unsqueeze(-1)
+
+        # cast
+        return collections.namedtuple(
+            "FitGaussian", ("mean", "cov", "infodict")
+        )(mean.squeeze(-3), cov.squeeze(-3), infodict)
+
+
+    def plot(
+        self,
+        *args,
+        confidence: typing.Optional[typing.Union[numbers.Real, np.ndarray, torch.tensor]] = None,
+        **kwargs,
+    ) -> Axes:
+        """Add gaussian fit informations.
+
+        Paremeters
+        ----------
+        *args, **kwargs
+            Transmitted to ``laueimproc.classes.base_diagram.BaseDiagram.plot``.
+        confidence : arraylike, optional
+            The vector of the interval of confidence of the position.
+        """
+        if confidence is not None:
+            if isinstance(confidence, numbers.Real):
+                confidence = float(confidence)
+                assert confidence >= 0, confidence
+            else:
+                confidence = Tensor(confidence).squeeze()
+                assert confidence.ndim == 1, confidence.shape
+                assert torch.all(confidence >= 0), confidence
+
+        axes = super().plot(*args, **kwargs)
+
+        # baricenters
+        if self.compute_barycenters(is_cached=True) or confidence is not None:
+            mean = self.compute_barycenters()
+            mean = torch.transpose(mean, 0, 1)
+            axes.scatter(*mean.numpy(force=True), color="blue", marker="x")
+
+        # confidence
+        if confidence is not None:
+            circles = torch.linspace(0, 2*torch.pi, 33, dtype=mean.dtype, device=mean.device)
+            circles = torch.cat(
+                [torch.cos(circles).reshape(1, -1, 1), torch.sin(circles).reshape(1, -1, 1)],
+                axis=0,
+            )
+            if isinstance(confidence, Tensor):
+                circles = confidence.reshape(1, 1, -1) * circles
+            else:
+                circles *= confidence
+            circles = mean.unsqueeze(1) + circles
+            axes.plot(*circles.numpy(force=True), color="green", scalex=False, scaley=False)
+
+        return axes

@@ -46,6 +46,7 @@ def compute_barycenters(tensor_spots: Tensor) -> Tensor:
     heights, widths = torch.sum(heights, axis=1), torch.sum(widths, axis=2)
     pos = torch.cat((heights, widths), 1)
     pos *= torch.unsqueeze(inv_norm, 1)
+    pos += .5  # corner of pixel to center of pixel
     return pos
 
 

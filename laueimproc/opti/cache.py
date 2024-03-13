@@ -14,8 +14,11 @@ def auto_cache(meth: callable) -> callable:
     """Decorator to manage the cache of a Diagram method."""
     assert hasattr(meth, "__call__"), meth.__class__.__name__
     @functools.wraps(meth)
-    def cached_meth(diagram, *args, **kwargs):
-        signature = f"{meth.__name__}_{hashlib.md5(pickle.dumps((args, kwargs))).hexdigest()}"
+    def cached_meth(diagram, *args, is_cached: bool = False, **kwargs):
+        param_sig = hashlib.md5(pickle.dumps((args, kwargs)), usedforsecurity=False).hexdigest()
+        signature = f"cache: {diagram.signature}.{meth.__name__}({param_sig})"
+        if is_cached:
+            return signature in diagram._cache
         with diagram._cache_lock:  # pylint: disable=W0212
             if signature in diagram._cache:  # pylint: disable=W0212
                 return diagram._cache[signature]  # pylint: disable=W0212
