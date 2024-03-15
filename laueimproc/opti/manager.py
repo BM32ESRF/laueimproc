@@ -28,7 +28,7 @@ class DiagramManager(threading.Thread, metaclass=MetaSingleton):
         self._diagrams_dict: dict = {}  # dict for fast acces
         self._diagrams_list: list = []  # list for order
         self._lock = threading.Lock()
-        self._max_mem_percent: int = round(100-get_swappiness())
+        self._max_mem_percent: int = 100-get_swappiness()
         self._verbose: bool = False
 
         # start thread

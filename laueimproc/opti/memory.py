@@ -40,7 +40,7 @@ def mem_to_free(max_mem_percent: numbers.Integral) -> int:
         The amount of memory to freed in order to reach the threshold
     """
     assert isinstance(max_mem_percent, numbers.Integral), max_mem_percent.__class__.__name__
-    assert 0 <= max_mem_percent < 100, max_mem_percent
+    assert 0 <= max_mem_percent <= 100, max_mem_percent
     max_mem_percent = max(5, min(95, max_mem_percent))
     threshold = total_memory() * max_mem_percent // 100
     size = max(0, used_memory() - threshold)
@@ -50,6 +50,8 @@ def mem_to_free(max_mem_percent: numbers.Integral) -> int:
 def total_memory() -> int:
     """Return the total usable memory in bytes."""
     restricted_mem = os.environ.get("SLURM_MEM_PER_NODE", "0")
+    if restricted_mem.isdigit():
+        restricted_mem += "000000"  # default Mo
     restricted_mem = restricted_mem.replace("K", "e3")
     restricted_mem = restricted_mem.replace("M", "e6")
     restricted_mem = restricted_mem.replace("G", "e9")
@@ -60,7 +62,7 @@ def total_memory() -> int:
 
 def used_memory() -> int:
     """The total memory used in bytes."""
-    if os.environ.get("SLURM_MEM_PER_NODE", "0") != "0":
+    if "SLURM_MEM_PER_NODE" in os.environ:
         return psutil.Process().memory_info().rss
     memory = psutil.virtual_memory()
     return memory.total - memory.available
