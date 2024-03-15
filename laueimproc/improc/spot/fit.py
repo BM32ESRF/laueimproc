@@ -88,7 +88,7 @@ def fit_gaussian(
     points_i, points_j = points_i.ravel(), points_j.ravel()
     obs = torch.cat([points_i.unsqueeze(-1), points_j.unsqueeze(-1)], axis=1)
     obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
-    dup_w = torch.reshape(rois, (rois.shape[0], -1))
+    dup_w = torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2]))
     dup_w = dup_w * photon_density  # copy (no inplace) for keeping rois unchanged
 
     # fit gaussian

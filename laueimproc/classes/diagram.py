@@ -2,7 +2,6 @@
 
 """Define the data sructure of a single Laue diagram image."""
 
-import collections
 import numbers
 import typing
 
@@ -12,6 +11,7 @@ import torch
 
 from laueimproc.improc.spot.basic import compute_barycenters, compute_pxl_intensities
 from laueimproc.improc.spot.fit import fit_gaussian
+from laueimproc.improc.spot.rot_sym import compute_rot_similarity
 from laueimproc.opti.cache import auto_cache
 from laueimproc.opti.parallel import auto_parallel
 from .base_diagram import BaseDiagram
@@ -33,7 +33,6 @@ class Diagram(BaseDiagram):
         barycenters += self.bboxes[:, :2].to(barycenters.dtype)  # absolute
         return barycenters
 
-    @auto_cache
     @auto_parallel
     def compute_pxl_intensities(self) -> Tensor:
         """Compute the total pixel intensity for each spots."""
@@ -42,6 +41,16 @@ class Diagram(BaseDiagram):
                 "you must to initialize the spots (`self.find_spots()`)"
             )
         return compute_pxl_intensities(self.rois)
+
+    @auto_cache
+    @auto_parallel
+    def compute_rot_similarity(self) -> Tensor:
+        """Compute the similarity by rotation of each spots."""
+        if self.spots is None:
+            raise RuntimeWarning(
+                "you must to initialize the spots (`self.find_spots()`)"
+            )
+        return compute_rot_similarity(self.rois)
 
     @auto_cache
     @auto_parallel
@@ -94,10 +103,7 @@ class Diagram(BaseDiagram):
             mean += shift.unsqueeze(-1)
 
         # cast
-        return collections.namedtuple(
-            "FitGaussian", ("mean", "cov", "infodict")
-        )(mean.squeeze(-3), cov.squeeze(-3), infodict)
-
+        return mean.squeeze(-3), cov.squeeze(-3), infodict
 
     def plot(
         self,

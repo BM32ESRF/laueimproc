@@ -18,7 +18,7 @@ from laueimproc.opti.singleton import MetaSingleton
 class ThreadManager(threading.Thread, metaclass=MetaSingleton):
     """Excecute several functions in parallel threads."""
 
-    def __init__(self, verbose=False):
+    def __init__(self):
         self.jobs = {}  # each signature, associate the thread
         self.lock = threading.Lock()
         self.submit_event = queue.Queue(maxsize=1)  # faor passive waiting base on event
@@ -33,7 +33,7 @@ class ThreadManager(threading.Thread, metaclass=MetaSingleton):
                 running = [job for job in self.jobs.values() if job.is_alive()]
                 if nbr_to_append := max(0, 3*os.cpu_count()//2-len(running)):
                     for job in self.jobs.values():
-                        if not job._started.is_set():
+                        if not job._started.is_set():  # pylint: disable=W0212
                             job.start()
                             if (nbr_to_append := nbr_to_append-1) == 0:
                                 break
@@ -42,16 +42,16 @@ class ThreadManager(threading.Thread, metaclass=MetaSingleton):
             with self.lock:
                 finish = {
                     signature: job for signature, job in self.jobs.items()
-                    if job._started.is_set() and not job.is_alive()
+                    if job._started.is_set() and not job.is_alive() # pylint: disable=W0212
                 }
                 for signature in finish:
                     del self.jobs[signature]
             for signature, job in finish.items():
-                with job.diagram._cache_lock:
+                with job.diagram._cache_lock:  # pylint: disable=W0212
                     try:
-                        job.diagram._cache[signature] = job.get()
-                    except Exception as err:  # assumed to be durty
-                        logging.warning(err)  # dont raise because could come from not thread safe
+                        job.diagram._cache[signature] = job.get()  # pylint: disable=W0212
+                    except Exception as err:  # pylint: disable=W0718
+                        logging.error(err)
 
             # wait to free up resources
             job = running.pop(0) if running else None
@@ -81,7 +81,7 @@ class ThreadManager(threading.Thread, metaclass=MetaSingleton):
         with self.lock:
             if not job._started.is_set():
                 job.start()
-        # return job.get()
+        # return job.get()  # unreferenced by `run` thread
         res = job.get()
         with self.lock:  # delete all references
             if signature in self.jobs:

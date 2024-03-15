@@ -141,6 +141,7 @@ def estimate_background(
     bg_image = cv2.morphologyEx(brut_image, dst=bg_image, op=cv2.MORPH_OPEN, kernel=kernel_font)
     # ksize = (3*kernel_font.shape[0], 3*kernel_font.shape[1])
     # bg_image = cv2.GaussianBlur(brut_image, dst=bg_image, ksize=ksize, sigmaX=0)
+    bg_image = np.clip(bg_image, a_min=0.0, a_max=brut_image, out=bg_image)
     return bg_image
 
 

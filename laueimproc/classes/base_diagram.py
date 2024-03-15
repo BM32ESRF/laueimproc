@@ -36,7 +36,7 @@ class BaseDiagram:
         for each spots, of shape (n, 4) (readonly).
         Return None until spots are initialized.
     centers : laueimproc.classes.tensor.Tensor or None
-        The tensor of the centers for each spots, of shape (n, 2).
+        The tensor of the centers for each roi, of shape (n, 2) (readonly).
         The tensor is of type int, so if the size is odd, the middle is rounded down.
         Return None until spots are initialized.
     image : laueimproc.classes.tensor.Tensor
@@ -310,21 +310,21 @@ class BaseDiagram:
     @property
     def bboxes(self) -> typing.Union[None, Tensor]:
         """Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width)."""
+        @auto_cache
+        def _compute_bboxes(self) -> Tensor:
+            """Helper for `self.bboxes`."""
+            if self.spots:
+                return Tensor(
+                    torch.tensor([s.bbox for s in self.spots], dtype=int)
+                )
+            return Tensor(torch.empty((0, 4), dtype=int))
         if self.spots is None:
             return None
-        with self._cache_lock:
-            if "bboxes" not in self._cache:
-                if self.spots:
-                    self._cache["bboxes"] = Tensor(
-                        torch.tensor([s.bbox for s in self.spots], dtype=int)
-                    )
-                else:
-                    self._cache["bboxes"] = Tensor(torch.empty((0, 4), dtype=int))
-            return self._cache["bboxes"]
+        return _compute_bboxes(self)
 
     @property
     def centers(self) -> typing.Union[None, Tensor]:  # very fast -> no cache
-        """Return the tensor of the centers."""
+        """Return the tensor of the centers for each roi."""
         if self.spots is None:
             return None
         if self.spots:
@@ -382,7 +382,7 @@ class BaseDiagram:
         return None
 
     def filter_spots(
-        self, indexs: typing.Container, inplace: bool = True, msg: str = "general filter"
+        self, indexs: typing.Container, msg: str = "general filter", *, inplace: bool = False
     ):
         """Keep only the given spots, delete the rest.
 
@@ -393,6 +393,8 @@ class BaseDiagram:
         indexs : arraylike
             The list of the indexs of the spots to keep
             or the boolean vector with True for keeping the spot, False otherwise like a mask.
+        msg : str
+            The message to happend to the history.
         inplace : boolean, default=True
             If True, modify the diagram self (no copy) and return a reference to self.
             If False, first clone the diagram, then apply the selection on the new diagram,
@@ -409,6 +411,7 @@ class BaseDiagram:
                 "you must to initialize the spots (`self.find_spots()`) before to filter it"
             )
         assert hasattr(indexs, "__iter__"), indexs.__class__.__name__
+        assert isinstance(msg, str), msg.__class__.__name__
         assert isinstance(inplace, bool), inplace.__class__.__name__
         if not isinstance(indexs, (torch.Tensor, np.ndarray)):
             indexs = Tensor(torch.tensor(indexs))
@@ -418,39 +421,41 @@ class BaseDiagram:
         assert indexs.ndim == 1, f"only a 1d vector is accepted, shape is {indexs.shape}"
         if indexs.dtype is torch.bool:  # case mask -> convert into index list
             assert indexs.shape[0] == len(self.spots), (
-                "the mask has to have the same lenght as the number of spots, "
+                "the mask has to have the same length as the number of spots, "
                 f"there are {len(self.spots)} spots and mask is of len {indexs.shape[0]}"
             )
             indexs = Tensor(torch.arange(len(self.spots)))[indexs]  # bool -> indexs
         else:
-            assert len(set(indexs.tolist())) == indexs.shape[0], \
-                "each index must be unique, bu some of them appear more than once"
+            # assert len(set(indexs.tolist())) == indexs.shape[0], \  # very slow !
+            #     "each index must be unique, but some of them appear more than once"
             assert not indexs.shape[0] or torch.min(indexs).item() >= 0, \
                 "negative index is not allowed"
             assert not indexs.shape[0] or torch.max(indexs).item() < len(self.spots), \
                 "some indexes are out of range"
-        assert isinstance(msg, str), msg.__class__.__name__
 
         # manage inplace
         nb_spots = len(self.spots)
-        if not inplace:
-            self = self.clone()
+        diag = self if inplace else self.clone()
 
         # update history, it has to be done before changing state to be catched by signature
-        self._history.append(f"{nb_spots} to {len(indexs)} spots: {msg}")
+        diag._history.append(f"{nb_spots} to {len(indexs)} spots: {msg}") # pylint: disable=W0212
 
-        # filter the spots and the rois
-        self._rois = self.rois[indexs]
-        self._spots = [self._spots[new_index] for new_index in indexs.tolist()]
-        for new_index, spot in enumerate(self._spots):
+        # filter the spots
+        diag._spots = [  # pylint: disable=W0212
+            diag._spots[new_index] for new_index in indexs.tolist()  # pylint: disable=W0212
+        ]
+        for new_index, spot in enumerate(diag._spots):  # pylint: disable=W0212
             spot._index = new_index  # pylint: disable=W0212
 
-        with self._cache_lock:
-            for key in list(self._cache):  # copy keys: dictionary changed size during iteration
-                if key != "image":
-                    del self._cache[key]
+        # filter the rois
+        diag._rois = diag.rois[indexs]  # pylint: disable=W0212
+        if len(indexs):
+            bboxes = diag.bboxes
+            height = torch.max(bboxes[:, 2]).item()
+            width = torch.max(bboxes[:, 3]).item()
+            diag._rois = diag._rois[:, :height, :width]  # pylint: disable=W0212
 
-        return self
+        return None if inplace else diag
 
     def find_spots(self, **kwargs) -> None:
         """Search all the spots in this diagram, store the result into the `spots` attribute.
@@ -553,7 +558,7 @@ class BaseDiagram:
         return axes
 
     def reset(self) -> None:
-        """Clear everithing, like if the diagram has just been borned."""
+        """Clear everything, like if the diagram has just been borned."""
         with self._cache_lock:
             self._cache.clear()  # clear cache
         self._find_spots_kwargs = None
@@ -665,6 +670,8 @@ class BaseDiagram:
     @property
     def signature(self) -> int:
         """Return a hash of the diagram and the state."""
+        # import uuid
+        # return uuid.uuid4().int
         return hash((id(self), id(self._find_spots_kwargs), "\n".join(self._history[1:])))
 
     @property
