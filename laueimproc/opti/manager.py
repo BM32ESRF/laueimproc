@@ -2,23 +2,13 @@
 
 """Group of diagrams."""
 
-import collections
-import ctypes
 import gc
 import numbers
 import threading
 import time
 
 from laueimproc.opti.singleton import MetaSingleton
-from laueimproc.opti.memory import get_swappiness, mem_to_free
-
-
-def free_malloc():
-    """Clear the allocated malloc on linux."""
-    try:
-        ctypes.CDLL("libc.so.6").malloc_trim(0)
-    except OSError:
-        pass
+from laueimproc.opti.memory import free_malloc, get_swappiness, mem_to_free
 
 
 class DiagramManager(threading.Thread, metaclass=MetaSingleton):
@@ -28,21 +18,18 @@ class DiagramManager(threading.Thread, metaclass=MetaSingleton):
     ----------
     verbose : boolean
         The chatting status of the experiment (read and write).
-    ram_limit : float
-        The maximum amount in percent of memory before trying to release some cache.
+    max_mem_percent : int
+        The maximum amount of memory percent before trying to release some cache (read and write).
+        By default it is based on swapiness.
     """
 
-    def __init__(self, verbose=False):
+    def __init__(self):
         # declaration
         self._diagrams_dict: dict = {}  # dict for fast acces
         self._diagrams_list: list = []  # list for order
         self._lock = threading.Lock()
-        self._ram_limit: float = float((100-get_swappiness())) / 100.0
-        self._verbose: bool
-
-        # initialisation
-        assert isinstance(verbose, bool), verbose.__class__.__name__
-        self._verbose = verbose
+        self._max_mem_percent: int = round(100-get_swappiness())
+        self._verbose: bool = False
 
         # start thread
         super().__init__(daemon=True)  # daemon has to be true to allow to exit python
@@ -63,23 +50,23 @@ class DiagramManager(threading.Thread, metaclass=MetaSingleton):
             return self._diagrams_list[index+1:index+nbr+1]
 
     @property
-    def ram_limit(self) -> float:
+    def max_mem_percent(self) -> float:
         """Return the threashold of ram in percent."""
-        return self._ram_limit
+        return self._max_mem_percent
 
-    @ram_limit.setter
-    def ram_limit(self, new_limit: float):
+    @max_mem_percent.setter
+    def max_mem_percent(self, new_limit: numbers.Real):
         assert isinstance(new_limit, numbers.Real)
-        assert 0 < new_limit < 1, new_limit
-        self._ram_limit = float(new_limit)
+        assert 0 <= new_limit <= 100, new_limit
+        self._max_mem_percent = round(new_limit)
 
     def run(self):
-        """Asynchrone control loop."""
+        """Asynchron control loop."""
         while True:
             # memory free
             with self._lock:
                 nbr = len(self._diagrams_list)
-                if nbr and (size := mem_to_free(self._ram_limit) // nbr):
+                if nbr and (size := mem_to_free(self._max_mem_percent) // nbr):
                     if self._verbose:
                         print(f"try to clear {size} bytes of cache")
                     for diagram in self._diagrams_list:

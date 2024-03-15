@@ -2,17 +2,20 @@
 
 """Manage the auto multithreading."""
 
-
 import functools
 import hashlib
 import logging
-import os
 import pickle
 import queue
 import threading
 
+import psutil
+
 from laueimproc.opti.manager import DiagramManager
 from laueimproc.opti.singleton import MetaSingleton
+
+
+CPU_AVAILABLE = len(psutil.Process().cpu_affinity())  # more accurate than os.cpu_count()
 
 
 class ThreadManager(threading.Thread, metaclass=MetaSingleton):
@@ -31,7 +34,7 @@ class ThreadManager(threading.Thread, metaclass=MetaSingleton):
             # starts waiting threads
             with self.lock:
                 running = [job for job in self.jobs.values() if job.is_alive()]
-                if nbr_to_append := max(0, 3*os.cpu_count()//2-len(running)):
+                if nbr_to_append := max(0, 3*CPU_AVAILABLE//2-len(running)):
                     for job in self.jobs.values():
                         if not job._started.is_set():  # pylint: disable=W0212
                             job.start()
@@ -128,7 +131,7 @@ def auto_parallel(meth: callable) -> callable:
                 return diagram._cache.pop(signature)  # pylint: disable=W0212
         # case thread calculus
         thread_manager = ThreadManager()
-        for next_diagram in DiagramManager().get_nexts_diagrams(diagram, 3*os.cpu_count()):
+        for next_diagram in DiagramManager().get_nexts_diagrams(diagram, 3*CPU_AVAILABLE):
             next_signature = f"thread: {next_diagram.signature}.{meth.__name__}({param_sig})"
             with next_diagram._cache_lock:  # pylint: disable=W0212
                 if next_signature not in next_diagram._cache:  # pylint: disable=W0212
