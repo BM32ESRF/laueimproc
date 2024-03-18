@@ -16,9 +16,9 @@ def auto_cache(meth: callable) -> callable:
     @functools.wraps(meth)
     def cached_meth(diagram, *args, is_cached: bool = False, **kwargs):
         param_sig = hashlib.md5(pickle.dumps((args, kwargs)), usedforsecurity=False).hexdigest()
-        signature = f"cache: {diagram.signature}.{meth.__name__}({param_sig})"
-        if is_cached:
-            return signature in diagram._cache
+        signature = f"cache: {diagram.state}.{meth.__name__}({param_sig})"
+        if is_cached:  # no lock because operation is atomic
+            return signature in diagram._cache  # pylint: disable=W0212
         with diagram._cache_lock:  # pylint: disable=W0212
             if signature in diagram._cache:  # pylint: disable=W0212
                 return diagram._cache[signature]  # pylint: disable=W0212
@@ -27,22 +27,6 @@ def auto_cache(meth: callable) -> callable:
             diagram._cache[signature] = res  # pylint: disable=W0212
         return res
     return cached_meth
-
-
-def delete_values_in_dict(obj: dict, size: int) -> None:
-    """Delete `size` bytes of elements.
-
-    Notes
-    -----
-    No verifs are performed for optimization.
-    """
-    size_to_key = {getsizeof(v): k for k, v in obj.items()}
-    size_cum = 0
-    for item_size in sorted(size_to_key, reverse=True):  # delete biggest elements first
-        del obj[size_to_key[item_size]]
-        size_cum += item_size
-        if size_cum >= size:
-            break
 
 
 def getsizeof(obj: object, *, _processed: set = None) -> int:

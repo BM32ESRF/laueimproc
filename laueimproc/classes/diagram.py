@@ -25,7 +25,7 @@ class Diagram(BaseDiagram):
     @auto_parallel  # automaticaly multithreading
     def compute_barycenters(self) -> Tensor:
         """Compute the barycenter of each spots."""
-        if self.spots is None:
+        if not self.is_init():
             raise RuntimeWarning(
                 "you must to initialize the spots (`self.find_spots()`)"
             )
@@ -36,7 +36,7 @@ class Diagram(BaseDiagram):
     @auto_parallel
     def compute_pxl_intensities(self) -> Tensor:
         """Compute the total pixel intensity for each spots."""
-        if self.spots is None:
+        if not self.is_init():
             raise RuntimeWarning(
                 "you must to initialize the spots (`self.find_spots()`)"
             )
@@ -46,7 +46,7 @@ class Diagram(BaseDiagram):
     @auto_parallel
     def compute_rot_similarity(self) -> Tensor:
         """Compute the similarity by rotation of each spots."""
-        if self.spots is None:
+        if not self.is_init():
             raise RuntimeWarning(
                 "you must to initialize the spots (`self.find_spots()`)"
             )
@@ -86,7 +86,7 @@ class Diagram(BaseDiagram):
         )
 
         # preparation
-        if self.spots is None:
+        if not self.is_init():
             raise RuntimeWarning(
                 "you must to initialize the spots (`self.find_spots()`)"
             )

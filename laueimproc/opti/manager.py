@@ -3,9 +3,12 @@
 """Group of diagrams."""
 
 import gc
+import multiprocessing.pool
 import numbers
 import threading
 import time
+
+import psutil
 
 from laueimproc.opti.singleton import MetaSingleton
 from laueimproc.opti.memory import free_malloc, get_swappiness, mem_to_free
@@ -66,11 +69,19 @@ class DiagramManager(threading.Thread, metaclass=MetaSingleton):
             # memory free
             with self._lock:
                 nbr = len(self._diagrams_list)
-                if nbr and (size := mem_to_free(self._max_mem_percent) // nbr):
+                target = mem_to_free(self._max_mem_percent)
+                if nbr and (target := mem_to_free(self._max_mem_percent)):
+                    total = 0
+                    with multiprocessing.pool.ThreadPool() as pool:
+                        for level in (0, 1, 2):
+                            total += sum(pool.imap(
+                                lambda d: d.compress((target-total)//nbr, _levels={level}),
+                                self._diagrams_list,
+                            ))
+                            if total >= target:
+                                break
                     if self._verbose:
-                        print(f"try to clear {size} bytes of cache")
-                    for diagram in self._diagrams_list:
-                        diagram.clear_cache(size)
+                        print(f"{psutil._common.bytes2human(total)} of cache removed (level {level})")
                     free_malloc()
             time.sleep(1)
 

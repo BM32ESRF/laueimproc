@@ -125,14 +125,14 @@ def auto_parallel(meth: callable) -> callable:
             return meth(diagram, *args, **kwargs)
         # case cached
         param_sig = hashlib.md5(pickle.dumps((args, kwargs)), usedforsecurity=False).hexdigest()
-        signature = f"thread: {diagram.signature}.{meth.__name__}({param_sig})"
+        signature = f"thread: {diagram.state}.{meth.__name__}({param_sig})"
         with diagram._cache_lock:  # pylint: disable=W0212
             if signature in diagram._cache:  # pylint: disable=W0212
                 return diagram._cache.pop(signature)  # pylint: disable=W0212
         # case thread calculus
         thread_manager = ThreadManager()
         for next_diagram in DiagramManager().get_nexts_diagrams(diagram, 3*CPU_AVAILABLE):
-            next_signature = f"thread: {next_diagram.signature}.{meth.__name__}({param_sig})"
+            next_signature = (f"thread: {next_diagram.state}.{meth.__name__}({param_sig})")
             with next_diagram._cache_lock:  # pylint: disable=W0212
                 if next_signature not in next_diagram._cache:  # pylint: disable=W0212
                     thread_manager.submit_job(meth, next_diagram, args, kwargs, next_signature)
