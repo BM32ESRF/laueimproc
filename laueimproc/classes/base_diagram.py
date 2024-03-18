@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
+from laueimproc.common import bytes2human
 from laueimproc.improc.peaks_search import peaks_search
 from laueimproc.io.read import read_image
 from laueimproc.opti.cache import auto_cache, getsizeof
@@ -171,18 +172,12 @@ class BaseDiagram:
 
         # stats
         text += "\n    Current state:"
-        text += f"\n        * id: {id(self)}"
-        with self._cache_lock:
-            cache_size = sum(getsizeof(v) for v in self._cache.values())
-        unit, factor = {
-            (True, True, True): ("GB", 1e9),
-            (False, True, True): ("MB", 1e6),
-            (False, False, True): ("kB", 1e3),
-            (False, False, False): ("B", 1.0),
-        }[(cache_size > 1e9, cache_size > 1e6, cache_size > 1e3)]
-        text += f"\n        * cache size: {cache_size/factor:.1f} {unit}"
-        if self.spots:
-            text += f"\n        * nbr spots: {len(self.spots)}"
+        text += f"\n        * id, state: {id(self)}, {self.state}"
+        if self.is_init():
+            text += f"\n        * nbr spots: {len(self.get_spots(_copy=False))}"
+        with self._cache_lock, self._rois_lock:
+            size = sys.getsizeof(self) + sum(getsizeof(e) for e in self.__dict__.values())
+        text += f"\n        * total mem: {bytes2human(size)}"
         return text
 
     def _find_spots(self, **kwargs):
@@ -646,8 +641,8 @@ class BaseDiagram:
                 for index, (i, j, height, width) in enumerate(bboxes.tolist()):
                     self._rois[index, :height, :width] = image[i:i+height, j:j+width]
             if isinstance(self._rois, bytes):
-                # self._rois = decompress_rois(self._rois)  # take 6 ms in average
-                return decompress_rois(self._rois)  # better no store decompress for sparse memory
+                self._rois = decompress_rois(self._rois)  # take 6 ms in average
+                # return decompress_rois(self._rois)  # better no store decompress for sparse memory
             return self._rois
 
     def set_spots(self, new_spots: typing.Container) -> None:

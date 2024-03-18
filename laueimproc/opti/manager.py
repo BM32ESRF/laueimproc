@@ -8,10 +8,9 @@ import numbers
 import threading
 import time
 
-import psutil
-
-from laueimproc.opti.singleton import MetaSingleton
+from laueimproc.common import bytes2human
 from laueimproc.opti.memory import free_malloc, get_swappiness, mem_to_free
+from laueimproc.opti.singleton import MetaSingleton
 
 
 class DiagramManager(threading.Thread, metaclass=MetaSingleton):
@@ -81,7 +80,7 @@ class DiagramManager(threading.Thread, metaclass=MetaSingleton):
                             if total >= target:
                                 break
                     if self._verbose:
-                        print(f"{psutil._common.bytes2human(total)} of cache removed (level {level})")
+                        print(f"{bytes2human(total)} of cache removed (level {level})")
                     free_malloc()
             time.sleep(1)
 
