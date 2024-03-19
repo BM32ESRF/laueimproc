@@ -11,7 +11,7 @@ import torch
 
 from laueimproc.improc.spot.basic import compute_barycenters, compute_pxl_intensities
 from laueimproc.improc.spot.fit import fit_gaussian
-from laueimproc.improc.spot.rot_sym import compute_rot_similarity
+from laueimproc.improc.spot.rot_sym import compute_rot_sym
 from laueimproc.opti.cache import auto_cache
 from laueimproc.opti.parallel import auto_parallel
 from .base_diagram import BaseDiagram
@@ -44,13 +44,13 @@ class Diagram(BaseDiagram):
 
     @auto_cache
     @auto_parallel
-    def compute_rot_similarity(self) -> Tensor:
+    def compute_rot_sym(self) -> Tensor:
         """Compute the similarity by rotation of each spots."""
         if not self.is_init():
             raise RuntimeWarning(
                 "you must to initialize the spots (`self.find_spots()`)"
             )
-        return compute_rot_similarity(self.rois)
+        return compute_rot_sym(self.rois)
 
     @auto_cache
     @auto_parallel

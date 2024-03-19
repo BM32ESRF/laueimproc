@@ -183,12 +183,7 @@ class BaseDiagram:
     def _find_spots(self, **kwargs):
         """Real version of `find_spots`."""
         # peaks search
-        image = self.image
-        rois, bboxes = peaks_search(image, **kwargs)
-
-        # clean cache, optional but this optimisation avoid to read the image twice
-        with self._cache_lock:
-            self._cache = {"image": image}
+        rois, bboxes = peaks_search(self.image, **kwargs)
 
         # cast into spots objects
         self._rois = rois  # not lock because autoblock
@@ -242,13 +237,14 @@ class BaseDiagram:
             The tensor of the bounding boxes of the spots.
         """
         if _check:
+            image = self.image
             selection = bboxes[:, 0] < 0  # overflow on left
             selection = torch.logical_or(selection, bboxes[:, 1] < 0, out=selection)  # on top
             selection = torch.logical_or(  # on right
-                selection, bboxes[:, 0] + bboxes[:, 2] > self.image.shape[0], out=selection
+                selection, bboxes[:, 0] + bboxes[:, 2] > image.shape[0], out=selection
             )
             selection = torch.logical_or(  # on bottom
-                selection, bboxes[:, 0] + bboxes[:, 2] > self.image.shape[0], out=selection
+                selection, bboxes[:, 0] + bboxes[:, 2] > image.shape[0], out=selection
             )
             if nbr := torch.sum(selection.to(int)).item():
                 warnings.warn(f"{nbr} bboxes protrude the image, they are removed", RuntimeWarning)
@@ -257,8 +253,6 @@ class BaseDiagram:
             Spot.__new__(Spot).__setstate__((self, index, (i, j, h, w)))
             for index, (i, j, h, w) in enumerate(bboxes.tolist())
         ]
-        with self._cache_lock:
-            self._cache["bboxes"] = bboxes  # facultative, but it is a little optimization
         with self._rois_lock:
             self._rois = None
         self._history = [f"{len(self._spots)} spots from external bboxes"]
@@ -571,11 +565,12 @@ class BaseDiagram:
         Use `self.show()` to Display the diagram from scratch.
         """
         assert isinstance(fig, Figure), fig.__class__.__name__
+        image = self.image
         if vmin is None:
-            vmin = torch.min(self.image).item()
+            vmin = torch.min(image).item()
         assert vmin is None or isinstance(vmin, numbers.Real), vmin.__class__.__name__
         if vmax is None:
-            vmax = torch.mean(self.image).item() + 5.0*torch.std(self.image).item()
+            vmax = torch.mean(image).item() + 5.0*torch.std(image).item()
         assert isinstance(vmax, numbers.Real), vmax.__class__.__name__
 
         if isinstance(self._file_or_data, pathlib.Path):
@@ -586,7 +581,7 @@ class BaseDiagram:
         axes.set_ylabel("i (first axis)")
         axes.set_xlabel("j (second axis)")
         axes.imshow(
-            self.image.numpy(force=True).transpose(),
+            image.numpy(force=True).transpose(),
             aspect="equal",
             extent=(0, self.image.shape[1], self.image.shape[0], 0),  # origin to corner of pxl
             interpolation=None,  # antialiasing is True
