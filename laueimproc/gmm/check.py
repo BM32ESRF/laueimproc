@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+
+"""Protection against the user."""
+
+import functools
+import typing
+import warnings
+
+import torch
+
+
+def _assert_to_warn(checker):
+    @functools.wrap(checker)
+    def warn_checker(*args, **kwargs):
+        try:
+            checker(*args, **kwargs)
+        except AssertionError as err:
+            warnings.warn(err, UserWarning)
+            return False
+        return True
+    return warn_checker
+
+
+def check_gmm(gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -> None:
+    r"""Ensures the provided parameters are corrects.
+
+    Parameters
+    ----------
+    gmm : tuple of torch.Tensor
+        * mean : torch.Tensor
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+        * cov : torch.Tensor
+            The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
+        * eta : torch.Tensor
+            The relative mass \(\eta_j\) of shape (..., \(K\)).
+
+    Raises
+    ------
+    AssertionError
+        If the parameters are not correct.
+    """
+    # packaging check
+    assert isinstance(gmm, tuple), f"gmm has to be a tuple, not a {gmm.__class__.__name__}"
+    assert len(gmm) == 3, f"gmm has to contain 3 elements, not {len(gmm)}"
+
+    # check dtype
+    mean, cov, eta = gmm
+    assert isinstance(mean, torch.Tensor), \
+        f"mean has to be a torch tensor, not a {mean.__class__.__name__}"
+    assert isinstance(cov, torch.Tensor), \
+        f"cov has to be a torch tensor, not a {cov.__class__.__name__}"
+    assert isinstance(eta, torch.Tensor), \
+        f"eta has to be a torch tensor, not a {eta.__class__.__name__}"
+
+    # check shape
+    assert mean.ndim >= 3, f"mean has to be of shape (..., K, D, 1), not {mean.shape}"
+    assert cov.ndim >= 3, f"cov has to be of shape (..., N, D, D), not {cov.shape}"
+    assert eta.ndim >= 1, f"eta has to be a shape (..., K), np {eta.shape}"
+    *mean_batch, mean_K, mean_D, mean_1 = mean.shape
+    *cov_batch, cov_K, cov_D1, cov_D2 = cov.shape
+    *eta_batch, eta_K = eta.shape
+    assert  mean_batch == cov_batch == eta_batch, \
+        f"batch dimension dosent match {mean_batch} vs {cov_batch} vs {eta_batch}"
+    assert mean_D == cov_D1 == cov_D2, \
+        f"space dimension inconsistant {mean_D} vs {cov_D1} vs {cov_D2}"
+    assert mean_K == cov_K == eta_K, \
+        f"number of gaussians inconsistant {mean_K} vs {cov_K} vs {eta_K}"
+    assert mean_1 == 1, f"mean has to be a vector column, not {mean.shape}"
+
+
+def check_infit(
+    obs: torch.Tensor, dup_w: typing.Optional[torch.Tensor], std_w: typing.Optional[torch.Tensor]
+) -> None:
+    r"""Ensures the provided parameters are corrects.
+
+    Parameters
+    ----------
+    obs : torch.Tensor
+        The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
+    dup_w : torch.Tensor, optional
+        The duplication weights of shape (..., \(N\)).
+    std_w : torch.Tensor, optional
+        The inverse var weights of shape (..., \(N\)).
+
+    Raises
+    ------
+    AssertionError
+        If the parameters are not correct.
+    """
+    # check dtype
+    assert isinstance(obs, torch.Tensor), \
+        f"obs has to be a torch tensor, not a {obs.__class__.__name__}"
+    assert dup_w is None or isinstance(dup_w, torch.Tensor), \
+        f"dup_w has to be a torch tensor, not a {dup_w.__class__.__name__}"
+    assert std_w is None or isinstance(std_w, torch.Tensor), \
+        f"std_w has to be a torch tensor, not a {std_w.__class__.__name__}"
+
+    # check shape
+    assert obs.ndim >= 2, f"obs has to be of shape (..., N, D), not {obs.shape}"
+    *obs_batch, obs_N, _ = obs.shape
+    for weight in (dup_w, std_w):
+        if weight is not None:
+            assert weight.ndim >= 1, \
+                f"dup_w and std_w has to be of shape (..., N), not {weight.shape}"
+            *w_batch, w_N = weight.shape
+            assert obs_batch == w_batch, f"batch dimension dosent match {obs_batch} vs {w_batch}"
+            assert obs_N == w_N, f"number of observations inconsistant {obs_N} vs {w_N}"
+
+
+def check_ingauss(obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor) -> None:
+    r"""Ensures the provided parameters are corrects.
+
+    Parameters
+    ----------
+    obs : torch.Tensor
+        The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
+    mean : torch.Tensor
+        The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+    cov : torch.Tensor
+        The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
+
+    Raises
+    ------
+    AssertionError
+        If the parameters are not correct.
+    """
+    # check dtype
+    assert isinstance(obs, torch.Tensor), \
+        f"obs has to be a torch tensor, not a {obs.__class__.__name__}"
+    assert isinstance(mean, torch.Tensor), \
+        f"mean has to be a torch tensor, not a {mean.__class__.__name__}"
+    assert isinstance(cov, torch.Tensor), \
+        f"cov has to be a torch tensor, not a {cov.__class__.__name__}"
+
+    # check shape
+    assert obs.ndim >= 2, f"obs has to be of shape (..., N, D), not {obs.shape}"
+    assert mean.ndim >= 3, f"mean has to be of shape (..., K, D, 1), not {mean.shape}"
+    assert cov.ndim >= 3, f"cov has to be of shape (..., N, D, D), not {cov.shape}"
+    *obs_batch, _, obs_D = obs.shape
+    *mean_batch, mean_K, mean_D, mean_1 = mean.shape
+    *cov_batch, cov_K, cov_D1, cov_D2 = cov.shape
+    assert obs_batch == mean_batch == cov_batch, \
+        f"batch dimension dosent match {obs_batch} vs {mean_batch} vs {cov_batch}"
+    assert obs_D == mean_D == cov_D1 == cov_D2, \
+        f"space dimension inconsistant {obs_D} vs {mean_D} vs {cov_D1} vs {cov_D2}"
+    assert mean_K == cov_K, f"number of gaussians inconsistant {mean_K} vs {cov_K}"
+    assert mean_1 == 1, f"mean has to be a vector column, not {mean.shape}"

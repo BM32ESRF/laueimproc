@@ -8,6 +8,7 @@ import logging
 import pickle
 import queue
 import threading
+import typing
 
 import psutil
 
@@ -114,9 +115,9 @@ class Calculator(threading.Thread):
         return self.result
 
 
-def auto_parallel(meth: callable) -> callable:
+def auto_parallel(meth: typing.Callable) -> typing.Callable:
     """Decorator to auto multithread a Diagram method."""
-    assert hasattr(meth, "__call__"), meth.__class__.__name__
+    assert callable(meth), meth.__class__.__name__
     @functools.wraps(meth)
     def multithreaded_meth(diagram, *args, parallel: bool = True, **kwargs):
         # case no threaded calculus

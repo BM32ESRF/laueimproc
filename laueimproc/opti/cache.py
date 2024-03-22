@@ -6,13 +6,14 @@ import functools
 import hashlib
 import pickle
 import sys
+import typing
 
 import torch
 
 
-def auto_cache(meth: callable) -> callable:
+def auto_cache(meth: typing.Callable) -> typing.Callable:
     """Decorator to manage the cache of a Diagram method."""
-    assert hasattr(meth, "__call__"), meth.__class__.__name__
+    assert callable(meth), meth.__class__.__name__
     @functools.wraps(meth)
     def cached_meth(diagram, *args, is_cached: bool = False, **kwargs):
         param_sig = hashlib.md5(pickle.dumps((args, kwargs)), usedforsecurity=False).hexdigest()

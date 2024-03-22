@@ -65,4 +65,5 @@ def used_memory() -> int:
     if "SLURM_MEM_PER_NODE" in os.environ:
         return psutil.Process().memory_info().rss
     memory = psutil.virtual_memory()
-    return memory.total - memory.free  # != psutil.virtual_memory().used
+    # return memory.total - memory.free  # != psutil.virtual_memory().used
+    return memory.total - memory.available  # != psutil.virtual_memory().used

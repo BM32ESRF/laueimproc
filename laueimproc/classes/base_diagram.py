@@ -15,7 +15,6 @@ import warnings
 
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
@@ -57,8 +56,6 @@ class BaseDiagram:
         All the spots contained in this diagram (read and write).
         Return None until spots are initialized.
     """
-
-    _spot_property: dict[str, callable] = {}  # to each property name, associate the method
 
     def __init__(
         self,
@@ -544,7 +541,7 @@ class BaseDiagram:
 
     def plot(
         self,
-        fig: Figure,
+        disp: typing.Optional[typing.Union[Figure, Axes]] = None,
         vmin: typing.Optional[numbers.Real] = None,
         vmax: typing.Optional[numbers.Real] = None,
     ) -> Axes:
@@ -552,7 +549,7 @@ class BaseDiagram:
 
         Parameters
         ----------
-        fig : matplotlib.figure.Figure
+        disp : matplotlib.figure.Figure or matplotlib.axes.Axes
             The matplotlib figure to complete.
         vmin : float, optional
             The minimum intensity ploted.
@@ -564,7 +561,7 @@ class BaseDiagram:
         It doesn't create the figure and call show.
         Use `self.show()` to Display the diagram from scratch.
         """
-        assert isinstance(fig, Figure), fig.__class__.__name__
+        assert disp is None or isinstance(disp, (Figure, Axes))
         image = self.image
         if vmin is None:
             vmin = torch.min(image).item()
@@ -573,11 +570,17 @@ class BaseDiagram:
             vmax = torch.mean(image).item() + 5.0*torch.std(image).item()
         assert isinstance(vmax, numbers.Real), vmax.__class__.__name__
 
-        if isinstance(self._file_or_data, pathlib.Path):
-            fig.suptitle(f"Diagram {self._file_or_data.name}")
-        else:
-            fig.suptitle(f"Diagram from Tensor of id {id(self._file_or_data)}")
-        axes = fig.add_subplot()
+        # fill figure metadata
+        axes = disp  # is gonna changed
+        disp = disp or Figure(layout="tight")
+        if isinstance(disp, Figure):
+            if isinstance(self._file_or_data, pathlib.Path):
+                disp.suptitle(f"Diagram {self._file_or_data.name}")
+            else:
+                disp.suptitle(f"Diagram from Tensor of id {id(self._file_or_data)}")
+            axes = disp.add_subplot()
+
+        # fill axes
         axes.set_ylabel("i (first axis)")
         axes.set_xlabel("j (second axis)")
         axes.imshow(
@@ -707,12 +710,6 @@ class BaseDiagram:
             "or a container of bounding boxes"
         )
 
-    def show(self) -> None:
-        """Display the diagram, ccreate the matplotlib context of `self.plot`."""
-        fig = plt.Figure(layout="tight")
-        self.plot(fig)
-        plt.show()
-
     @property
     def spots(self) -> typing.Union[list[Spot]]:
         """Alias to the `get_spots`."""
@@ -735,7 +732,7 @@ class BaseDiagram:
         if isinstance(self._file_or_data, pathlib.Path):
             hasher.update(str(self._file_or_data.name).encode())
         else:
-            hasher.update(id(self._file_or_data).to_bytes(8))
+            hasher.update(id(self._file_or_data).to_bytes(8, "big"))
         hasher.update(str(self._find_spots_kwargs).encode())
         hasher.update("\n".join(self._history[1:]).encode())
         return hasher.hexdigest()

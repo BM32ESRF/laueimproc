@@ -2,16 +2,15 @@
 
 """Fit the spot by one gaussian."""
 
-import collections
 import typing
 
 import torch
 
 from laueimproc.classes.tensor import Tensor
-from laueimproc.improc.gmm import em
+from laueimproc.gmm.em import em
 
 
-def fit_gaussian(
+def fit_gaussian_em(
     rois: Tensor,
     photon_density: typing.Union[float, Tensor] = 1.0,
     *,
@@ -65,9 +64,9 @@ def fit_gaussian(
     Returns
     -------
     mean : Tensor
-        The vectors \(\mathbf{\mu}\). Shape (n, \(D\), 1). In the relative roi base.
+        The vectors \(\mathbf{\mu}\). Shape (nb_spots, 2, 1). In the relative roi base.
     cov : Tensor
-        The matrices \(\mathbf{\Sigma}\). Shape (n, \(D\), \(D\)).
+        The matrices \(\mathbf{\Sigma}\). Shape (nb_spots, 2, 2).
     infodict : dict[str]
         A dictionary of optional outputs (see ``laueimproc.improc.gmm.em``).
     """
@@ -102,6 +101,63 @@ def fit_gaussian(
         infodict["tol"] = std_of_mean
 
     # cast
-    return collections.namedtuple(
-        "FitGaussian", ("mean", "cov", "infodict")
-    )(mean.squeeze(-3), cov.squeeze(-3), infodict)
+    return mean.squeeze(-3), cov.squeeze(-3), infodict
+
+
+def fit_gaussians(
+    rois: Tensor, loss: typing.Callable[[Tensor, Tensor], Tensor], **kwargs
+) -> tuple[Tensor, Tensor, Tensor, dict]:
+    r"""Fit each roi by \(K\) gaussians.
+
+    See ``laueimproc.improc.gmm`` for terminology.
+
+    Parameters
+    ----------
+    rois : Tensor
+        The tensor of the regions of interest for each spots. Shape (n, h, w).
+    loss : callable
+        Reduce the rois and the predected rois into a single vector of scalar.
+        [Tensor(n, h, w), Tensor(n, h, w)] -> Tensor(n,)
+    **kwargs : dict
+        Transmitted to ``laueimproc.improc.gmm.em``, used for initialisation.
+
+    Returns
+    -------
+    mean : Tensor
+        The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the relative rois base.
+    cov : Tensor
+        The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
+    mass : Tensor
+        The absolute mass \(\theta.\eta\). Shape (n, \(K\)).
+    infodict : dict[str]
+
+        * "loss" : Tensor
+            The vector of loss. Shape (n,).
+        * "pred" : Tensor
+            The predicted rois tensor. Shape(n, h, w)
+    """
+    # verification
+    assert isinstance(rois, Tensor), rois.__class__.__name__
+    assert rois.ndim == 3, rois.shape
+    assert callable(loss), loss.__class__.__name__
+
+    # preparation
+    points_i, points_j = torch.meshgrid(
+        torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
+        torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
+        indexing="ij",
+    )
+    points_i, points_j = points_i.ravel(), points_j.ravel()
+    obs = torch.cat([points_i.unsqueeze(-1), points_j.unsqueeze(-1)], axis=1)
+    obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
+    dup_w = torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2]))
+
+    # initialization
+    mean, cov, eta, infodict = em(obs, dup_w, **kwargs)
+    torch.linalg.eigvalsh(cov)
+
+    # raffinement
+
+
+
+    return mean, cov, eta, infodict

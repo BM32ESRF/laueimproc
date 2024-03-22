@@ -5,12 +5,11 @@
 import numbers
 import typing
 
-from matplotlib.axes import Axes
 import numpy as np
 import torch
 
 from laueimproc.improc.spot.basic import compute_barycenters, compute_pxl_intensities
-from laueimproc.improc.spot.fit import fit_gaussian
+from laueimproc.improc.spot.fit import fit_gaussian_em, fit_gaussians
 from laueimproc.improc.spot.rot_sym import compute_rot_sym
 from laueimproc.opti.cache import auto_cache
 from laueimproc.opti.parallel import auto_parallel
@@ -54,7 +53,7 @@ class Diagram(BaseDiagram):
 
     @auto_cache
     @auto_parallel
-    def fit_gaussian(
+    def fit_gaussian_em(
         self,
         photon_density: typing.Union[torch.Tensor, np.ndarray, numbers.Real] = 1.0,
         **kwargs,
@@ -66,89 +65,106 @@ class Diagram(BaseDiagram):
         Parameters
         ----------
         photon_density : arraylike, optional
-            See to ``laueimproc.improc.spot.fit.fit_gaussian``.
+            See to ``laueimproc.improc.spot.fit.fit_gaussian_em``.
         **kwargs : dict
-            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussian``.
+            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussian_em``.
 
         Returns
         -------
         mean : Tensor
-            The vectors \(\mathbf{\mu}\). Shape (..., \(D\), 1). In the absolute diagram base.
+            The vectors \(\mathbf{\mu}\). Shape (n, 2, 1). In the absolute diagram base.
         cov : Tensor
-            The matrices \(\mathbf{\Sigma}\). Shape (..., \(D\), \(D\)).
+            The matrices \(\mathbf{\Sigma}\). Shape (n, 2, 2).
         infodict : dict[str]
             A dictionary of optional outputs (see ``laueimproc.improc.gmm.em``).
         """
-        photon_density = (
-            float(photon_density)
-            if isinstance(photon_density, numbers.Real)
-            else Tensor(photon_density)
-        )
-
         # preparation
         if not self.is_init():
             raise RuntimeWarning(
                 "you must to initialize the spots (`self.find_spots()`)"
             )
+        photon_density = (
+            float(photon_density)
+            if isinstance(photon_density, numbers.Real)
+            else Tensor(photon_density)
+        )
         rois = self.rois
         shift = self.bboxes[:, :2]
 
         # main fit
-        mean, cov, infodict = fit_gaussian(rois, photon_density, **kwargs)
+        mean, cov, infodict = fit_gaussian_em(rois, photon_density, **kwargs)
 
         # spot base to diagram base
         if mean.requires_grad:
-            mean = mean + shift.unsqueeze(-1)
+            mean = mean + shift.reshape(-1, 2, 1)
         else:
-            mean += shift.unsqueeze(-1)
+            mean += shift.reshape(-1, 2, 1)
 
         # cast
         return mean.squeeze(-3), cov.squeeze(-3), infodict
 
-    def plot(
-        self,
-        *args,
-        confidence: typing.Optional[typing.Union[numbers.Real, np.ndarray, torch.tensor]] = None,
-        **kwargs,
-    ) -> Axes:
-        """Add gaussian fit informations.
+    @auto_cache
+    @auto_parallel
+    def fit_gaussians(
+        self, loss: typing.Union[typing.Callable[[Tensor, Tensor], Tensor], str] = "mse", **kwargs
+    ) -> tuple[Tensor, Tensor, Tensor, dict]:
+        r"""Fit each roi by \(K\) gaussians.
 
-        Paremeters
+        See ``laueimproc.improc.gmm`` for terminology.
+
+        Parameters
         ----------
-        *args, **kwargs
-            Transmitted to ``laueimproc.classes.base_diagram.BaseDiagram.plot``.
-        confidence : arraylike, optional
-            The vector of the interval of confidence of the position.
+        loss : callable or str, default="mse"
+            Quantify the difference between ``self.rois`` and estimated rois from the gmm.
+            The specific string values are understood:
+
+            * "l1" (absolute difference): \(
+                \frac{1}{H.W}
+                \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
+                | rois_{k,i,j} - rois\_pred_{k,i,j} |
+            \)
+
+            * "mse" (mean square error): \(
+                \frac{1}{H.W}
+                \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
+                \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
+            \)
+
+        **kwargs : dict
+            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
+
+        Returns
+        -------
+        mean : Tensor
+            The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
+        cov : Tensor
+            The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
+        mass : Tensor
+            The absolute mass \(\theta.\eta\). Shape (n, \(K\)).
+        infodict : dict[str]
+            See ``laueimproc.improc.spot.fit.fit_gaussians``.
         """
-        if confidence is not None:
-            if isinstance(confidence, numbers.Real):
-                confidence = float(confidence)
-                assert confidence >= 0, confidence
-            else:
-                confidence = Tensor(confidence).squeeze()
-                assert confidence.ndim == 1, confidence.shape
-                assert torch.all(confidence >= 0), confidence
-
-        axes = super().plot(*args, **kwargs)
-
-        # baricenters
-        if self.compute_barycenters(is_cached=True) or confidence is not None:
-            mean = self.compute_barycenters()
-            mean = torch.transpose(mean, 0, 1)
-            axes.scatter(*mean.numpy(force=True), color="blue", marker="x")
-
-        # confidence
-        if confidence is not None:
-            circles = torch.linspace(0, 2*torch.pi, 33, dtype=mean.dtype, device=mean.device)
-            circles = torch.cat(
-                [torch.cos(circles).reshape(1, -1, 1), torch.sin(circles).reshape(1, -1, 1)],
-                axis=0,
+        # preparation
+        if not self.is_init():
+            raise RuntimeWarning(
+                "you must to initialize the spots (`self.find_spots()`)"
             )
-            if isinstance(confidence, Tensor):
-                circles = confidence.reshape(1, 1, -1) * circles
-            else:
-                circles *= confidence
-            circles = mean.unsqueeze(1) + circles
-            axes.plot(*circles.numpy(force=True), color="green", scalex=False, scaley=False)
+        if isinstance(loss, str):
+            assert loss in {"l1", "mse"}, loss
+            loss = {
+                "l1": lambda rois, rois_pred: torch.mean(torch.abs(rois-rois_pred), dim=(1, 2)),
+                "mse": lambda rois, rois_pred: torch.mean((rois-rois_pred)**2, dim=(1, 2)),
+            }[loss]
+        rois = self.rois
+        shift = self.bboxes[:, :2]
 
-        return axes
+        # main fit
+        mean, cov, mass, infodict = fit_gaussians(rois, loss, **kwargs)
+
+        # spot base to diagram base
+        if mean.requires_grad:
+            mean = mean + shift.reshape(-1, 1, 2, 1)
+        else:
+            mean += shift.reshape(-1, 1, 2, 1)
+
+        return mean, cov, mass, infodict
