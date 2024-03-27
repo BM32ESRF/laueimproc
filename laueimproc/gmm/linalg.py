@@ -135,6 +135,27 @@ def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool=True, theta: bool=True) -> to
     return out
 
 
+def _inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.Tensor]:
+    """Helper for ``inv_cov2d``."""
+    # preparation
+    sigma1 = cov[..., 0, 0]
+    sigma2 = cov[..., 1, 1]
+    corr = cov[..., 0, 1]
+    out = torch.empty_like(cov)  # not None for compilation
+
+    # calculus
+    det = sigma1*sigma2
+    det -= corr**2
+    if inv:
+        inv_det = 1.0 / det
+        out[..., 0, 0] = inv_det * sigma2
+        out[..., 1, 1] = inv_det * sigma1
+        out[..., 0, 1] = out[..., 1, 0] = -inv_det * corr
+    return det, out
+
+# def _inv_cov2d_sympy(cov: )
+
+
 def inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.Tensor]:
     r"""Compute the det and the inverse of covariance matrix.
 
@@ -172,18 +193,4 @@ def inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.Te
     assert cov.shape[-2:] == (2, 2), cov.shape
     assert isinstance(inv, bool), inv.__class__.__name__
 
-    # preparation
-    sigma1 = cov[..., 0, 0]
-    sigma2 = cov[..., 1, 1]
-    corr = cov[..., 0, 1]
-    out = torch.empty_like(cov)  # not None for compilation
-
-    # calculus
-    det = sigma1*sigma2
-    det -= corr**2
-    if inv:
-        inv_det = 1.0 / det
-        out[..., 0, 0] = inv_det * sigma2
-        out[..., 1, 1] = inv_det * sigma1
-        out[..., 0, 1] = out[..., 1, 0] = -inv_det * corr
-    return det, out
+    return _inv_cov2d(cov, inv)
