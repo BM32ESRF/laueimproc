@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 import torch
 
-from laueimproc.classes.tensor import Tensor
+from laueimproc.io.read import to_floattensor
 
 
 DEFAULT_KERNEL_FONT = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (19, 19))  # 17 - 21
@@ -56,7 +56,7 @@ def _density_to_threshold_torch(img: torch.Tensor, density: float) -> float:
     return threshold
 
 
-def unfold(img: Tensor, kernel_h: int, kernel_w: int) -> Tensor:
+def unfold(img: torch.Tensor, kernel_h: int, kernel_w: int) -> torch.Tensor:
     """Return patched version of img with a stride of 1.
 
     Parameters
@@ -78,7 +78,7 @@ def unfold(img: Tensor, kernel_h: int, kernel_w: int) -> Tensor:
     -----
     Call the method `contiguous` if you want to write on it.
     """
-    assert isinstance(img, Tensor), img.__class__.__name__
+    assert isinstance(img, torch.Tensor), img.__class__.__name__
     assert img.ndim == 2, img.shape
     assert isinstance(kernel_h, numbers.Integral), kernel_h.__class__.__name__
     assert kernel_h <= img.shape[0], (kernel_h, img.shape)
@@ -146,12 +146,12 @@ def estimate_background(
 
 
 def peaks_search(
-    brut_image: Tensor,
+    brut_image: torch.Tensor,
     density: float = 0.5,
     kernel_aglo: typing.Optional[np.ndarray[np.uint8, np.uint8]] = None,
     *, _check: bool = True,
     **kwargs,
-) -> tuple[Tensor, Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Search all the spots roi in this diagram, return the roi tensor.
 
     Parameters
@@ -177,7 +177,7 @@ def peaks_search(
         of the roi of each spot in the brut_image, and the height and width of each roi.
         The shape is (n, 4) and the type is int.
     """
-    assert isinstance(brut_image, Tensor), brut_image.__class__.__name__
+    assert isinstance(brut_image, torch.Tensor), brut_image.__class__.__name__
     assert brut_image.ndim == 2, brut_image.shape
     assert isinstance(density, numbers.Real), density.__class__.__type__
     assert 0.0 < density <= 1.0, density
@@ -202,7 +202,7 @@ def peaks_search(
     binary = (
         # 2 times faster than cv2.threshold(fg_image, thresh, 1, cv2.THRESH_BINARY)
         # 3 times faster with torch than numpy
-        (fg_image > _density_to_threshold_torch(Tensor(fg_image), density)).view(np.uint8)
+        (fg_image > _density_to_threshold_torch(torch.from_numpy(fg_image), density)).view(np.uint8)
         # (fg_image > _density_to_threshold_numpy(fg_image, density)).view(np.uint8)
     )
     binary = cv2.dilate(binary, kernel_aglo, dst=bg_image, iterations=1)
@@ -240,10 +240,10 @@ def peaks_search(
         )
         for index, (i, j, height, width) in enumerate(bboxes):  # write the right values
             rois[index, :height, :width] = fg_image[i:i+height, j:j+width]
-        rois = Tensor(rois, to_float=True).to(device=brut_image.device)
-        bboxes = Tensor(torch.tensor(bboxes, dtype=int))
+        rois = to_floattensor(rois).to(device=brut_image.device)
+        bboxes = torch.tensor(bboxes, dtype=int)
     else:
-        rois = Tensor(torch.empty((0, 1, 1), dtype=brut_image.dtype, device=brut_image.device))
-        bboxes = Tensor(torch.empty((0, 4), dtype=int, device=brut_image.device))
+        rois = torch.empty((0, 1, 1), dtype=brut_image.dtype, device=brut_image.device)
+        bboxes = torch.empty((0, 4), dtype=int, device=brut_image.device)
 
     return rois, bboxes

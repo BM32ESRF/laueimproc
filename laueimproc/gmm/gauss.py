@@ -8,6 +8,7 @@ from .check import check_ingauss
 from .linalg import inv_cov2d
 
 
+# @torch.compile(fullgraph=True, dynamic=True)  # 50% times faster
 def _gauss2d(obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor) -> torch.Tensor:
     r"""Compute a 2d gaussian.
 
@@ -55,16 +56,16 @@ def _gauss2d(obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor) -> torch.
     norm, inv = inv_cov2d(cov)
     norm = norm.unsqueeze(-1)  # (..., n_clu, 1)
     norm *= (2.0*torch.pi)**2
-    norm = torch.rsqrt(norm, out=None if cov.requires_grad else norm)
+    norm = torch.rsqrt(norm)#, out=None if cov.requires_grad else norm)
     inv = inv.unsqueeze(-3) # (..., n_clu, n_obs, n_var, n_var)
 
     cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
     prob = cent_obs.transpose(-1, -2) @ inv @ cent_obs  # (..., n_clu, n_obs, 1, 1)
     prob = prob.squeeze(-1).squeeze(-1)  # (..., n_clu, n_obs)
     prob *= -.5
-    prob = torch.exp(prob, out=None if prob.requires_grad else prob)
+    prob = torch.exp(prob)#, out=None if prob.requires_grad else prob)
 
-    prob = torch.mul(prob, norm, out=None if prob.requires_grad else prob)
+    prob = torch.mul(prob, norm)#, out=None if prob.requires_grad else prob)
     return prob
 
 

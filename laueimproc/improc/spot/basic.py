@@ -4,21 +4,19 @@
 
 import torch
 
-from laueimproc.classes.tensor import Tensor
-
 
 # @torch.compile(mode="reduce-overhead")  # time factor 3 in the batch is always the same shape
-def compute_barycenters(tensor_spots: Tensor) -> Tensor:
+def compute_barycenters(tensor_spots: torch.Tensor) -> torch.Tensor:
     """Find the weighted barycenter of each roi.
 
     Parameters
     ----------
-    tensor_spots : laueimproc.classes.tensor.Tensor
+    tensor_spots : torch.Tensor
         The batch of spots of shape (..., h, w).
 
     Returns
     -------
-    positions : laueimproc.classes.tensor.Tensor
+    positions : torch.Tensor
         The position of the height and width barycenter for each roi of shape (..., 2).
 
     Notes
@@ -52,7 +50,6 @@ def compute_barycenters(tensor_spots: Tensor) -> Tensor:
 
     return mean
 
-
     # height_ind = torch.reshape(
     #     torch.arange(tensor_spots.shape[1], dtype=tensor_spots.dtype, device=tensor_spots.device),
     #     (1, tensor_spots.shape[1], 1),  # broadcasting dimention
@@ -75,17 +72,17 @@ def compute_barycenters(tensor_spots: Tensor) -> Tensor:
     # return pos
 
 
-def compute_pxl_intensities(tensor_spots: Tensor) -> Tensor:
+def compute_pxl_intensities(tensor_spots: torch.Tensor) -> torch.Tensor:
     """Return the intensity of each roi, sum of the pixels.
 
     Parameters
     ----------
-    tensor_spots : laueimproc.classes.tensor.Tensor
+    tensor_spots : torch.Tensor
         The batch of spots of shape (n, h, w).
 
     Returns
     -------
-    intensity : laueimproc.classes.tensor.Tensor
+    intensity : torch.Tensor
         The vector of the intensity of shape (n,).
 
     Notes

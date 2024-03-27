@@ -148,7 +148,7 @@ def inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.Te
             \sigma_2 > 0 \\
         \end{cases}\)
     inv : boolean, default=True
-        If True, compute the inverse matrix, return None otherwise (faster).
+        If True, compute the inverse matrix, return empty tensor overwise otherwise (faster).
 
     Returns
     -------
@@ -173,16 +173,15 @@ def inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.Te
     assert isinstance(inv, bool), inv.__class__.__name__
 
     # preparation
-    out = None
     sigma1 = cov[..., 0, 0]
     sigma2 = cov[..., 1, 1]
     corr = cov[..., 0, 1]
+    out = torch.empty_like(cov)  # not None for compilation
 
     # calculus
     det = sigma1*sigma2
     det -= corr**2
     if inv:
-        out = torch.empty_like(cov)
         inv_det = 1.0 / det
         out[..., 0, 0] = inv_det * sigma2
         out[..., 1, 1] = inv_det * sigma1

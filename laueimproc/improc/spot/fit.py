@@ -2,21 +2,22 @@
 
 """Fit the spot by one gaussian."""
 
+import logging
 import typing
 
 import torch
 
-from laueimproc.classes.tensor import Tensor
 from laueimproc.gmm.em import em
+from laueimproc.gmm.gauss import _gauss2d
 
 
 def fit_gaussian_em(
-    rois: Tensor,
-    photon_density: typing.Union[float, Tensor] = 1.0,
+    rois: torch.Tensor,
+    photon_density: typing.Union[float, torch.Tensor] = 1.0,
     *,
     tol: bool = False,
     **extra_info,
-) -> tuple[Tensor, Tensor, dict]:
+) -> tuple[torch.Tensor, torch.Tensor, dict]:
     r"""Fit each roi by one gaussian.
 
     See ``laueimproc.improc.gmm`` for terminology.
@@ -64,17 +65,17 @@ def fit_gaussian_em(
     Returns
     -------
     mean : Tensor
-        The vectors \(\mathbf{\mu}\). Shape (nb_spots, 2, 1). In the relative roi base.
+        The vectors \(\mathbf{\mu}\). Shape (nb_spots, 2). In the relative roi base.
     cov : Tensor
         The matrices \(\mathbf{\Sigma}\). Shape (nb_spots, 2, 2).
     infodict : dict[str]
         A dictionary of optional outputs (see ``laueimproc.improc.gmm.em``).
     """
     # verification
-    assert isinstance(rois, Tensor), rois.__class__.__name__
+    assert isinstance(rois, torch.Tensor), rois.__class__.__name__
     assert rois.ndim == 3, rois.shape
-    assert isinstance(photon_density, (float, Tensor)), photon_density.__class__.__name__
-    if isinstance(photon_density, Tensor):
+    assert isinstance(photon_density, (float, torch.Tensor)), photon_density.__class__.__name__
+    if isinstance(photon_density, torch.Tensor):
         assert photon_density.shape == (rois.shape[0],), photon_density.shape
     assert isinstance(tol, bool), tol.__class__.__name__
 
@@ -101,12 +102,12 @@ def fit_gaussian_em(
         infodict["tol"] = std_of_mean
 
     # cast
-    return mean.squeeze(-3), cov.squeeze(-3), infodict
+    return mean.squeeze(-3).squeeze(-1), cov.squeeze(-3), infodict
 
 
 def fit_gaussians(
-    rois: Tensor, loss: typing.Callable[[Tensor, Tensor], Tensor], **kwargs
-) -> tuple[Tensor, Tensor, Tensor, dict]:
+    rois: torch.Tensor, loss: typing.Callable[[torch.Tensor, torch.Tensor], torch.Tensor], **kwargs
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
     r"""Fit each roi by \(K\) gaussians.
 
     See ``laueimproc.improc.gmm`` for terminology.
@@ -137,7 +138,7 @@ def fit_gaussians(
             The predicted rois tensor. Shape(n, h, w)
     """
     # verification
-    assert isinstance(rois, Tensor), rois.__class__.__name__
+    assert isinstance(rois, torch.Tensor), rois.__class__.__name__
     assert rois.ndim == 3, rois.shape
     assert callable(loss), loss.__class__.__name__
 
@@ -150,14 +151,120 @@ def fit_gaussians(
     points_i, points_j = points_i.ravel(), points_j.ravel()
     obs = torch.cat([points_i.unsqueeze(-1), points_j.unsqueeze(-1)], axis=1)
     obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
-    dup_w = torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2]))
+    dup_w = torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2]))  # (n_spots, n_obs)
 
     # initialization
-    mean, cov, eta, infodict = em(obs, dup_w, **kwargs)
-    torch.linalg.eigvalsh(cov)
+    mean, half_cov, mass, infodict = em(obs, dup_w, **kwargs)
+    half_cov *= 0.5  # for cov = half_cov + half_cov.mT, gradient coefficients symetric
+    mass *= torch.sum(dup_w.unsqueeze(-1), axis=-2)
+
+    # @torch.compile(fullgraph=True)
+    def loss_func(mean_, half_cov_, mass_, rois_, obs_):
+        pred_rois_ = torch.sum(
+            (_gauss2d(obs_, mean_, half_cov_+half_cov_.mT) * mass_.unsqueeze(-1)), -2
+        ).reshape(rois_.shape)
+        cost_ = loss(pred_rois_, rois_)
+        return cost_
+
+    print("avant", loss_func(mean, half_cov, mass, rois, obs).sum())
 
     # raffinement
+    ongoing = torch.full((rois.shape[0],), True, dtype=bool)  # mask for clusters converging
+    cost = torch.full((rois.shape[0],), torch.inf, dtype=torch.float32)
+    for _ in range(1000):  # not while True for security
+        on_obs = obs[ongoing]
+        on_mean, on_half_cov, on_mass = mean[ongoing], half_cov[ongoing], mass[ongoing]
+
+        # compute grad
+        on_mean.requires_grad = on_half_cov.requires_grad = on_mass.requires_grad = True
+        on_mean.grad = on_half_cov.grad = on_mass.grad = None
+        loss_func(on_mean, on_half_cov, on_mass, rois[ongoing], on_obs).sum().backward()
+
+        # optimal step
+        on_lr = torch.zeros((rois.shape[0],), dtype=torch.float32, requires_grad=True)
+        on_mean.requires_grad = on_half_cov.requires_grad = on_mass.requires_grad = False
+        on_cost = loss_func(
+            on_mean - on_lr.reshape(-1, 1, 1, 1)*on_mean.grad,
+            on_half_cov - on_lr.reshape(-1, 1, 1, 1)*on_half_cov.grad,
+            on_mass - on_lr.reshape(-1, 1)*on_mass.grad,
+            rois[ongoing],
+            on_obs,
+        )
+        first_diff = torch.autograd.grad(on_cost.sum(), on_lr, create_graph=True)[0]
+        print(first_diff.shape)
+        print(torch.all(first_diff <= 0))
+        second_diff = torch.autograd.grad(first_diff.sum(), on_lr)[0]
+        print(second_diff.shape)
+        print(torch.all(second_diff >= 0))
 
 
+        # # for _ in range(100):
+        # import time
+        # ti = time.time()
+        # # hessian = torch.func.vmap(torch.func.hessian(loss_, argnums=0))(on_mean, on_half_cov, on_mass, rois[ongoing], on_obs)
+        # hessian = torch.func.vmap(torch.func.jacfwd(torch.func.jacrev(loss_func, argnums=0), argnums=0))(on_mean, on_half_cov, on_mass, rois[ongoing], on_obs)
+        # print("fwd o rev", time.time()-ti)
 
-    return mean, cov, eta, infodict
+        # ti = time.time()
+        # hessian = torch.func.vmap(torch.func.jacfwd(torch.func.jacfwd(loss_func, argnums=0), argnums=0))(on_mean, on_half_cov, on_mass, rois[ongoing], on_obs)
+        # print("fwd o fwd", time.time()-ti)
+
+        # ti = time.time()
+        # hessian = torch.func.vmap(torch.func.jacrev(torch.func.jacrev(loss_func, argnums=0), argnums=0))(on_mean, on_half_cov, on_mass, rois[ongoing], on_obs)
+        # print("rev o rev", time.time()-ti)
+
+            # ti = time.time()
+            # on_mean.grad = on_half_cov.grad = on_mass.grad = None
+            # on_cost = loss_(on_mean, on_half_cov, on_mass, rois[ongoing], on_obs)
+
+            # # on_cost.sum().backward(create_graph=True, retain_graph=True)
+            # on_jac_mean = torch.autograd.grad(on_cost, on_mean, create_graph=True)[0]
+            # print("jac", on_jac_mean.shape)
+
+            # # hess = torch.zeros_like(hessian)
+            # # on_mean.grad = None
+            # hessian = torch.autograd.grad(on_jac_mean[0], inputs=on_mean[0], grad_outputs=torch.ones_like(on_mean[0]))
+            # print("hess", hessian.shape)
+            # on_mean.grad = None
+            # on_jac_mean[0].backward(on_mean[0])
+
+            # torch.autograd.backward(on_jac_mean[0], on_mean[0])
+            # on_jac_mean[0].backward(on_mean[0])
+            # print(on_mean.grad[0].shape)
+
+
+        # drop converged clusters
+        converged = on_cost >= cost[ongoing]
+        cost[ongoing] = on_cost
+        on_lr[converged] /= 1.2589254117941673  # 10**(1/10)
+        on_lr[~converged] *= 1.023292992280754  # 10**(1/100)
+        learing_rate[ongoing] = on_lr
+
+        # # update values
+        # mean_hess = hessian.reshape(-1, mean.shape[-3]*2, mean.shape[-3]*2)
+        # inv_mean_hess = torch.linalg.inv(mean_hess)
+        # new_mean = -inv_mean_hess @ on_mean.grad.reshape(-1, mean.shape[-3]*2, 1)
+        # new_mean = new_mean.reshape(-1, mean.shape[-3], 2, 1)
+
+        # print("dist:", torch.dist(new_mean, on_mean))
+        # mean[ongoing] = new_mean
+        # break
+
+
+        # update values
+        mean[ongoing] -= 1e-3*on_mean.grad  # * on_lr.reshape(-1, 1, 1, 1)
+        half_cov[ongoing] -= 1e-3*on_half_cov.grad  # * on_lr.reshape(-1, 1, 1, 1)
+        mass[ongoing] -= 1e-3*on_mass.grad  # * on_lr.reshape(-1, 1)
+
+        # we want to do equivalent of ongoing[ongoing][converged] = False
+        if torch.all(converged):
+            break
+        ongoing_ = ongoing[ongoing]
+        ongoing_[converged] = False
+        ongoing[ongoing.clone()] = ongoing_
+    else:
+        logging.warning("some gmm clusters failed to converge after 1000 iterations")
+
+    print("apres", loss_func(mean, half_cov, mass, rois, obs).sum())
+
+    return mean, half_cov+half_cov.mT, mass, infodict

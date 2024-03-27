@@ -8,10 +8,8 @@ import struct
 import numpy as np
 import torch
 
-from laueimproc.classes.tensor import Tensor
 
-
-def compress_rois(rois: Tensor) -> bytes:
+def compress_rois(rois: torch.Tensor) -> bytes:
     """Reduce the size of the tensor.
 
     Parameters
@@ -28,7 +26,7 @@ def compress_rois(rois: Tensor) -> bytes:
     # comp_data = zlib.compress(brut_data, level=9, wbits=31)
     return comp_data
 
-def decompress_rois(comp_data: bytes) -> Tensor:
+def decompress_rois(comp_data: bytes) -> torch.Tensor:
     """Inverse operation of ``compress_rois``."""
     brut_data = lzma.decompress(comp_data, format=lzma.FORMAT_XZ)
     # brut_data = zlib.decompress(comp_data, wbits=31)

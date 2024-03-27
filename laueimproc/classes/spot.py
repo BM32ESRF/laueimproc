@@ -2,9 +2,7 @@
 
 """Define the data sructure of a single spot in a Laue diagram image."""
 
-
-from .tensor import Tensor
-
+import torch
 
 
 class Spot:
@@ -20,9 +18,9 @@ class Spot:
         The middle point of the spot in the diagram. If shape is odd, it is rounded down.
     diagram : laueimproc.classes.Diagram
         The parent diagram.
-    roi : laueimproc.classes.tensor.Tensor
+    roi : torch.Tensor
         The image of the complete spot zone (or the provided rois).
-    roi_brut : laueimproc.classes.tensor.Tensor
+    roi_brut : torch.Tensor
         The image of the complete spot zone (in the direct image).
     shape : tuple[int, int]
         The shape of the roi in the numpy convention (readonly).
@@ -90,13 +88,13 @@ class Spot:
         return self._diagram
 
     @property
-    def roi(self) -> Tensor:
+    def roi(self) -> torch.Tensor:
         """Return the patch of the filtered image of the region of interest."""
         _, _, height, width = self._bbox
         return self._diagram.rois[self._index, :height, :width]  # share underground data
 
     @property
-    def roi_brut(self) -> Tensor:
+    def roi_brut(self) -> torch.Tensor:
         """Return the patch of the brut image of the region of interest."""
         anch_i, anch_j, height, width = self._bbox
         return self._diagram.image[anch_i, anch_j, :height, :width]

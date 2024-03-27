@@ -14,7 +14,6 @@ from laueimproc.improc.spot.rot_sym import compute_rot_sym
 from laueimproc.opti.cache import auto_cache
 from laueimproc.opti.parallel import auto_parallel
 from .base_diagram import BaseDiagram
-from .tensor import Tensor
 
 
 class Diagram(BaseDiagram):
@@ -22,7 +21,7 @@ class Diagram(BaseDiagram):
 
     @auto_cache  # put the result in thread safe cache (no multiprocessing)
     @auto_parallel  # automaticaly multithreading
-    def compute_barycenters(self) -> Tensor:
+    def compute_barycenters(self) -> torch.Tensor:
         """Compute the barycenter of each spots."""
         if not self.is_init():
             raise RuntimeWarning(
@@ -33,7 +32,7 @@ class Diagram(BaseDiagram):
         return barycenters
 
     @auto_parallel
-    def compute_pxl_intensities(self) -> Tensor:
+    def compute_pxl_intensities(self) -> torch.Tensor:
         """Compute the total pixel intensity for each spots."""
         if not self.is_init():
             raise RuntimeWarning(
@@ -43,7 +42,7 @@ class Diagram(BaseDiagram):
 
     @auto_cache
     @auto_parallel
-    def compute_rot_sym(self) -> Tensor:
+    def compute_rot_sym(self) -> torch.Tensor:
         """Compute the similarity by rotation of each spots."""
         if not self.is_init():
             raise RuntimeWarning(
@@ -57,7 +56,7 @@ class Diagram(BaseDiagram):
         self,
         photon_density: typing.Union[torch.Tensor, np.ndarray, numbers.Real] = 1.0,
         **kwargs,
-    ) -> tuple[Tensor, Tensor, dict]:
+    ) -> tuple[torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by one gaussian.
 
         See ``laueimproc.improc.gmm`` for terminology.
@@ -72,7 +71,7 @@ class Diagram(BaseDiagram):
         Returns
         -------
         mean : Tensor
-            The vectors \(\mathbf{\mu}\). Shape (n, 2, 1). In the absolute diagram base.
+            The vectors \(\mathbf{\mu}\). Shape (n, 2). In the absolute diagram base.
         cov : Tensor
             The matrices \(\mathbf{\Sigma}\). Shape (n, 2, 2).
         infodict : dict[str]
@@ -86,7 +85,7 @@ class Diagram(BaseDiagram):
         photon_density = (
             float(photon_density)
             if isinstance(photon_density, numbers.Real)
-            else Tensor(photon_density)
+            else torch.as_tensor(photon_density, dtype=torch.float32)
         )
         rois = self.rois
         shift = self.bboxes[:, :2]
@@ -96,18 +95,20 @@ class Diagram(BaseDiagram):
 
         # spot base to diagram base
         if mean.requires_grad:
-            mean = mean + shift.reshape(-1, 2, 1)
+            mean = mean + shift
         else:
-            mean += shift.reshape(-1, 2, 1)
+            mean += shift
 
         # cast
-        return mean.squeeze(-3), cov.squeeze(-3), infodict
+        return mean, cov, infodict
 
     @auto_cache
     @auto_parallel
     def fit_gaussians(
-        self, loss: typing.Union[typing.Callable[[Tensor, Tensor], Tensor], str] = "mse", **kwargs
-    ) -> tuple[Tensor, Tensor, Tensor, dict]:
+        self,
+        loss: typing.Union[typing.Callable[[torch.Tensor, torch.Tensor], torch.Tensor], str] = "mse",
+        **kwargs,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by \(K\) gaussians.
 
         See ``laueimproc.improc.gmm`` for terminology.
@@ -152,8 +153,8 @@ class Diagram(BaseDiagram):
         if isinstance(loss, str):
             assert loss in {"l1", "mse"}, loss
             loss = {
-                "l1": lambda rois, rois_pred: torch.mean(torch.abs(rois-rois_pred), dim=(1, 2)),
-                "mse": lambda rois, rois_pred: torch.mean((rois-rois_pred)**2, dim=(1, 2)),
+                "l1": lambda rois, rois_pred: torch.mean(torch.abs(rois-rois_pred), dim=(-1, -2)),
+                "mse": lambda rois, rois_pred: torch.mean((rois-rois_pred)**2, dim=(-1, -2)),
             }[loss]
         rois = self.rois
         shift = self.bboxes[:, :2]

@@ -74,12 +74,12 @@ def _fit_one_cluster(
     -----
     * No verifications are performed for performance reason.
     """
-    weights_prod = (  # (..., n_obs)
-        (1.0 if dup_w is None else dup_w) * (1.0 if std_w is None else std_w)
-    )
     if dup_w is None and std_w is None:
         mean = torch.mean(obs, axis=-2, keepdim=True)  # (..., 1, n_var)
     else:
+        weights_prod = (  # (..., n_obs)
+            (1.0 if dup_w is None else dup_w) * (1.0 if std_w is None else std_w)
+        )
         mean = torch.sum((weights_prod.unsqueeze(-1) * obs), axis=-2, keepdim=True)
         mean /= torch.sum(weights_prod.unsqueeze(-1), axis=-2, keepdim=True)  # (..., 1, n_var)
     cent_obs = (obs - mean).unsqueeze(-1)  # (..., n_obs, n_var, 1)
@@ -148,13 +148,22 @@ def _fit_n_clusters_one_step(
     eta = torch.sum(dup_w.unsqueeze(-2) * post, axis=-1, keepdim=False, out=eta)  # (..., n_clu)
 
     # mean
-    weighted_post = (dup_w * std_w).unsqueeze(-2) * post  # (..., n_clu, n_obs)
-    weighted_post = weighted_post.unsqueeze(-1).unsqueeze(-1)  # (..., n_clu, n_obs, 1, 1)
-    mean = torch.sum(
-        weighted_post * obs.unsqueeze(-3).unsqueeze(-1),  # (..., n_clu, n_obs, n_var, 1)
-        axis=-3, keepdim=False, out=mean  # (..., n_clus, n_var, 1)
-    )
-    mean /= torch.sum(weighted_post, axis=-3, keepdim=False)  # (..., n_clus, n_var, 1)
+    if dup_w is None and std_w is None:
+        weighted_post = post
+        mean = torch.mean(
+            obs.unsqueeze(-3).unsqueeze(-1),  # (..., n_clu, n_obs, n_var, 1)
+            axis=-3, keepdim=False, out=mean  # (..., n_clus, n_var, 1)
+        )
+    else:
+        weighted_post = (  # (..., n_obs)
+            (1.0 if dup_w is None else dup_w) * (1.0 if std_w is None else std_w)
+        ).unsqueeze(-2) * post  # (..., n_clu, n_obs)
+        weighted_post = weighted_post.unsqueeze(-1).unsqueeze(-1)  # (..., n_clu, n_obs, 1, 1)
+        mean = torch.sum(
+            weighted_post * obs.unsqueeze(-3).unsqueeze(-1),  # (..., n_clu, n_obs, n_var, 1)
+            axis=-3, keepdim=False, out=mean  # (..., n_clus, n_var, 1)
+        )
+        mean /= torch.sum(weighted_post, axis=-3, keepdim=False)  # (..., n_clus, n_var, 1)
 
     # cov
     cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
@@ -165,7 +174,8 @@ def _fit_n_clusters_one_step(
     cov /= eta.unsqueeze(-1).unsqueeze(-1)
 
     # normalize eta
-    eta /= torch.sum(dup_w.unsqueeze(-2), axis=-1, keepdim=False)  # (..., n_clu)
+    if dup_w is not None:
+        eta /= torch.sum(dup_w.unsqueeze(-2), axis=-1, keepdim=False)  # (..., n_clu)
 
     return mean, cov, eta
 
@@ -215,13 +225,14 @@ def _fit_n_clusters_serveral_steps(
     ongoing = torch.ones_like(llh, dtype=bool)  # mask for clusters converging
 
     for _ in range(1000):  # not while True for security
+        on_dup_w = None if dup_w is None else dup_w[ongoing]
+        on_std_w = None if std_w is None else std_w[ongoing]
         new_gmm = _fit_n_clusters_one_step(
-            obs[ongoing], dup_w[ongoing], std_w[ongoing],
-            (mean[ongoing], cov[ongoing], eta[ongoing]),
+            obs[ongoing], on_dup_w, on_std_w, (mean[ongoing], cov[ongoing], eta[ongoing])
         )
         mean[ongoing], cov[ongoing], eta[ongoing] = new_gmm
         new_llh = log_likelihood(
-            obs[ongoing], dup_w[ongoing], std_w[ongoing], new_gmm, _check=False
+            obs[ongoing], on_dup_w, on_std_w, new_gmm, _check=False
         )
         converged = (   # the mask of the converged clusters
             new_llh - llh[ongoing] <= 1e-3
@@ -229,7 +240,7 @@ def _fit_n_clusters_serveral_steps(
         llh[ongoing] = new_llh
         if torch.all(converged):
             break
-        # we want to do equivalent of ongoing[ongoing][improvement] = False
+        # we want to do equivalent of ongoing[ongoing][converged] = False
         ongoing_ = ongoing[ongoing]
         ongoing_[converged] = False
         ongoing[ongoing.clone()] = ongoing_
@@ -286,32 +297,35 @@ def _fit_n_clusters_serveral_steps_serveral_tries(
     * No verifications are performed for performance reason.
     """
     *batch, n_obs, n_var = obs.shape
-    nbr_clusters = gmm.eta.shape[-1]
+    mean, cov, eta = gmm
+    nbr_clusters = eta.shape[-1]
 
     # draw random initial conditions
     mean = (  # (n_tries, ..., n_clu, n_var, 1)
-        gmm.mean.unsqueeze(-3).unsqueeze(0)
+        mean.unsqueeze(-3).unsqueeze(0)
         + (
             torch.randn(
                 (nbr_tries, *batch, nbr_clusters, n_var),
                 dtype=obs.dtype, device=obs.device
-            ) @ gmm.cov
+            ) @ cov
         ).unsqueeze(-1)
     )
     cov = (  # (n_tries, ..., n_clu, n_var, n_var)
-        gmm.cov
+        cov
         .unsqueeze(-3).unsqueeze(0)
         .expand(nbr_tries, *batch, nbr_clusters, n_var, n_var)
         .clone()
     )
     eta = ( # (n_tries, ..., n_clu)
-        gmm.eta.unsqueeze(0).expand(nbr_tries, *batch, nbr_clusters).clone()
+        eta.unsqueeze(0).expand(nbr_tries, *batch, nbr_clusters).clone()
     )
 
     # prepare data for several draw
     obs = obs.unsqueeze(0).expand(nbr_tries, *batch, n_obs, n_var)
-    dup_w = dup_w.unsqueeze(0).expand(nbr_tries, *batch, n_obs)
-    std_w = std_w.unsqueeze(0).expand(nbr_tries, *batch, n_obs)
+    if dup_w is not None:
+        dup_w = dup_w.unsqueeze(0).expand(nbr_tries, *batch, n_obs)
+    if std_w is not None:
+        std_w = std_w.unsqueeze(0).expand(nbr_tries, *batch, n_obs)
 
     # run em on each cluster and each tries
     (mean, cov, eta), llh = (
