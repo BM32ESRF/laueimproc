@@ -2,10 +2,11 @@
 
 """Helper for compute multivariate gaussian."""
 
+import sympy
 import torch
 
 from .check import check_ingauss
-from .linalg import inv_cov2d
+from .linalg import inv_cov2d, inv_cov2d_sympy
 
 
 # @torch.compile(fullgraph=True, dynamic=True)  # 50% times faster
@@ -137,4 +138,37 @@ def gauss(
     prob = torch.exp(prob, out=None if prob.requires_grad else prob)
 
     prob = torch.mul(prob, norm, out=None if prob.requires_grad else prob)
+    return prob
+
+
+def gauss2d_sympy(obs: sympy.Matrix, mean: sympy.Matrix, cov: sympy.Matrix) -> sympy.Expr:
+    """Same as ``_gauss2d`` with sympy objects.
+
+    Examples
+    --------
+    >>> from sympy import *
+    >>> from laueimproc.gmm.gauss import gauss2d_sympy
+    >>> o_1, o_2 = symbols("o_1, o_2", real=True)
+    >>> obs = Matrix([[o_1], [o_2]])
+    >>> mu_1, mu_2 = symbols("mu_1, mu_2", real=True)
+    >>> mean = Matrix([[mu_1], [mu_2]])
+    >>> sigma_1, sigma_2 = symbols("sigma_1, sigma_2", real=True, positive=True)
+    >>> corr = Symbol("c", real=True)
+    >>> cov = Matrix([[sigma_1, corr], [corr, sigma_2]])
+    >>> prob = gauss2d_sympy(obs, mean, cov)
+    >>> prob.subs({sigma_1: 1, sigma_2: 2, corr: -1, mu_1: 0, mu_2: 0})
+    exp(-o_1*(2*o_1 + o_2)/2 - o_2*(o_1 + o_2)/2)/(2*pi)
+    >>>
+    """
+    assert isinstance(obs, sympy.Matrix), obs.__class__.__name__
+    assert obs.shape == (2, 1)
+    assert isinstance(cov, sympy.Matrix), cov.__class__.__name__
+    assert mean.shape == (2, 1)
+    assert isinstance(mean, sympy.Matrix), mean.__class__.__name__
+    assert cov.shape == (2, 2)
+
+    det, inv_cov = inv_cov2d_sympy(cov)
+    mean_center = obs - mean
+    scalar = (mean_center.T @ inv_cov @ mean_center)[0, 0]
+    prob = sympy.exp(-scalar/2) / sympy.sqrt(4*sympy.pi**2*det)
     return prob

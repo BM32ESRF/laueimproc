@@ -10,12 +10,14 @@ import torch
 
 from laueimproc.gmm.em import em
 from laueimproc.gmm.gauss import _gauss2d
+from laueimproc.gmm.linalg import cov2d_to_eigtheta
 
 
 def fit_gaussian_em(
     rois: torch.Tensor,
     photon_density: typing.Union[float, torch.Tensor] = 1.0,
     *,
+    eigtheta: bool = False,
     tol: bool = False,
     **extra_info,
 ) -> tuple[torch.Tensor, torch.Tensor, dict]:
@@ -60,6 +62,9 @@ def fit_gaussian_em(
             std(\widehat{\mathbf{\mu}})\
             = \sqrt{ \frac{ max(eigen(\mathbf{\Sigma})) }{ \sum\limits_{i=1}^N \alpha_i } }
         \)
+    eigtheta : boolean, default=False
+        If set to True, call ``laueimproc.gmm.linalg.cov2d_to_eigtheta`` and append the result
+        in the field `eigtheta` of `infodict`. It is like a PCA.
     **extra_infos : dict
         See ``laueimproc.improc.gmm.em`` for the available metrics.
 
@@ -78,6 +83,7 @@ def fit_gaussian_em(
     assert isinstance(photon_density, (float, torch.Tensor)), photon_density.__class__.__name__
     if isinstance(photon_density, torch.Tensor):
         assert photon_density.shape == (rois.shape[0],), photon_density.shape
+    assert isinstance(eigtheta, bool), eigtheta.__class__.__name__
     assert isinstance(tol, bool), tol.__class__.__name__
 
     # preparation
@@ -94,16 +100,21 @@ def fit_gaussian_em(
 
     # fit gaussian
     mean, cov, _, infodict = em(obs, dup_w, **extra_info, nbr_clusters=1)
+    mean, cov = mean.squeeze(-3), cov.squeeze(-3)
 
     # estimation of mean tolerancy
     if tol:
-        std_of_mean = torch.max(torch.linalg.eigvalsh(cov), axis=-1).values.squeeze(-1)
+        std_of_mean = torch.max(torch.linalg.eigvalsh(cov), axis=-1).values
         std_of_mean /= torch.sum(dup_w, axis=-1)
         std_of_mean = torch.sqrt(std_of_mean, out=std_of_mean)
         infodict["tol"] = std_of_mean
 
+    # change base PCA
+    if eigtheta:
+        infodict["eigtheta"] = cov2d_to_eigtheta(cov)
+
     # cast
-    return mean.squeeze(-3).squeeze(-1), cov.squeeze(-3), infodict
+    return mean.squeeze(-1), cov, infodict
 
 
 def fit_gaussians(
@@ -186,13 +197,13 @@ def fit_gaussians(
     half_cov *= 0.5  # for cov = half_cov + half_cov.mT, gradient coefficients symetric
     mass *= torch.sum(dup_w.unsqueeze(-1), axis=-2)
 
-    print("*********************************************")
-    print("avant", loss_func(mean, half_cov, mass, rois, obs).sum().item())
+    # print("*********************************************")
+    # print("avant", loss_func(mean, half_cov, mass, rois, obs).sum().item())
 
     # raffinement
     ongoing = torch.full((rois.shape[0],), True, dtype=bool)  # mask for clusters converging
     cost = torch.full((rois.shape[0],), torch.inf, dtype=torch.float32)
-    for _ in range(1000):  # not while True for security
+    for _ in range(10):  # not while True for security
         t = time.time()
         on_mean, on_half_cov, on_mass = mean[ongoing], half_cov[ongoing], mass[ongoing]
         on_rois, on_obs = rois[ongoing], obs[ongoing]
@@ -202,14 +213,14 @@ def fit_gaussians(
             on_mean, on_half_cov, on_mass, on_rois, on_obs
         )
 
-        print("cost", cost.sum().item(), "nelem", len(on_rois))
+        # print("cost", cost.sum().item(), "nelem", len(on_rois))
 
         # optimal step, second order derivated of loss in the grad direction
         on_lr = torch.zeros((on_rois.shape[0],), dtype=torch.float32)
         lr2, lr1 = lr1_lr2_func(
             on_mean, on_half_cov, on_mass, on_rois, on_obs, on_lr, grad_on_mean, grad_on_half_cov, grad_on_mass
         )
-        print(f"    temps: {time.time()-t:.2f}")
+        # print(f"    temps: {time.time()-t:.2f}")
         on_lr = -lr1 / lr2  # assume quadratic model convergence
         # on_lr = torch.clamp(on_lr, 0.0, 1.0)
         # print("step", on_lr.min().item(), on_lr.max().item())
@@ -230,9 +241,9 @@ def fit_gaussians(
         ongoing_[converged] = False
         ongoing[ongoing.clone()] = ongoing_
     else:
-        logging.warning("some gmm clusters failed to converge after 1000 iterations")
+        logging.warning("some gmm clusters failed to converge after 10 iterations")
 
-    print("apres", loss_func(mean, half_cov, mass, rois, obs).sum().item())
+    # print("apres", loss_func(mean, half_cov, mass, rois, obs).sum().item())
 
     # hessian = torch.func.vmap(torch.func.jacfwd(torch.func.jacrev(loss_func, argnums=0), argnums=0))(on_mean, on_half_cov, on_mass, rois[ongoing], on_obs)
 

@@ -2,6 +2,7 @@
 
 """Helper for fast linear algebra for 2d matrix."""
 
+import sympy
 import torch
 
 
@@ -153,8 +154,6 @@ def _inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.T
         out[..., 0, 1] = out[..., 1, 0] = -inv_det * corr
     return det, out
 
-# def _inv_cov2d_sympy(cov: )
-
 
 def inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.Tensor]:
     r"""Compute the det and the inverse of covariance matrix.
@@ -194,3 +193,27 @@ def inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.Te
     assert isinstance(inv, bool), inv.__class__.__name__
 
     return _inv_cov2d(cov, inv)
+
+
+def inv_cov2d_sympy(cov: sympy.Matrix) -> tuple[sympy.Expr, sympy.Matrix]:
+    """Same as ``inv_cov2d`` with sympy objects.
+
+    Examples
+    --------
+    >>> from sympy import *
+    >>> from laueimproc.gmm.linalg import inv_cov2d_sympy
+    >>> sigma_1, sigma_2 = symbols("sigma_1, sigma_2", real=True, positive=True)
+    >>> corr = Symbol("c", real=True)
+    >>> cov = Matrix([[sigma_1, corr], [corr, sigma_2]])
+    >>> det, inv = inv_cov2d_sympy(cov)
+    >>> det
+    -c**2 + sigma_1*sigma_2
+    >>> inv
+    Matrix([
+    [-sigma_2/(c**2 - sigma_1*sigma_2),        c/(c**2 - sigma_1*sigma_2)],
+    [       c/(c**2 - sigma_1*sigma_2), -sigma_1/(c**2 - sigma_1*sigma_2)]])
+    >>>
+    """
+    assert isinstance(cov, sympy.Matrix), cov.__class__.__name__
+    assert cov.shape == (2, 2)
+    return cov.det(), sympy.cancel(cov.inv())
