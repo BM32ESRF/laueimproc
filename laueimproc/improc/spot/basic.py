@@ -21,7 +21,7 @@ def compute_barycenters(tensor_spots: torch.Tensor) -> torch.Tensor:
 
     Notes
     -----
-    * No verifications are performed,
+    * No verifications are performed.
     * Call this method from a ``laueimproc.classes.spot.Spot``
         or ``laueimproc.classes.diagram.Diagram`` instance.
     """

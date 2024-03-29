@@ -390,11 +390,11 @@ def em(
 
     Returns
     -------
-    mean : Tensor
+    mean : torch.Tensor
         The vectors \(\mathbf{\mu}\). Shape (..., \(K\), \(D\), 1).
-    cov : Tensor
+    cov : torch.Tensor
         The matrices \(\mathbf{\Sigma}\). Shape (..., \(K\), \(D\), \(D\)).
-    eta : Tensor
+    eta : torch.Tensor
         The relative mass \(\eta\). Shape (..., \(K\)).
     infodict : dict[str]
         A dictionary of optional outputs.

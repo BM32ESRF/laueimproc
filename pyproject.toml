@@ -1,5 +1,7 @@
-[tool.setuptools.packages.find]
-include = ["laueimproc"]
+[build-system]
+requires = ["setuptools", "numpy"]
+build-backend = "setuptools.build_meta"
+
 
 [project]
 name = "laueimproc"
@@ -36,7 +38,7 @@ classifiers = [
   "Natural Language :: French",
   "Programming Language :: Python :: 3",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
-  "Topic :: Scientific/Engineering :: Tensor Processing",
+  "Topic :: Scientific/Engineering :: torch.Tensor Processing",
   "Topic :: Scientific/Engineering :: Information Analysis",
   "Topic :: Scientific/Engineering :: Physics",
 ]
@@ -54,6 +56,19 @@ all = [
 
 [project.urls]
 Repository = "https://github.com/BM32ESRF/laueimproc"
+
+[tool.setuptools.packages.find]
+where = [""]
+exclude = ["doc", "notebook"]
+
+[tool.setuptools.package-data]
+"*" = ["*.jp2"]
+
+[tool.setuptools]
+py-modules = ["c_build"]
+
+[tool.setuptools.cmdclass]
+build_py = "c_build.Build"
 
 [tool.setuptools.dynamic]
 version = {attr = "laueimproc.__version__"}

@@ -97,7 +97,7 @@ class Spot:
     def roi_brut(self) -> torch.Tensor:
         """Return the patch of the brut image of the region of interest."""
         anch_i, anch_j, height, width = self._bbox
-        return self._diagram.image[anch_i, anch_j, :height, :width]
+        return self._diagram.image[anch_i:anch_i+height, anch_j:anch_j+width]
 
     @property
     def shape(self) -> tuple[int, int]:

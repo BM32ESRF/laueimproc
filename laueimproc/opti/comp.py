@@ -14,7 +14,7 @@ def compress_rois(rois: torch.Tensor) -> bytes:
 
     Parameters
     ----------
-    rois : Tensor
+    rois : torch.Tensor
         A float32 images of shape (n, h, w) with value in range [0, 1].
     """
     # compression

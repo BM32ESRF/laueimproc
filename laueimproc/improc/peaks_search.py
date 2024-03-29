@@ -61,7 +61,7 @@ def unfold(img: torch.Tensor, kernel_h: int, kernel_w: int) -> torch.Tensor:
 
     Parameters
     ----------
-    img : Tensor
+    img : torch.Tensor
         A 2d tensor of shape (h, w).
     kernel_h : int
         The size of the height of the kernel <= h.
@@ -70,7 +70,7 @@ def unfold(img: torch.Tensor, kernel_h: int, kernel_w: int) -> torch.Tensor:
 
     Returns
     -------
-    patched_verstion : Tensor
+    patched_verstion : torch.Tensor
         An image of shape (h+1-kernel_h, w+1-kernel_w, kernel_h, kernel_w)
         with overlapping non contiguous references on undeground data.
 
@@ -109,7 +109,7 @@ def estimate_background(
 
     Parameters
     ----------
-    brut_image : Tensor
+    brut_image : torch.Tensor
         The 2d array brut image of the Laue diagram in float between 0 and 1.
     kernel_font : np.ndarray[np.uint8, np.uint8], optional
         The structurant element used for the morphological opening.
@@ -170,9 +170,9 @@ def peaks_search(
 
     Returns
     -------
-    rois_no_background : Tensor
+    rois_no_background : torch.Tensor
         The tensor of each regions of interest without background, shape (n, h, w) and type float.
-    bboxes : Tensor
+    bboxes : torch.Tensor
         The positions of the corners point (0, 0) and the shape (i, j, h, w)
         of the roi of each spot in the brut_image, and the height and width of each roi.
         The shape is (n, 4) and the type is int.

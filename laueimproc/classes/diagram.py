@@ -9,7 +9,8 @@ import numpy as np
 import torch
 
 from laueimproc.improc.spot.basic import compute_barycenters, compute_pxl_intensities
-from laueimproc.improc.spot.fit import fit_gaussian_em, fit_gaussians
+from laueimproc.improc.spot.extrema import find_nb_extremums
+from laueimproc.improc.spot.fit import fit_gaussian_em, fit_gaussians_em, fit_gaussians
 from laueimproc.improc.spot.rot_sym import compute_rot_sym
 from laueimproc.opti.cache import auto_cache
 from laueimproc.opti.parallel import auto_parallel
@@ -50,6 +51,15 @@ class Diagram(BaseDiagram):
             )
         return compute_rot_sym(self.rois)
 
+    @auto_parallel
+    def find_nb_extremums(self) -> torch.Tensor:
+        """Find the number of extremums."""
+        if not self.is_init():
+            raise RuntimeWarning(
+                "you must to initialize the spots (`self.find_spots()`)"
+            )
+        return find_nb_extremums(self.rois)
+
     @auto_cache
     @auto_parallel
     def fit_gaussian_em(
@@ -57,25 +67,25 @@ class Diagram(BaseDiagram):
         photon_density: typing.Union[torch.Tensor, np.ndarray, numbers.Real] = 1.0,
         **kwargs,
     ) -> tuple[torch.Tensor, torch.Tensor, dict]:
-        r"""Fit each roi by one gaussian.
+        r"""Fit each roi by one gaussian using the EM algorithm in one shot, very fast.
 
-        See ``laueimproc.improc.gmm`` for terminology.
+        See ``laueimproc.gmm`` for terminology and ``laueimproc.gmm.em`` for the algo description.
 
         Parameters
         ----------
         photon_density : arraylike, optional
-            See to ``laueimproc.improc.spot.fit.fit_gaussian_em``.
+            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussian_em``.
         **kwargs : dict
             Transmitted to ``laueimproc.improc.spot.fit.fit_gaussian_em``.
 
         Returns
         -------
-        mean : Tensor
+        mean : torch.Tensor
             The vectors \(\mathbf{\mu}\). Shape (n, 2). In the absolute diagram base.
-        cov : Tensor
+        cov : torch.Tensor
             The matrices \(\mathbf{\Sigma}\). Shape (n, 2, 2).
         infodict : dict[str]
-            A dictionary of optional outputs (see ``laueimproc.improc.gmm.em``).
+            Comes from ``laueimproc.improc.spot.fit.fit_gaussian_em``.
         """
         # preparation
         if not self.is_init():
@@ -101,6 +111,72 @@ class Diagram(BaseDiagram):
 
         # cast
         return mean, cov, infodict
+
+    @auto_cache
+    @auto_parallel
+    def fit_gaussians_em(
+        self,
+        photon_density: typing.Union[torch.Tensor, np.ndarray, numbers.Real] = 1.0,
+        **kwargs,
+    ) -> tuple[torch.Tensor, torch.Tensor, dict]:
+        r"""Fit each roi by \(K\) gaussians using the EM algorithm.
+
+        See ``laueimproc.gmm`` for terminology and ``laueimproc.gmm.em`` for the algo description.
+
+        Parameters
+        ----------
+        photon_density : arraylike, optional
+            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
+        **kwargs : dict
+            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
+
+        Returns
+        -------
+        mean : torch.Tensor
+            The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2). In the absolute diagram base.
+        cov : torch.Tensor
+            The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
+        eta : torch.Tensor
+            The relative mass \(\eta\). Shape (n, \(K\)).
+        infodict : dict[str]
+            Comes from ``laueimproc.improc.spot.fit.fit_gaussians_em``.
+        """
+        # preparation
+        if not self.is_init():
+            raise RuntimeWarning(
+                "you must to initialize the spots (`self.find_spots()`)"
+            )
+        photon_density = (
+            float(photon_density)
+            if isinstance(photon_density, numbers.Real)
+            else torch.as_tensor(photon_density, dtype=torch.float32)
+        )
+        rois = self.rois
+        shift = self.bboxes[:, :2]
+
+        # main fit
+        mean, cov, infodict = fit_gaussians_em(rois, photon_density, **kwargs)
+
+        # spot base to diagram base
+        if mean.requires_grad:
+            mean = mean + shift.unsqueeze(1)
+        else:
+            mean += shift.unsqueeze(1)
+
+        # cast
+        return mean, cov, infodict
+
+    def fit_gaussian(self, *args, **kwargs) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+        r"""Fit each roi by one gaussian.
+
+        Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
+        """
+        mean, cov, mass, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
+        mean, cov, mass = mean.squeeze(1), cov.squeeze(1), mass.squeeze(1)
+        if "eigtheta" in infodict:
+            infodict = infodict.copy()  # to avoid insane cache reference error
+            infodict["eigtheta"] = infodict["eigtheta"].squeeze(1)
+        return mean, cov, mass, infodict
 
     @auto_cache
     @auto_parallel
@@ -136,11 +212,11 @@ class Diagram(BaseDiagram):
 
         Returns
         -------
-        mean : Tensor
+        mean : torch.Tensor
             The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
-        cov : Tensor
+        cov : torch.Tensor
             The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
-        mass : Tensor
+        mass : torch.Tensor
             The absolute mass \(\theta.\eta\). Shape (n, \(K\)).
         infodict : dict[str]
             See ``laueimproc.improc.spot.fit.fit_gaussians``.
