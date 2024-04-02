@@ -6,4 +6,4 @@ from .classes import Diagram
 
 __all__ = ["Diagram"]
 __author__ = "J.S. Micha, O. Robach., S. Tardif, R. Richard"
-__version__ = "0.0.1"  # pep 440
+__version__ = "0.0.2"  # pep 440

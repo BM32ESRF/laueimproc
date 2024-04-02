@@ -11,6 +11,7 @@ import numpy as np
 import torch
 
 from laueimproc.io.read import to_floattensor
+from laueimproc.opti.rois import imgbboxes2raw
 
 
 DEFAULT_KERNEL_FONT = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (19, 19))  # 17 - 21
@@ -56,50 +57,6 @@ def _density_to_threshold_torch(img: torch.Tensor, density: float) -> float:
     return threshold
 
 
-def unfold(img: torch.Tensor, kernel_h: int, kernel_w: int) -> torch.Tensor:
-    """Return patched version of img with a stride of 1.
-
-    Parameters
-    ----------
-    img : torch.Tensor
-        A 2d tensor of shape (h, w).
-    kernel_h : int
-        The size of the height of the kernel <= h.
-    kernel_w : int
-        The size of the width of the kernel <= w.
-
-    Returns
-    -------
-    patched_verstion : torch.Tensor
-        An image of shape (h+1-kernel_h, w+1-kernel_w, kernel_h, kernel_w)
-        with overlapping non contiguous references on undeground data.
-
-    Notes
-    -----
-    Call the method `contiguous` if you want to write on it.
-    """
-    assert isinstance(img, torch.Tensor), img.__class__.__name__
-    assert img.ndim == 2, img.shape
-    assert isinstance(kernel_h, numbers.Integral), kernel_h.__class__.__name__
-    assert kernel_h <= img.shape[0], (kernel_h, img.shape)
-    assert isinstance(kernel_w, numbers.Integral), kernel_w.__class__.__name__
-    assert kernel_w <= img.shape[1], (kernel_w, img.shape)
-
-    img = torch.squeeze(
-        torch.nn.functional.pad(
-            torch.unsqueeze(img, 0),  # not implemented for 2d, only for 3d in torch 2.2.1
-            (kernel_w//2, kernel_w//2 + kernel_w%2 - 1, kernel_h//2, kernel_h//2 + kernel_h%2 - 1),
-            mode="replicate",
-        ).contiguous(),  # maybe contiguous is useless but it is a security
-        0,
-    )
-    return torch.as_strided(
-        img,
-        (img.shape[0]+1-kernel_h, img.shape[1]+1-kernel_w, kernel_h, kernel_w),  # shape
-        (*img.stride(), *img.stride()),  # stride a step of 1
-    )
-
-
 def estimate_background(
     brut_image: np.ndarray,
     kernel_font: typing.Optional[np.ndarray[np.uint8, np.uint8]] = None,
@@ -141,7 +98,7 @@ def estimate_background(
     bg_image = cv2.morphologyEx(brut_image, dst=bg_image, op=cv2.MORPH_OPEN, kernel=kernel_font)
     # ksize = (3*kernel_font.shape[0], 3*kernel_font.shape[1])
     # bg_image = cv2.GaussianBlur(brut_image, dst=bg_image, ksize=ksize, sigmaX=0)
-    bg_image = np.clip(bg_image, a_min=0.0, a_max=brut_image, out=bg_image)
+    bg_image = np.clip(bg_image, a_min=0.0, a_max=brut_image, out=bg_image)  # avoid 0 when substract
     return bg_image
 
 
@@ -170,8 +127,9 @@ def peaks_search(
 
     Returns
     -------
-    rois_no_background : torch.Tensor
-        The tensor of each regions of interest without background, shape (n, h, w) and type float.
+    rois_no_background : bytearray
+        The flatten float32 tensor data of each regions of interest without background.
+        After unfolding and padding, the shape is (n, h, w).
     bboxes : torch.Tensor
         The positions of the corners point (0, 0) and the shape (i, j, h, w)
         of the roi of each spot in the brut_image, and the height and width of each roi.
@@ -200,10 +158,7 @@ def peaks_search(
         fg_image = src
         fg_image -= bg_image  # inplace
     binary = (
-        # 2 times faster than cv2.threshold(fg_image, thresh, 1, cv2.THRESH_BINARY)
-        # 3 times faster with torch than numpy
         (fg_image > _density_to_threshold_torch(torch.from_numpy(fg_image), density)).view(np.uint8)
-        # (fg_image > _density_to_threshold_numpy(fg_image, density)).view(np.uint8)
     )
     binary = cv2.dilate(binary, kernel_aglo, dst=bg_image, iterations=1)
     bboxes = [
@@ -213,37 +168,9 @@ def peaks_search(
         ) if max(h, w) <= 200 # remove too big spots
     ]
 
-    # this vectorizated version seams slowler than the iterative one
-    # bboxes = (
-    #     Tensor(torch.tensor(bboxes, dtype=int, device=brut_image.device))
-    #     if bboxes else
-    #     Tensor(torch.empty((0, 4), dtype=int))
-    # )
-    # rois = Tensor(
-    #     torch.zeros( # zeros 2 times faster than empty + fill 0
-    #         (
-    #             bboxes.shape[0],
-    #             torch.max(bboxes[:, 2]).item() if bboxes.shape[0] else 1,
-    #             torch.max(bboxes[:, 3]).item() if bboxes.shape[0] else 1,
-    #         ),
-    #         dtype=brut_image.dtype,
-    #         device=brut_image.device,
-    #     )
-    # )
-    # for index, (i, j, height, width) in enumerate(bboxes.tolist()):  # write the right values
-    #     rois[index, :height, :width] = torch.from_numpy(fg_image[i:i+height, j:j+width])
-
     if bboxes:
-        rois = np.zeros( # zeros 2 times faster than empty + fill 0
-            (len(bboxes), max(h for _, _, h, _ in bboxes), max(w for _, _, _, w in bboxes)),
-            dtype=fg_image.dtype
-        )
-        for index, (i, j, height, width) in enumerate(bboxes):  # write the right values
-            rois[index, :height, :width] = fg_image[i:i+height, j:j+width]
-        rois = to_floattensor(rois).to(device=brut_image.device)
-        bboxes = torch.tensor(bboxes, dtype=int)
+        bboxes = torch.tensor(bboxes, dtype=torch.int32)
     else:
-        rois = torch.empty((0, 1, 1), dtype=brut_image.dtype, device=brut_image.device)
-        bboxes = torch.empty((0, 4), dtype=int, device=brut_image.device)
-
-    return rois, bboxes
+        bboxes = torch.empty((0, 4), dtype=torch.int32, device=brut_image.device)
+    datarois = imgbboxes2raw(torch.from_numpy(fg_image), bboxes)
+    return datarois, bboxes
