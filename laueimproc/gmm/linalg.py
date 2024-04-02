@@ -59,7 +59,7 @@ def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool=True, theta: bool=True) -> to
                 \sigma_1 + \sigma_2 + \sqrt{(2c)^2 + (\sigma_2 - \sigma_1)^2}
             \right) \\
             \lambda_2 = \frac{1}{2} \left(
-                \sigma_1 + \sigma_2 + \sqrt{(2c)^2 - (\sigma_2 - \sigma_1)^2}
+                \sigma_1 + \sigma_2 - \sqrt{(2c)^2 + (\sigma_2 - \sigma_1)^2}
             \right) \\
             \theta = tan^{-1}\left(
                 \frac{ \sigma_2 - \sigma_1 + \sqrt{(2c)^2 + (\sigma_2 - \sigma_1)^2} }{2c}
@@ -130,7 +130,7 @@ def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool=True, theta: bool=True) -> to
         out[..., 1] = lambda2
     if theta:
         theta = sigma_dif + delta
-        theta /= two_corr
+        theta = torch.where(two_corr != 0, theta/two_corr, torch.where(theta != 0, torch.inf, 0.0))
         theta = torch.atan(theta, out=None if cov.requires_grad else theta)
         out[..., 2] = theta
     return out

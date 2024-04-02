@@ -34,7 +34,7 @@ class BaseDiagram:
     Attributes
     ----------
     bboxes : torch.Tensor or None
-        The tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        The int32 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
         for each spots, of shape (n, 4) (readonly).
         Return None until spots are initialized.
     centers : torch.Tensor or None
