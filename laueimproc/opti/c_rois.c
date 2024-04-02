@@ -171,6 +171,24 @@ int getDataLen(Py_ssize_t *datalen, PyArrayObject *shapes) {
 }
 
 
+int getDataLenBboxes(Py_ssize_t *datalen, PyArrayObject *bboxes) {
+    // Get the exact len neaded.
+    *datalen = 0;
+    npy_intp i;
+    const npy_intp n = PyArray_DIM(bboxes, 0);
+    npy_int32 area;
+    for ( i = 0; i < n; ++i ) {
+        area = *(npy_int32 *)PyArray_GETPTR2(bboxes, i, 2) * *(npy_int32 *)PyArray_GETPTR2(bboxes, i, 3);
+        if ( !area ) {
+            fprintf(stderr, "the bbox %ld has zero area\n", i);
+            return 1;
+        }
+        *datalen += (Py_ssize_t)area;
+    }
+    return 0;
+}
+
+
 int fillRawfromBBoxesImg(npy_float *rawdata, PyArrayObject *bboxes, PyArrayObject *img) {
     // copy the patches into the flatten rois.
     npy_intp i;
@@ -359,8 +377,9 @@ static PyObject *filterByIndexs(PyObject *self, PyObject *args) {
     Py_END_ALLOW_THREADS
     if ( error ) {
         Py_DECREF(newbboxes);
-        PyErr_SetString(PyExc_MemoryError, "failed to alloc array");
-        return NULL;
+        return PyErr_NoMemory();
+        // PyErr_SetString(PyExc_MemoryError, "failed to alloc array");
+        // return NULL;
     }
 
     // reorder the bboxes
@@ -403,7 +422,7 @@ static PyObject *filterByIndexs(PyObject *self, PyObject *args) {
 static PyObject *imgbboxes2raw(PyObject *self, PyObject *args) {
     PyObject *data = NULL;
     npy_float *rawdata = NULL;
-    PyArrayObject *img, *bboxes, *shapes;
+    PyArrayObject *img, *bboxes;//, *shapes;
     Py_ssize_t datalen;
     int error;
 
@@ -420,15 +439,29 @@ static PyObject *imgbboxes2raw(PyObject *self, PyObject *args) {
     }
 
     // find data len
-    shapes = (PyArrayObject *)PyObject_GetItem(
-        (PyObject *)bboxes,
-        PyTuple_Pack(2,  PySlice_New(NULL, NULL, NULL), PySlice_New(PyLong_FromLong(2), NULL, NULL))
-    );
+    // PyObject *slice_all = PySlice_New(NULL, NULL, NULL);
+    // PyObject *two = PyLong_FromLong(2);
+    // PyObject *slice_end = PySlice_New(two, NULL, NULL);
+    // PyObject *all_slices = PyTuple_Pack(2, slice_all, slice_end);
+    // shapes = (PyArrayObject *)PyObject_GetItem((PyObject *)bboxes, all_slices);
+    // Py_DECREF(all_slices);
+    // Py_DECREF(slice_all);
+    // Py_DECREF(slice_end);
+    // Py_DECREF(two);
+    // Py_BEGIN_ALLOW_THREADS
+    // error = getDataLen(&datalen, shapes);
+    // Py_END_ALLOW_THREADS
+    // Py_DECREF(shapes);
+    // if ( error ) {
+    //     PyErr_SetString(PyExc_ValueError, "some bboxes have area of zero");
+    //     return NULL;
+    // }
     Py_BEGIN_ALLOW_THREADS
-    error = getDataLen(&datalen, shapes);
+    error = getDataLenBboxes(&datalen, bboxes);
     Py_END_ALLOW_THREADS
-    Py_DECREF(shapes);
     if ( error ) {
+        Py_DECREF(img);
+        Py_DECREF(bboxes);
         PyErr_SetString(PyExc_ValueError, "some bboxes have area of zero");
         return NULL;
     }
@@ -436,10 +469,14 @@ static PyObject *imgbboxes2raw(PyObject *self, PyObject *args) {
     // create bytearray
     data = PyByteArray_FromStringAndSize(NULL, datalen*sizeof(npy_float)); // add check for NULL
     if ( data == NULL ) {
+        Py_DECREF(img);
+        Py_DECREF(bboxes);
         return NULL;
     }
     rawdata = (npy_float *)PyByteArray_AsString(data);
     if ( rawdata == NULL ) {
+        Py_DECREF(img);
+        Py_DECREF(bboxes);
         Py_DECREF(data);
         return NULL;
     }
@@ -448,6 +485,8 @@ static PyObject *imgbboxes2raw(PyObject *self, PyObject *args) {
     Py_BEGIN_ALLOW_THREADS
     error = fillRawfromBBoxesImg(rawdata, bboxes, img);
     Py_END_ALLOW_THREADS
+    Py_DECREF(img);
+    Py_DECREF(bboxes);
     if ( error ) {
         Py_DECREF(data);
         PyErr_SetString(PyExc_ValueError, "failed to copy rois into data");

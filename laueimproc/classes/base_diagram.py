@@ -121,6 +121,7 @@ class BaseDiagram:
 
     def __len__(self) -> int:
         """Return the nbr of spots or 0."""
+        self.flush()
         try:  # it doesn't matter if acces is not thread safe
             return len(self._rois[1])
         except TypeError:
@@ -184,10 +185,7 @@ class BaseDiagram:
 
     def _find_spots(self, **kwargs):
         """Real version of `find_spots`."""
-        # peaks search
         datarois, bboxes = peaks_search(self.image, **kwargs)
-
-        # cast into spots objects
         with self._rois_lock:
             self._rois = (datarois, bboxes)
         kwargs_str = ", ".join(f"{k}={repr(v)}" for k, v in kwargs.items())
@@ -201,8 +199,11 @@ class BaseDiagram:
                 dtype=torch.int32,
             )
             flat_rois = np.concatenate(
-                [roi.numpy(force=True).ravel() for roi, (h, w) in zip(rois, bboxes[:, 2:].tolist())],
-                dtype=np.float32
+                [
+                    roi.numpy(force=True).ravel()
+                    for roi, (h, w) in zip(rois, bboxes[:, 2:].tolist())
+                ],
+                dtype=np.float32,
             )
             datarois = bytearray(flat_rois.tobytes())
         else:
@@ -231,10 +232,12 @@ class BaseDiagram:
     @property
     def bboxes(self) -> typing.Union[None, torch.Tensor]:
         """Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width)."""
-        try:
-            return self._rois[1].clone()
-        except TypeError:  # case not init
+        if not self.is_init():
             return None
+        self.flush()
+        with self._rois_lock:
+            bboxes = self._rois[1]
+        return bboxes.clone()
 
     @property
     def centers(self) -> typing.Union[None, torch.Tensor]:  # very fast -> no cache
@@ -332,7 +335,7 @@ class BaseDiagram:
         Parameters
         ----------
         indexs : arraylike
-            The list of the indexs of the spots to keep
+            The list of the indexs of the spots to keep (negatives indexs are allow),
             or the boolean vector with True for keeping the spot, False otherwise like a mask.
         msg : str
             The message to happend to the history.
@@ -367,7 +370,7 @@ class BaseDiagram:
             indexs = indexs.to(torch.int64)
 
         # manage inplace
-        nb_spots = len(self)
+        nb_spots = len(self)  # flush in background
         if not inplace:
             self = self.clone()  # pylint: disable=W0642
 
@@ -393,13 +396,17 @@ class BaseDiagram:
         with self._rois_lock:
             self._rois = None
 
+    def flush(self):
+        """Perform all pending calculations."""
+        if self._rois is None and self._find_spots_kwargs is not None:
+            self._find_spots(**self._find_spots_kwargs)
+
     @property
     def history(self) -> list[str]:
         """Return the actions performed on the Diagram since the initialisation."""
         if not self.is_init():
             return []
-        if self._rois is None and self._find_spots_kwargs is not None:
-            self._find_spots(**self._find_spots_kwargs)   # update hystory (first step init)
+        self.flush()
         return self._history.copy()  # copy for user protection
 
     def is_init(self) -> bool:
@@ -509,6 +516,7 @@ class BaseDiagram:
         """Return the tensor of the provided rois of the spots."""
         if not self.is_init():
             return None
+        self.flush()
         with self._rois_lock:
             datarois, bboxes = self._rois
         return rawshapes2rois(datarois, bboxes[:, 2:].numpy(force=True))
