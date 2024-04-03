@@ -26,15 +26,29 @@ class Spot:
         The shape of the roi in the numpy convention (readonly).
     """
 
-    def __getstate__(self, cache: bool = False):
+    def __init__(self, roi: torch.Tensor):
+        """Initialize the spot from a patch.
+
+        Parameters
+        ----------
+        roi : torch.Tensor
+            A very little float32 image as a region of interest.
+        """
+        assert isinstance(roi, torch.Tensor), roi.__class__.__name__
+        assert roi.ndim == 2, roi.shape
+        assert roi.dtype == torch.float32, roi.dtype
+
+        from .diagram import Diagram  # pylint: disable=C0415
+        self._diagram = Diagram(roi)
+        self._index = 0
+
+    def __getstate__(self):
         """Make the object pickleable."""
-        if cache:
-            return (self._diagram, self._index, self._bbox, self._cache)
-        return (self._diagram, self._index, self._bbox)
+        return (self._diagram, self._index)
 
     def __repr__(self) -> str:
         """Give a compact representation."""
-        return f"{self.__class__.__name__}({', '.join(map(str, self._bbox))})"
+        return f"{repr(self._diagram)}.spots[{self._index}]"
 
     def __setstate__(self, state: tuple):
         """Fill the internal attributes.
@@ -46,41 +60,24 @@ class Spot:
         * No verification is made because the user is not supposed to call this method.
         * Return self by ease.
         """
-        # declaration
-        from .diagram import Diagram  # pylint: disable=C0415
-        # the region of interest anchors (i, j, h, w)
-        self._bbox: tuple[int, int, int, int]  # pylint: disable=W0201
-        # contains the optional cached data
-        self._cache: dict[str] = {}  # pylint: disable=W0201
-        # the parent diagram that contains this spot (cyclic reference)
-        self._diagram: Diagram  # pylint: disable=W0201
-        # the position in the diagram (self is self._diagram.spots[self._index])
-        self._index: int  # pylint: disable=W0201
-
-        # fill the attributes
-        self._diagram, self._index, self._bbox = state[:3]  # pylint: disable=W0201
-        if not isinstance(self._bbox, tuple):  # case list
-            self._bbox = tuple(self._bbox)
-        if len(state) == 4:
-            self._cache = state[3] # pylint: disable=W0201
-
+        self._diagram, self._index = state  # pylint: disable=W0201
         # to return self allows you to create and instanciate a Spot in the same time
         return self
 
     @property
-    def anchor(self):
+    def anchor(self) -> tuple[int, int]:
         """Return the position (i, j) of the corner point (0, 0) of the roi in the diagram."""
-        return self._bbox[:2]
+        return self.bbox[:2]
 
     @property
-    def bbox(self):
+    def bbox(self) -> tuple[int, int, int, int]:
         """Return the concatenation of `anchor` and `shape`."""
-        return self._bbox
+        return tuple(self._diagram.bboxes[self._index].tolist())
 
     @property
-    def center(self):
+    def center(self) -> tuple[int, int]:
         """Return the middle point of the spot in the diagram."""
-        return (self._bbox[0] + self._bbox[2]//2, self._bbox[1] + self._bbox[3]//2)
+        return (self.bbox[0] + self.bbox[2]//2, self.bbox[1] + self.bbox[3]//2)
 
     @property
     def diagram(self):
@@ -88,18 +85,18 @@ class Spot:
         return self._diagram
 
     @property
-    def roi(self) -> torch.Tensor:
-        """Return the patch of the filtered image of the region of interest."""
-        _, _, height, width = self._bbox
-        return self._diagram.rois[self._index, :height, :width]  # share underground data
+    def rawroi(self) -> torch.Tensor:
+        """Return the patch of the brut image of the region of interest."""
+        anch_i, anch_j, height, width = self.bbox
+        return self._diagram.image[anch_i:anch_i+height, anch_j:anch_j+width]
 
     @property
-    def roi_brut(self) -> torch.Tensor:
-        """Return the patch of the brut image of the region of interest."""
-        anch_i, anch_j, height, width = self._bbox
-        return self._diagram.image[anch_i:anch_i+height, anch_j:anch_j+width]
+    def roi(self) -> torch.Tensor:
+        """Return the patch of the filtered image of the region of interest."""
+        _, _, height, width = self.bbox
+        return self._diagram.rois[self._index, :height, :width]  # share underground data
 
     @property
     def shape(self) -> tuple[int, int]:
         """Return the shape of the roi in the numpy convention."""
-        return self._bbox[2:]
+        return self.bbox[2:]

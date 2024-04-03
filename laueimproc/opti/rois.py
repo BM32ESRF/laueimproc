@@ -133,6 +133,8 @@ def imgbboxes2raw(img: torch.Tensor, bboxes: torch.Tensor, *, _no_c: bool = Fals
     assert torch.all(bboxes[:, 1] + bboxes[:, 3] <= img.shape[1]), \
         "some bboxes come out of the picture"
 
+    if not len(bboxes):
+        return bytearray(b"")
     flat_rois = torch.cat(
         [img[a_h:a_h+s_h, a_w:a_w+s_w].ravel() for a_h, a_w, s_h, s_w in bboxes.tolist()]
     )
