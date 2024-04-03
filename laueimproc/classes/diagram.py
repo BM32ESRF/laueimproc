@@ -22,7 +22,7 @@ class Diagram(BaseDiagram):
 
     @auto_cache  # put the result in thread safe cache (no multiprocessing)
     @auto_parallel  # automaticaly multithreading
-    def compute_barycenters(self) -> torch.Tensor:
+    def compute_barycenters(self, indexing: str = "ij") -> torch.Tensor:
         """Compute the barycenter of each spots."""
         if not self.is_init():
             raise RuntimeWarning(
@@ -30,6 +30,13 @@ class Diagram(BaseDiagram):
             )
         barycenters = compute_barycenters(self.rois)  # relative to each spots
         barycenters += self.bboxes[:, :2].to(barycenters.dtype)  # absolute
+
+        assert isinstance(indexing, str), indexing.__class__.__name__
+        assert indexing in {"ij", "xy"}, indexing
+        if indexing == "xy":
+            barycenters = torch.flip(barycenters, 1)
+            barycenters += 0.5
+
         return barycenters
 
     @auto_parallel
@@ -65,6 +72,7 @@ class Diagram(BaseDiagram):
     def fit_gaussian_em(
         self,
         photon_density: typing.Union[torch.Tensor, np.ndarray, numbers.Real] = 1.0,
+        indexing: str = "ij",
         **kwargs,
     ) -> tuple[torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by one gaussian using the EM algorithm in one shot, very fast.
@@ -109,6 +117,12 @@ class Diagram(BaseDiagram):
         else:
             mean += shift
 
+        assert isinstance(indexing, str), indexing.__class__.__name__
+        assert indexing in {"ij", "xy"}, indexing
+        if indexing == "xy":
+            mean = torch.flip(mean, 1)
+            mean += 0.5
+
         # cast
         return mean, cov, infodict
 
@@ -117,6 +131,7 @@ class Diagram(BaseDiagram):
     def fit_gaussians_em(
         self,
         photon_density: typing.Union[torch.Tensor, np.ndarray, numbers.Real] = 1.0,
+        indexing: str = "ij",
         **kwargs,
     ) -> tuple[torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by \(K\) gaussians using the EM algorithm.
@@ -163,6 +178,12 @@ class Diagram(BaseDiagram):
         else:
             mean += shift.unsqueeze(1)
 
+        assert isinstance(indexing, str), indexing.__class__.__name__
+        assert indexing in {"ij", "xy"}, indexing
+        if indexing == "xy":
+            mean = torch.flip(mean, 2)
+            mean += 0.5
+
         # cast
         return mean, cov, infodict
 
@@ -183,6 +204,7 @@ class Diagram(BaseDiagram):
     def fit_gaussians(
         self,
         loss: typing.Union[typing.Callable[[torch.Tensor, torch.Tensor], torch.Tensor], str] = "mse",
+        indexing: str = "ij",
         **kwargs,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by \(K\) gaussians.
@@ -243,5 +265,11 @@ class Diagram(BaseDiagram):
             mean = mean + shift.reshape(-1, 1, 2, 1)
         else:
             mean += shift.reshape(-1, 1, 2, 1)
+
+        assert isinstance(indexing, str), indexing.__class__.__name__
+        assert indexing in {"ij", "xy"}, indexing
+        if indexing == "xy":
+            mean = torch.flip(mean, 2)
+            mean += 0.5
 
         return mean, cov, mass, infodict

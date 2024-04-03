@@ -187,6 +187,8 @@ def rawshapes2rois(
     assert len(data) == np.dtype(np.float32).itemsize*(shapes[:, 0]*shapes[:, 1]).sum(), \
         "data length dosen't match rois area"
 
+    if not data:
+        return torch.empty((0, 1, 1), dtype=np.float32)
     flat_rois = np.frombuffer(data, np.float32)
     rois = np.zeros((len(shapes), shapes[:, 0].max(), shapes[:, 1].max()), dtype=np.float32)
     ptr = 0

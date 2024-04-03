@@ -29,7 +29,6 @@ from laueimproc.opti.rois import rawshapes2rois
 from .spot import Spot
 
 
-
 class BaseDiagram:
     """A Basic diagram with the fondamental structure.
 
@@ -430,6 +429,7 @@ class BaseDiagram:
         disp: typing.Optional[typing.Union[Figure, Axes]] = None,
         vmin: typing.Optional[numbers.Real] = None,
         vmax: typing.Optional[numbers.Real] = None,
+        **kwargs,
     ) -> Axes:
         """Prepare for display the diagram and the spots.
 
@@ -441,6 +441,12 @@ class BaseDiagram:
             The minimum intensity ploted.
         vmax : float, optional
             The maximum intensity ploted.
+        show_axis: boolean, default=True
+            Display the label and the axis if True.
+        show_bboxes: boolean, default=True
+            Draw all the bounding boxes if True.
+        show_image: boolean, default=True
+            Display the image if True, dont call imshow otherwise.
 
         Notes
         -----
@@ -455,6 +461,9 @@ class BaseDiagram:
         if vmax is None:
             vmax = torch.mean(image).item() + 5.0*torch.std(image).item()
         assert isinstance(vmax, numbers.Real), vmax.__class__.__name__
+        assert isinstance(kwargs.get("show_axis", True), bool), kwargs["show_axis"]
+        assert isinstance(kwargs.get("show_bboxes", True), bool), kwargs["show_bboxes"]
+        assert isinstance(kwargs.get("show_image", True), bool), kwargs["show_image"]
 
         # fill figure metadata
         axes = disp  # is gonna changed
@@ -467,20 +476,33 @@ class BaseDiagram:
             axes = disp.add_subplot()
 
         # fill axes
-        axes.set_ylabel("i (first axis)")
-        axes.set_xlabel("j (second axis)")
-        axes.imshow(
-            image.numpy(force=True).transpose(),
-            aspect="equal",
-            extent=(0, self.image.shape[1], self.image.shape[0], 0),  # origin to corner of pxl
-            interpolation=None,  # antialiasing is True
-            norm="log",
-            cmap="gray",
-            vmin=vmin,
-            vmax=vmax,
-        )
-        if len(self):
-            bboxes = self.bboxes.numpy(force=True)
+        if kwargs.get("show_axis", True):
+            axes.set_xlabel("x (first dim in 'xy' conv)")
+            axes.xaxis.set_label_position("bottom")
+            axes.xaxis.set_ticks_position("bottom")
+            axes.set_ylabel("y (second dim in 'xy' conv)")
+            axes.yaxis.set_label_position("right")
+            axes.yaxis.set_ticks_position("right")
+            axes.secondary_xaxis(
+                "top", functions=(lambda x: x-.5, lambda j: j+.5)
+            ).set_xlabel("j (second dim in 'ij' conv)")
+            axes.secondary_yaxis(
+                "left", functions=(lambda y: y-.5, lambda i: i+.5)
+            ).set_ylabel("i (first dim in 'ij' conv)")
+        if kwargs.get("show_image", True):
+            axes.imshow(
+                image.numpy(force=True).transpose(),
+                aspect="equal",
+                extent=(0.5, self.image.shape[0]+.5, self.image.shape[1]+.5, .5),
+                interpolation=None,  # antialiasing is True
+                norm="log",
+                cmap="gray",
+                vmin=vmin,
+                vmax=vmax,
+            )
+        if kwargs.get("show_boxes", True) and len(self):
+            bboxes = self.bboxes.numpy(force=True).astype(np.float32)
+            bboxes[:, :2] += 0.5
             axes.plot(
                 np.vstack((
                     bboxes[:, 0],
