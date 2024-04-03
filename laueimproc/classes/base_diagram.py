@@ -531,7 +531,7 @@ class BaseDiagram:
             return None
         with self._rois_lock:
             _, bboxes = self._rois
-        return imgbboxes2raw(self.image, bboxes)
+        return rawshapes2rois(imgbboxes2raw(self.image, bboxes), bboxes[:, 2:].numpy(force=True))
 
     @property
     def rois(self) -> typing.Union[None, torch.Tensor]:

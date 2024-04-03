@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 """Test the c rois optimisation."""
 
 import gc
