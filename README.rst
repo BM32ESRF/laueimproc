@@ -47,7 +47,7 @@ To install the lastest development version from `GitHub <https://github.com/BM32
     git clone https://github.com/BM32ESRF/laueimproc.git
     cd laueimproc/
     pip install --upgrade pip setuptools wheel
-    pip -v install --editable .[all]
+    pip install --no-build-isolation --editable .[all]
 
 Then, you can generate the documentation:
 

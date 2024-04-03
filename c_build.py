@@ -36,6 +36,7 @@ class Build(_build_py):
             Extension(
                 "laueimproc.opti.c_rois",
                 sources=["laueimproc/opti/c_rois.c"],
+                optional=True,
                 **COMP_RULES,
             )
         )
@@ -43,6 +44,7 @@ class Build(_build_py):
             Extension(
                 "laueimproc.improc.spot.c_pca",
                 sources=["laueimproc/improc/spot/c_pca.c"],
+                optional=True,
                 **COMP_RULES,
             )
         )
