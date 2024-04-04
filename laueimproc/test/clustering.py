@@ -24,6 +24,7 @@ def clust_plantcv(img: np.ndarray[bool]):
 def bkg():
     import sympy
     i, j, k, l = sympy.symbols("i j k l", real=True)
+    # k = l = 0
     i_s, j_s, d_s, l_s = sympy.symbols("i_s j_s d_s l_s", real=True)
     lum = l_s / sympy.sqrt((i_s-i)**2 + (j_s-j)**2 + d_s**2)
     sympy.pprint(lum)
@@ -42,8 +43,10 @@ def bkg():
 
 
     step = sympy.Symbol("lambda")  # pas
-    err = sympy.summation(sympy.summation((pkl - lum.subs({i_s: i_s-step*di_s, j_s: j_s-step*dj_s, d_s: d_s-step*dd_s, l_s: ls}))**2, (i, 0, k)), (j, 0, l))
-    print("1d grad direction err")
+    subs = {i_s: i_s-step*di_s, j_s: j_s-step*dj_s, d_s: d_s-step*dd_s, l_s: l_s-step*dl_s}
+    subs = {l_s: l_s-step*dl_s}
+    err = sympy.summation(sympy.summation((pkl - lum.xreplace(subs))**2, (i, 0, k)), (j, 0, l))
+    print("1d grad direction err:")
     sympy.pprint(err)
 
 
