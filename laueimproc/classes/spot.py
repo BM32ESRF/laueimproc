@@ -18,10 +18,10 @@ class Spot:
         The middle point of the spot in the diagram. If shape is odd, it is rounded down.
     diagram : laueimproc.classes.Diagram
         The parent diagram.
+    rawroi : torch.Tensor
+        The image of the complete spot zone (in the direct image).
     roi : torch.Tensor
         The image of the complete spot zone (or the provided rois).
-    roi_brut : torch.Tensor
-        The image of the complete spot zone (in the direct image).
     shape : tuple[int, int]
         The shape of the roi in the numpy convention (readonly).
     """

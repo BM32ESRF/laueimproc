@@ -182,7 +182,7 @@ class DiagramDataset(threading.Thread):
         if isinstance(new_diagrams, pathlib.Path):
             assert new_diagrams.exists(), f"{new_diagrams} if not an existing path"
             if new_diagrams.is_dir():
-                self._to_sniff["dirs"].append(new_diagrams)
+                self._to_sniff["dirs"].append([new_diagrams, 0.0])
                 return
             raise NotImplementedError
         if hasattr(new_diagrams, "__iter__"):
@@ -194,13 +194,16 @@ class DiagramDataset(threading.Thread):
     def run(self):
         """Run asynchronousely in a child thread, called by self.start()."""
         while True:
-            for element in self._to_sniff["dirs"]:
-                assert isinstance(element, pathlib.Path)
-                assert element.is_dir()
-                for file in element.iterdir():
-                    if file in self._to_sniff["readed"] or file.suffix not in {".jp2", ".mccd", ".tif", ".tiff"}:
-                        continue
-                    diagram = Diagram(file)
-                    self.add_diagram(diagram)
-                    self._to_sniff["readed"].add(file)
+            for directory_time in self._to_sniff["dirs"]:
+                if directory_time[0].stat().st_mtime != directory_time[1]:
+                    directory_time[1] = directory_time[0].stat().st_mtime
+                    for file in element.iterdir():
+                        if (
+                            file in self._to_sniff["readed"]
+                            or file.suffix.lower() not in {".jp2", ".mccd", ".tif", ".tiff"}
+                        ):
+                            continue
+                        diagram = Diagram(file)
+                        self.add_diagram(diagram)
+                        self._to_sniff["readed"].add(file)
             time.sleep(10)

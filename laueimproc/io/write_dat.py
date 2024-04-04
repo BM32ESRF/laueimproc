@@ -91,7 +91,7 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
         )
         for i, spot in enumerate(diagram.spots):
             roi = spot.roi
-            bkg = spot.roi_brut - roi
+            bkg = spot.rawroi - roi
             # peak_X peak_Y
             file.write(f"{float(mean[i][1]+0.5):.2f} {float(mean[i][0]+0.5)} ")
             # peak_Itot peak_Isub

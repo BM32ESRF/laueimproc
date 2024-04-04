@@ -21,7 +21,24 @@ def clust_plantcv(img: np.ndarray[bool]):
     from plantcv import plantcv
     clust_img, clust_mask = plantcv.spatial_clustering(mask=img, algorithm="DBSCAN", min_cluster_size=1)
 
-def bkg():
+def comp():
+    import tqdm
+    from laueimproc.io.download import get_samples
+    from laueimproc.io.read import read_image
+    import torch
+    from laueimproc.improc.peaks_search import estimate_background, _density_to_threshold_numpy, DEFAULT_KERNEL_AGLO
+    mini = None
+    for file in tqdm.tqdm(sorted(get_samples().iterdir())):
+        img = read_image(file)
+        if mini is None:
+            mini = img
+        else:
+            mini = torch.minimum(mini, img)
+    print(mini)
+    print(mini.min())
+    print(mini.max())
+
+def bkg_sympy():
     import sympy
     i, j, k, l = sympy.symbols("i j k l", real=True)
     # k = l = 0
@@ -53,7 +70,8 @@ def bkg():
 
 
 if __name__ == "__main__":
-    bkg()
+    comp()
+    # bkg_sympy()
     import tqdm
     from laueimproc.io.download import get_samples
     from laueimproc.io.read import read_image
