@@ -8,10 +8,21 @@ import pathlib
 import pickle
 import re
 import threading
+import time
+import traceback
 import typing
 import warnings
 
 from .diagram import Diagram
+
+
+def _excepthook(args):
+    """Raise the exceptions comming from a DiagramDataset thread."""
+    if isinstance(args.thread, DiagramDataset):
+        traceback.print_tb(args.exc_traceback)
+        raise args.exc_value
+
+threading.excepthook = _excepthook
 
 
 def default_diag2ind(diagram: Diagram) -> int:
@@ -94,8 +105,10 @@ class DiagramDataset(threading.Thread):
                 )
         self._diagrams: dict[Diagram] = {}  # index: diagram
         self._lock = threading.Lock()
+        self._to_sniff: dict = {"dirs": [], "readed": set()}  # for the async run method
         self.add_diagrams(diagram_refs)
         super().__init__(daemon=True)
+        self.start()
 
     def __getitem__(self, index: numbers.Integral) -> Diagram:
         """Get the diagram of index `index`.
@@ -167,14 +180,27 @@ class DiagramDataset(threading.Thread):
             self.add_diagram(new_diagrams)
             return
         if isinstance(new_diagrams, pathlib.Path):
-            assert new_diagrams.exists()
+            assert new_diagrams.exists(), f"{new_diagrams} if not an existing path"
+            if new_diagrams.is_dir():
+                self._to_sniff["dirs"].append(new_diagrams)
+                return
             raise NotImplementedError
         if hasattr(new_diagrams, "__iter__"):
             for new_diagram in new_diagrams:
                 self.add_diagrams(new_diagram)
             return
-        raise NotImplementedError
+        raise ValueError(f"the `new_diagrams` {new_diagrams} are not recognised")
 
     def run(self):
         """Run asynchronousely in a child thread, called by self.start()."""
-        raise NotImplementedError
+        while True:
+            for element in self._to_sniff["dirs"]:
+                assert isinstance(element, pathlib.Path)
+                assert element.is_dir()
+                for file in element.iterdir():
+                    if file in self._to_sniff["readed"] or file.suffix not in {".jp2", ".mccd", ".tif", ".tiff"}:
+                        continue
+                    diagram = Diagram(file)
+                    self.add_diagram(diagram)
+                    self._to_sniff["readed"].add(file)
+            time.sleep(10)
