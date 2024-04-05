@@ -78,10 +78,9 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
     assert isinstance(diagram, Diagram), diagram.__class__.__name__
 
     filename = filename.with_suffix(".dat")
-    diagram = diagram.filter_spots(
-        torch.argsort(diagram.compute_pxl_intensities(), descending=True), inplace=False
-    )
-    mean, _, mass, infodict = diagram.fit_gaussian(eigtheta=True)
+    position, _, infodict = diagram.fit_gaussian_em(eigtheta=True)
+    mean_mass = diagram.compute_pxl_intensities()
+    mean_mass /= (diagram.bboxes[:, 2]*diagram.bboxes[:, 3]).to(mean_mass.dtype) * 65535
     barycenters = diagram.compute_barycenters()
 
     with open(filename, "w", encoding="utf-8") as file:
@@ -90,23 +89,23 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
             "peak_inclination Xdev Ydev peak_bkg Ipixmax\n"
         )
         for i, spot in enumerate(diagram.spots):
-            roi = spot.roi
-            bkg = spot.rawroi - roi
+            roi = spot.roi * 65535
+            bkg = spot.rawroi*65535 - roi
             # peak_X peak_Y
-            file.write(f"{float(mean[i][1]+0.5):.2f} {float(mean[i][0]+0.5)} ")
+            file.write(f"{float(position[i][0]+0.5):.2f} {float(position[i][1]+0.5)} ")
             # peak_Itot peak_Isub
-            file.write(f"{float(mass[i]+bkg.mean()):.4f} {float(mass[i]):.4f} ")
+            file.write(f"{float(mean_mass[i]+bkg.mean()):.4f} {float(mean_mass[i]):.4f} ")
             # peak_fwaxmaj peak_fwaxmin
             file.write(
-                f"{float(2*infodict['eigtheta'][i, 0]):.3f} "
-                f"{float(2*infodict['eigtheta'][i, 1]):.3f} "
+                f"{float(2*torch.sqrt(infodict['eigtheta'][i, 0])):.3f} "
+                f"{float(2*torch.sqrt(infodict['eigtheta'][i, 1])):.3f} "
             )
             # peak_inclination
             file.write(f"{float(-torch.rad2deg(infodict['eigtheta'][i, 2])):.1f} ")
             # Xdev Ydev
             file.write(
-                f"{float(mean[i][1]-barycenters[i][1]):.2f} "
-                f"{float(mean[i][0]-barycenters[i][0]):.2f} "
+                f"{float(position[i][1]-barycenters[i][1]):.2f} "
+                f"{float(position[i][0]-barycenters[i][0]):.2f} "
             )
             # peak_bkg Ipixmax
             file.write(f"{float(bkg.mean()):.4f} {float(roi.max()):.4f}\n")

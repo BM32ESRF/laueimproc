@@ -3,6 +3,7 @@
 """Link serveral diagrams together."""
 
 import inspect
+import multiprocessing.pool
 import numbers
 import pathlib
 import pickle
@@ -12,6 +13,8 @@ import time
 import traceback
 import typing
 import warnings
+
+import tqdm
 
 from .diagram import Diagram
 
@@ -91,21 +94,22 @@ class DiagramDataset(threading.Thread):
             assert len(signature.parameters) == 1, "the function `diag2ind` has to take 1 parameter"
             parameter = next(iter(signature.parameters.values()))
             assert parameter.kind in {parameter.POSITIONAL_ONLY, parameter.POSITIONAL_OR_KEYWORD}
-            if parameter.annotation is inspect._empty:
+            if parameter.annotation is parameter.empty:
                 warnings.warn("please specify the input type of `diag2ind`", SyntaxWarning)
             elif parameter.annotation is not Diagram:
                 raise AssertionError(
                     f"the function `diag2ind` has to get a Diagram, not {parameter.annotation}"
                 )
-            if signature.return_annotation is inspect._empty:
+            if signature.return_annotation is parameter.empty:
                 warnings.warn("please specify the return type of `diag2ind`", SyntaxWarning)
             elif signature.return_annotation is not int:
                 raise AssertionError(
                     f"the function `diag2ind` has to return int, not {signature.return_annotation}"
                 )
-        self._diagrams: dict[Diagram] = {}  # index: diagram
+        self._diagrams: dict[int, Diagram] = {}  # index: diagram
         self._lock = threading.Lock()
         self._to_sniff: dict = {"dirs": [], "readed": set()}  # for the async run method
+        self._operations_chain: list[typing.Callable[[Diagram], object]] = []
         self.add_diagrams(diagram_refs)
         super().__init__(daemon=True)
         self.start()
@@ -161,6 +165,8 @@ class DiagramDataset(threading.Thread):
         with self._lock:
             if index in self._diagrams:
                 raise LookupError(f"the diagram of index {index} is already present in the dataset")
+            for func, args in self._operations_chain:  # TODO make it async
+                func(new_diagram, *args)
             self._diagrams[index] = new_diagram
 
     def add_diagrams(
@@ -178,32 +184,102 @@ class DiagramDataset(threading.Thread):
         """
         if isinstance(new_diagrams, Diagram):
             self.add_diagram(new_diagrams)
-            return
-        if isinstance(new_diagrams, pathlib.Path):
+        elif isinstance(new_diagrams, pathlib.Path):
+            new_diagrams.expanduser().resolve()
             assert new_diagrams.exists(), f"{new_diagrams} if not an existing path"
             if new_diagrams.is_dir():
                 self._to_sniff["dirs"].append([new_diagrams, 0.0])
-                return
-            raise NotImplementedError
-        if hasattr(new_diagrams, "__iter__"):
+            else:
+                self.add_diagram(Diagram(new_diagrams))  # case file
+        elif isinstance(new_diagrams, (str, bytes)):
+            self.add_diagrams(pathlib.Path(new_diagrams))
+        elif isinstance(new_diagrams, (tuple, list, set, frozenset)):
             for new_diagram in new_diagrams:
                 self.add_diagrams(new_diagram)
-            return
-        raise ValueError(f"the `new_diagrams` {new_diagrams} are not recognised")
+        else:
+            raise ValueError(f"the `new_diagrams` {new_diagrams} are not recognised")
+
+    def apply(
+        self,
+        func: typing.Callable[[Diagram], object],
+        args: typing.Optional[tuple] = None,
+    ) -> dict[int, object]:
+        """Apply an operation in all the diagrams of the dataset.
+
+        Parameters
+        ----------
+        func : callable
+            A function that take a diagram and optionaly other parameters, and return anything.
+            The function can modify the diagram inplace. It has to be pickaleable.
+        args : tuple, optional
+            Positional arguments to forward to the provided func.
+
+        Returns
+        -------
+        res : dict
+            The result of the function for each diagrams.
+            To each diagram index, associate the result.
+
+        Notes
+        -----
+        This function will be automaticaly applided on the new diagrams, but the result is throw.
+        """
+        assert callable(func), func.__class__.__name__
+        try:
+            pickle.dumps(func)
+        except pickle.PicklingError as err:
+            raise AssertionError(
+                f"the function `func` {func} is not pickalable"
+            ) from err
+        signature = inspect.signature(func)
+        assert len(signature.parameters) >= 1, \
+            "the function `func` has to take at least 1 parameter"
+        parameter = next(iter(signature.parameters.values()))
+        assert parameter.kind in {parameter.POSITIONAL_ONLY, parameter.POSITIONAL_OR_KEYWORD}
+        if parameter.annotation is parameter.empty:
+            warnings.warn("please specify the input type of `func`", SyntaxWarning)
+        elif parameter.annotation is not Diagram:
+            raise AssertionError(
+                f"the function `func` has to get a Diagram, not {parameter.annotation}"
+            )
+        if args is None:
+            args = ()
+        else:
+            assert isinstance(args, tuple), args.__class__.__name__
+            try:
+                pickle.dumps(args)
+            except pickle.PicklingError as err:
+                raise AssertionError(
+                    f"the arguments `args` {args} are not pickalable"
+                ) from err
+
+        with self._lock, multiprocessing.pool.ThreadPool() as pool:
+            indexs, diagrams = zip(*self._diagrams.items())
+            allres = pool.startmap(func, tqdm.tqdm(((d, *args) for d in diagrams), unit="diag"))
+            self._operations_chain.append((func, args))
+        return dict(zip(indexs, allres))
+
+    @property
+    def diagrams(self) -> list[Diagram]:
+        """Return all the diagrams contained in the dataset."""
+        with self._lock:
+            return [d for d in self._diagrams.values() if d is not None]
 
     def run(self):
         """Run asynchronousely in a child thread, called by self.start()."""
         while True:
+            # add new diagrams
             for directory_time in self._to_sniff["dirs"]:
-                if directory_time[0].stat().st_mtime != directory_time[1]:
-                    directory_time[1] = directory_time[0].stat().st_mtime
-                    for file in element.iterdir():
-                        if (
-                            file in self._to_sniff["readed"]
-                            or file.suffix.lower() not in {".jp2", ".mccd", ".tif", ".tiff"}
-                        ):
-                            continue
-                        diagram = Diagram(file)
-                        self.add_diagram(diagram)
-                        self._to_sniff["readed"].add(file)
+                if directory_time[0].stat().st_mtime == directory_time[1]:
+                    continue
+                directory_time[1] = directory_time[0].stat().st_mtime
+                for file in directory_time[0].iterdir():
+                    if (
+                        file in self._to_sniff["readed"]
+                        or file.suffix.lower() not in {".jp2", ".mccd", ".tif", ".tiff"}
+                    ):
+                        continue
+                    diagram = Diagram(file)
+                    self.add_diagram(diagram)
+                    self._to_sniff["readed"].add(file)
             time.sleep(10)
