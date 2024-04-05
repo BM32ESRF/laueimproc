@@ -421,7 +421,7 @@ class LMCodec(torch.nn.Module):
                 loss_val.backward()
                 if (i+1) % 8 == 0:
                     optim.step()
-            print(tot_loss_val)
+            print(tot_loss_val/len(diagrams))
         torch.save(
             {"encoder": self.encoder.state_dict(), "decoder": self.decoder.state_dict()},
             self._weights,
@@ -436,4 +436,4 @@ class LMCodec(torch.nn.Module):
             comp += len(self.encode(img))
         print(f"total no compressed {no_comp} bytes")
         print(f"total compressed {comp} bytes")
-        print(f"compression factor {no_comp/comp:.1f}")
+        print(f"compression factor {no_comp/comp:.2f}")

@@ -109,3 +109,6 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
             )
             # peak_bkg Ipixmax
             file.write(f"{float(bkg.mean()):.4f} {float(roi.max()):.4f}\n")
+
+        file.write(f"# files created by laueimproc from {diagram.file.name}\n")
+        file.write(f"# from the parent directory: {str(diagram.file.parent)}")

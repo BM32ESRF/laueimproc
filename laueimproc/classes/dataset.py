@@ -132,13 +132,16 @@ class DiagramDataset(threading.Thread):
         index = int(index)
         with self._lock:
             try:
-                return self._diagrams[index]
+                diagram = self._diagrams[index]
             except KeyError as err:
                 raise IndexError(f"The diagram of index {index} is not yet in the dataset") from err
+        if not isinstance(diagram, Diagram):
+            raise IndexError(f"The diagram of index {index} is comming soon in the dataset")
+        return diagram
 
     def __len__(self) -> int:
         """Return the numbers of diagrams present in the dataset."""
-        return len(self._diagrams)
+        return len(self.diagrams)
 
     def add_diagram(self, new_diagram: Diagram):
         """Append a new diagram into the dataset.
@@ -254,10 +257,10 @@ class DiagramDataset(threading.Thread):
                 ) from err
 
         with self._lock, multiprocessing.pool.ThreadPool() as pool:
-            indexs, diagrams = zip(*self._diagrams.items())
-            allres = pool.startmap(func, tqdm.tqdm(((d, *args) for d in diagrams), unit="diag"))
+            idx, diags = zip(*((i, d) for i, d in self._diagrams.items() if isinstance(d, Diagram)))
+            all_res = pool.starmap(func, tqdm.tqdm([(d, *args) for d in diags], unit="diag"))
             self._operations_chain.append((func, args))
-        return dict(zip(indexs, allres))
+        return dict(zip(idx, all_res))
 
     @property
     def diagrams(self) -> list[Diagram]:
