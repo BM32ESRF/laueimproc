@@ -2,6 +2,7 @@
 
 """Write a dat file."""
 
+import datetime
 import pathlib
 import typing
 
@@ -90,11 +91,12 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
         )
         for i, spot in enumerate(diagram.spots):
             roi = spot.roi * 65535
-            bkg = spot.rawroi*65535 - roi
+            rawroi = spot.rawroi * 65535
+            bkg = rawroi - roi
             # peak_X peak_Y
             file.write(f"{float(position[i][0]+0.5):.2f} {float(position[i][1]+0.5)} ")
             # peak_Itot peak_Isub
-            file.write(f"{float(mean_mass[i]+bkg.mean()):.4f} {float(mean_mass[i]):.4f} ")
+            file.write(f"{float(rawroi.max()):.4f} {float(rawroi.max()-bkg.mean()):.4f} ")
             # peak_fwaxmaj peak_fwaxmin
             file.write(
                 f"{float(2*torch.sqrt(infodict['eigtheta'][i, 0])):.3f} "
@@ -110,5 +112,8 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
             # peak_bkg Ipixmax
             file.write(f"{float(bkg.mean()):.4f} {float(roi.max()):.4f}\n")
 
-        file.write(f"# files created by laueimproc from {diagram.file.name}\n")
+        file.write(
+            f"# file created by laueimproc from {diagram.file.name} "
+            f"at {datetime.datetime.today().isoformat()}\n"
+        )
         file.write(f"# from the parent directory: {str(diagram.file.parent)}")
