@@ -7,6 +7,7 @@ import multiprocessing.pool
 import numbers
 import pathlib
 import pickle
+import queue
 import re
 import threading
 import time
@@ -60,8 +61,9 @@ class DiagramDataset(threading.Thread):
 
     Attributes
     ----------
-    diagrams : list[laueimproc.classes.diagram.Diagram]
-        All the diagrams contained in the dataset.
+    diagrams : list[Diagram or None]
+        The full list of the diagram such as self.diagrams[idx] == self[idx].
+        If a diagram is not in the dataset, None is return.
     """
 
     def __init__(
@@ -106,6 +108,7 @@ class DiagramDataset(threading.Thread):
                 raise AssertionError(
                     f"the function `diag2ind` has to return int, not {signature.return_annotation}"
                 )
+            self._diag2ind = diag2ind
         self._diagrams: dict[int, Diagram] = {}  # index: diagram
         self._lock = threading.Lock()
         self._to_sniff: dict = {"dirs": [], "readed": set()}  # for the async run method
@@ -114,34 +117,54 @@ class DiagramDataset(threading.Thread):
         super().__init__(daemon=True)
         self.start()
 
-    def __getitem__(self, index: numbers.Integral) -> Diagram:
+    def __getitem__(self, item: numbers.Integral):
         """Get the diagram of index `index`.
 
         Parameters
         ----------
-        index : int
-            The index of the diagram you want to reach.
+        item : int or slice
+            The item of the diagram you want to reach.
+
+        Returns
+        -------
+        Diagram or Dataset
+            If the item is integer, return the corresponding diagram,
+            return a frozen dataset view if it is a slice.
 
         Raises
         ------
         IndexError
-            If the diagram of index `index` is not founded yet.
+            If the diagram of index `item` is not founded yet.
         """
-        assert isinstance(index, numbers.Integral), index.__class__.__name__
-        assert index >= 0, f"only positive indexs are allowed, not {index}"
-        index = int(index)
-        with self._lock:
-            try:
-                diagram = self._diagrams[index]
-            except KeyError as err:
-                raise IndexError(f"The diagram of index {index} is not yet in the dataset") from err
-        if not isinstance(diagram, Diagram):
-            raise IndexError(f"The diagram of index {index} is comming soon in the dataset")
-        return diagram
+        if isinstance(item, numbers.Integral):
+            assert item >= 0, f"only positive indexs are allowed, not {item}"
+            item = int(item)
+            with self._lock:
+                try:
+                    diagram = self._diagrams[item]
+                except KeyError as err:
+                    raise IndexError(f"The diagram of index {item} is not in the dataset") from err
+            if not isinstance(diagram, Diagram):
+                raise IndexError(f"The diagram of index {item} is coming soon in the dataset")
+            return diagram
+        if isinstance(item, slice):
+            with self._lock:
+                id_max = max(self._diagrams)
+                item = range(*item.indices(id_max+1))
+                try:
+                    diagrams = {i: self._diagrams[i] for i in item}
+                except KeyError as err:
+                    raise IndexError("one of the asked diagram is not in the dataset") from err
+                new_dataset = DiagramDataset()
+                new_dataset._diag2ind = self._diag2ind
+                new_dataset._diagrams = diagrams
+                new_dataset._operations_chain = self._operations_chain
+                return new_dataset
+        raise TypeError(f"only int and sclices arre allowed, not {item.__class__.__name__}")
 
     def __len__(self) -> int:
-        """Return the numbers of diagrams present in the dataset."""
-        return len(self.diagrams)
+        """Return the approximative numbers of diagrams soon be present in the dataset."""
+        return len(self._diagrams)
 
     def add_diagram(self, new_diagram: Diagram):
         """Append a new diagram into the dataset.
@@ -156,6 +179,21 @@ class DiagramDataset(threading.Thread):
         LookupError
             If the diagram is already present in the dataset.
         """
+        class ChainThread(threading.Thread):
+            """Heper for parallel real time filter chain."""
+
+            def __init__(self, diagram: Diagram, chain: list, rescontainer: queue.Queue):
+                self.diagram = diagram
+                self.chain = chain.copy()
+                self.rescontainer = rescontainer
+                super().__init__(daemon=True)
+
+            def run(self):
+                """Apply all the operation on the diagram."""
+                for func, args in self.chain:
+                    func(self.diagram, *args)
+                self.rescontainer.put((self.diagram, len(self.chain)))
+
         assert isinstance(new_diagram, Diagram), new_diagram.__class__.__name__
         index = self._diag2ind(new_diagram)
         assert isinstance(index, numbers.Integral), (
@@ -168,9 +206,11 @@ class DiagramDataset(threading.Thread):
         with self._lock:
             if index in self._diagrams:
                 raise LookupError(f"the diagram of index {index} is already present in the dataset")
-            for func, args in self._operations_chain:  # TODO make it async
-                func(new_diagram, *args)
-            self._diagrams[index] = new_diagram
+            if self._operations_chain:
+                self._diagrams[index] = queue.Queue()
+                ChainThread(new_diagram, self._operations_chain, self._diagrams[index]).start()
+            else:
+                self._diagrams[index] = new_diagram
 
     def add_diagrams(
         self, new_diagrams: typing.Union[typing.Iterable, Diagram, str, bytes, pathlib.Path]
@@ -263,15 +303,16 @@ class DiagramDataset(threading.Thread):
         return dict(zip(idx, all_res))
 
     @property
-    def diagrams(self) -> list[Diagram]:
-        """Return all the diagrams contained in the dataset."""
+    def diagrams(self) -> list[typing.Union[Diagram, None]]:
+        """Return all the diagrams, pad missing by None."""
         with self._lock:
-            return [d for d in self._diagrams.values() if d is not None]
+            id_max = max(self._diagrams)
+            return [self._diagrams.get(i, None) for i in range(id_max+1)]
 
     def run(self):
         """Run asynchronousely in a child thread, called by self.start()."""
         while True:
-            # add new diagrams
+            # scan if a new diagram has arrived in the folder
             for directory_time in self._to_sniff["dirs"]:
                 if directory_time[0].stat().st_mtime == directory_time[1]:
                     continue
@@ -285,4 +326,19 @@ class DiagramDataset(threading.Thread):
                     diagram = Diagram(file)
                     self.add_diagram(diagram)
                     self._to_sniff["readed"].add(file)
+
+            # make accessible the just borned diagrams
+            with self._lock:
+                for idx in list(self._diagrams):  # copy for allowing modification
+                    if not isinstance(self._diagrams[idx], queue.Queue):
+                        continue
+                    try:
+                        diagram, nb_ops = self._diagrams[idx].get_nowait()
+                    except queue.Empty:
+                        continue
+                    if nb_ops != len(self._operations_chain):  # if apply called during thread run
+                        for func, args in self._operations_chain[nb_ops:]:
+                            func(diagram, *args)
+                    self._diagrams[idx] = diagram
+
             time.sleep(10)

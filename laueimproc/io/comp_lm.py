@@ -404,7 +404,7 @@ class LMCodec(torch.nn.Module):
         >>>
         """
         self.train()
-        optim = torch.optim.RAdam(self.parameters(), lr=2e-5)
+        optim = torch.optim.RAdam(self.parameters(), lr=5e-5)
         loss = torch.nn.MSELoss()
 
         self.to("cuda")
