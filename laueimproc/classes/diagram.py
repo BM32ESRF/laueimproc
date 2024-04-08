@@ -19,6 +19,7 @@ from laueimproc.opti.parallel import auto_parallel
 from .base_diagram import BaseDiagram
 
 
+
 class Diagram(BaseDiagram):
     """A Laue diagram image."""
 
@@ -198,7 +199,9 @@ class Diagram(BaseDiagram):
         # cast
         return mean, cov, infodict
 
-    def fit_gaussian(self, *args, **kwargs) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    def fit_gaussian(
+        self, *args, **kwargs
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by one gaussian.
 
         Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.

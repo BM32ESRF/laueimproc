@@ -70,6 +70,7 @@ def _gauss2d(obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor) -> torch.
     return prob
 
 
+
 def gauss(
     obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, *, _check: bool = True
 ) -> torch.Tensor:
@@ -148,11 +149,11 @@ def gauss2d_sympy(obs: sympy.Matrix, mean: sympy.Matrix, cov: sympy.Matrix) -> s
     --------
     >>> from sympy import *
     >>> from laueimproc.gmm.gauss import gauss2d_sympy
-    >>> o_1, o_2 = symbols("o_1, o_2", real=True)
-    >>> obs = Matrix([[o_1], [o_2]])
-    >>> mu_1, mu_2 = symbols("mu_1, mu_2", real=True)
+    >>> o_i, o_j = symbols("o_i o_j", real=True)
+    >>> obs = Matrix([[o_i], [o_j]])
+    >>> mu_1, mu_2 = symbols("mu_1 mu_2", real=True)
     >>> mean = Matrix([[mu_1], [mu_2]])
-    >>> sigma_1, sigma_2 = symbols("sigma_1, sigma_2", real=True, positive=True)
+    >>> sigma_1, sigma_2 = symbols("sigma_1 sigma_2", real=True, positive=True)
     >>> corr = Symbol("c", real=True)
     >>> cov = Matrix([[sigma_1, corr], [corr, sigma_2]])
     >>> prob = gauss2d_sympy(obs, mean, cov)
@@ -172,3 +173,73 @@ def gauss2d_sympy(obs: sympy.Matrix, mean: sympy.Matrix, cov: sympy.Matrix) -> s
     scalar = (mean_center.T @ inv_cov @ mean_center)[0, 0]
     prob = sympy.exp(-scalar/2) / sympy.sqrt(4*sympy.pi**2*det)
     return prob
+
+
+def gauss2dgrad_sympy(obs: sympy.Matrix, mean: sympy.Matrix, cov: sympy.Matrix):
+    """Same as ``gauss2d_sympy`` with the diff of [mu_1, mu_2, sigma_1, sigma_22, corr].
+
+    Examples
+    --------
+    >>> from sympy import *
+    >>> from laueimproc.gmm.gauss import gauss2dgrad_sympy
+    >>> o_i, o_j = symbols("o_i o_j", real=True)
+    >>> obs = Matrix([[o_i], [o_j]])
+    >>> mu_1, mu_2 = symbols("mu_1 mu_2", real=True)
+    >>> mean = Matrix([[mu_1], [mu_2]])
+    >>> sigma_1, sigma_2 = symbols("sigma_1 sigma_2", real=True, positive=True)
+    >>> corr = Symbol("c", real=True)
+    >>> cov = Matrix([[sigma_1, corr], [corr, sigma_2]])
+    >>> probgrad = gauss2dgrad_sympy(obs, mean, cov)
+    >>> for k, v in cse(probgrad)[0]:
+    ...     print(f"{k} = {v}")
+    ...
+    x0 = c**2
+    x1 = -sigma_1*sigma_2 + x0
+    x2 = -x1
+    x3 = 1/sqrt(x2)
+    x4 = 1/pi
+    x5 = -mu_2 + o_j
+    x6 = 1/x1
+    x7 = x5*x6
+    x8 = -mu_1 + o_i
+    x9 = x6*x8
+    x10 = c*x7 - sigma_2*x9
+    x11 = x8/2
+    x12 = c*x9 - sigma_1*x7
+    x13 = x5/2
+    x14 = exp(-x10*x11 - x12*x13)
+    x15 = x14*x4
+    x16 = x15/2
+    x17 = x16*x3
+    x18 = x2**(-3/2)
+    x19 = x15*x18/4
+    x20 = x1**(-2)
+    x21 = x20*x5
+    x22 = c*sigma_2
+    x23 = x20*x8
+    x24 = sigma_1*sigma_2
+    x25 = c*sigma_1
+    x26 = 2*x0
+    >>> for k, v in zip(("prob", "dm1", "dm2", "ds1", "ds2", "dc"), cse(probgrad)[1]):
+    ...     print(f"{k} = {v}")
+    ...
+    prob = x17
+    dm1 = x10*x17
+    dm2 = x12*x17
+    ds1 = -sigma_2*x19 + x14*x3*x4*(-x11*(-sigma_2**2*x23 + x21*x22) - x13*(c*sigma_2*x20*x8 - x21*x24 - x7))/2
+    ds2 = -sigma_1*x19 + x14*x3*x4*(-x11*(c*sigma_1*x20*x5 - x23*x24 - x9) - x13*(-sigma_1**2*x21 + x23*x25))/2
+    dc = c*x16*x18 + x17*(-x11*(-x21*x26 + 2*x22*x23 + x7) - x13*(2*x21*x25 - x23*x26 + x9))
+    >>>
+    """
+    prob = gauss2d_sympy(obs, mean, cov)
+    return [
+        prob,
+        prob.diff(mean[0, 0]), prob.diff(mean[1, 0]),
+        prob.diff(cov[0, 0]), prob.diff(cov[1, 1]), prob.diff(cov[0, 1])
+    ]
+    # from cutcutcodec.core.compilation.sympy_to_torch.lambdify import Lambdify
+    # Lambdify(
+    #     probgrad,
+    #     cst_args={mu_1, mu_2, sigma_1, sigma_2, corr},
+    #     shapes={(o_i, o_j, mu_1, mu_2, sigma_1, sigma_2, corr)}
+    # )

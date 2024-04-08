@@ -80,13 +80,8 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
 
     positions, _, magnitudes, infodict = diagram.fit_gaussian(eigtheta=True)
     positions = positions.squeeze(2)
-    two_stds = 2 * torch.sqrt(infodict["eigtheta"][:, :2])
-    thetas = torch.rad2deg(infodict["eigtheta"][:, 2])
-    rawrois = diagram.rawrois
-    barycenters = diagram.compute_barycenters()
-    backgrounds = torch.sum(rawrois - diagram.rois, axis=(1, 2))
+    backgrounds = torch.sum(diagram.rawrois - diagram.rois, axis=(1, 2))
     backgrounds /= (diagram.bboxes[:, 2]*diagram.bboxes[:, 3]).to(backgrounds.dtype)
-    pixmaxs = torch.amax(rawrois, axis=(1, 2))
 
     file_content = (
         "peak_X peak_Y "
@@ -95,19 +90,19 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
         "Xdev Ydev "
         "peak_bkg Ipixmax\n"
     )
-    for (pos_i, pos_j), mag, bkg, (two_std1, two_std2), theta, (bar_i, bar_j), pixmax in zip(
+    for pos, mag, bkg, two_std, theta, bary, pixmax in zip(
         positions.tolist(),
         (65535*magnitudes).tolist(), (65535*backgrounds).tolist(),
-        two_stds.tolist(), thetas.tolist(),
-        barycenters.tolist(),
-        (65535*pixmaxs).tolist(),
+        (2*torch.sqrt(infodict["eigtheta"][:, :2])).tolist(),
+        torch.rad2deg(infodict["eigtheta"][:, 2]).tolist(),
+        diagram.compute_barycenters().tolist(),
+        (65535*torch.amax(diagram.rawrois, axis=(1, 2))).tolist(),
     ):
-        # print(pos_i, pos_j, mag, bkg, two_std1, two_std2, theta, bar_i, bar_j, pixmax)
         file_content += (
-            f"{pos_i+0.5:.3f} {pos_j+0.5:.3f} "
+            f"{pos[0]+0.5:.3f} {pos[1]+0.5:.3f} "
             f"{mag+bkg:.1f} {mag:.1f} "
-            f"{two_std1:.3f} {two_std2:.3f} {theta:.1f} "
-            f"{pos_i-bar_i:.3f} {pos_j-bar_j} "
+            f"{two_std[0]:.3f} {two_std[1]:.3f} {theta:.1f} "
+            f"{pos[0]-bary[0]:.3f} {pos[1]-bary[1]} "
             f"{bkg:.1f} {pixmax:.1f}\n"
         )
     file_content += (
