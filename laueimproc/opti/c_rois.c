@@ -107,7 +107,7 @@ int getDataIndexs(npy_int64 **data_indexs_p, PyArrayObject *bboxes) {
         return 1;
     }
     **data_indexs_p = 0;
-    for (i = 0; i < len_bboxes; i++) {
+    for (i = 0; i < len_bboxes; ++i) {
         height = *(npy_int32 *)PyArray_GETPTR2(bboxes, i, 2);
         width = *(npy_int32 *)PyArray_GETPTR2(bboxes, i, 3);
         if (height <= 0 || width <= 0) {

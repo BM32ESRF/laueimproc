@@ -37,7 +37,7 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
         when we plot the image and when we have a vien in the physician base (-j, i).
         The angle is defined between -90 and 90 degrees.
     * Xdev : float
-        The difference between the argmax of the gaussian and the baricenter
+        The difference between the position of the gaussian and the baricenter
         along the x axis in cv2 convention (axis j in this module).
     * Ydev : float
         Same as Xdev for the y axis.
@@ -75,45 +75,46 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
     """
     # verification
     assert isinstance(filename, (str, bytes, pathlib.Path)), filename.__class__.__name__
-    filename = pathlib.Path(filename).expanduser().resolve()
+    filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".dat")
     assert isinstance(diagram, Diagram), diagram.__class__.__name__
 
-    filename = filename.with_suffix(".dat")
-    position, _, infodict = diagram.fit_gaussian_em(eigtheta=True)
-    mean_mass = diagram.compute_pxl_intensities()
-    mean_mass /= (diagram.bboxes[:, 2]*diagram.bboxes[:, 3]).to(mean_mass.dtype) * 65535
+    positions, _, magnitudes, infodict = diagram.fit_gaussian(eigtheta=True)
+    positions = positions.squeeze(2)
+    two_stds = 2 * torch.sqrt(infodict["eigtheta"][:, :2])
+    thetas = torch.rad2deg(infodict["eigtheta"][:, 2])
+    rawrois = diagram.rawrois
     barycenters = diagram.compute_barycenters()
+    backgrounds = torch.sum(rawrois - diagram.rois, axis=(1, 2))
+    backgrounds /= (diagram.bboxes[:, 2]*diagram.bboxes[:, 3]).to(backgrounds.dtype)
+    pixmaxs = torch.amax(rawrois, axis=(1, 2))
+
+    file_content = (
+        "peak_X peak_Y "
+        "peak_Itot peak_Isub "
+        "peak_fwaxmaj peak_fwaxmin peak_inclination "
+        "Xdev Ydev "
+        "peak_bkg Ipixmax\n"
+    )
+    for (pos_i, pos_j), mag, bkg, (two_std1, two_std2), theta, (bar_i, bar_j), pixmax in zip(
+        positions.tolist(),
+        (65535*magnitudes).tolist(), (65535*backgrounds).tolist(),
+        two_stds.tolist(), thetas.tolist(),
+        barycenters.tolist(),
+        (65535*pixmaxs).tolist(),
+    ):
+        # print(pos_i, pos_j, mag, bkg, two_std1, two_std2, theta, bar_i, bar_j, pixmax)
+        file_content += (
+            f"{pos_i+0.5:.3f} {pos_j+0.5:.3f} "
+            f"{mag+bkg:.1f} {mag:.1f} "
+            f"{two_std1:.3f} {two_std2:.3f} {theta:.1f} "
+            f"{pos_i-bar_i:.3f} {pos_j-bar_j} "
+            f"{bkg:.1f} {pixmax:.1f}\n"
+        )
+    file_content += (
+        f"# file created by laueimproc from {diagram.file.name} "
+        f"at {datetime.datetime.today().isoformat()}\n"
+        f"# from the parent directory: {str(diagram.file.parent)}"
+    )
 
     with open(filename, "w", encoding="utf-8") as file:
-        file.write(
-            "peak_X peak_Y peak_Itot peak_Isub peak_fwaxmaj peak_fwaxmin "
-            "peak_inclination Xdev Ydev peak_bkg Ipixmax\n"
-        )
-        for i, spot in enumerate(diagram.spots):
-            roi = spot.roi * 65535
-            rawroi = spot.rawroi * 65535
-            bkg = rawroi - roi
-            # peak_X peak_Y
-            file.write(f"{float(position[i][0]+0.5):.2f} {float(position[i][1]+0.5)} ")
-            # peak_Itot peak_Isub
-            file.write(f"{float(rawroi.max()):.4f} {float(rawroi.max()-bkg.mean()):.4f} ")
-            # peak_fwaxmaj peak_fwaxmin
-            file.write(
-                f"{float(2*torch.sqrt(infodict['eigtheta'][i, 0])):.3f} "
-                f"{float(2*torch.sqrt(infodict['eigtheta'][i, 1])):.3f} "
-            )
-            # peak_inclination
-            file.write(f"{float(-torch.rad2deg(infodict['eigtheta'][i, 2])):.1f} ")
-            # Xdev Ydev
-            file.write(
-                f"{float(position[i][1]-barycenters[i][1]):.2f} "
-                f"{float(position[i][0]-barycenters[i][0]):.2f} "
-            )
-            # peak_bkg Ipixmax
-            file.write(f"{float(bkg.mean()):.4f} {float(roi.max()):.4f}\n")
-
-        file.write(
-            f"# file created by laueimproc from {diagram.file.name} "
-            f"at {datetime.datetime.today().isoformat()}\n"
-        )
-        file.write(f"# from the parent directory: {str(diagram.file.parent)}")
+        file.write(file_content)

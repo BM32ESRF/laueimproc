@@ -72,6 +72,28 @@ def compute_barycenters(tensor_spots: torch.Tensor) -> torch.Tensor:
     # return pos
 
 
+def compute_pxl_max(tensor_spots: torch.Tensor) -> torch.Tensor:
+    """Return the intensity maxi of each roi, max of the pixels.
+
+    Parameters
+    ----------
+    tensor_spots : torch.Tensor
+        The batch of spots of shape (n, h, w).
+
+    Returns
+    -------
+    maxi : torch.Tensor
+        The vector of the maxi pixel value of shape (n,).
+
+    Notes
+    -----
+    * No verifications are performed,
+    * Call this method from a ``laueimproc.classes.spot.Spot``
+        or ``laueimproc.classes.diagram.Diagram`` instance.
+    """
+    return torch.amax(tensor_spots, axis=(1, 2))
+
+
 def compute_pxl_intensities(tensor_spots: torch.Tensor) -> torch.Tensor:
     """Return the intensity of each roi, sum of the pixels.
 

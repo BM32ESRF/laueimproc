@@ -242,24 +242,24 @@ def fit_gaussians(
     dup_w = torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2]))  # (n_spots, n_obs)
 
     # initialization
-    mean, half_cov, mass, infodict = em(obs, dup_w, **kwargs)
+    mean, half_cov, magnitude, infodict = em(obs, dup_w, **kwargs)
     half_cov *= 0.5  # for cov = half_cov + half_cov.mT, gradient coefficients symetric
-    mass *= torch.sum(dup_w.unsqueeze(-1), axis=-2)
+    magnitude *= torch.amax(dup_w.unsqueeze(-1), axis=-2)
 
     # print("*********************************************")
-    # print("avant", loss_func(mean, half_cov, mass, rois, obs).sum().item())
+    # print("avant", loss_func(mean, half_cov, magnitude, rois, obs).sum().item())
 
     # raffinement
     ongoing = torch.full((rois.shape[0],), True, dtype=bool)  # mask for clusters converging
     cost = torch.full((rois.shape[0],), torch.inf, dtype=torch.float32)
-    for _ in range(100):  # not while True for security
+    for _ in range(10):  # not while True for security
         t = time.time()
-        on_mean, on_half_cov, on_mass = mean[ongoing], half_cov[ongoing], mass[ongoing]
+        on_mean, on_half_cov, on_magnitude = mean[ongoing], half_cov[ongoing], magnitude[ongoing]
         on_rois, on_obs = rois[ongoing], obs[ongoing]
 
         # compute loss and grad
-        (grad_on_mean, grad_on_half_cov, grad_on_mass), on_cost = grad_val_func(
-            on_mean, on_half_cov, on_mass, on_rois, on_obs
+        (grad_on_mean, grad_on_half_cov, grad_on_magnitude), on_cost = grad_val_func(
+            on_mean, on_half_cov, on_magnitude, on_rois, on_obs
         )
 
         # print("cost", cost.sum().item(), "nelem", len(on_rois))
@@ -267,7 +267,7 @@ def fit_gaussians(
         # optimal step, second order derivated of loss in the grad direction
         on_lr = torch.zeros((on_rois.shape[0],), dtype=torch.float32)
         lr2, lr1 = lr1_lr2_func(
-            on_mean, on_half_cov, on_mass, on_rois, on_obs, on_lr, grad_on_mean, grad_on_half_cov, grad_on_mass
+            on_mean, on_half_cov, on_magnitude, on_rois, on_obs, on_lr, grad_on_mean, grad_on_half_cov, grad_on_magnitude
         )
         # print(f"    temps: {time.time()-t:.2f}")
         on_lr = -lr1 / lr2  # assume quadratic model convergence
@@ -283,16 +283,16 @@ def fit_gaussians(
         # update values
         mean[ongoing] -= grad_on_mean * on_lr.reshape(-1, 1, 1, 1)
         half_cov[ongoing] -= grad_on_half_cov * on_lr.reshape(-1, 1, 1, 1)
-        mass[ongoing] -= grad_on_mass * on_lr.reshape(-1, 1)
+        magnitude[ongoing] -= grad_on_magnitude * on_lr.reshape(-1, 1)
 
         # we want to do equivalent of ongoing[ongoing][converged] = False
         ongoing_ = ongoing[ongoing]
         ongoing_[converged] = False
         ongoing[ongoing.clone()] = ongoing_
     else:
-        logging.warning("some gmm clusters failed to converge after 100 iterations")
+        logging.warning("gaussian convergence cycle prematurely interrupted")
 
-    # print("apres", loss_func(mean, half_cov, mass, rois, obs).sum().item())
+    # print("apres", loss_func(mean, half_cov, magnitude, rois, obs).sum().item())
 
     cov = half_cov+half_cov.mT
 
@@ -300,6 +300,6 @@ def fit_gaussians(
     if eigtheta:
         infodict["eigtheta"] = cov2d_to_eigtheta(cov)
 
-    # hessian = torch.func.vmap(torch.func.jacfwd(torch.func.jacrev(loss_func, argnums=0), argnums=0))(on_mean, on_half_cov, on_mass, rois[ongoing], on_obs)
+    # hessian = torch.func.vmap(torch.func.jacfwd(torch.func.jacrev(loss_func, argnums=0), argnums=0))(on_mean, on_half_cov, on_magnitude, rois[ongoing], on_obs)
 
-    return mean, cov, mass, infodict
+    return mean, cov, magnitude, infodict

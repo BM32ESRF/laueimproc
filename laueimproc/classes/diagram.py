@@ -8,7 +8,9 @@ import typing
 import numpy as np
 import torch
 
-from laueimproc.improc.spot.basic import compute_barycenters, compute_pxl_intensities
+from laueimproc.improc.spot.basic import (
+    compute_barycenters, compute_pxl_max, compute_pxl_intensities
+)
 from laueimproc.improc.spot.extrema import find_nb_extremums
 from laueimproc.improc.spot.fit import fit_gaussian_em, fit_gaussians_em, fit_gaussians
 from laueimproc.improc.spot.rot_sym import compute_rot_sym
@@ -38,6 +40,15 @@ class Diagram(BaseDiagram):
             barycenters += 0.5
 
         return barycenters
+
+    @auto_parallel
+    def compute_pxl_max(self) -> torch.Tensor:
+        """Compute the intensity maxi of each spots."""
+        if not self.is_init():
+            raise RuntimeWarning(
+                "you must to initialize the spots (`self.find_spots()`)"
+            )
+        return compute_pxl_max(self.rois)
 
     @auto_parallel
     def compute_pxl_intensities(self) -> torch.Tensor:
@@ -192,12 +203,12 @@ class Diagram(BaseDiagram):
 
         Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
         """
-        mean, cov, mass, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
-        mean, cov, mass = mean.squeeze(1), cov.squeeze(1), mass.squeeze(1)
+        mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
+        mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
         if "eigtheta" in infodict:
             infodict = infodict.copy()  # to avoid insane cache reference error
             infodict["eigtheta"] = infodict["eigtheta"].squeeze(1)
-        return mean, cov, mass, infodict
+        return mean, cov, magnitude, infodict
 
     @auto_cache
     @auto_parallel
@@ -238,8 +249,8 @@ class Diagram(BaseDiagram):
             The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
         cov : torch.Tensor
             The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
-        mass : torch.Tensor
-            The absolute mass \(\theta.\eta\). Shape (n, \(K\)).
+        magnitude : torch.Tensor
+            The absolute magnitude \(\theta.\eta\). Shape (n, \(K\)).
         infodict : dict[str]
             See ``laueimproc.improc.spot.fit.fit_gaussians``.
         """
@@ -258,7 +269,7 @@ class Diagram(BaseDiagram):
         shift = self.bboxes[:, :2]
 
         # main fit
-        mean, cov, mass, infodict = fit_gaussians(rois, loss, **kwargs)
+        mean, cov, magnitude, infodict = fit_gaussians(rois, loss, **kwargs)
 
         # spot base to diagram base
         if mean.requires_grad:
@@ -272,4 +283,4 @@ class Diagram(BaseDiagram):
             mean = torch.flip(mean, 2)
             mean += 0.5
 
-        return mean, cov, mass, infodict
+        return mean, cov, magnitude, infodict
