@@ -78,9 +78,12 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".dat")
     assert isinstance(diagram, Diagram), diagram.__class__.__name__
 
-    positions, _, magnitudes, infodict = diagram.fit_gaussian(eigtheta=True)
-    positions = positions.squeeze(2)
-    backgrounds = torch.sum(diagram.rawrois - diagram.rois, axis=(1, 2))
+    # positions, _, magnitudes, infodict = diagram.fit_gaussian(eigtheta=True)
+    # positions = positions.squeeze(2)
+    positions, _, infodict = diagram.fit_gaussian_em(eigtheta=True)
+    magnitudes = torch.amax(diagram.rois, dim=(1, 2))
+
+    backgrounds = torch.sum(diagram.rawrois - diagram.rois, dim=(1, 2))
     backgrounds /= (diagram.bboxes[:, 2]*diagram.bboxes[:, 3]).to(backgrounds.dtype)
 
     file_content = (
@@ -96,7 +99,7 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
         (2*torch.sqrt(infodict["eigtheta"][:, :2])).tolist(),
         torch.rad2deg(infodict["eigtheta"][:, 2]).tolist(),
         diagram.compute_barycenters().tolist(),
-        (65535*torch.amax(diagram.rawrois, axis=(1, 2))).tolist(),
+        (65535*torch.amax(diagram.rawrois, dim=(1, 2))).tolist(),
     ):
         file_content += (
             f"{pos[0]+0.5:.3f} {pos[1]+0.5:.3f} "
