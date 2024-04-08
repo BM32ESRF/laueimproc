@@ -9,7 +9,7 @@ import typing
 import torch
 
 from laueimproc.gmm.em import em
-from laueimproc.gmm.gauss import _gauss2d
+from laueimproc.gmm.gauss import gauss2d
 from laueimproc.gmm.linalg import cov2d_to_eigtheta
 
 
