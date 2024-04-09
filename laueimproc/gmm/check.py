@@ -68,19 +68,15 @@ def check_gmm(gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -> None:
     assert mean_1 == 1, f"mean has to be a vector column, not {mean.shape}"
 
 
-def check_infit(
-    obs: torch.Tensor, dup_w: typing.Optional[torch.Tensor], std_w: typing.Optional[torch.Tensor]
-) -> None:
+def check_infit(obs: torch.Tensor, weights: typing.Optional[torch.Tensor]) -> None:
     r"""Ensures the provided parameters are corrects.
 
     Parameters
     ----------
     obs : torch.Tensor
         The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
-    dup_w : torch.Tensor, optional
+    weights : torch.Tensor, optional
         The duplication weights of shape (..., \(N\)).
-    std_w : torch.Tensor, optional
-        The inverse var weights of shape (..., \(N\)).
 
     Raises
     ------
@@ -90,21 +86,18 @@ def check_infit(
     # check dtype
     assert isinstance(obs, torch.Tensor), \
         f"obs has to be a torch tensor, not a {obs.__class__.__name__}"
-    assert dup_w is None or isinstance(dup_w, torch.Tensor), \
-        f"dup_w has to be a torch tensor, not a {dup_w.__class__.__name__}"
-    assert std_w is None or isinstance(std_w, torch.Tensor), \
-        f"std_w has to be a torch tensor, not a {std_w.__class__.__name__}"
+    assert weights is None or isinstance(weights, torch.Tensor), \
+        f"weights has to be a torch tensor, not a {weights.__class__.__name__}"
 
     # check shape
     assert obs.ndim >= 2, f"obs has to be of shape (..., N, D), not {obs.shape}"
     *obs_batch, obs_N, _ = obs.shape
-    for weight in (dup_w, std_w):
-        if weight is not None:
-            assert weight.ndim >= 1, \
-                f"dup_w and std_w has to be of shape (..., N), not {weight.shape}"
-            *w_batch, w_N = weight.shape
-            assert obs_batch == w_batch, f"batch dimension dosent match {obs_batch} vs {w_batch}"
-            assert obs_N == w_N, f"number of observations inconsistant {obs_N} vs {w_N}"
+    if weights is not None:
+        assert weights.ndim >= 1, \
+            f"dup_w and std_w has to be of shape (..., N), not {weights.shape}"
+        *w_batch, w_N = weights.shape
+        assert obs_batch == w_batch, f"batch dimension dosent match {obs_batch} vs {w_batch}"
+        assert obs_N == w_N, f"number of observations inconsistant {obs_N} vs {w_N}"
 
 
 def check_ingauss(obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor) -> None:

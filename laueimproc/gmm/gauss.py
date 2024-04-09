@@ -130,20 +130,20 @@ def gauss2d(
     norm, inv = inv_cov2d(cov)
     norm = norm.unsqueeze(-1)  # (..., n_clu, 1)
     norm *= (2.0*torch.pi)**2
-    norm = torch.rsqrt(norm, out=None if cov.requires_grad else norm)
+    norm = torch.rsqrt(norm)  # no "out=None if cov.requires_grad else norm" for jacobian
     inv = inv.unsqueeze(-3) # (..., n_clu, n_obs, n_var, n_var)
 
     cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
     prob = cent_obs.transpose(-1, -2) @ inv @ cent_obs  # (..., n_clu, n_obs, 1, 1)
     prob = prob.squeeze(-1).squeeze(-1)  # (..., n_clu, n_obs)
     prob *= -.5
-    prob = torch.exp(prob, out=None if prob.requires_grad else prob)
+    prob = torch.exp(prob)  # no "out=None if prob.requires_grad else prob" for jacobian
 
-    prob = torch.mul(prob, norm, out=None if prob.requires_grad else prob)
+    prob = norm * prob  # no "out=None if prob.requires_grad else prob" for jacobian
     return prob
 
 
-def gauss2d_and_grad(
+def gauss2d_and_jac(
     obs: torch.Tensor, mean: torch.Tensor, half_cov: torch.Tensor, *, _check: bool = True
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     r"""Compute the grad of a 2d gauss.
@@ -171,29 +171,29 @@ def gauss2d_and_grad(
     Returns
     -------
     prob : torch.Tensor
-        Returned value from ``gauss2d``.
-    mean_grad : torch.Tensor
-        The gradient of the 2x1 column mean vector of shape (..., \(K\), 2, 1).
-    half_cov_grad : torch.Tensor
-        The gradient of the 2x2 half covariance matrix of shape (..., \(K\), 2, 2).
+        Returned value from ``gauss2d``, of shape (..., \(K\), \(N\)).
+    mean_jac : torch.Tensor
+        The gradient of the 2x1 column mean vector of shape (..., \(K\), \(N\), \(K\), 2, 1).
+    half_cov_jac : torch.Tensor
+        The gradient of the 2x2 half covariance matrix of shape (..., \(K\), \(N\), \(K\), 2, 2).
 
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.gmm.gauss import gauss2d_and_grad
+    >>> from laueimproc.gmm.gauss import gauss2d_and_jac
     >>> obs = torch.randn((1000, 10, 2))  # (..., n_obs, n_var)
     >>> mean = torch.randn((1000, 3, 2, 1))  # (..., n_clu, n_var, 1)
     >>> cov = obs.mT @ obs  # create real symmetric positive covariance matrix
     >>> cov = cov.unsqueeze(-3).expand(1000, 3, 2, 2)  # (..., n_clu, n_var, n_var)
     >>> half_cov = cov / 2
     >>>
-    >>> prob, grad_mean, grad_half_cov = gauss2d_and_grad(obs, mean, half_cov)
+    >>> prob, mean_jac, half_cov_jac = gauss2d_and_jac(obs, mean, half_cov)
     >>> prob.shape
     torch.Size([1000, 3, 10])
-    >>> grad_mean.shape
-    torch.Size([1000, 3, 2, 1])
-    >>> grad_half_cov.shape
-    torch.Size([1000, 3, 2, 2])
+    >>> mean_jac.shape
+    torch.Size([1000, 3, 10, 3, 2, 1])
+    >>> half_cov_jac.shape
+    torch.Size([1000, 3, 10, 3, 2, 2])
     >>>
     """
     if _check:
@@ -201,14 +201,23 @@ def gauss2d_and_grad(
         assert isinstance(half_cov, torch.Tensor), half_cov.__class__.__name__
         assert half_cov.shape[-2:] == (2, 2), half_cov.shape
 
-    mean_, half_cov_ = mean.detach().clone(), half_cov.detach().clone()
-    mean_.requires_grad = half_cov_.requires_grad = True
-    mean_.grad = half_cov_.grad = None
-    prob = gauss2d(obs, mean_, half_cov_ + half_cov_.mT, _check=_check)
-    prob.sum().backward()
-    if obs.requires_grad or mean.requires_grad or half_cov.requires_grad:
-        prob = gauss2d(obs, mean, half_cov + half_cov.mT, _check=False)
-    return prob, mean_.grad, half_cov_.grad
+    *batch, n_obs, _ = obs.shape
+    *_, n_clu, _, _ = mean.shape
+    obs = obs.reshape(-1, n_obs, 2)  # (b, n_obs, 2)
+    mean = mean.reshape(-1, n_clu, 2, 1)  # (b, n_clu, 2, 1)
+    half_cov = half_cov.reshape(-1, n_clu, 2, 2)  # (b, n_clu, 2, 1)
+
+    prob = gauss2d(obs, mean, half_cov + half_cov.mT, _check=_check)
+    prob = prob.reshape(*batch, n_clu, n_obs)
+    mean_jac, half_cov_jac = (
+        torch.func.vmap(torch.func.jacfwd(
+            lambda o, m, hv: gauss2d(o, m, hv+hv.mT, _check=False),
+            argnums=(1, 2),
+        ))(obs, mean, half_cov)
+    )
+    mean_jac = mean_jac.reshape(*batch, n_clu, n_obs, n_clu, 2, 1)
+    half_cov_jac = half_cov_jac.reshape(*batch, n_clu, n_obs, n_clu, 2, 2)
+    return prob, mean_jac, half_cov_jac
 
 
 def gauss2d_sympy(obs: sympy.Matrix, mean: sympy.Matrix, cov: sympy.Matrix) -> sympy.Expr:

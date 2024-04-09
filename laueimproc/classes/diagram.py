@@ -265,8 +265,8 @@ class Diagram(BaseDiagram):
         if isinstance(loss, str):
             assert loss in {"l1", "mse"}, loss
             loss = {
-                "l1": lambda rois, rois_pred: torch.mean(torch.abs(rois-rois_pred), dim=(-1, -2)),
-                "mse": lambda rois, rois_pred: torch.mean((rois-rois_pred)**2, dim=(-1, -2)),
+                "l1": lambda rois, rois_pred: torch.abs(rois-rois_pred),
+                "mse": lambda rois, rois_pred: (rois-rois_pred)**2,
             }[loss]
         rois = self.rois
         shift = self.bboxes[:, :2]
