@@ -9,7 +9,7 @@ import typing
 import torch
 
 from laueimproc.gmm.em import em
-from laueimproc.gmm.gmm import gmm2d_and_jac
+from laueimproc.gmm.gmm import gmm2d, gmm2d_and_jac
 from laueimproc.gmm.linalg import cov2d_to_eigtheta
 
 
@@ -85,7 +85,7 @@ def fit_gaussian_em(
         weights = torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2]))
         weights = weights * photon_density  # copy (no inplace) for keeping rois unchanged
         std_of_mean = infodict.get("eigtheta", cov2d_to_eigtheta(cov, theta=False))[:, 0]
-        std_of_mean /= torch.sum(weights, axis=-1)
+        std_of_mean /= torch.sum(weights, dim=-1)
         std_of_mean = torch.sqrt(std_of_mean, out=std_of_mean)
         infodict["tol"] = std_of_mean
 
@@ -144,7 +144,7 @@ def fit_gaussians_em(
         indexing="ij",
     )
     points_i, points_j = points_i.ravel(), points_j.ravel()
-    obs = torch.cat([points_i.unsqueeze(1), points_j.unsqueeze(1)], axis=1)
+    obs = torch.cat([points_i.unsqueeze(1), points_j.unsqueeze(1)], dim=1)
     obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
     weights = torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2]))
     weights = weights * photon_density  # copy (no inplace) for keeping rois unchanged
@@ -161,6 +161,50 @@ def fit_gaussians_em(
 
 
 def fit_gaussians(
+    rois: torch.Tensor,
+    loss: typing.Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+    **kwargs,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    """Fit gaussian with scipy.optimize.minimize."""
+    from scipy.optimize import leastsq
+
+    # preparation
+    points_i, points_j = torch.meshgrid(
+        torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
+        torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
+        indexing="ij",
+    )
+    points_i, points_j = points_i.ravel(), points_j.ravel()
+    obs = torch.cat([points_i.unsqueeze(-1), points_j.unsqueeze(-1)], dim=1)
+    obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
+    weights = torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2]))  # (n_spots, n_obs)
+
+    # initialization
+    mean, half_cov, magnitude, infodict = em(obs, weights, **kwargs)
+    half_cov *= 0.5  # for cov = half_cov + half_cov.mT, gradient coefficients symetric
+    magnitude *= torch.amax(weights.unsqueeze(-1), dim=-2)
+
+    def func(x, rois, obs, n_clu):
+        n = len(rois)
+        x = torch.from_numpy(x)
+        mean = x[:n*2*n_clu].reshape(n, n_clu, 2, 1)
+        half_cov = x[n*2*n_clu:n*2*n_clu + n*4*n_clu].reshape(n, n_clu, 2, 2)
+        mag = x[n*2*n_clu + n*4*n_clu:n*2*n_clu + n*4*n_clu + n*n_clu].reshape(n, n_clu)
+        rois_pred = gmm2d(obs, mean, half_cov+half_cov.mT, mag, _check=False)
+        return (rois.ravel() - rois_pred.ravel()).numpy(force=True)
+        # on_cost = loss(rois.reshape(*rois_pred.shape), rois_pred).mean(dim=1)
+        # return on_cost.sum().item()
+
+    for i in range(len(rois)):
+
+        x0 = torch.cat([mean[i:i+1].ravel(), half_cov[i:i+1].ravel(), magnitude[i:i+1].ravel()]).numpy(force=True)
+        x, cov_x, resinfodict, mesg, ier = leastsq(
+            func, x0, args=(rois[i:i+1], obs[i:i+1], kwargs["nbr_clusters"]), xtol=1e-7, full_output=True
+        )
+        print(f"resultat index {i}, {resinfodict['nfev']} calls, final value {resinfodict['fvec']}")
+
+
+def fit_gaussians_(
     rois: torch.Tensor,
     loss: typing.Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
     *,
@@ -212,14 +256,14 @@ def fit_gaussians(
         indexing="ij",
     )
     points_i, points_j = points_i.ravel(), points_j.ravel()
-    obs = torch.cat([points_i.unsqueeze(-1), points_j.unsqueeze(-1)], axis=1)
+    obs = torch.cat([points_i.unsqueeze(-1), points_j.unsqueeze(-1)], dim=1)
     obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
     weights = torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2]))  # (n_spots, n_obs)
 
     # initialization
     mean, half_cov, magnitude, infodict = em(obs, weights, **kwargs)
     half_cov *= 0.5  # for cov = half_cov + half_cov.mT, gradient coefficients symetric
-    magnitude *= torch.amax(weights.unsqueeze(-1), axis=-2)
+    magnitude *= torch.amax(weights.unsqueeze(-1), dim=-2)
 
     # print("*********************************************")
     # print("avant", loss_func(mean, half_cov, magnitude, rois, obs).sum().item())
@@ -227,47 +271,53 @@ def fit_gaussians(
     # raffinement
     ongoing = torch.full((rois.shape[0],), True, dtype=bool)  # mask for clusters converging
     cost = torch.full((rois.shape[0],), torch.inf, dtype=torch.float32)
-    for _ in range(10):  # not while True for security
+    rois = rois.detach()
+    # lr = torch.full(len(rois), 1e-1, dtype=torch.float32)
+    # u, v = torch.zeros(len(rois), dtype=torch.float32), torch.zeros(len(rois), dtype=torch.float32)  # for Adelta optimizer
+
+    for i in range(100):  # not while True for security
         t = time.time()
         on_mean, on_half_cov, on_mag = mean[ongoing], half_cov[ongoing], magnitude[ongoing]
         on_rois, on_obs = rois[ongoing], obs[ongoing]
 
-        # compute loss and grad
+        # compute loss and loss diff
         rois_pred, mean_jac, half_cov_jac, mag_jac = (
             gmm2d_and_jac(on_obs, on_mean, on_half_cov, on_mag, _check=False)
         )
-        rois_dif = rois_pred.reshape(*on_rois.shape) - on_rois
-        rois_dif = rois_dif.detach()
-        rois_dif.requires_grad = True
+        rois_pred = rois_pred.detach()
+        rois_pred.requires_grad = True
+        rois_pred.grad = None
+        on_cost = loss(on_rois.reshape(*rois_pred.shape), rois_pred).mean(dim=1)
+        on_cost.sum().backward()
 
-        rois_dif.grad = None
-        loss_val = loss(rois_dif)
-        loss_val.sum().backward()
-        grad_rois_dif = rois_dif.grad
-        assert (grad_rois_dif == 2*rois_dif).all()
+        # compute grad
+        mean_grad = torch.sum(rois_pred.grad.reshape(*rois_pred.shape, 1, 1, 1) * mean_jac, dim=-4)
+        half_cov_grad = torch.sum(rois_pred.grad.reshape(*rois_pred.shape, 1, 1, 1) * half_cov_jac, dim=-4)
+        mag_grad = torch.sum(rois_pred.grad.reshape(*rois_pred.shape, 1) * mag_jac, dim=-2)
 
-        raise NotImplementedError
 
-        print("ricocola")
-        # print(mean_jac)
-        # print(half_cov_jac)
-        # print(grad_on_mag)
+        print("loss", on_cost.mean().item())
+        print("    mean_grad", (mean_grad**2).mean())
+        print("    half_cov_grad", (half_cov_grad**2).mean())
+        print("    mag_grad", torch.sqrt(mag_grad**2).mean())
 
-        # drop converged clusters
-        converged = on_cost >= cost[ongoing]
-        cost[ongoing] = on_cost
-        if torch.all(converged):
-            break
+
+        # # drop converged clusters
+        # converged = on_cost >= cost[ongoing]
+        # cost[ongoing] = on_cost
+        # if torch.all(converged):
+        #     break
 
         # update values
-        mean[ongoing] -= grad_on_mean * on_lr.reshape(-1, 1, 1, 1)
-        half_cov[ongoing] -= grad_on_half_cov * on_lr.reshape(-1, 1, 1, 1)
-        magnitude[ongoing] -= grad_on_magnitude * on_lr.reshape(-1, 1)
+        lr = 128 * .933**i  # reduce by 2 every 10 iterations
+        mean[ongoing] -= mean_grad * lr  # on_lr.reshape(-1, 1, 1, 1)
+        half_cov[ongoing] -= half_cov_grad * lr  # on_lr.reshape(-1, 1, 1, 1)
+        magnitude[ongoing] -= mag_grad * lr  # on_lr.reshape(-1, 1)
 
-        # we want to do equivalent of ongoing[ongoing][converged] = False
-        ongoing_ = ongoing[ongoing]
-        ongoing_[converged] = False
-        ongoing[ongoing.clone()] = ongoing_
+        # # we want to do equivalent of ongoing[ongoing][converged] = False
+        # ongoing_ = ongoing[ongoing]
+        # ongoing_[converged] = False
+        # ongoing[ongoing.clone()] = ongoing_
     else:
         logging.warning("gaussian convergence cycle prematurely interrupted")
 
