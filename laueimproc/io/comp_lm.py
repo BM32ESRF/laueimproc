@@ -2,7 +2,7 @@
 
 """Implement a convolutive generative variational auto-encoder neuronal network."""
 
-import lzma
+import bz2
 import pathlib
 import pickle
 import typing
@@ -295,8 +295,9 @@ class LMCodec(torch.nn.Module):
             return img
 
         assert isinstance(data, bytes), data.__class__.__name__
-        data = lzma.decompress(data, format=lzma.FORMAT_ALONE)
+        data = bz2.decompress(data)
         lat_np, residu, (padleft, padright, padtop, padbottom) = pickle.loads(data)
+        residu = (residu >> 1) * np.where(residu % 2, -1, 1)
         lat_torch = torch.from_numpy(lat_np).to(torch.float32) / 255
         pred_torch = self.decoder(lat_torch)
         pred_torch = (
@@ -353,8 +354,9 @@ class LMCodec(torch.nn.Module):
         pred_torch = self.decode((lat_torch_quant, pad))
         pred_np = (pred_torch*65535 + 0.5).squeeze(0).squeeze(0).numpy(force=True).astype(np.int32)
         residu = img.astype(np.int32) - pred_np
+        residu = (np.abs(residu) << 1) + (residu < 0).astype(np.int32)
         data = pickle.dumps((lat_np, residu, pad))
-        data = lzma.compress(data, format=lzma.FORMAT_ALONE, check=lzma.CHECK_NONE, preset=9)
+        data = bz2.compress(data, compresslevel=9)
         return data
 
     def forward(self, img: typing.Union[torch.Tensor, np.ndarray, bytes]) -> torch.Tensor:
