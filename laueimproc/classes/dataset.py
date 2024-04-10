@@ -156,7 +156,36 @@ class DiagramDataset(threading.Thread):
 
     def __len__(self) -> int:
         """Return the approximative numbers of diagrams soon be present in the dataset."""
-        return max(self._diagrams) + 1
+        return max(self._diagrams, default=-1) + 1
+
+    def __str__(self) -> str:
+        """Return an exaustive printable string giving informations on the dataset."""
+
+        # title
+        if len(folders := {d.file.parent for d in self.diagrams if d.file is not None}) == 1:
+            text = f"DiagramDataset from the folder {folders.pop()}:"
+        else:
+            text = "DiagramDataset:"
+
+        # history
+        with self._lock:
+            if self._operations_chain:
+                text += "\n    Function chain:"
+                for i, func in enumerate(self._operations_chain):
+                    text += f"\n        {i+1}: {func}"
+            else:
+                text += "\n    No function has been applied."
+
+        # stats
+        text += "\n    Current state:"
+        text += f"\n        * id: {id(self)}"
+        text += f"\n        * nbr diagram: {len(self)}"
+        if self._position[0] is None:
+            text += "\n        * 2d indexing: no"
+        else:
+            text += f"\n        * 2d indexing: {self._position[0]}"
+
+        return text
 
     @staticmethod
     def _check_diag2ind(diag2ind: typing.Callable[[Diagram], numbers.Integral]):
@@ -298,7 +327,7 @@ class DiagramDataset(threading.Thread):
             f"the function {self._diag2ind} must return a positive number, not {index}"
         index = int(index)
 
-        # get an check grid position
+        # get an check sample position
         if self._position[0] is not None:
             coord = self._position[0](index)
             assert isinstance(coord, tuple), \
@@ -324,6 +353,8 @@ class DiagramDataset(threading.Thread):
                         zip(self._position[1][0].tolist(), self._position[1][1].tolist())
                     }
                 self._position[1][coord] = index
+            if new_diagram.file is not None:
+                self._to_sniff["readed"].add(new_diagram.file)
             if self._operations_chain:
                 self._diagrams[index] = queue.Queue()
                 _ChainThread(new_diagram, self._operations_chain, self._diagrams[index]).start()
@@ -351,10 +382,8 @@ class DiagramDataset(threading.Thread):
             assert new_diagrams.exists(), f"{new_diagrams} if not an existing path"
             if new_diagrams.is_dir():
                 self.add_diagrams(  # optional, no procrastination
-                    (
-                        f for f in new_diagrams.iterdir()
-                        if f.suffix.lower() not in {".jp2", ".mccd", ".tif", ".tiff"}
-                    )
+                    f for f in new_diagrams.iterdir()
+                    if f.suffix.lower() in {".jp2", ".mccd", ".tif", ".tiff"}
                 )
                 self._to_sniff["dirs"].append([new_diagrams, 0.0])
             else:
@@ -448,8 +477,7 @@ class DiagramDataset(threading.Thread):
                     ):
                         continue
                     diagram = Diagram(file)
-                    self.add_diagram(diagram)
-                    self._to_sniff["readed"].add(file)
+                    self.add_diagram(diagram)  # update self._to_sniff["readed"]
 
             # make accessible the just borned diagrams
             with self._lock:
