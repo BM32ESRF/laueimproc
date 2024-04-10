@@ -22,7 +22,7 @@ from .diagram import Diagram
 
 def _excepthook(args):
     """Raise the exceptions comming from a DiagramDataset thread."""
-    if isinstance(args.thread, DiagramDataset):
+    if isinstance(args.thread, (DiagramDataset, _ChainThread)):
         traceback.print_tb(args.exc_traceback)
         raise args.exc_value
 
@@ -54,6 +54,22 @@ def default_diag2ind(diagram: Diagram) -> int:
             "please provide the function `diag2ind`"
         )
     return int(candidates[-1])
+
+
+class _ChainThread(threading.Thread):
+    """Heper for parallel real time filter chain."""
+
+    def __init__(self, diagram: Diagram, chain: list, rescontainer: queue.Queue):
+        self.diagram = diagram
+        self.chain = chain.copy()
+        self.rescontainer = rescontainer
+        super().__init__(daemon=True)
+
+    def run(self):
+        """Apply all the operation on the diagram."""
+        for func, args in self.chain:
+            func(self.diagram, *args)
+        self.rescontainer.put((self.diagram, len(self.chain)))
 
 
 class DiagramDataset(threading.Thread):
@@ -118,7 +134,7 @@ class DiagramDataset(threading.Thread):
         self.start()
 
     def __getitem__(self, item: numbers.Integral):
-        """Get the diagram of index `index`.
+        """Get a diagram or a subset of the set.
 
         Parameters
         ----------
@@ -179,21 +195,6 @@ class DiagramDataset(threading.Thread):
         LookupError
             If the diagram is already present in the dataset.
         """
-        class ChainThread(threading.Thread):
-            """Heper for parallel real time filter chain."""
-
-            def __init__(self, diagram: Diagram, chain: list, rescontainer: queue.Queue):
-                self.diagram = diagram
-                self.chain = chain.copy()
-                self.rescontainer = rescontainer
-                super().__init__(daemon=True)
-
-            def run(self):
-                """Apply all the operation on the diagram."""
-                for func, args in self.chain:
-                    func(self.diagram, *args)
-                self.rescontainer.put((self.diagram, len(self.chain)))
-
         assert isinstance(new_diagram, Diagram), new_diagram.__class__.__name__
         index = self._diag2ind(new_diagram)
         assert isinstance(index, numbers.Integral), (
@@ -208,7 +209,7 @@ class DiagramDataset(threading.Thread):
                 raise LookupError(f"the diagram of index {index} is already present in the dataset")
             if self._operations_chain:
                 self._diagrams[index] = queue.Queue()
-                ChainThread(new_diagram, self._operations_chain, self._diagrams[index]).start()
+                _ChainThread(new_diagram, self._operations_chain, self._diagrams[index]).start()
             else:
                 self._diagrams[index] = new_diagram
 
