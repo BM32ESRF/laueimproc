@@ -160,7 +160,7 @@ def fit_gaussians_em(
     return mean.squeeze(3), cov, eta, infodict
 
 
-def fit_gaussians(
+def fit_gaussians_scipy(
     rois: torch.Tensor,
     loss: typing.Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
     **kwargs,
@@ -202,6 +202,169 @@ def fit_gaussians(
             func, x0, args=(rois[i:i+1], obs[i:i+1], kwargs["nbr_clusters"]), xtol=1e-7, full_output=True
         )
         print(f"resultat index {i}, {resinfodict['nfev']} calls, final value {resinfodict['fvec']}")
+
+
+def fit_gaussians(
+    rois: torch.Tensor,
+    loss: typing.Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+    *,
+    eigtheta: bool = False,
+    **kwargs,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    r"""Fit each roi by \(K\) gaussians.
+
+    See ``laueimproc.improc.gmm`` for terminology.
+
+    Parameters
+    ----------
+    rois : torch.Tensor
+        The tensor of the regions of interest for each spots. Shape (n, h, w).
+    loss : callable
+        Reduce the rois and the predected rois into a single vector of scalar.
+        [Tensor(n, h, w), Tensor(n, h, w)] -> Tensor(n,)
+    eigtheta : boolean, default=False
+        If set to True, call ``laueimproc.gmm.linalg.cov2d_to_eigtheta`` and append the result
+        in the field `eigtheta` of `infodict`. It is like a PCA on each fit.
+    **kwargs : dict
+        Transmitted to ``laueimproc.improc.gmm.em``, used for initialisation.
+
+    Returns
+    -------
+    mean : torch.Tensor
+        The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the relative rois base.
+    cov : torch.Tensor
+        The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
+    mass : torch.Tensor
+        The absolute mass \(\theta.\eta\). Shape (n, \(K\)).
+    infodict : dict[str]
+
+        * "loss" : torch.Tensor
+            The vector of loss. Shape (n,).
+        * "pred" : torch.Tensor
+            The predicted rois tensor. Shape(n, h, w)
+    """
+    # verification
+    assert isinstance(rois, torch.Tensor), rois.__class__.__name__
+    assert rois.ndim == 3, rois.shape
+    assert callable(loss), loss.__class__.__name__
+    assert isinstance(eigtheta, bool), eigtheta.__class__.__name__
+
+    print("rois shape", rois.shape)
+    rois = rois[:, :30, :30]
+
+    # preparation
+    points_i, points_j = torch.meshgrid(
+        torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
+        torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
+        indexing="ij",
+    )
+    points_i, points_j = points_i.ravel(), points_j.ravel()
+    obs = torch.cat([points_i.unsqueeze(-1), points_j.unsqueeze(-1)], dim=1)
+    obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
+    weights = torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2]))  # (n_spots, n_obs)
+
+    # initialization
+    mean, half_cov, mag, infodict = em(obs, weights, **kwargs)
+    half_cov *= 0.5  # for cov = half_cov + half_cov.mT, gradient coefficients symetric
+    mag *= torch.amax(weights.unsqueeze(-1), dim=-2)
+
+    # declaration
+    past_lr = []  # la liste des vecteurs des learning rates passes, les 2 derniers sont utilises
+    past_cost = []  # la liste des loss passes les 3 derniers sont utilises
+
+    # first step
+
+    # compute loss and loss diff
+    rois_pred, mean_jac, half_cov_jac, mag_jac = gmm2d_and_jac(obs, mean, half_cov, mag, _check=False)
+    # rois_pred = rois_pred.detach()
+    # rois_pred.requires_grad = True
+    # rois_pred.grad = None
+    # cost = loss(rois.reshape(*rois_pred.shape), rois_pred).sum(dim=1)
+    # cost.sum().backward()
+    rois_pred.grad = 2 * (rois_pred - rois.reshape(*rois_pred.shape))
+    past_cost.append(((rois.reshape(*rois_pred.shape) - rois_pred)**2).sum(dim=1))
+    print("cost init", past_cost[-1].sum().item())
+
+    # compute grad
+    mean_grad = torch.sum(rois_pred.grad.reshape(*rois_pred.shape, 1, 1, 1) * mean_jac, dim=-4)
+    half_cov_grad = torch.sum(rois_pred.grad.reshape(*rois_pred.shape, 1, 1, 1) * half_cov_jac, dim=-4)
+    mag_grad = torch.sum(rois_pred.grad.reshape(*rois_pred.shape, 1) * mag_jac, dim=-2)
+
+    # update values
+    mean -= 1e-2 * mean_grad
+    half_cov -= 1e-2 * half_cov_grad
+    mag -= 1e-2 * mag_grad
+    past_lr.append(1e-2)
+
+    # second step
+    rois_pred, mean_jac, half_cov_jac, mag_jac = gmm2d_and_jac(obs, mean, half_cov, mag, _check=False)
+    rois_pred.grad = 2 * (rois_pred - rois.reshape(*rois_pred.shape))
+    past_cost.append(((rois.reshape(*rois_pred.shape) - rois_pred)**2).sum(dim=1))
+    print("cost first step", past_cost[-1].sum().item())
+    mean_grad = torch.sum(rois_pred.grad.reshape(*rois_pred.shape, 1, 1, 1) * mean_jac, dim=-4)
+    half_cov_grad = torch.sum(rois_pred.grad.reshape(*rois_pred.shape, 1, 1, 1) * half_cov_jac, dim=-4)
+    mag_grad = torch.sum(rois_pred.grad.reshape(*rois_pred.shape, 1) * mag_jac, dim=-2)
+    mean -= 1e-2 * mean_grad
+    half_cov -= 1e-2 * half_cov_grad
+    mag -= 1e-2 * mag_grad
+    past_lr.append(1e-2)
+
+    # fird step
+    rois_pred, mean_jac, half_cov_jac, mag_jac = gmm2d_and_jac(obs, mean, half_cov, mag, _check=False)
+    rois_pred.grad = 2 * (rois_pred - rois.reshape(*rois_pred.shape))
+    past_cost.append(((rois.reshape(*rois_pred.shape) - rois_pred)**2).sum(dim=1))
+    print("cost second step", past_cost[-1].sum().item())
+
+
+    t_start = time.time()
+
+    for _ in range(30):
+        mean_grad = torch.sum(rois_pred.grad.reshape(*rois_pred.shape, 1, 1, 1) * mean_jac, dim=-4)
+        half_cov_grad = torch.sum(rois_pred.grad.reshape(*rois_pred.shape, 1, 1, 1) * half_cov_jac, dim=-4)
+        mag_grad = torch.sum(rois_pred.grad.reshape(*rois_pred.shape, 1) * mag_jac, dim=-2)
+        mean_grad = torch.clamp(mean_grad, -1.0, 1.0)
+        half_cov_grad = torch.clamp(half_cov_grad, -1.0, 1.0)
+        mag_grad = torch.clamp(mag_grad, -1.0, 1.0)
+
+        # compute optimal step
+        c23 = past_cost[-2] - past_cost[-3]
+        c13 = past_cost[-1] - past_cost[-3]
+        l21 = past_lr[-2] + past_lr[-1]
+        l2 = past_lr[-2]
+        pos = .5 * (c23*l21**2 - c13*l2**2) / (c23*l21 - c13*l2)
+        best_step = pos - l21
+        best_step = torch.nan_to_num(best_step, nan=1e-2, posinf=10.0, neginf=1e-2)
+        best_step = torch.clamp(best_step, 1e-2, 10.0)
+        # print(best_step)
+        # print("grad max", abs(mean_grad).max(), abs(half_cov_grad).max(), abs(mag_grad).max())
+
+        mean -= 0.6 * best_step.reshape(len(rois), 1, 1, 1) * mean_grad
+        half_cov -= 0.6 * best_step.reshape(len(rois), 1, 1, 1) * half_cov_grad
+        mag -= 0.6 * best_step.reshape(len(rois), 1) * mag_grad
+        past_lr.append(0.6 * best_step)
+
+        # correction
+        half_cov[..., 0, 0] = torch.clamp(half_cov[..., 0, 0], min=0.3)
+        half_cov[..., 1, 1] = torch.clamp(half_cov[..., 1, 1], min=0.3)
+        sig_prod = half_cov[..., 0, 0] * half_cov[..., 1, 1]
+        half_cov[..., 0, 1] = torch.where(
+            half_cov[..., 0, 1]**2 < sig_prod,
+            half_cov[..., 0, 1],
+            0.95*torch.sign(half_cov[..., 0, 1])*torch.sqrt(sig_prod),
+        )
+        half_cov[..., 1, 0] = half_cov[..., 0, 1]
+
+        # print("min sigma", min(half_cov[..., 0, 0].min(), half_cov[..., 1, 1].min()))
+        # print("param max", abs(mean).max(), abs(half_cov).max(), abs(mag).max())
+
+        rois_pred, mean_jac, half_cov_jac, mag_jac = gmm2d_and_jac(obs, mean, half_cov, mag, _check=False)
+        rois_pred.grad = 2 * (rois_pred - rois.reshape(*rois_pred.shape))
+        past_cost.append(((rois.reshape(*rois_pred.shape) - rois_pred)**2).sum(dim=1))
+        print("cost", past_cost[-1].sum().item())
+
+    print("t final:", time.time()-t_start)
+
+    return mean, half_cov+half_cov.mT, mag, infodict
 
 
 def fit_gaussians_(
