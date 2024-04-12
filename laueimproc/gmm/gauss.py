@@ -5,7 +5,7 @@
 import torch
 
 from .check import check_ingauss
-from .linalg import inv_cov2d, inv_cov2d_sympy
+from .linalg import inv_cov2d
 
 
 def gauss(
@@ -109,7 +109,7 @@ def gauss2d(
     --------
     >>> import torch
     >>> from laueimproc.gmm.gauss import gauss2d
-    >>> obs = torch.randn((1000, 10, 2))  # (..., n_obs, n_var)
+    >>> obs = torch.randn((1000, 100, 2))  # (..., n_obs, n_var)
     >>> mean = torch.randn((1000, 3, 2, 1))  # (..., n_clu, n_var, 1)
     >>> cov = obs.mT @ obs  # create real symmetric positive covariance matrix
     >>> cov = cov.unsqueeze(-3).expand(1000, 3, 2, 2)  # (..., n_clu, n_var, n_var)
@@ -180,7 +180,7 @@ def gauss2d_and_jac(
     --------
     >>> import torch
     >>> from laueimproc.gmm.gauss import gauss2d_and_jac
-    >>> obs = torch.randn((1000, 10, 2))  # (..., n_obs, n_var)
+    >>> obs = torch.randn((1000, 100, 2))  # (..., n_obs, n_var)
     >>> mean = torch.randn((1000, 3, 2, 1))  # (..., n_clu, n_var, 1)
     >>> cov = obs.mT @ obs  # create real symmetric positive covariance matrix
     >>> cov = cov.unsqueeze(-3).expand(1000, 3, 2, 2)  # (..., n_clu, n_var, n_var)

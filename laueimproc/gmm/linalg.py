@@ -2,7 +2,6 @@
 
 """Helper for fast linear algebra for 2d matrix."""
 
-import sympy
 import torch
 
 
@@ -72,7 +71,7 @@ def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool=True, theta: bool=True) -> to
     >>> import numpy as np
     >>> import torch
     >>> from laueimproc.gmm.linalg import cov2d_to_eigtheta
-    >>> obs = torch.randn((1000, 10, 2), dtype=torch.float64)  # (..., n_obs, n_var)
+    >>> obs = torch.randn((1000, 100, 2), dtype=torch.float64)  # (..., n_obs, n_var)
     >>> cov = obs.mT @ obs  # create real symmetric positive covariance matrix
     >>> eigtheta = cov2d_to_eigtheta(cov)
     >>>
@@ -181,7 +180,7 @@ def inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.Te
     --------
     >>> import torch
     >>> from laueimproc.gmm.linalg import inv_cov2d
-    >>> obs = torch.randn((1000, 10, 2))  # (..., n_obs, n_var)
+    >>> obs = torch.randn((1000, 100, 2))  # (..., n_obs, n_var)
     >>> cov = obs.mT @ obs  # create real symmetric positive covariance matrix
     >>> _, inv = inv_cov2d(cov)
     >>> torch.allclose(torch.linalg.inv(cov), inv)
@@ -193,27 +192,3 @@ def inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.Te
     assert isinstance(inv, bool), inv.__class__.__name__
 
     return _inv_cov2d(cov, inv)
-
-
-def inv_cov2d_sympy(cov: sympy.Matrix) -> tuple[sympy.Expr, sympy.Matrix]:
-    """Same as ``inv_cov2d`` with sympy objects.
-
-    Examples
-    --------
-    >>> from sympy import *
-    >>> from laueimproc.gmm.linalg import inv_cov2d_sympy
-    >>> sigma_1, sigma_2 = symbols("sigma_1, sigma_2", real=True, positive=True)
-    >>> corr = Symbol("c", real=True)
-    >>> cov = Matrix([[sigma_1, corr], [corr, sigma_2]])
-    >>> det, inv = inv_cov2d_sympy(cov)
-    >>> det
-    -c**2 + sigma_1*sigma_2
-    >>> inv
-    Matrix([
-    [-sigma_2/(c**2 - sigma_1*sigma_2),        c/(c**2 - sigma_1*sigma_2)],
-    [       c/(c**2 - sigma_1*sigma_2), -sigma_1/(c**2 - sigma_1*sigma_2)]])
-    >>>
-    """
-    assert isinstance(cov, sympy.Matrix), cov.__class__.__name__
-    assert cov.shape == (2, 2)
-    return cov.det(), sympy.cancel(cov.inv())
