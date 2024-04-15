@@ -4,10 +4,12 @@
 
 import typing
 
+import numpy as np
 import torch
 
 from .check import check_gmm
 from .gauss import gauss2d
+from laueimproc.opti.rois import rawshapes2rois
 
 
 def _gmm2d_and_jac_autodiff(
@@ -78,7 +80,7 @@ def gmm2d(
 
 
 def cost_and_grad(
-    rois: torch.Tensor,
+    data: bytearray, shapes: np.ndarray[np.int32],
     loss: typing.Union[str, typing.Callable[[torch.Tensor, torch.Tensor], torch.Tensor]],
     mean: torch.Tensor, cov: torch.Tensor, eta: torch.Tensor,
     *, _check: bool = True, _autodiff: bool = False
@@ -87,8 +89,12 @@ def cost_and_grad(
 
     Parameters
     ----------
-    rois : torch.Tensor
-        The tensor of the regions of interest for each spots. Shape (n, h, w).
+    data : bytearray
+        The raw data of the concatenated not padded float32 rois.
+    shapes : np.ndarray[np.int32]
+        Contains the information of the bboxes shapes.
+        heights = shapes[:, 0] and widths = shapes[:, 1].
+        It doesn't have to be c contiguous.
     loss : str callable
         Reduce the rois and the predected rois into a single vector of scalar.
         The shapes are [Tensor(n, h, w), Tensor(n, h, w)] -> Tensor(n,).
@@ -154,14 +160,14 @@ def cost_and_grad(
     >>>
     """
     if _check:
-        assert isinstance(rois, torch.Tensor), rois.__class__.__name__
-        assert rois.ndim == 3, rois.shape
         if isinstance(loss, str):
             assert loss in {"mse"}
         else:
             assert callable(loss), loss.__class__.__name__
 
     # preparation
+    rois = rawshapes2rois(data, shapes)
+    areas = torch.from_numpy(shapes[:, 0]*shapes[:, 1]).to(dtype=rois.dtype, device=rois.device)
     points_i, points_j = torch.meshgrid(
         torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
         torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
@@ -172,22 +178,21 @@ def cost_and_grad(
     obs = obs.expand(rois.shape[0], -1, -1)  # (n, n_obs, n_var)
 
     # evaluation of jacobian and loss
-    # print("avant:", mean.isnan().any() or cov.isnan().any() or eta.isnan().any())
     rois_pred, mean_jac, cov_jac, mag_jac = gmm2d_and_jac(
         obs, mean, cov, eta, _check=_check, _autodiff=_autodiff
     )
-    # print("apres:", mean.isnan().any() or cov.isnan().any() or eta.isnan().any())
 
     # compute cost and cost grad
     if loss == "mse":
         rois_pred -= rois.reshape(*rois_pred.shape)
-        cost = torch.sum(rois_pred * rois_pred, dim=1)
+        cost = torch.sum(rois_pred * rois_pred, dim=1) / areas
         rois_pred += rois_pred  # grad
+        rois_pred /= areas.unsqueeze(1)
     else:
         rois_pred = rois_pred.detach()
         rois_pred.requires_grad = True
         rois_pred.grad = None
-        cost = loss(rois.reshape(*rois_pred.shape), rois_pred).sum(dim=1)
+        cost = loss(rois.reshape(*rois_pred.shape), rois_pred).sum(dim=1) / areas
         cost.sum().backward()
         rois_pred = rois_pred.grad  # grad
 

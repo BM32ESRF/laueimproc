@@ -262,17 +262,13 @@ class Diagram(BaseDiagram):
             raise RuntimeWarning(
                 "you must to initialize the spots (`self.find_spots()`)"
             )
-        if isinstance(loss, str):
-            assert loss in {"l1", "mse"}, loss
-            loss = {
-                "l1": lambda rois, rois_pred: torch.abs(rois-rois_pred),
-                "mse": lambda rois, rois_pred: (rois-rois_pred)**2,
-            }[loss]
-        rois = self.rois
-        shift = self.bboxes[:, :2]
+        with self._rois_lock:
+            data = self._rois[0]
+            shapes = self._rois[1][:, 2:].numpy(force=True)
+            shift = self._rois[1][:, :2]
 
         # main fit
-        mean, cov, magnitude, infodict = fit_gaussians(rois, loss, **kwargs)
+        mean, cov, magnitude, infodict = fit_gaussians(data, shapes, loss, **kwargs)
 
         # spot base to diagram base
         if mean.requires_grad:

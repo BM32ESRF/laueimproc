@@ -32,7 +32,7 @@ def pca(data: bytearray, shapes: np.ndarray[np.int32], *, _no_c: bool = False) -
     shapes : np.ndarray[np.int32]
         Contains the information of the bboxes shapes.
         heights = shapes[:, 0] and widths = shapes[:, 1].
-        It don't have to be c contiguous.
+        It doesn't have to be c contiguous.
 
     Returns
     -------
