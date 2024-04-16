@@ -80,8 +80,9 @@ def find_optimal_step(
     grad_norm = torch.sqrt(grad_norm_square)   # (...,)
 
     beta = -grad_norm_square
-    beta *= torch.abs(torch.sum(grad * step, dim=-1) / (step_norm * grad_norm))
+    beta *= torch.abs(torch.sum(grad * step, dim=-1) / (step_norm * grad_norm))  # angular deviation
     alpha = (cost_dif*grad_norm_square + beta*grad_norm*step_norm) / step_norm_square
+    alpha += torch.sign(alpha) * 1e-14  # correction factor for cabbages
     delta = -beta / (2*alpha)
 
     delta = torch.nan_to_num(delta, nan=1e-2, out=delta)

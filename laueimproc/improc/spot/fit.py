@@ -250,6 +250,7 @@ def fit_gaussians(
     prev_pos, curr_pos = fold(mean, cov, mag), None
     prev_cost = curr_cost = None
     grad = None
+    ongoing = torch.full((len(shapes),), True, dtype=bool)
 
     # warming
     prev_cost, mean_grad, cov_grad, mag_grad = cost_and_grad(data, shapes, loss, mean, cov, mag)
@@ -264,17 +265,26 @@ def fit_gaussians(
     grad = fold(mean_grad, cov_grad, mag_grad)
 
     # overfiting
-    for _ in range(10):
+    for i in range(10):
         delta = find_optimal_step(prev_pos-curr_pos, prev_cost-curr_cost, grad)
-        # delta *= 0.5
-        grad_norm = torch.sqrt(torch.sum(grad*grad, dim=-1))
+        # grad_norm = torch.sqrt(torch.sum(grad*grad, dim=-1))
         # print(abs(delta.unsqueeze(-1)*grad).max())
         # delta = delta.clamp(max=1)
-        # print(delta.max())
-        mean -= torch.clamp(delta.reshape(-1, 1, 1, 1) * mean_grad, min=-0.2, max=0.2)
+        # print("delta min/max:", delta.min(), delta.max())
+        # print(torch.sqrt(torch.mean((delta.reshape(-1, 1, 1, 1) * mean_grad)**2)))
+        # print("max mean grad:", torch.abs(mean_grad).amax(dim=(-1, -2, -3)).mean().item())
+        # print("pos step", torch.abs(
+        #     torch.clamp(delta.reshape(-1, 1, 1, 1) * mean_grad, min=-0.1, max=0.1)).amax(dim=(-1, -2, -3)).max()
+        # )
+
+        mean -= torch.clamp(delta.reshape(-1, 1, 1, 1) * mean_grad, min=-0.1, max=0.1)
         cov -= torch.clamp(delta.reshape(-1, 1, 1, 1) * cov_grad, min=-0.5, max=0.5)
-        mag -= torch.clamp(delta.reshape(-1, 1) * mag_grad, min=-0.1, max=0.1)
-        # print("delta", delta)
+        mag -= torch.clamp(delta.reshape(-1, 1) * mag_grad, min=-0.05, max=0.05)
+
+        # fact = 1 - i*(1-0.1)/99
+        # mean -= torch.clamp(delta.reshape(-1, 1, 1, 1) * mean_grad, min=-0.5*fact, max=0.5*fact)
+        # cov -= torch.clamp(delta.reshape(-1, 1, 1, 1) * cov_grad, min=-2*fact, max=2*fact)
+        # mag -= torch.clamp(delta.reshape(-1, 1) * mag_grad, min=-0.2*fact, max=0.2*fact)
 
         # correction
         cov[..., 0, 0] = torch.clamp(cov[..., 0, 0], min=0.1)
@@ -287,93 +297,21 @@ def fit_gaussians(
         )
         cov[..., 1, 0] = cov[..., 0, 1]
 
+        # selection
+        # ongoing_ = (delta.reshape(-1, 1, 1, 1) * mean_grad).abs().amax(dim=(-1, -2, -3)) >= 1e-4
+        # ongoing_ = (prev_cost - curr_cost) / prev_cost >= 1e-3
+        # ongoing = torch.logical_or(ongoing, ongoing_, out=ongoing)
+        # print(ongoing.to(int).sum())
+
         # shift history
+        # ongoing = ongoing_
         prev_pos, prev_cost = curr_pos, curr_cost
         curr_pos = fold(mean, cov, mag)
         grad = fold(mean_grad, cov_grad, mag_grad)
 
         curr_cost, mean_grad, cov_grad, mag_grad = cost_and_grad(data, shapes, loss, mean, cov, mag)
-        print(f"cost n: {curr_cost.mean().item()}")
+        print(f"cost {i+2:>2}: {curr_cost.mean().item():e}")
 
-
-    # # declaration
-    # last_last_lr = last_lr = torch.full((len(rois),), 1e-2, dtype=rois.dtype, device=rois.device)
-    # last_last_last_cost = last_last_cost = last_cost = None  # the 3 last loss
-    # last_grad = None
-
-    # # warming
-    # last_last_last_cost, mean_grad, cov_grad, mag_grad = cost_and_grad(data, shapes, loss, mean, cov, mag)
-    # mean_grad *= torch.rsqrt(torch.mean(mean_grad**2, dim=(1, 2, 3), keepdim=True) + 1e-8)
-    # cov_grad *= torch.rsqrt(torch.mean(cov_grad**2, dim=(1, 2, 3), keepdim=True) + 1e-8)
-    # mag_grad *= torch.rsqrt(torch.mean(mag_grad**2, dim=1, keepdim=True) + 1e-8)
-    # print(f"cost 1: {last_last_last_cost.mean().item()}")
-    # mean -= last_last_lr.reshape(len(rois), 1, 1, 1) * mean_grad
-    # cov -= last_last_lr.reshape(len(rois), 1, 1, 1) * cov_grad
-    # mag -= last_last_lr.reshape(len(rois), 1) * mag_grad
-
-    # last_last_cost, mean_grad, cov_grad, mag_grad = cost_and_grad(data, shapes, loss, mean, cov, mag)
-    # mean_grad *= torch.rsqrt(torch.mean(mean_grad**2, dim=(1, 2, 3), keepdim=True) + 1e-8)
-    # cov_grad *= torch.rsqrt(torch.mean(cov_grad**2, dim=(1, 2, 3), keepdim=True) + 1e-8)
-    # mag_grad *= torch.rsqrt(torch.mean(mag_grad**2, dim=1, keepdim=True) + 1e-8)
-    # print(f"cost 2: {last_last_cost.mean().item()}")
-    # mean -= last_lr.reshape(len(rois), 1, 1, 1) * mean_grad
-    # cov -= last_lr.reshape(len(rois), 1, 1, 1) * cov_grad
-    # mag -= last_lr.reshape(len(rois), 1) * mag_grad
-    # last_grad = (mean_grad, cov_grad, mag_grad)
-
-    # last_cost, mean_grad, cov_grad, mag_grad = cost_and_grad(data, shapes, loss, mean, cov, mag)
-    # mean_grad *= torch.rsqrt(torch.mean(mean_grad**2, dim=(1, 2, 3), keepdim=True) + 1e-8)
-    # cov_grad *= torch.rsqrt(torch.mean(cov_grad**2, dim=(1, 2, 3), keepdim=True) + 1e-8)
-    # mag_grad *= torch.rsqrt(torch.mean(mag_grad**2, dim=1, keepdim=True) + 1e-8)
-    # print(f"cost 3: {last_cost.mean().item()}")
-
-    # # overfiting
-    # for _ in range(50):
-    #     # compute optimal step
-    #     c23 = last_last_cost - last_last_last_cost
-    #     c13 = last_cost - last_last_last_cost
-    #     l21 = last_last_lr + last_lr
-    #     l2 = last_last_lr
-    #     best_lr = .5 * (c23*l21**2 - c13*l2**2) / (c23*l21 - c13*l2) - l21
-    #     best_lr = torch.clamp(best_lr, min=1e-2, max=1.0)  # reduce the risk to go in cabbage
-    #     best_lr = torch.nan_to_num(0.5*best_lr, nan=1e-2, out=best_lr)
-
-    #     # fix two big last step
-    #     in_cabbage = last_cost > last_last_cost
-    #     mean_grad[in_cabbage] = -last_grad[0][in_cabbage]
-    #     cov_grad[in_cabbage] = -last_grad[1][in_cabbage]
-    #     mag_grad[in_cabbage] = -last_grad[2][in_cabbage]
-    #     best_lr[in_cabbage] = last_lr[in_cabbage] - 1e-2
-
-    #     # update mean, cov and mag
-    #     mean -= best_lr.reshape(len(rois), 1, 1, 1) * mean_grad
-    #     cov -= best_lr.reshape(len(rois), 1, 1, 1) * cov_grad
-    #     mag -= best_lr.reshape(len(rois), 1) * mag_grad
-
-    #     # correction
-    #     cov[..., 0, 0] = torch.clamp(cov[..., 0, 0], min=0.1)
-    #     cov[..., 1, 1] = torch.clamp(cov[..., 1, 1], min=0.1)
-    #     sig_prod = cov[..., 0, 0] * cov[..., 1, 1]
-    #     cov[..., 0, 1] = torch.where(
-    #         cov[..., 0, 1]**2 < sig_prod,
-    #         cov[..., 0, 1],
-    #         0.95*torch.sign(cov[..., 0, 1])*torch.sqrt(sig_prod),
-    #     )
-    #     cov[..., 1, 0] = cov[..., 0, 1]
-
-    #     # shift history
-    #     last_last_lr, last_lr = last_lr, torch.where(in_cabbage, 1e-2, best_lr)
-    #     last_last_last_cost, last_last_cost = last_last_cost, last_cost
-    #     last_grad = (  # wrong for in_cabbage but it doesn't matter because not used in next step
-    #         mean_grad, cov_grad, mag_grad
-    #     )
-
-    #     # compute new grad
-    #     last_cost, mean_grad, cov_grad, mag_grad = cost_and_grad(data, shapes, loss, mean, cov, mag)
-    #     mean_grad *= torch.rsqrt(torch.mean(mean_grad**2, dim=(1, 2, 3), keepdim=True) + 1e-8)
-    #     cov_grad *= torch.rsqrt(torch.mean(cov_grad**2, dim=(1, 2, 3), keepdim=True) + 1e-8)
-    #     mag_grad *= torch.rsqrt(torch.mean(mag_grad**2, dim=1, keepdim=True) + 1e-8)
-    #     print(f"cost n: {last_cost.mean().item()}")
 
     print("t final:", time.time()-t_start)
 
