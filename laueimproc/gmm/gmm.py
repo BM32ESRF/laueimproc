@@ -80,7 +80,7 @@ def gmm2d(
 
 
 def cost_and_grad(
-    data: bytearray, shapes: np.ndarray[np.int32],
+    rois: torch.Tensor, shapes: torch.Tensor,
     loss: typing.Union[str, typing.Callable[[torch.Tensor, torch.Tensor], torch.Tensor]],
     mean: torch.Tensor, cov: torch.Tensor, eta: torch.Tensor,
     *, _check: bool = True, _autodiff: bool = False
@@ -89,9 +89,9 @@ def cost_and_grad(
 
     Parameters
     ----------
-    data : bytearray
-        The raw data of the concatenated not padded float32 rois.
-    shapes : np.ndarray[np.int32]
+    rois : torch.Tensor
+        The unfolded and padded rois of dtype torch.float32 and shape (n, h, w).
+    shapes : torch.Tensor
         Contains the information of the bboxes shapes.
         heights = shapes[:, 0] and widths = shapes[:, 1].
         It doesn't have to be c contiguous.
@@ -164,10 +164,13 @@ def cost_and_grad(
             assert loss in {"mse"}
         else:
             assert callable(loss), loss.__class__.__name__
+        assert isinstance(rois, torch.Tensor), rois.__class__.__name__
+        assert rois.ndim == 3, rois.shape
+        assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__
+        assert shapes.ndim == 2, shapes.shape
 
     # preparation
-    rois = rawshapes2rois(data, shapes)
-    areas = torch.from_numpy(shapes[:, 0]*shapes[:, 1]).to(dtype=rois.dtype, device=rois.device)
+    areas = torch.prod(shapes, dim=1).to(dtype=rois.dtype, device=rois.device)
     points_i, points_j = torch.meshgrid(
         torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
         torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),

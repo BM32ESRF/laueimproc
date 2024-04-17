@@ -264,7 +264,7 @@ class Diagram(BaseDiagram):
             )
         with self._rois_lock:
             data = self._rois[0]
-            shapes = self._rois[1][:, 2:].numpy(force=True)
+            shapes = self._rois[1][:, 2:]
             shift = self._rois[1][:, :2]
 
         # main fit
