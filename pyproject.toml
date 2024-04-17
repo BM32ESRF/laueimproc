@@ -13,7 +13,6 @@ dependencies = [
   "numpy",
   "opencv-contrib-python-headless",
   "psutil",
-  "sympy",
   "torch",
   "tqdm",
 ]

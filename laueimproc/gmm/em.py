@@ -45,12 +45,12 @@ import typing
 import torch
 
 from .check import check_infit
-from .gauss import gauss
+from .gmm import gmm2d
 from .metric import aic_bic, log_likelihood
 
 
 def _fit_one_cluster(
-    obs: typing.Optional[torch.Tensor], dup_w: typing.Optional[torch.Tensor], std_w: torch.Tensor
+    obs: torch.Tensor, weights: typing.Optional[torch.Tensor]
 ) -> tuple[torch.Tensor, torch.Tensor]:
     r"""Fit one gaussian.
 
@@ -58,10 +58,8 @@ def _fit_one_cluster(
     ----------
     obs : torch.Tensor
         The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
-    dup_w : torch.Tensor, optional
+    weights : torch.Tensor, optional
         The duplication weights of shape (..., \(N\)).
-    std_w : torch.Tensor, optional
-        The inverse var weights of shape (..., \(N\)).
 
     Returns
     -------
@@ -74,34 +72,30 @@ def _fit_one_cluster(
     -----
     * No verifications are performed for performance reason.
     """
-    if dup_w is None and std_w is None:
-        mean = torch.mean(obs, axis=-2, keepdim=True)  # (..., 1, n_var)
+    if weights is None:
+        mean = torch.mean(obs, dim=-2, keepdim=True)  # (..., 1, n_var)
     else:
-        weights_prod = (  # (..., n_obs)
-            (1.0 if dup_w is None else dup_w) * (1.0 if std_w is None else std_w)
-        )
-        mean = torch.sum((weights_prod.unsqueeze(-1) * obs), axis=-2, keepdim=True)
-        mean /= torch.sum(weights_prod.unsqueeze(-1), axis=-2, keepdim=True)  # (..., 1, n_var)
+        mean = torch.sum((weights.unsqueeze(-1) * obs), dim=-2, keepdim=True)
+        mean /= torch.sum(weights.unsqueeze(-1), dim=-2, keepdim=True)  # (..., 1, n_var)
     cent_obs = (obs - mean).unsqueeze(-1)  # (..., n_obs, n_var, 1)
     mean = mean.squeeze(-2).unsqueeze(-1)  # (..., n_var, 1)
-    if dup_w is None and std_w is None:
+    if weights is None:
         cov = torch.mean(  # (..., n_var, n_var)
             cent_obs @ cent_obs.transpose(-1, -2),
-            axis=-3, keepdim=False  # (..., n_obs, n_var, n_var) -> (..., n_var, n_var)
+            dim=-3, keepdim=False  # (..., n_obs, n_var, n_var) -> (..., n_var, n_var)
         )
     else:
         cov = torch.sum(  # (..., n_var, n_var)
-            weights_prod.unsqueeze(-1).unsqueeze(-1) * cent_obs @ cent_obs.mT,
-            axis=-3, keepdim=False  # (..., n_obs, n_var, n_var) -> (..., n_var, n_var)
+            weights.unsqueeze(-1).unsqueeze(-1) * cent_obs @ cent_obs.mT,
+            dim=-3, keepdim=False  # (..., n_obs, n_var, n_var) -> (..., n_var, n_var)
         )
-        cov /= torch.sum(dup_w, axis=-1, keepdim=False).unsqueeze(-1).unsqueeze(-1)
+        cov /= torch.sum(weights, dim=-1, keepdim=False).unsqueeze(-1).unsqueeze(-1)
     return mean, cov
 
 
 def _fit_n_clusters_one_step(
     obs: torch.Tensor,
-    dup_w: typing.Optional[torch.Tensor],
-    std_w: typing.Optional[torch.Tensor],
+    weights: typing.Optional[torch.Tensor],
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     r"""One step of the EM algo.
@@ -110,10 +104,8 @@ def _fit_n_clusters_one_step(
     ----------
     obs : torch.Tensor
         The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
-    dup_w : torch.Tensor, optional
+    weights : torch.Tensor, optional
         The duplication weights of shape (..., \(N\)).
-    std_w : torch.Tensor, optional
-        The inverse var weights of shape (..., \(N\)).
     gmm : tuple of torch.Tensor
         * mean : torch.Tensor
             The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
@@ -139,51 +131,50 @@ def _fit_n_clusters_one_step(
     eps = torch.finfo(obs.dtype).eps
 
     # posterior probability that observation j belongs to cluster i
-    post = gauss(obs, mean, cov, _check=False)  # (..., n_clu, n_obs)
+    post = gmm2d(obs, mean, cov, eta, _check=False)  # (..., n_clu, n_obs)
     post += eps  # prevention again division by 0
-    post *= eta.unsqueeze(-1)  # (..., n_clu, n_obs)
-    post /= torch.sum(post, axis=-2, keepdim=True)  # (..., n_clu, n_obs)
+    post /= torch.sum(post, dim=-2, keepdim=True)  # (..., n_clu, n_obs)
 
     # update the relative mass of each gaussians (not normalized because it it used for cov)
-    eta = torch.sum(dup_w.unsqueeze(-2) * post, axis=-1, keepdim=False, out=eta)  # (..., n_clu)
+    if weights is None:
+        eta = torch.sum(post, dim=-1)  # (..., n_clu)
+    else:
+        eta = torch.sum(weights.unsqueeze(-2) * post, dim=-1, keepdim=False, out=eta)
 
     # mean
-    if dup_w is None and std_w is None:
+    if weights is None:
         weighted_post = post
         mean = torch.mean(
             obs.unsqueeze(-3).unsqueeze(-1),  # (..., n_clu, n_obs, n_var, 1)
-            axis=-3, keepdim=False, out=mean  # (..., n_clus, n_var, 1)
+            dim=-3, keepdim=False, out=mean  # (..., n_clus, n_var, 1)
         )
     else:
-        weighted_post = (  # (..., n_obs)
-            (1.0 if dup_w is None else dup_w) * (1.0 if std_w is None else std_w)
-        ).unsqueeze(-2) * post  # (..., n_clu, n_obs)
+        weighted_post = weights.unsqueeze(-2) * post  # (..., n_clu, n_obs)
         weighted_post = weighted_post.unsqueeze(-1).unsqueeze(-1)  # (..., n_clu, n_obs, 1, 1)
         mean = torch.sum(
             weighted_post * obs.unsqueeze(-3).unsqueeze(-1),  # (..., n_clu, n_obs, n_var, 1)
-            axis=-3, keepdim=False, out=mean  # (..., n_clus, n_var, 1)
+            dim=-3, keepdim=False, out=mean  # (..., n_clus, n_var, 1)
         )
-        mean /= torch.sum(weighted_post, axis=-3, keepdim=False)  # (..., n_clus, n_var, 1)
+        mean /= torch.sum(weighted_post, dim=-3, keepdim=False)  # (..., n_clus, n_var, 1)
 
     # cov
     cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
     cov = torch.sum(
         weighted_post * cent_obs @ cent_obs.transpose(-1, -2),  # (..., n_clu, n_obs, n_var, n_var)
-        axis=-3, keepdim=False, out=cov  # (..., n_clu, n_var, n_var)
+        dim=-3, keepdim=False, out=cov  # (..., n_clu, n_var, n_var)
     )
     cov /= eta.unsqueeze(-1).unsqueeze(-1)
 
     # normalize eta
-    if dup_w is not None:
-        eta /= torch.sum(dup_w.unsqueeze(-2), axis=-1, keepdim=False)  # (..., n_clu)
+    if weights is not None:
+        eta /= torch.sum(weights.unsqueeze(-2), dim=-1, keepdim=False)  # (..., n_clu)
 
     return mean, cov, eta
 
 
 def _fit_n_clusters_serveral_steps(
     obs: torch.Tensor,
-    dup_w: typing.Optional[torch.Tensor],
-    std_w: typing.Optional[torch.Tensor],
+    weights: typing.Optional[torch.Tensor],
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
 ) -> tuple[tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor]:
     r"""N steps of the EM algo.
@@ -192,10 +183,8 @@ def _fit_n_clusters_serveral_steps(
     ----------
     obs : torch.Tensor
         The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
-    dup_w : torch.Tensor, optional
+    weights : torch.Tensor, optional
         The duplication weights of shape (..., \(N\)).
-    std_w : torch.Tensor, optional
-        The inverse var weights of shape (..., \(N\)).
     gmm : tuple of torch.Tensor
         * mean : torch.Tensor
             The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
@@ -221,19 +210,16 @@ def _fit_n_clusters_serveral_steps(
     * No verifications are performed for performance reason.
     """
     mean, cov, eta = gmm
-    llh = log_likelihood(obs, dup_w, std_w, gmm, _check=False)  # (...,)
+    llh = log_likelihood(obs, weights, gmm, _check=False)  # (...,)
     ongoing = torch.ones_like(llh, dtype=bool)  # mask for clusters converging
 
     for _ in range(1000):  # not while True for security
-        on_dup_w = None if dup_w is None else dup_w[ongoing]
-        on_std_w = None if std_w is None else std_w[ongoing]
+        on_weights = None if weights is None else weights[ongoing]
         new_gmm = _fit_n_clusters_one_step(
-            obs[ongoing], on_dup_w, on_std_w, (mean[ongoing], cov[ongoing], eta[ongoing])
+            obs[ongoing], on_weights, (mean[ongoing], cov[ongoing], eta[ongoing])
         )
         mean[ongoing], cov[ongoing], eta[ongoing] = new_gmm
-        new_llh = log_likelihood(
-            obs[ongoing], on_dup_w, on_std_w, new_gmm, _check=False
-        )
+        new_llh = log_likelihood(obs[ongoing], on_weights, new_gmm, _check=False)
         converged = (   # the mask of the converged clusters
             new_llh - llh[ongoing] <= 1e-3
         )
@@ -253,8 +239,7 @@ def _fit_n_clusters_serveral_steps(
 def _fit_n_clusters_serveral_steps_serveral_tries(
     nbr_tries: int,
     obs: torch.Tensor,
-    dup_w: typing.Optional[torch.Tensor],
-    std_w: typing.Optional[torch.Tensor],
+    weights: typing.Optional[torch.Tensor],
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
 ) -> tuple[tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor]:
     r"""N steps and serveral tries of the EM algo.
@@ -268,10 +253,8 @@ def _fit_n_clusters_serveral_steps_serveral_tries(
         but with different random initializations.
     obs : torch.Tensor
         The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
-    dup_w : torch.Tensor, optional
+    weights : torch.Tensor, optional
         The duplication weights of shape (..., \(N\)).
-    std_w : torch.Tensor, optional
-        The inverse var weights of shape (..., \(N\)).
     gmm : tuple of torch.Tensor
         * mean : torch.Tensor
             The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
@@ -322,21 +305,17 @@ def _fit_n_clusters_serveral_steps_serveral_tries(
 
     # prepare data for several draw
     obs = obs.unsqueeze(0).expand(nbr_tries, *batch, n_obs, n_var)
-    if dup_w is not None:
-        dup_w = dup_w.unsqueeze(0).expand(nbr_tries, *batch, n_obs)
-    if std_w is not None:
-        std_w = std_w.unsqueeze(0).expand(nbr_tries, *batch, n_obs)
+    if weights is not None:
+        weights = weights.unsqueeze(0).expand(nbr_tries, *batch, n_obs)
 
     # run em on each cluster and each tries
-    (mean, cov, eta), llh = (
-        _fit_n_clusters_serveral_steps(obs, dup_w, std_w, (mean, cov, eta))
-    )
+    (mean, cov, eta), llh = _fit_n_clusters_serveral_steps(obs, weights, (mean, cov, eta))
 
     # keep the best
     if nbr_clusters == 1:
         mean, cov, eta = mean.unsqueeze(0), cov.unsqueeze(0), eta.unsqueeze(0)
     else:
-        llh, best = torch.max(llh, axis=0)
+        llh, best = torch.max(llh, dim=0)
         mean = mean[best, range(mean.shape[1])]
         cov = cov[best, range(cov.shape[1])]
         eta = eta[best, range(eta.shape[1])]
@@ -345,8 +324,7 @@ def _fit_n_clusters_serveral_steps_serveral_tries(
 
 def em(
     obs: torch.Tensor,
-    dup_w: typing.Optional[torch.Tensor] = None,
-    std_w: typing.Optional[torch.Tensor] = None,
+    weights: typing.Optional[torch.Tensor] = None,
     *,
     nbr_clusters: numbers.Integral = 1,
     nbr_tries: numbers.Integral = 2,
@@ -358,11 +336,8 @@ def em(
     ----------
     obs : arraylike
         The observations \(\mathbf{x}\). Shape (..., \(N\), \(D\)).
-    dup_w : arraylike, optional
+    weights : arraylike, optional
         The weights \(\alpha\) has the relative number of time the individual has been drawn.
-        Shape (..., \(N\)).
-    std_w : arraylike, optional
-        The weights \(\omega\) has the inverse of the standard deviation of each individual.
         Shape (..., \(N\)).
     nbr_clusters : int, default=1
         The number \(K\) of gaussians.
@@ -402,7 +377,7 @@ def em(
     m_name = {"aic", "bic", "log_likelihood"}
 
     # verifications
-    check_infit(obs, dup_w, std_w)
+    check_infit(obs, weights)
     assert isinstance(nbr_clusters, numbers.Integral), nbr_clusters.__class__.__name__
     assert nbr_clusters > 0, nbr_clusters
     nbr_clusters = int(nbr_clusters)
@@ -414,24 +389,24 @@ def em(
 
     # main gmm
     *batch, _, _ = obs.shape
-    mean, cov = _fit_one_cluster(obs, dup_w, std_w)  # (..., n_var, 1) and (..., n_var, n_var)
+    mean, cov = _fit_one_cluster(obs, weights)  # (..., n_var, 1) and (..., n_var, n_var)
     eta = torch.full((*batch, nbr_clusters), 1.0/nbr_clusters, dtype=obs.dtype, device=obs.device)
     llh = None
     if nbr_clusters != 1:
         (mean, cov, eta), llh = _fit_n_clusters_serveral_steps_serveral_tries(
-            nbr_tries, obs, dup_w, std_w, (mean, cov, eta)
+            nbr_tries, obs, weights, (mean, cov, eta)
         )
     else:  # case one cluster
         mean = mean.unsqueeze(-3)  # (..., 1, n_var, 1)
         cov = cov.unsqueeze(-3)  # (..., 1, n_var, n_var)
         if any(metrics.get(n, False) for n in ("log_likelihood", "aic", "bic")):
-            llh = log_likelihood(obs, dup_w, std_w, (mean, cov, eta), _check=False)
+            llh = log_likelihood(obs, weights, (mean, cov, eta), _check=False)
 
     # finalization
     infodict = {}
 
     if any(metrics.get(n, False) for n in ("aic", "bic")):
-        aic_bic_ = aic_bic(obs, dup_w, std_w, (mean, cov, eta), _llh=llh, _check=False)
+        aic_bic_ = aic_bic(obs, weights, (mean, cov, eta), _llh=llh, _check=False)
         if metrics.get("aic", False):
             infodict["aic"] = aic_bic_[0]
         if metrics.get("bic", False):
