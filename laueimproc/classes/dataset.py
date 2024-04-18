@@ -2,6 +2,7 @@
 
 """Link serveral diagrams together."""
 
+import hashlib
 import inspect
 import multiprocessing.pool
 import numbers
@@ -20,6 +21,10 @@ import torch
 import tqdm
 
 from .diagram import Diagram
+
+
+GENTYPE = type((lambda: (yield))())
+NCPU = len(psutil.Process().cpu_affinity())
 
 
 def _excepthook(args):
@@ -75,13 +80,7 @@ class _ChainThread(threading.Thread):
 
 
 class DiagramDataset(threading.Thread):
-    """Link Diagrams together.
-
-    Attributes
-    ----------
-    diagrams : list[Diagram]
-        The full list of the diagrams. If a diagram is not in the dataset, it is squeeze.
-    """
+    """Link Diagrams together."""
 
     def __init__(
         self,
@@ -116,7 +115,8 @@ class DiagramDataset(threading.Thread):
         self._diagrams: dict[int, Diagram] = {}  # index to diagram
         self._lock = threading.Lock()
         self._to_sniff: dict = {"dirs": [], "readed": set()}  # for the async run method
-        self._operations_chain: list[typing.Callable[[Diagram], object]] = []
+        self._operations_chain: list[tuple[typing.Callable[[Diagram], object], tuple]] = []
+        self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
         self.add_diagrams(diagram_refs)
         super().__init__(daemon=True)
         self.start()
@@ -155,21 +155,44 @@ class DiagramDataset(threading.Thread):
 
         raise TypeError(f"only int, slices and tuple[float, float] are allowed, not {item}")
 
+    def __iter__(self) -> Diagram:
+        """Yield the diagrams ready.
+
+        This function is dynamic in the sense that if a new diagram is poping up
+        during iterating, it's gotta be yield as well.
+        """
+        yielded = set()  # the yielded diagrams
+        while True:
+            with self._lock:
+                if not (toyield := self._diagrams.keys() - yielded):
+                    break
+            for index in toyield:
+                try:
+                    diag = self._get_diagram_from_index(index)
+                except IndexError:
+                    pass
+                yielded.add(index)
+                yield diag
+
     def __len__(self) -> int:
         """Return the approximative numbers of diagrams soon be present in the dataset."""
-        return max(self._diagrams, default=-1) + 1
+        return len(self._diagrams)
+
+    def __repr__(self) -> str:
+        """Give a very compact representation."""
+        return f"<{self.__class__.__name__} with {len(self)} diagrams of id {id(self)}>"
 
     def __str__(self) -> str:
         """Return an exaustive printable string giving informations on the dataset."""
 
         # title
-        if len(folders := {d.file.parent for d in self.diagrams if d.file is not None}) == 1:
+        if len(folders := {d.file.parent for d in self if d.file is not None}) == 1:
             text = f"DiagramDataset from the folder {folders.pop()}:"
         else:
             text = "DiagramDataset:"
 
-        # history
         with self._lock:
+            # history
             if self._operations_chain:
                 text += "\n    Function chain:"
                 for i, func in enumerate(self._operations_chain):
@@ -177,14 +200,24 @@ class DiagramDataset(threading.Thread):
             else:
                 text += "\n    No function has been applied."
 
-        # stats
-        text += "\n    Current state:"
-        text += f"\n        * id: {id(self)}"
-        text += f"\n        * nbr diagram: {len(self)}"
-        if self._position[0] is None:
-            text += "\n        * 2d indexing: no"
-        else:
-            text += f"\n        * 2d indexing: {self._position[0]}"
+            # properties
+            if self._properties:
+                text += "\n    Properties:"
+                for name, (_, value) in self._properties.items():
+                    if len(value_str := str(value).replace("\n", "\\n")) >= 80:
+                        value_str = f"<{value.__class__.__name__} object>"
+                    text += f"\n        * {name}: {value_str}"
+            else:
+                text += "\n    No Properties"
+
+            # stats
+            text += "\n    Current state:"
+            text += f"\n        * id, state: {id(self)}, {self.state}"
+            text += f"\n        * max index: {len(self)}"
+            if self._position[0] is None:
+                text += "\n        * 2d indexing: no"
+            else:
+                text += f"\n        * 2d indexing: {self._position[0]}"
 
         return text
 
@@ -282,8 +315,9 @@ class DiagramDataset(threading.Thread):
                 diagram = self._diagrams[index]
             except KeyError as err:
                 raise IndexError(f"The diagram of index {index} is not in the dataset") from err
-        if not isinstance(diagram, Diagram):
-            raise IndexError(f"The diagram of index {index} is coming soon in the dataset")
+            if isinstance(diagram, queue.Queue):
+                diagram = diagram.get()  # passive waiting
+                self._diagrams[index] = diagram
         return diagram
 
     def _get_diagrams_from_slice(self, indexs: slice):
@@ -300,8 +334,28 @@ class DiagramDataset(threading.Thread):
             new_dataset._diag2ind = self._diag2ind
             new_dataset._position = self._position.copy()
             new_dataset._diagrams = diagrams
-            new_dataset._operations_chain = self._operations_chain
+            new_dataset._operations_chain = self._operations_chain.copy()
+            new_dataset._properties = self._properties.copy()
             return new_dataset
+
+    def add_property(self, name: str, value: object, *, state_independent: bool = False):
+        """Add a property to the dataset.
+
+        Parameters
+        ----------
+        name : str
+            The identifiant of the property for the requests.
+            If the property is already defined with the same name, the new one erase the older one.
+        value
+            The property value. If a number is provided, it will be faster.
+        state_independent : boolean, default=False
+            If set to True, the property will be keep when filtering,
+            overwise, the property will desappear as soon as the dataset state changed.
+        """
+        assert isinstance(name, str), name.__class__.__name__
+        assert isinstance(state_independent, bool), state_independent.__class__.__name__
+        with self._lock:
+            self._properties[name] = ((None if state_independent else self.state), value)
 
     def add_diagram(self, new_diagram: Diagram):
         """Append a new diagram into the dataset.
@@ -358,9 +412,15 @@ class DiagramDataset(threading.Thread):
                 self._to_sniff["readed"].add(new_diagram.file)
             if self._operations_chain:
                 self._diagrams[index] = queue.Queue()
-                _ChainThread(new_diagram, self._operations_chain, self._diagrams[index]).start()
+                thread = _ChainThread(new_diagram, self._operations_chain, self._diagrams[index])
             else:
                 self._diagrams[index] = new_diagram
+                thread = None
+        if thread is not None:
+            if len([None for t in threading.enumerate() if isinstance(t, _ChainThread)]) < 3*NCPU:
+                thread.start()  # asnyc
+            else:
+                thread.run()  # blocking
 
     def add_diagrams(
         self, new_diagrams: typing.Union[typing.Iterable, Diagram, str, bytes, pathlib.Path]
@@ -375,7 +435,6 @@ class DiagramDataset(threading.Thread):
                 * laueimproc.classes.diagram.Diagram : Could be a simple Diagram instance.
                 * iterable : An iterable of any of the types specified above.
         """
-        gen_type = type((lambda: (yield))())
         if isinstance(new_diagrams, Diagram):
             self.add_diagram(new_diagrams)
         elif isinstance(new_diagrams, pathlib.Path):
@@ -391,7 +450,7 @@ class DiagramDataset(threading.Thread):
                 self.add_diagram(Diagram(new_diagrams))  # case file
         elif isinstance(new_diagrams, (str, bytes)):
             self.add_diagrams(pathlib.Path(new_diagrams))
-        elif isinstance(new_diagrams, (tuple, list, set, frozenset, gen_type)):
+        elif isinstance(new_diagrams, (tuple, list, set, frozenset, GENTYPE, self.__class__)):
             for new_diagram in new_diagrams:
                 self.add_diagrams(new_diagram)
         else:
@@ -422,6 +481,7 @@ class DiagramDataset(threading.Thread):
         -----
         This function will be automaticaly applided on the new diagrams, but the result is throw.
         """
+        # verifications
         assert callable(func), func.__class__.__name__
         try:
             pickle.dumps(func)
@@ -451,26 +511,70 @@ class DiagramDataset(threading.Thread):
                     f"the arguments `args` {args} are not pickalable"
                 ) from err
 
-        n_cpu = len(psutil.Process().cpu_affinity())
-        with self._lock, multiprocessing.pool.ThreadPool(n_cpu) as pool:
+        # apply
+        with self._lock, multiprocessing.pool.ThreadPool(NCPU) as pool:
             idxs_diags = list((i, d) for i, d in self._diagrams.items() if isinstance(d, Diagram))
             res = dict(
                 tqdm.tqdm(
                     pool.imap_unordered(
                         lambda idx_diag: (idx_diag[0], func(idx_diag[1], *args)), idxs_diags
                     ),
+                    desc=func.__name__,
                     unit="diag",
                     total=len(idxs_diags)
                 )
             )
             self._operations_chain.append((func, args))
+
+        # filter properties
+        with self._lock:
+            state = self.state
+            for key in list(self._properties):
+                match = self._properties[key][0]
+                if match is not None and match != state:
+                    del self._properties[key]
+
         return res
 
-    @property
-    def diagrams(self) -> list[typing.Union[Diagram, None]]:
-        """Return all the diagrams, pad missing by None."""
+    def get_property(self, name: str) -> object:
+        """Return the property associated to the given id.
+
+        Parameters
+        ----------
+        name : str
+            The name of the property to get.
+
+        Returns
+        -------
+        property : object
+            The property value set with ``add_property``.
+
+        Raises
+        ------
+        KeyError
+            Is the property has never been defined or if the state changed.
+        """
+        assert isinstance(name, str), name.__class__.__name__
         with self._lock:
-            return [d for d in self._diagrams.values() if isinstance(d, Diagram)]
+            try:
+                return self._properties[name][1]
+            except KeyError as err:
+                raise KeyError(f"the property {repr(name)} does no exist") from err
+
+    @property
+    def state(self) -> str:
+        """Return a hash of the dataset.
+
+        If two datasets gots the same state, it means they are the same.
+        The hash take in consideration the indexes of the diagrams and the functions applyed.
+        The retruned value is a hexadecimal string of length 32.
+        """
+        hasher = hashlib.md5(usedforsecurity=False)
+        hasher.update(str(sorted(self._diagrams)).encode())
+        hasher.update(pickle.dumps(self._diag2ind))
+        hasher.update(pickle.dumps(self._position[0]))
+        hasher.update(pickle.dumps(self._operations_chain))
+        return hasher.hexdigest()
 
     def run(self):
         """Run asynchronousely in a child thread, called by self.start()."""

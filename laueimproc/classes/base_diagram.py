@@ -145,7 +145,7 @@ class BaseDiagram:
             return 0
 
     def __repr__(self) -> str:
-        """Give a very compact excecutable representation."""
+        """Give a very compact representation."""
         if self.file is None:
             return f"{self.__class__.__name__}(Tensor(...))"
         return f"{self.__class__.__name__}({self.file.name})"
@@ -262,6 +262,25 @@ class BaseDiagram:
         anchors = torch.tensor([s.anchor for s in new_spots], dtype=torch.int32)
         self._set_spots_from_anchors_rois(anchors, rois)
         self._history[-1] = f"{len(self)} spots from external spots"
+
+    def add_property(self, name: str, value: object, *, state_independent: bool = False):
+        """Add a property to the diagram.
+
+        Parameters
+        ----------
+        name : str
+            The identifiant of the property for the requests.
+            If the property is already defined with the same name, the new one erase the older one.
+        value
+            The property value. If a number is provided, it will be faster.
+        state_independent : boolean, default=False
+            If set to True, the property will be keep when filtering,
+            overwise, the property will desappear as soon as the diagram state changed.
+        """
+        assert isinstance(name, str), name.__class__.__name__
+        assert isinstance(state_independent, bool), state_independent.__class__.__name__
+        with self._cache_lock:
+            self._properties[name] = ((None if state_independent else self.state), value)
 
     @property
     def bboxes(self) -> typing.Union[None, torch.Tensor]:
@@ -386,7 +405,7 @@ class BaseDiagram:
         Returns
         -------
         filtered_diagram : BaseDiagram
-            Return Nonw if inplace is True, or a filtered clone of self otherwise.
+            Return None if inplace is True, or a filtered clone of self otherwise.
         """
         # verifications and cast
         assert hasattr(indexs, "__iter__"), indexs.__class__.__name__
@@ -447,7 +466,7 @@ class BaseDiagram:
         Returns
         -------
         property : object
-            The property value set with ``set_property``.
+            The property value set with ``add_property``.
 
         Raises
         ------
@@ -609,25 +628,6 @@ class BaseDiagram:
         with self._rois_lock:
             datarois, bboxes = self._rois
         return rawshapes2rois(datarois, bboxes[:, 2:].numpy(force=True))
-
-    def set_property(self, name: str, value: object, *, state_independent: bool = False):
-        """Add a property to the diagram.
-
-        Parameters
-        ----------
-        name : str
-            The identifiant of the property for the requests.
-            If the property is already defined with the same name, the new one erase the older one.
-        value
-            The property value. If a number is provided, it will be faster.
-        state_independent : boolean, default=False
-            If set to True, the property will be keep when filtering,
-            overwise, the property will desappear as soon as the diagram state changed.
-        """
-        assert isinstance(name, str), name.__class__.__name__
-        assert isinstance(state_independent, bool), state_independent.__class__.__name__
-        with self._cache_lock:
-            self._properties[name] = ((None if state_independent else self.state), value)
 
     def set_spots(self, new_spots: typing.Container) -> None:
         """Set the new spots as the current spots, reset the history and the cache.
