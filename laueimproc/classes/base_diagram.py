@@ -96,6 +96,7 @@ class BaseDiagram:
         self._file_or_data: typing.Union[pathlib.Path, torch.Tensor]  # the path to the image file
         self._find_spots_kwargs: typing.Optional[dict] = None  # the kwargs
         self._history: list[str] = []  # the history of the actions performed
+        self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
         self._rois: typing.Optional[tuple[bytearray, torch.Tensor]] = None  # datarois, bboxes
         self._rois_lock = threading.Lock()  # make the rois acces thread safe
 
@@ -123,6 +124,7 @@ class BaseDiagram:
                     self._file_or_data,
                     self._find_spots_kwargs,
                     self._history,
+                    self._properties,
                     rois,
                     self._cache.copy(),
                 )
@@ -130,6 +132,7 @@ class BaseDiagram:
             self._file_or_data,
             self._find_spots_kwargs,
             self._history,
+            self._properties,
             rois,
         )
 
@@ -163,9 +166,10 @@ class BaseDiagram:
             self._file_or_data,
             self._find_spots_kwargs,
             self._history,
+            self._properties,
             self._rois,
-        ) = state[:4]
-        self._cache = state[4] if len(state) == 5 else {}
+        ) = state[:5]
+        self._cache = state[5] if len(state) == 6 else {}
         self._cache_lock = threading.Lock()
         self._rois_lock = threading.Lock()
         DiagramManager().add_diagram(self)
@@ -186,6 +190,22 @@ class BaseDiagram:
                 text += f"\n        {i+1}. {history}"
         else:
             text += "\n    History empty, please initialize the spots `self.find_spots()`."
+
+        # properties
+        properties = []
+        for name in sorted(self._properties):
+            try:
+                properties.append((name, self.get_property(name)))
+            except KeyError:
+                pass
+        if properties:
+            text += "\n    Properties:"
+            for name, value in properties:
+                if len(value_str := str(value).replace("\n", "\\n")) >= 80:
+                    value_str = f"<{value.__class__.__name__} object>"
+                text += f"\n        * {name}: {value_str}"
+        else:
+            text += "\n    No Properties"
 
         # stats
         text += "\n    Current state:"
@@ -319,6 +339,10 @@ class BaseDiagram:
                         continue
                     if match["state"] != state:
                         removed += sys.getsizeof(key) + getsizeof(self._cache.pop(key))
+                for key in list(self._properties):
+                    match = self._properties[key][0]
+                    if match is not None and match != state:
+                        removed += sys.getsizeof(key) + getsizeof(self._properties.pop(key))
 
         # delete valid cache
         if 1 in _levels:
@@ -411,6 +435,37 @@ class BaseDiagram:
         """Perform all pending calculations."""
         if self._rois is None and self._find_spots_kwargs is not None:
             self._find_spots(**self._find_spots_kwargs)
+
+    def get_property(self, name: str) -> object:
+        """Return the property associated to te given id.
+
+        Parameters
+        ----------
+        name : str
+            The name of the property to get.
+
+        Returns
+        -------
+        property : object
+            The property value set with ``set_property``.
+
+        Raises
+        ------
+        KeyError
+            Is the property has never been defined or if the state changed.
+        """
+        assert isinstance(name, str), name.__class__.__name__
+        with self._cache_lock:
+            try:
+                state, value = self._properties[name]
+            except KeyError as err:
+                raise KeyError(f"the property {repr(name)} does no exist") from err
+        if state is not None and state != self.state:
+            raise KeyError(
+                f"the property {repr(name)} is no longer valid "
+                "because the state of the diagram has changed"
+            )
+        return value
 
     @property
     def history(self) -> list[str]:
@@ -554,6 +609,25 @@ class BaseDiagram:
         with self._rois_lock:
             datarois, bboxes = self._rois
         return rawshapes2rois(datarois, bboxes[:, 2:].numpy(force=True))
+
+    def set_property(self, name: str, value: object, *, state_independent: bool = False):
+        """Add a property to the diagram.
+
+        Parameters
+        ----------
+        name : str
+            The identifiant of the property for the requests.
+            If the property is already defined with the same name, the new one erase the older one.
+        value
+            The property value. If a number is provided, it will be faster.
+        state_independent : boolean, default=False
+            If set to True, the property will be keep when filtering,
+            overwise, the property will desappear as soon as the diagram state changed.
+        """
+        assert isinstance(name, str), name.__class__.__name__
+        assert isinstance(state_independent, bool), state_independent.__class__.__name__
+        with self._cache_lock:
+            self._properties[name] = ((None if state_independent else self.state), value)
 
     def set_spots(self, new_spots: typing.Container) -> None:
         """Set the new spots as the current spots, reset the history and the cache.
