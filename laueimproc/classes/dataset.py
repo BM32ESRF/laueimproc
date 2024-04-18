@@ -15,6 +15,7 @@ import traceback
 import typing
 import warnings
 
+import psutil
 import torch
 import tqdm
 
@@ -450,11 +451,20 @@ class DiagramDataset(threading.Thread):
                     f"the arguments `args` {args} are not pickalable"
                 ) from err
 
-        with self._lock, multiprocessing.pool.ThreadPool() as pool:
-            idx, diags = zip(*((i, d) for i, d in self._diagrams.items() if isinstance(d, Diagram)))
-            all_res = pool.starmap(func, tqdm.tqdm([(d, *args) for d in diags], unit="diag"))
+        n_cpu = len(psutil.Process().cpu_affinity())
+        with self._lock, multiprocessing.pool.ThreadPool(n_cpu) as pool:
+            idxs_diags = list((i, d) for i, d in self._diagrams.items() if isinstance(d, Diagram))
+            res = dict(
+                tqdm.tqdm(
+                    pool.imap_unordered(
+                        lambda idx_diag: (idx_diag[0], func(idx_diag[1], *args)), idxs_diags
+                    ),
+                    unit="diag",
+                    total=len(idxs_diags)
+                )
+            )
             self._operations_chain.append((func, args))
-        return dict(zip(idx, all_res))
+        return res
 
     @property
     def diagrams(self) -> list[typing.Union[Diagram, None]]:

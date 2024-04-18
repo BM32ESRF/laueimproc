@@ -9,14 +9,14 @@ import numpy as np
 import torch
 
 from laueimproc.improc.spot.basic import (
-    compute_barycenters, compute_pxl_max, compute_pxl_intensities
+    compute_barycenters, compute_rois_max, compute_rois_sum
 )
 from laueimproc.improc.spot.extrema import find_nb_extremums
-from laueimproc.improc.spot.fit import fit_gaussian_em, fit_gaussians_em, fit_gaussians
+from laueimproc.improc.spot.fit import fit_gaussians_em, fit_gaussians
 from laueimproc.improc.spot.rot_sym import compute_rot_sym
 from laueimproc.opti.cache import auto_cache
 from laueimproc.opti.parallel import auto_parallel
-from .base_diagram import BaseDiagram
+from .base_diagram import check_init, BaseDiagram
 
 
 
@@ -25,12 +25,9 @@ class Diagram(BaseDiagram):
 
     @auto_cache  # put the result in thread safe cache (no multiprocessing)
     @auto_parallel  # automaticaly multithreading
+    @check_init  # throws an exception if the diagram is not initialized
     def compute_barycenters(self, indexing: str = "ij") -> torch.Tensor:
         """Compute the barycenter of each spots."""
-        if not self.is_init():
-            raise RuntimeWarning(
-                "you must to initialize the spots (`self.find_spots()`)"
-            )
         barycenters = compute_barycenters(self.rois)  # relative to each spots
         barycenters += self.bboxes[:, :2].to(barycenters.dtype)  # absolute
 
@@ -43,60 +40,47 @@ class Diagram(BaseDiagram):
         return barycenters
 
     @auto_parallel
-    def compute_pxl_max(self) -> torch.Tensor:
-        """Compute the intensity maxi of each spots."""
-        if not self.is_init():
-            raise RuntimeWarning(
-                "you must to initialize the spots (`self.find_spots()`)"
-            )
-        return compute_pxl_max(self.rois)
+    @check_init
+    def compute_rois_max(self) -> torch.Tensor:
+        """Get the intensity of the hottest pixel for each roi."""
+        return compute_rois_max(self.rois)
 
     @auto_parallel
-    def compute_pxl_intensities(self) -> torch.Tensor:
-        """Compute the total pixel intensity for each spots."""
-        if not self.is_init():
-            raise RuntimeWarning(
-                "you must to initialize the spots (`self.find_spots()`)"
-            )
-        return compute_pxl_intensities(self.rois)
+    @check_init
+    def compute_rois_sum(self) -> torch.Tensor:
+        """Sum the intensities of the pixels for each roi."""
+        return compute_rois_sum(self.rois)
 
     @auto_cache
     @auto_parallel
+    @check_init
     def compute_rot_sym(self) -> torch.Tensor:
         """Compute the similarity by rotation of each spots."""
-        if not self.is_init():
-            raise RuntimeWarning(
-                "you must to initialize the spots (`self.find_spots()`)"
-            )
         return compute_rot_sym(self.rois)
-
-    @auto_parallel
-    def find_nb_extremums(self) -> torch.Tensor:
-        """Find the number of extremums."""
-        if not self.is_init():
-            raise RuntimeWarning(
-                "you must to initialize the spots (`self.find_spots()`)"
-            )
-        return find_nb_extremums(self.rois)
 
     @auto_cache
     @auto_parallel
-    def fit_gaussian_em(
-        self,
-        photon_density: typing.Union[torch.Tensor, np.ndarray, numbers.Real] = 1.0,
-        indexing: str = "ij",
-        **kwargs,
-    ) -> tuple[torch.Tensor, torch.Tensor, dict]:
+    @check_init
+    def compute_nb_extremums(self) -> torch.Tensor:
+        """Find the number of extremums in each roi.
+
+        Notes
+        -----
+        No noise filtering. Doesn't detect shoulders.
+        """
+        return find_nb_extremums(self.rois)
+
+    def fit_gaussian_em(self, *args, **kwargs) -> tuple[torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by one gaussian using the EM algorithm in one shot, very fast.
 
-        See ``laueimproc.gmm`` for terminology and ``laueimproc.gmm.em`` for the algo description.
+        Same as ``flaueimproc.classes.diagram.fit_gaussians_em`` but squeeze the \(K = 1\) dim.
 
         Parameters
         ----------
-        photon_density : arraylike, optional
-            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussian_em``.
+        *args : tuple
+            Transmitted to ``laueimproc.classes.diagram.fit_gaussians_em``.
         **kwargs : dict
-            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussian_em``.
+            Transmitted to ``laueimproc.classes.diagram.fit_gaussians_em``.
 
         Returns
         -------
@@ -107,39 +91,16 @@ class Diagram(BaseDiagram):
         infodict : dict[str]
             Comes from ``laueimproc.improc.spot.fit.fit_gaussian_em``.
         """
-        # preparation
-        if not self.is_init():
-            raise RuntimeWarning(
-                "you must to initialize the spots (`self.find_spots()`)"
-            )
-        photon_density = (
-            float(photon_density)
-            if isinstance(photon_density, numbers.Real)
-            else torch.as_tensor(photon_density, dtype=torch.float32)
-        )
-        rois = self.rois
-        shift = self.bboxes[:, :2]
-
-        # main fit
-        mean, cov, infodict = fit_gaussian_em(rois, photon_density, **kwargs)
-
-        # spot base to diagram base
-        if mean.requires_grad:
-            mean = mean + shift
-        else:
-            mean += shift
-
-        assert isinstance(indexing, str), indexing.__class__.__name__
-        assert indexing in {"ij", "xy"}, indexing
-        if indexing == "xy":
-            mean = torch.flip(mean, 1)
-            mean += 0.5
-
-        # cast
+        assert "nbr_clusters" not in kwargs, "use fit_gaussianSSS_em instead"
+        mean, cov, _, infodict = self.fit_gaussians_em(*args, **kwargs, nbr_clusters=1)
+        mean, cov = mean.squeeze(1), cov.squeeze(1)
+        if "eigtheta" in infodict:
+            infodict["eigtheta"] = infodict["eigtheta"].squeeze(1)
         return mean, cov, infodict
 
     @auto_cache
     @auto_parallel
+    @check_init
     def fit_gaussians_em(
         self,
         photon_density: typing.Union[torch.Tensor, np.ndarray, numbers.Real] = 1.0,
@@ -182,7 +143,7 @@ class Diagram(BaseDiagram):
         shift = self.bboxes[:, :2]
 
         # main fit
-        mean, cov, infodict = fit_gaussians_em(rois, photon_density, **kwargs)
+        mean, cov, eta, infodict = fit_gaussians_em(rois, photon_density, **kwargs)
 
         # spot base to diagram base
         if mean.requires_grad:
@@ -197,7 +158,7 @@ class Diagram(BaseDiagram):
             mean += 0.5
 
         # cast
-        return mean, cov, infodict
+        return mean, cov, eta, infodict
 
     def fit_gaussian(
         self, *args, **kwargs
@@ -215,6 +176,7 @@ class Diagram(BaseDiagram):
 
     @auto_cache
     @auto_parallel
+    @check_init
     def fit_gaussians(
         self,
         loss: typing.Union[typing.Callable[[torch.Tensor, torch.Tensor], torch.Tensor], str] = "mse",
@@ -258,10 +220,6 @@ class Diagram(BaseDiagram):
             See ``laueimproc.improc.spot.fit.fit_gaussians``.
         """
         # preparation
-        if not self.is_init():
-            raise RuntimeWarning(
-                "you must to initialize the spots (`self.find_spots()`)"
-            )
         with self._rois_lock:
             data = self._rois[0]
             shapes = self._rois[1][:, 2:]

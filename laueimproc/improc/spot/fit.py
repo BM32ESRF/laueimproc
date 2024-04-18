@@ -15,26 +15,33 @@ from laueimproc.opti.fit import find_optimal_step
 from laueimproc.opti.rois import rawshapes2rois
 
 
-def fit_gaussian_em(
+def fit_gaussians_em(
     rois: torch.Tensor,
     photon_density: typing.Union[float, torch.Tensor] = 1.0,
     *,
+    eigtheta: bool = False,
     tol: bool = False,
     **extra_info,
 ) -> tuple[torch.Tensor, torch.Tensor, dict]:
-    r"""Fit each roi by one gaussian.
+    r"""Fit each roi by \(K\) gaussians.
 
-    Based ``laueimproc.improc.spot.fit.fit_gaussians_em`` but squeeze the \(K = 1\) dimension.
+    See ``laueimproc.improc.gmm`` for terminology.
 
     Parameters
     ----------
     rois : torch.Tensor
-        Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
+        The tensor of the regions of interest for each spots. Shape (n, h, w).
     photon_density : float or Tensor
-        Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
+        Convertion factor to transform the intensity of a pixel
+        into the number of photons that hit it.
+        Note that the range of intensity values is between 0 and 1.
+    eigtheta : boolean, default=False
+        If set to True, call ``laueimproc.gmm.linalg.cov2d_to_eigtheta`` and append the result
+        in the field `eigtheta` of `infodict`. It is like a PCA on each fit.
     tol : boolean, default=False
         If set to True, the accuracy measure is happend into `infodict`. Shape (n,).
         It correspond to the standard deviation of the estimation of the mean.
+        Only available for 1 cluster.
         Let \(\widehat{\mathbf{\mu}}\) be the estimator of the mean.
 
         * \(\begin{cases}
@@ -62,62 +69,6 @@ def fit_gaussian_em(
             = \sqrt{ \frac{ max(eigen(\mathbf{\Sigma})) }{ \sum\limits_{i=1}^N \alpha_i } }
         \)
     **extra_infos : dict
-        Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
-
-    Returns
-    -------
-    mean : torch.Tensor
-        The vectors \(\mathbf{\mu}\). Shape (nb_spots, 2). In the relative roi base.
-    cov : torch.Tensor
-        The matrices \(\mathbf{\Sigma}\). Shape (nb_spots, 2, 2).
-    infodict : dict[str]
-        A dictionary of optional outputs (see ``laueimproc.improc.spot.fit.fit_gaussians_em``).
-    """
-    assert isinstance(tol, bool), tol.__class__.__name__
-
-    mean, cov, _, infodict = fit_gaussians_em(rois, photon_density, **extra_info, nbr_clusters=1)
-
-    # squeeze k
-    mean, cov = mean.squeeze(1), cov.squeeze(1)
-    if "eigtheta" in infodict:
-        infodict["eigtheta"] = infodict["eigtheta"].squeeze(1)
-
-    # estimation of mean tolerancy
-    if tol:
-        weights = torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2]))
-        weights = weights * photon_density  # copy (no inplace) for keeping rois unchanged
-        std_of_mean = infodict.get("eigtheta", cov2d_to_eigtheta(cov, theta=False))[:, 0]
-        std_of_mean /= torch.sum(weights, dim=-1)
-        std_of_mean = torch.sqrt(std_of_mean, out=std_of_mean)
-        infodict["tol"] = std_of_mean
-
-    # cast
-    return mean, cov, infodict
-
-
-def fit_gaussians_em(
-    rois: torch.Tensor,
-    photon_density: typing.Union[float, torch.Tensor] = 1.0,
-    *,
-    eigtheta: bool = False,
-    **extra_info,
-) -> tuple[torch.Tensor, torch.Tensor, dict]:
-    r"""Fit each roi by \(K\) gaussians.
-
-    See ``laueimproc.improc.gmm`` for terminology.
-
-    Parameters
-    ----------
-    rois : torch.Tensor
-        The tensor of the regions of interest for each spots. Shape (n, h, w).
-    photon_density : float or Tensor
-        Convertion factor to transform the intensity of a pixel
-        into the number of photons that hit it.
-        Note that the range of intensity values is between 0 and 1.
-    eigtheta : boolean, default=False
-        If set to True, call ``laueimproc.gmm.linalg.cov2d_to_eigtheta`` and append the result
-        in the field `eigtheta` of `infodict`. It is like a PCA on each fit.
-    **extra_infos : dict
         See ``laueimproc.improc.gmm.em`` for the available metrics.
 
     Returns
@@ -138,6 +89,7 @@ def fit_gaussians_em(
     if isinstance(photon_density, torch.Tensor):
         assert photon_density.shape == (rois.shape[0],), photon_density.shape
     assert isinstance(eigtheta, bool), eigtheta.__class__.__name__
+    assert isinstance(tol, bool), tol.__class__.__name__
 
     # preparation
     points_i, points_j = torch.meshgrid(
@@ -157,6 +109,14 @@ def fit_gaussians_em(
     # change base PCA
     if eigtheta:
         infodict["eigtheta"] = cov2d_to_eigtheta(cov)
+
+    # estimation of mean tolerancy
+    if tol:
+        assert eta.shape[-1] == 1
+        std_of_mean = infodict.get("eigtheta", cov2d_to_eigtheta(cov.squeeze(-3), theta=False))[:, 0]
+        std_of_mean /= torch.sum(weights, dim=-1)
+        std_of_mean = torch.sqrt(std_of_mean, out=std_of_mean)
+        infodict["tol"] = std_of_mean
 
     # cast
     return mean.squeeze(3), cov, eta, infodict

@@ -2,6 +2,7 @@
 
 """Define the pytonic structure of a basic Diagram."""
 
+import functools
 import hashlib
 import math
 import numbers
@@ -27,6 +28,20 @@ from laueimproc.opti.rois import filter_by_indexs
 from laueimproc.opti.rois import imgbboxes2raw
 from laueimproc.opti.rois import rawshapes2rois
 from .spot import Spot
+
+
+def check_init(meth: typing.Callable) -> typing.Callable:
+    """Decorate a Diagram method to ensure the diagram has been init."""
+    assert callable(meth), meth.__class__.__name__
+    @functools.wraps(meth)
+    def check_init_meth(diagram, *args, **kwargs):
+        if not diagram.is_init():
+            raise RuntimeError(
+                f"before calling the {meth} diagram method, initialize the diagram "
+                f"{repr(diagram)} by invoking 'find_spots' for example"
+            )
+        return meth(diagram, *args, **kwargs)
+    return check_init_meth
 
 
 class BaseDiagram:
@@ -324,6 +339,7 @@ class BaseDiagram:
             return self._file_or_data
         return None
 
+    @check_init
     def filter_spots(
         self, indexs: typing.Container, msg: str = "general filter", *, inplace: bool = False
     ):
@@ -349,10 +365,6 @@ class BaseDiagram:
             Return Nonw if inplace is True, or a filtered clone of self otherwise.
         """
         # verifications and cast
-        if not self.is_init():
-            raise RuntimeWarning(
-                "you must to initialize the spots (`self.find_spots()`) before to filter it"
-            )
         assert hasattr(indexs, "__iter__"), indexs.__class__.__name__
         assert isinstance(msg, str), msg.__class__.__name__
         assert isinstance(inplace, bool), inplace.__class__.__name__
@@ -611,7 +623,7 @@ class BaseDiagram:
     @property
     def spots(self) -> typing.Union[None, list[Spot]]:
         """Return the list of the spots."""
-        if (bboxes := self.bboxes) is None:
+        if not self.is_init():
             return None
         return [Spot.__new__(Spot).__setstate__((self, i)) for i in range(len(self))]
 
