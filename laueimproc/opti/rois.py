@@ -16,14 +16,14 @@ except ImportError:
     c_rois = None
 
 
-def filter_by_indexs(
-    indexs: torch.Tensor, data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False
+def filter_by_indexes(
+    indexes: torch.Tensor, data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False
 ) -> tuple[bytearray, torch.Tensor]:
-    """Select the rois of the given indexs.
+    """Select the rois of the given indexes.
 
     Parameters
     ----------
-    indexs : torch.Tensor
+    indexes : torch.Tensor
         The 1d int64 list of the rois index to keep. Negative indexing is allow.
     data : bytearray
         The raw data of the concatenated not padded float32 rois.
@@ -41,33 +41,33 @@ def filter_by_indexs(
 
     Notes
     -----
-    When using the c backend, the negative indexs of `indexs` are set inplace as positive value.
+    When using the c backend, the negative indexes of `indexes` are set inplace as positive value.
 
     Examples
     --------
     >>> import numpy as np
     >>> import torch
-    >>> from laueimproc.opti.rois import filter_by_indexs
-    >>> indexs = torch.tensor([1, 1, 0, -1, -2, *range(100, 1000)])
+    >>> from laueimproc.opti.rois import filter_by_indexes
+    >>> indexes = torch.tensor([1, 1, 0, -1, -2, *range(100, 1000)])
     >>> bboxes = torch.zeros((1000, 4), dtype=torch.int32)
     >>> bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
     >>> data = bytearray(np.linspace(0, 1, (bboxes[:, 2]*bboxes[:, 3]).sum(), dtype=np.float32).tobytes())
-    >>> new_data, new_bboxes = filter_by_indexs(indexs, data, bboxes)
+    >>> new_data, new_bboxes = filter_by_indexes(indexes, data, bboxes)
     >>> new_bboxes.shape
     torch.Size([905, 4])
-    >>> assert new_data == filter_by_indexs(indexs, data, bboxes, _no_c=True)[0]
-    >>> assert torch.all(new_bboxes == filter_by_indexs(indexs, data, bboxes, _no_c=True)[1])
+    >>> assert new_data == filter_by_indexes(indexes, data, bboxes, _no_c=True)[0]
+    >>> assert torch.all(new_bboxes == filter_by_indexes(indexes, data, bboxes, _no_c=True)[1])
     >>>
     """
     if not _no_c and c_rois is not None:
-        indexs_np = indexs.numpy(force=True)
+        indexes_np = indexes.numpy(force=True)
         bboxes_np = bboxes.numpy(force=True)
-        new_data, new_bboxes_np = c_rois.filter_by_indexs(indexs_np, data, bboxes_np)
+        new_data, new_bboxes_np = c_rois.filter_by_indexes(indexes_np, data, bboxes_np)
         return new_data, torch.from_numpy(new_bboxes_np)
 
-    assert isinstance(indexs, torch.Tensor), indexs.__class__.__name__
-    assert indexs.ndim == 1, indexs.shape
-    assert indexs.dtype == torch.int64, indexs.__class__.__name__
+    assert isinstance(indexes, torch.Tensor), indexes.__class__.__name__
+    assert indexes.ndim == 1, indexes.shape
+    assert indexes.dtype == torch.int64, indexes.__class__.__name__
     assert isinstance(data, bytearray), data.__class__.__name__
     assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
     assert bboxes.ndim == 2, bboxes.shape
@@ -78,7 +78,7 @@ def filter_by_indexs(
         "data length dosen't match rois area"
 
     rois = rawshapes2rois(data, bboxes[:, 2:].numpy(force=True), _no_c=True)
-    new_rois, new_bboxes = rois[indexs], bboxes[indexs]
+    new_rois, new_bboxes = rois[indexes], bboxes[indexes]
     new_data = roisshapes2raw(new_rois, new_bboxes[:, 2:].numpy(force=True), _no_c=True)
     return new_data, new_bboxes
 

@@ -117,9 +117,20 @@ class DiagramDataset(threading.Thread):
         self._to_sniff: dict = {"dirs": [], "readed": set()}  # for the async run method
         self._operations_chain: list[tuple[typing.Callable[[Diagram], object], tuple]] = []
         self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
-        self.add_diagrams(diagram_refs)
         super().__init__(daemon=True)
-        self.start()
+        self.add_diagrams(diagram_refs)
+
+    def __getstate__(self):
+        """Make the dataset pickleable."""
+        with self._lock:
+            pos_data = self._position[1]
+            return (
+                self._diag2ind,
+                [self._position[0], (pos_data.copy() if isinstance(pos_data, dict) else pos_data)],
+                self._diagrams.copy(),
+                self._operations_chain.copy(),
+                self._properties.copy(),
+            )
 
     def __getitem__(self, item: numbers.Integral):
         """Get a diagram or a subset of the set.
@@ -143,7 +154,7 @@ class DiagramDataset(threading.Thread):
         if isinstance(item, numbers.Integral):
             return self._get_diagram_from_index(item)
         if isinstance(item, slice):
-            return self._get_diagrams_from_slice(item)
+            return self._get_diagrams_from_indexes(range(*item.indices(max(self._diagrams)+1)))
         if isinstance(item, tuple):  # case grid
             if self._position[0] is None:
                 raise AttributeError(
@@ -182,6 +193,28 @@ class DiagramDataset(threading.Thread):
         """Give a very compact representation."""
         return f"<{self.__class__.__name__} with {len(self)} diagrams of id {id(self)}>"
 
+    def __setstate__(self, state: tuple):
+        """Fill the internal attributes.
+
+        Usefull for pickle.
+
+        Notes
+        -----
+        * No verification is made because the user is not supposed to call this method.
+        """
+        # not verification for thread safe
+        # because this method is never meant to be call from a thread.
+        (
+            self._diag2ind,
+            self._position,
+            self._diagrams,
+            self._operations_chain,
+            self._properties,
+        ) = state
+        self._lock = threading.Lock()
+        self._to_sniff: dict = {"dirs": [], "readed": set()}  # for the async run method
+        super().__init__(daemon=True)
+
     def __str__(self) -> str:
         """Return an exaustive printable string giving informations on the dataset."""
 
@@ -195,8 +228,9 @@ class DiagramDataset(threading.Thread):
             # history
             if self._operations_chain:
                 text += "\n    Function chain:"
-                for i, func in enumerate(self._operations_chain):
-                    text += f"\n        {i+1}: {func}"
+                for i, (func, args) in enumerate(self._operations_chain):
+                    args = ", ".join(("diag",) + tuple(repr(a) for a in args))
+                    text += f"\n        {i+1}: [{func.__name__}({args}) for diag in self]"
             else:
                 text += "\n    No function has been applied."
 
@@ -288,10 +322,10 @@ class DiagramDataset(threading.Thread):
         assert isinstance(second_idx, numbers.Real), second_idx.__class__.__name__
         with self._lock:
             if isinstance(self._position[1], dict):  # dict to tensor
-                coords, indexs = zip(*self._position[1].items())
+                coords, indexes = zip(*self._position[1].items())
                 self._position[1] = (
                     torch.tensor(coords, dtype=torch.float32),
-                    torch.tensor(indexs, dtype=int),
+                    torch.tensor(indexes, dtype=int),
                 )
             coord = torch.tensor(
                 [[first_idx, second_idx]],
@@ -320,23 +354,13 @@ class DiagramDataset(threading.Thread):
                 self._diagrams[index] = diagram
         return diagram
 
-    def _get_diagrams_from_slice(self, indexs: slice):
+    def _get_diagrams_from_indexes(self, indexes: typing.Iterable):
         """Return a frozen sub dataset view."""
-        assert isinstance(indexs, slice), indexs.__class__.__name__
-        with self._lock:
-            id_max = max(self._diagrams)
-            indexs = range(*indexs.indices(id_max+1))
-            try:
-                diagrams = {i: self._diagrams[i] for i in indexs}
-            except KeyError as err:
-                raise IndexError("one of the asked diagram is not in the dataset") from err
-            new_dataset = DiagramDataset()
-            new_dataset._diag2ind = self._diag2ind
-            new_dataset._position = self._position.copy()
-            new_dataset._diagrams = diagrams
-            new_dataset._operations_chain = self._operations_chain.copy()
-            new_dataset._properties = self._properties.copy()
-            return new_dataset
+        diagrams = {i: self._get_diagram_from_index(i) for i in indexes}
+        new_dataset = self.__class__.__new__(self.__class__)
+        new_dataset.__setstate__(self.__getstate__())
+        new_dataset._diagrams = diagrams
+        return new_dataset
 
     def add_property(self, name: str, value: object, *, state_independent: bool = False):
         """Add a property to the dataset.
@@ -419,6 +443,8 @@ class DiagramDataset(threading.Thread):
         if thread is not None:
             if len([None for t in threading.enumerate() if isinstance(t, _ChainThread)]) < 3*NCPU:
                 thread.start()  # asnyc
+                if not self._started.is_set():
+                    self.start()
             else:
                 thread.run()  # blocking
 
@@ -446,6 +472,8 @@ class DiagramDataset(threading.Thread):
                     if f.suffix.lower() in {".jp2", ".mccd", ".tif", ".tiff"}
                 )
                 self._to_sniff["dirs"].append([new_diagrams, 0.0])
+                if not self._started.is_set():
+                    self.start()
             else:
                 self.add_diagram(Diagram(new_diagrams))  # case file
         elif isinstance(new_diagrams, (str, bytes)):
@@ -535,6 +563,24 @@ class DiagramDataset(threading.Thread):
                     del self._properties[key]
 
         return res
+
+    def clone(self, **kwargs):
+        """Instanciate a new identical dataset.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Transmitted to ``laueimproc.classes.base_diagram.BaseDiagram.clone``.
+
+        Returns
+        -------
+        DiagramDataset
+            The new copy of self.
+        """
+        new_dataset = self.__class__.__new__(self.__class__)
+        new_dataset.__setstate__(self.__getstate__())
+        new_dataset._diagrams = {i: d.clone(**kwargs) for i, d in new_dataset._diagrams.items()}
+        return new_dataset
 
     def get_property(self, name: str) -> object:
         """Return the property associated to the given id.

@@ -73,20 +73,20 @@ def inter_nearest(images: torch.Tensor, trans_matrix: torch.Tensor):
 
     del dst
 
-    # nearest indexs
+    # nearest indexes
     src += 0.5  # transform trunc in round
-    indexs = src.to(torch.int32)  # (n, h, w, 2, 1)
+    indexes = src.to(torch.int32)  # (n, h, w, 2, 1)
     del src
-    indexs_i = indexs[..., 0, 0]  # (n, h, w)
-    indexs_j = indexs[..., 1, 0]  # (n, h, w)
-    indexs_i = torch.clamp(indexs_i, min=0, max=height-1, out=indexs_i)
-    indexs_j = torch.clamp(indexs_j, min=0, max=width-1, out=indexs_j)
+    indexes_i = indexes[..., 0, 0]  # (n, h, w)
+    indexes_j = indexes[..., 1, 0]  # (n, h, w)
+    indexes_i = torch.clamp(indexes_i, min=0, max=height-1, out=indexes_i)
+    indexes_j = torch.clamp(indexes_j, min=0, max=width-1, out=indexes_j)
 
     # final images
     out = torch.cat(
         [
             images[b][i_l, j_l].unsqueeze(0)
-            for b, (i_l, j_l) in enumerate(zip(indexs_i, indexs_j))
+            for b, (i_l, j_l) in enumerate(zip(indexes_i, indexes_j))
         ],
         axis=0,
     )  # (n, h, w)

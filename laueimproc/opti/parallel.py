@@ -119,7 +119,7 @@ def auto_parallel(meth: typing.Callable) -> typing.Callable:
     """Decorator to auto multithread a Diagram method."""
     assert callable(meth), meth.__class__.__name__
     @functools.wraps(meth)
-    def multithreaded_meth(diagram, *args, parallel: bool = True, **kwargs):
+    def multithreaded_meth(diagram, *args, parallel: bool = False, **kwargs):
         # case no threaded calculus
         assert isinstance(parallel, bool), parallel.__class__.__name__
         if not parallel or threading.current_thread().name != "MainThread":

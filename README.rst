@@ -78,7 +78,7 @@ There are a lot of jupyter-notebook examples in the folder ``notebooks``.
     for diagram in diagrams:
         intensities = diagram.compute_pxl_intensities()
         if intensities.shape[0]:
-            indexs = torch.argsort(intensities, descending=True)[:10]
-            diagram.filter_spots(indexs)
+            indexes = torch.argsort(intensities, descending=True)[:10]
+            diagram.filter_spots(indexes)
         print(diagram)
         diagram.plot(plt.figure(layout="tight")); plt.show()

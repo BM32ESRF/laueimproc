@@ -12,7 +12,7 @@ try:
     from laueimproc.improc.spot import c_pca
 except ImportError:
     logging.warning(
-        "failed to import laueimproc.opti.c_rois, a slow python version is used instead"
+        "failed to import laueimproc.spot.c_pca, a slow python version is used instead"
     )
     c_pca = None
 from laueimproc.opti.rois import rawshapes2rois

@@ -24,7 +24,7 @@ from laueimproc.improc.peaks_search import peaks_search
 from laueimproc.io.read import read_image, to_floattensor
 from laueimproc.opti.cache import getsizeof
 from laueimproc.opti.manager import DiagramManager
-from laueimproc.opti.rois import filter_by_indexs
+from laueimproc.opti.rois import filter_by_indexes
 from laueimproc.opti.rois import imgbboxes2raw
 from laueimproc.opti.rois import rawshapes2rois
 from .spot import Spot
@@ -115,7 +115,7 @@ class BaseDiagram:
         DiagramManager().add_diagram(self)
 
     def __getstate__(self, cache: bool = False):
-        """Make the object pickleable."""
+        """Make the diagram pickleable."""
         with self._rois_lock:
             rois = None if self._rois is None else (self._rois[0].copy(), self._rois[1].clone())
         if cache:
@@ -158,10 +158,9 @@ class BaseDiagram:
         Notes
         -----
         * No verification is made because the user is not supposed to call this method.
-        * Return self by ease.
         """
         # not verification for thread safe
-        # because this method is never meant to be call fom a thread.
+        # because this method is never meant to be call from a thread.
         (
             self._file_or_data,
             self._find_spots_kwargs,
@@ -315,6 +314,11 @@ class BaseDiagram:
             It if realy faster but not safe.
         cache : boolean, default=True
             Copy the cache into the new diagram if True (default), or live the cache empty if False.
+
+        Returns
+        -------
+        Diagram
+            The new copy of self.
         """
         assert isinstance(deep, bool), deep.__class__.__name__
         assert isinstance(cache, bool), cache.__class__.__name__
@@ -384,7 +388,7 @@ class BaseDiagram:
 
     @check_init
     def filter_spots(
-        self, indexs: typing.Container, msg: str = "general filter", *, inplace: bool = False
+        self, indexes: typing.Container, msg: str = "general filter", *, inplace: bool = False
     ):
         """Keep only the given spots, delete the rest.
 
@@ -392,8 +396,8 @@ class BaseDiagram:
 
         Parameters
         ----------
-        indexs : arraylike
-            The list of the indexs of the spots to keep (negatives indexs are allow),
+        indexes : arraylike
+            The list of the indexes of the spots to keep (negatives indexes are allow),
             or the boolean vector with True for keeping the spot, False otherwise like a mask.
         msg : str
             The message to happend to the history.
@@ -408,20 +412,20 @@ class BaseDiagram:
             Return None if inplace is True, or a filtered clone of self otherwise.
         """
         # verifications and cast
-        assert hasattr(indexs, "__iter__"), indexs.__class__.__name__
+        assert hasattr(indexes, "__iter__"), indexes.__class__.__name__
         assert isinstance(msg, str), msg.__class__.__name__
         assert isinstance(inplace, bool), inplace.__class__.__name__
-        indexs = torch.as_tensor(indexs)
-        indexs = torch.squeeze(indexs)
-        assert indexs.ndim == 1, f"only a 1d vector is accepted, shape is {indexs.shape}"
-        if indexs.dtype is torch.bool:  # case mask -> convert into index list
-            assert indexs.shape[0] == len(self), (
+        indexes = torch.as_tensor(indexes)
+        indexes = torch.squeeze(indexes)
+        assert indexes.ndim == 1, f"only a 1d vector is accepted, shape is {indexes.shape}"
+        if indexes.dtype is torch.bool:  # case mask -> convert into index list
+            assert indexes.shape[0] == len(self), (
                 "the mask has to have the same length as the number of spots, "
-                f"there are {len(self)} spots and mask is of len {indexs.shape[0]}"
+                f"there are {len(self)} spots and mask is of len {indexes.shape[0]}"
             )
-            indexs = torch.arange(len(self), dtype=torch.int64)[indexs]  # bool -> indexs
-        elif indexs.dtype != torch.int64:
-            indexs = indexs.to(torch.int64)
+            indexes = torch.arange(len(self), dtype=torch.int64)[indexes]  # bool -> indexes
+        elif indexes.dtype != torch.int64:
+            indexes = indexes.to(torch.int64)
 
         # manage inplace
         nb_spots = len(self)  # flush in background
@@ -429,11 +433,11 @@ class BaseDiagram:
             self = self.clone()  # pylint: disable=W0642
 
         # update history, it has to be done before changing state to be catched by signature
-        self._history.append(f"{nb_spots} to {len(indexs)} spots: {msg}")
+        self._history.append(f"{nb_spots} to {len(indexes)} spots: {msg}")
 
         # apply filter
         with self._rois_lock:
-            self._rois = filter_by_indexs(indexs, *self._rois)
+            self._rois = filter_by_indexes(indexes, *self._rois)
 
         return None if inplace else self
 

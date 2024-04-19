@@ -13,6 +13,7 @@ from laueimproc.improc.spot.basic import (
 )
 from laueimproc.improc.spot.extrema import find_nb_extremums
 from laueimproc.improc.spot.fit import fit_gaussians_em, fit_gaussians
+from laueimproc.improc.spot.pca import pca
 from laueimproc.improc.spot.rot_sym import compute_rot_sym
 from laueimproc.opti.cache import auto_cache
 from laueimproc.opti.parallel import auto_parallel
@@ -38,6 +39,20 @@ class Diagram(BaseDiagram):
             barycenters += 0.5
 
         return barycenters
+
+    @auto_cache
+    @auto_parallel
+    @check_init
+    def compute_pca(self) -> torch.Tensor:
+        """Compute the pca on each spot.
+
+        Returns
+        -------
+        std1_std2_theta : torch.Tensor
+            Return the same values as ``laueimproc.improc.spot.pca``.
+        """
+        data, shapes = self._rois[0], self._rois[1][:, 2:].numpy(force=True)
+        return pca(data, shapes)
 
     @auto_parallel
     @check_init

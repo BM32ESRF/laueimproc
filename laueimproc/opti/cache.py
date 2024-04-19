@@ -15,11 +15,12 @@ def auto_cache(meth: typing.Callable) -> typing.Callable:
     """Decorator to manage the cache of a Diagram method."""
     assert callable(meth), meth.__class__.__name__
     @functools.wraps(meth)
-    def cached_meth(diagram, *args, is_cached: bool = False, **kwargs):
+    def cached_meth(diagram, *args, cache: bool = True, **kwargs):
+        assert isinstance(cache, bool), cache.__class__.__name__
+        if not cache:
+            return meth(diagram, *args, **kwargs)
         param_sig = hashlib.md5(pickle.dumps((args, kwargs)), usedforsecurity=False).hexdigest()
         signature = f"cache: {diagram.state}.{meth.__name__}({param_sig})"
-        if is_cached:  # no lock because operation is atomic
-            return signature in diagram._cache  # pylint: disable=W0212
         with diagram._cache_lock:  # pylint: disable=W0212
             if signature in diagram._cache:  # pylint: disable=W0212
                 return diagram._cache[signature]  # pylint: disable=W0212
