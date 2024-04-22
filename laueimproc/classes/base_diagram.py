@@ -415,15 +415,14 @@ class BaseDiagram:
         assert hasattr(indexes, "__iter__"), indexes.__class__.__name__
         assert isinstance(msg, str), msg.__class__.__name__
         assert isinstance(inplace, bool), inplace.__class__.__name__
-        indexes = torch.as_tensor(indexes)
-        indexes = torch.squeeze(indexes)
+        indexes = torch.squeeze(torch.as_tensor(indexes))
         assert indexes.ndim == 1, f"only a 1d vector is accepted, shape is {indexes.shape}"
         if indexes.dtype is torch.bool:  # case mask -> convert into index list
             assert indexes.shape[0] == len(self), (
                 "the mask has to have the same length as the number of spots, "
                 f"there are {len(self)} spots and mask is of len {indexes.shape[0]}"
             )
-            indexes = torch.arange(len(self), dtype=torch.int64)[indexes]  # bool -> indexes
+            indexes = torch.arange(len(self), dtype=torch.int64, device=indexes.device)[indexes]
         elif indexes.dtype != torch.int64:
             indexes = indexes.to(torch.int64)
 

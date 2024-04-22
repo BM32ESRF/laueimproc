@@ -21,6 +21,7 @@ import torch
 import tqdm
 
 from .diagram import Diagram
+import numpy as np
 
 
 GENTYPE = type((lambda: (yield))())
@@ -155,6 +156,13 @@ class DiagramDataset(threading.Thread):
             return self._get_diagram_from_index(item)
         if isinstance(item, slice):
             return self._get_diagrams_from_indexes(range(*item.indices(max(self._diagrams)+1)))
+        if isinstance(item, (range, list, np.ndarray, torch.Tensor)):
+            item = torch.squeeze(torch.as_tensor(item))
+            if item.dtype is torch.bool:
+                item = torch.arange(len(item), dtype=torch.int64, device=item.device)[item]
+            elif item.dtype != torch.int64:
+                item = item.to(torch.int64)
+            return self._get_diagrams_from_indexes(item.tolist())
         if isinstance(item, tuple):  # case grid
             if self._position[0] is None:
                 raise AttributeError(
@@ -247,7 +255,7 @@ class DiagramDataset(threading.Thread):
             # stats
             text += "\n    Current state:"
             text += f"\n        * id, state: {id(self)}, {self.state}"
-            text += f"\n        * max index: {len(self)}"
+            text += f"\n        * nbr diags: {len(self)}"
             if self._position[0] is None:
                 text += "\n        * 2d indexing: no"
             else:
@@ -325,7 +333,7 @@ class DiagramDataset(threading.Thread):
                 coords, indexes = zip(*self._position[1].items())
                 self._position[1] = (
                     torch.tensor(coords, dtype=torch.float32),
-                    torch.tensor(indexes, dtype=int),
+                    torch.tensor(indexes, dtype=torch.int64),
                 )
             coord = torch.tensor(
                 [[first_idx, second_idx]],
