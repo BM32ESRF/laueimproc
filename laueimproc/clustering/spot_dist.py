@@ -106,7 +106,7 @@ def group_spots(
     assert isinstance(min_samples, numbers.Integral), min_samples
     assert min_samples >= 1, min_samples
 
-    from sklearn.cluster import DBSCAN  # pylint: disable=C0415
+    from sklearn.cluster import DBSCAN
 
     # compute the matrix of distances, using the Jaccard norm
     dist_matrix = np.zeros((len(spot_to_diags), len(spot_to_diags)), dtype=np.float32)

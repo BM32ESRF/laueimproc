@@ -54,6 +54,16 @@ def find_optimal_step(
     ...     prev_pos, curr_pos = curr_pos, curr_pos - delta*grad
     ...     prev_cost, curr_cost = curr_cost, loss(curr_pos)
     ...
+    loss 1.5
+    loss 0.1377229541540146
+    loss 0.015718786045908928
+    loss 0.00806969590485096
+    loss 2.0100125766475685e-05
+    loss 1.1283106687187683e-05
+    loss 2.8506252647275687e-07
+    loss 2.648626207246707e-07
+    loss 3.2647382575134998e-09
+    loss 3.1178359893857532e-09
     >>>
     """
     # import sympy

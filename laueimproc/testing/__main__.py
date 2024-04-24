@@ -14,8 +14,7 @@ import click
 @click.option("--skip-slow", is_flag=True, help="Do not run the slow tests.")
 def main(debug: bool = False, **kwargs) -> int:
     """Run several tests, alias to ``laueimproc-test``."""
-    # no global import for laueimproc.__main__
-    from laueimproc.testing.run import run_tests  # pylint: disable=C0415
+    from laueimproc.testing.run import run_tests  # no global import for laueimproc.__main__
     return run_tests(
         debug=debug,
         skip_install=kwargs.get("skip_install", False),

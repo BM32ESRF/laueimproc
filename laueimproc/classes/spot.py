@@ -38,7 +38,7 @@ class Spot:
         assert roi.ndim == 2, roi.shape
         assert roi.dtype == torch.float32, roi.dtype
 
-        from .diagram import Diagram  # pylint: disable=C0415
+        from .diagram import Diagram
         self._diagram = Diagram(roi)
         self._index = 0
 

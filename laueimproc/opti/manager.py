@@ -45,7 +45,7 @@ class DiagramManager(threading.Thread, metaclass=MetaSingleton):
 
     def collect(self) -> int:
         """Try to keep only reachable diagrams."""
-        from laueimproc.classes.diagram import Diagram  # pylint: disable=C0415
+        from laueimproc.classes.diagram import Diagram
         with self._lock:
             before = len(self._diagrams_list)
             diagrams_id = [id(diagram) for diagram in self._diagrams_list]

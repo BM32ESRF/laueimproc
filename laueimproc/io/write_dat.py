@@ -9,6 +9,7 @@ import typing
 import torch
 
 from laueimproc.classes.diagram import Diagram
+from laueimproc import __version__
 
 
 def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram):
@@ -68,9 +69,24 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
     >>> diagram.find_spots()
     >>> file = pathlib.Path(tempfile.gettempdir()) / "ge_blanc.dat"
     >>> write_dat(file, diagram)
-    >>> with open(file, "r", encoding="utf-8") as raw:
+    >>> with open(file, "r", encoding="utf-8") as raw:  # doctest: +ELLIPSIS
     ...     print(raw.read())
     ...
+    peak_X peak_Y peak_Itot peak_Isub ... peak_inclination Xdev Ydev peak_bkg Ipixmax
+    1987.658 896.926 57.0 27.0 2.682 2.561 62.9 0.000 0.0 30.0 57.0
+    1945.967 914.329 5263.6 5223.0 4.403 4.025 -20.4 0.000 0.0 40.6 5264.0
+    ...
+    19.785 1209.065 48.7 30.0 2.781 1.585 -80.7 0.000 0.0 18.7 55.0
+    9.779 904.985 50.8 29.0 2.682 1.720 82.0 -0.000 0.0 21.8 58.0
+    # file created by laueimproc ...
+    # Diagram from ge_blanc.jp2:
+    #     History:
+    #         1. 781 spots from self.find_spots()
+    #     No Properties
+    #     Current state:
+    #         * id, state: ...
+    #         * nbr spots: 781
+    #         * total mem: 17.0MB
     >>>
     """
     # verification
@@ -86,6 +102,7 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
     backgrounds = torch.sum(diagram.rawrois - diagram.rois, dim=(1, 2))
     backgrounds /= (diagram.bboxes[:, 2]*diagram.bboxes[:, 3]).to(backgrounds.dtype)
 
+    # header
     file_content = (
         "peak_X peak_Y "
         "peak_Itot peak_Isub "
@@ -93,6 +110,8 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
         "Xdev Ydev "
         "peak_bkg Ipixmax\n"
     )
+
+    # content
     for pos, mag, bkg, two_std, theta, bary, pixmax in zip(
         positions.tolist(),
         (65535*magnitudes).tolist(), (65535*backgrounds).tolist(),
@@ -108,11 +127,13 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
             f"{pos[0]-bary[0]:.3f} {pos[1]-bary[1]} "
             f"{bkg:.1f} {pixmax:.1f}\n"
         )
+
+    # comments
     file_content += (
-        f"# file created by laueimproc from {diagram.file.name} "
+        f"# file created by laueimproc {__version__} "
         f"at {datetime.datetime.today().isoformat()}\n"
-        f"# from the parent directory: {str(diagram.file.parent)}"
     )
+    file_content += "# " + str(diagram).replace("\n", "\n# ")
 
     with open(filename, "w", encoding="utf-8") as file:
         file.write(file_content)

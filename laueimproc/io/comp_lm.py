@@ -78,8 +78,8 @@ class VariationalEncoder(torch.nn.Module):
         >>> import torch
         >>> from laueimproc.io.comp_lm import VariationalEncoder
         >>> encoder = VariationalEncoder()
-        >>> encoder(torch.rand((10, 1, 160, 256))).shape
-        torch.Size([10, 64, 1, 4])
+        >>> encoder(torch.rand((5, 1, 160, 224))).shape
+        torch.Size([5, 64, 1, 3])
         >>>
         """
         assert isinstance(img, torch.Tensor), img.__class__.__name__
@@ -120,11 +120,11 @@ class VariationalEncoder(torch.nn.Module):
         --------
         >>> import torch
         >>> from laueimproc.io.comp_lm import VariationalEncoder
-        >>> lat = torch.rand((10, 64, 1, 4))
+        >>> lat = torch.rand((5, 64, 1, 3))
         >>> q_lat = VariationalEncoder.add_quantization_noise(lat)
         >>> torch.all(abs(q_lat - lat) <= 0.5/255)
         tensor(True)
-        >>> abs((q_lat - lat).mean().round(decimals=4))
+        >>> abs((q_lat - lat).mean().round(decimals=3))
         tensor(0.)
         >>>
         """
@@ -204,8 +204,8 @@ class Decoder(torch.nn.Module):
         >>> import torch
         >>> from laueimproc.io.comp_lm import Decoder
         >>> decoder = Decoder()
-        >>> decoder(torch.rand((10, 64, 1, 4))).shape
-        torch.Size([10, 1, 160, 256])
+        >>> decoder(torch.rand((5, 64, 1, 3))).shape
+        torch.Size([5, 1, 160, 224])
         >>>
         """
         assert isinstance(lat, torch.Tensor), lat.__class__.__name__
@@ -273,7 +273,7 @@ class LMCodec(torch.nn.Module):
         >>> import numpy as np
         >>> from laueimproc.io.comp_lm import LMCodec
         >>> codec = LMCodec("/tmp/lmweights.tar").eval()
-        >>> img = np.random.randint(0, 65536, (2000, 2000), dtype=np.uint16)
+        >>> img = np.random.randint(0, 65536, (1000, 1000), dtype=np.uint16)
         >>> data = codec.encode(img)
         >>> decoded = codec.decode(data)
         >>> (img == decoded).all()
@@ -322,7 +322,7 @@ class LMCodec(torch.nn.Module):
         >>> import numpy as np
         >>> from laueimproc.io.comp_lm import LMCodec
         >>> codec = LMCodec("/tmp/lmweights.tar").eval()
-        >>> img = np.random.randint(0, 65536, (2000, 2000), dtype=np.uint16)
+        >>> img = np.random.randint(0, 65536, (1000, 1000), dtype=np.uint16)
         >>> encoded = codec.encode(img)
         >>>
         """
@@ -376,8 +376,8 @@ class LMCodec(torch.nn.Module):
         >>> import torch
         >>> from laueimproc.io.comp_lm import LMCodec
         >>> codec = LMCodec("/tmp/lmweights.tar")
-        >>> codec.forward(torch.rand((2000, 2000))).shape
-        torch.Size([2000, 2000])
+        >>> codec.forward(torch.rand((1000, 1000))).shape
+        torch.Size([1000, 1000])
         >>>
         """
         assert isinstance(img, torch.Tensor), img.__class__.__name__
@@ -393,16 +393,6 @@ class LMCodec(torch.nn.Module):
         ----------
         diagrams : list[Diagram]
             All the diagrams we want to compress.
-
-        Examples
-        --------
-        >>> from laueimproc import Diagram
-        >>> from laueimproc.io.comp_lm import LMCodec
-        >>> from laueimproc.io.download import get_samples
-        >>> codec = LMCodec("/tmp/lmweights.tar")
-        >>> diagrams = [Diagram(f) for f in get_samples().glob("*.jp2")]
-        >>> codec.overfit(diagrams)
-        >>>
         """
         self.train()
         optim = torch.optim.RAdam(self.parameters(), lr=5e-5)

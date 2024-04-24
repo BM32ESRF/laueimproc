@@ -116,7 +116,7 @@ def gauss2d(
     >>>
     >>> prob = gauss2d(obs, mean, cov)
     >>> prob.shape
-    torch.Size([1000, 3, 10])
+    torch.Size([1000, 3, 100])
     >>>
     >>> mean.requires_grad = cov.requires_grad = True
     >>> gauss2d(obs, mean, cov).sum().backward()
@@ -188,11 +188,11 @@ def gauss2d_and_jac(
     >>>
     >>> prob, mean_jac, half_cov_jac = gauss2d_and_jac(obs, mean, half_cov)
     >>> prob.shape
-    torch.Size([1000, 3, 10])
+    torch.Size([1000, 3, 100])
     >>> mean_jac.shape
-    torch.Size([1000, 3, 10, 3, 2, 1])
+    torch.Size([1000, 3, 100, 3, 2, 1])
     >>> half_cov_jac.shape
-    torch.Size([1000, 3, 10, 3, 2, 2])
+    torch.Size([1000, 3, 100, 3, 2, 2])
     >>>
     """
     if _check:

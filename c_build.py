@@ -2,6 +2,8 @@
 
 """The rules of compilation for setuptools."""
 
+import os
+
 from setuptools import Extension
 from setuptools.command.build_py import build_py as _build_py
 
@@ -17,7 +19,10 @@ COMP_RULES = {
         "-march=native",  # uses local processor instructions for optimization
         "-O3",  # hight optimization, -O3 include -ffast-math
     ],
-    "include_dirs": [np.get_include()],  # requires for  #include numpy
+    "include_dirs": [
+        np.get_include(),  # requires for  #include <numpy/arrayobject.h>
+        os.path.dirname(__file__),  # for  #include <laueimproc/c_check.h>
+    ],
 }
 
 

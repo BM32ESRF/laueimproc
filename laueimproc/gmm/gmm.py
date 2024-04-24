@@ -121,12 +121,13 @@ def cost_and_grad(
     >>> import torch
     >>> from laueimproc.gmm.gmm import cost_and_grad
     >>> rois = torch.rand((1000, 10, 10))
+    >>> shapes = torch.full((1000, 4), 10, dtype=torch.int32)
     >>> mean = torch.randn((1000, 3, 2, 1)) + 5.0  # (n, n_clu, n_var, 1)
     >>> cov = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 1, 2, 2).expand(1000, 3, 2, 2).clone()
     >>> eta = torch.rand((1000, 3))  # (n, n_clu)
     >>> eta /= eta.sum(dim=-1, keepdim=True)
     >>>
-    >>> cost, mean_grad, cov_grad, eta_grad = cost_and_grad(rois, mean, cov, eta)
+    >>> cost, mean_grad, cov_grad, eta_grad = cost_and_grad(rois, shapes, mean, cov, eta)
     >>> cost.shape
     torch.Size([1000])
     >>> mean_grad.shape
@@ -136,17 +137,11 @@ def cost_and_grad(
     >>> eta_grad.shape
     torch.Size([1000, 3])
     >>>
-    >>> cost_, mean_grad_, cov_grad_, eta_grad_ = cost_and_grad(rois, mean, cov, eta)
+    >>> cost_, mean_grad_, cov_grad_, eta_grad_ = cost_and_grad(rois, shapes, mean, cov, eta)
     >>> assert torch.allclose(cost, cost_)
     >>> assert torch.allclose(mean_grad, mean_grad_)
     >>> assert torch.allclose(cov_grad, cov_grad_)
     >>> assert torch.allclose(eta_grad, eta_grad_)
-    >>>
-    >>> import timeit
-    >>> min(  # doctest: +SKIP
-    ...     timeit.repeat(lambda: cost_and_grad(rois, mean, cov, eta), repeat=10, number=10)
-    ... )
-    1.1117540699997335
     >>>
     """
     if _kwargs.get("_check", True):
@@ -330,7 +325,7 @@ def gmm2d_and_jac(  # pylint: disable=R0914
 
 #     # compile source code
 #     from cutcutcodec.core.compilation.sympy_to_torch.lambdify import (
-#         Lambdify  # pylint: disable=C0415
+#         Lambdify
 #     )
 #     # lamb = Lambdify(  # for C
 #     #     jac,

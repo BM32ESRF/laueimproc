@@ -93,14 +93,17 @@ def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool = True, theta: bool = True) -
     >>>
     >>> # timing
     >>> import timeit
-    >>> min(timeit.repeat(lambda: cov2d_to_eigtheta(cov), repeat=100, number=100))
-    0.0349183059988718
-    >>> min(timeit.repeat(lambda: torch.linalg.eigh(cov), repeat=100, number=100))
-    0.19978590199752944
-    >>> min(timeit.repeat(lambda: cov2d_to_eigtheta(cov, eig=False), repeat=100, number=100))
-    0.024473870002111653
-    >>> min(timeit.repeat(lambda: torch.linalg.eigvalsh(cov), repeat=100, number=100))
-    0.07869026600019424
+    >>> def timer():
+    ...     a = min(timeit.repeat(lambda: cov2d_to_eigtheta(cov), repeat=10, number=100))
+    ...     b = min(timeit.repeat(lambda: torch.linalg.eigh(cov), repeat=10, number=100))
+    ...     print(f"torch is {b/a:.2f} times slowler")
+    ...     a = min(timeit.repeat(lambda: cov2d_to_eigtheta(cov, eig=False), repeat=10, number=100))
+    ...     b = min(timeit.repeat(lambda: torch.linalg.eigvalsh(cov), repeat=10, number=100))
+    ...     print(f"torch is {b/a:.2f} times slowler")
+    ...
+    >>> timer()  # doctest: +SKIP
+    torch is 2.84 times slowler
+    torch is 3.87 times slowler
     >>>
     """
     assert isinstance(cov, torch.Tensor), cov.__class__.__name__
