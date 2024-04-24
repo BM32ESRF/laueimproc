@@ -39,7 +39,7 @@ def read_image(filename: typing.Union[str, bytes, pathlib.Path]) -> torch.Tensor
         raise OSError(f"the filename {filename} is not a file")
 
     if (image := cv2.imread(str(filename), cv2.IMREAD_ANYDEPTH | cv2.IMREAD_GRAYSCALE)) is not None:
-        return to_floattensor(image.transpose()) # cv2 9% faster than fabio on .mccd files
+        return to_floattensor(image.transpose())  # cv2 9% faster than fabio on .mccd files
     try:
         with fabio.open(filename) as raw:
             image = raw.data

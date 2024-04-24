@@ -2,14 +2,10 @@
 
 """Helper for compute a mixture of multivariate gaussians."""
 
-import typing
-
-import numpy as np
 import torch
 
 from .check import check_gmm
 from .gauss import gauss2d
-from laueimproc.opti.rois import rawshapes2rois
 
 
 def _gmm2d_and_jac_autodiff(
@@ -81,9 +77,8 @@ def gmm2d(
 
 def cost_and_grad(
     rois: torch.Tensor, shapes: torch.Tensor,
-    loss: typing.Union[str, typing.Callable[[torch.Tensor, torch.Tensor], torch.Tensor]],
     mean: torch.Tensor, cov: torch.Tensor, eta: torch.Tensor,
-    *, _check: bool = True, _autodiff: bool = False
+    **_kwargs
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     r"""Compute the grad of the loss between the predicted gmm and the rois.
 
@@ -95,10 +90,6 @@ def cost_and_grad(
         Contains the information of the bboxes shapes.
         heights = shapes[:, 0] and widths = shapes[:, 1].
         It doesn't have to be c contiguous.
-    loss : str callable
-        Reduce the rois and the predected rois into a single vector of scalar.
-        The shapes are [Tensor(n, h, w), Tensor(n, h, w)] -> Tensor(n,).
-        Could be the string "mse".
     mean : torch.Tensor
         The 2x1 column mean vector of shape (n, \(K\), 2, 1).
         \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
@@ -130,13 +121,12 @@ def cost_and_grad(
     >>> import torch
     >>> from laueimproc.gmm.gmm import cost_and_grad
     >>> rois = torch.rand((1000, 10, 10))
-    >>> loss = lambda pred, roi: (pred - roi)**2
     >>> mean = torch.randn((1000, 3, 2, 1)) + 5.0  # (n, n_clu, n_var, 1)
     >>> cov = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 1, 2, 2).expand(1000, 3, 2, 2).clone()
     >>> eta = torch.rand((1000, 3))  # (n, n_clu)
     >>> eta /= eta.sum(dim=-1, keepdim=True)
     >>>
-    >>> cost, mean_grad, cov_grad, eta_grad = cost_and_grad(rois, "mse", mean, cov, eta)
+    >>> cost, mean_grad, cov_grad, eta_grad = cost_and_grad(rois, mean, cov, eta)
     >>> cost.shape
     torch.Size([1000])
     >>> mean_grad.shape
@@ -146,7 +136,7 @@ def cost_and_grad(
     >>> eta_grad.shape
     torch.Size([1000, 3])
     >>>
-    >>> cost_, mean_grad_, cov_grad_, eta_grad_ = cost_and_grad(rois, loss, mean, cov, eta)
+    >>> cost_, mean_grad_, cov_grad_, eta_grad_ = cost_and_grad(rois, mean, cov, eta)
     >>> assert torch.allclose(cost, cost_)
     >>> assert torch.allclose(mean_grad, mean_grad_)
     >>> assert torch.allclose(cov_grad, cov_grad_)
@@ -154,16 +144,12 @@ def cost_and_grad(
     >>>
     >>> import timeit
     >>> min(  # doctest: +SKIP
-    ...     timeit.repeat(lambda: cost_and_grad(rois, "mse", mean, cov, eta), repeat=10, number=10)
+    ...     timeit.repeat(lambda: cost_and_grad(rois, mean, cov, eta), repeat=10, number=10)
     ... )
     1.1117540699997335
     >>>
     """
-    if _check:
-        if isinstance(loss, str):
-            assert loss in {"mse"}
-        else:
-            assert callable(loss), loss.__class__.__name__
+    if _kwargs.get("_check", True):
         assert isinstance(rois, torch.Tensor), rois.__class__.__name__
         assert rois.ndim == 3, rois.shape
         assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__
@@ -171,33 +157,23 @@ def cost_and_grad(
 
     # preparation
     areas = torch.prod(shapes, dim=1).to(dtype=rois.dtype, device=rois.device)
-    points_i, points_j = torch.meshgrid(
+    obs = torch.meshgrid(
         torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
         torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
         indexing="ij",
     )
-    points_i, points_j = points_i.ravel(), points_j.ravel()
-    obs = torch.cat([points_i.unsqueeze(1), points_j.unsqueeze(1)], dim=1)
+    obs = (obs[0].ravel(), obs[1].ravel())
+    obs = torch.cat([obs[0].unsqueeze(1), obs[1].unsqueeze(1)], dim=1)
     obs = obs.expand(rois.shape[0], -1, -1)  # (n, n_obs, n_var)
 
     # evaluation of jacobian and loss
-    rois_pred, mean_jac, cov_jac, mag_jac = gmm2d_and_jac(
-        obs, mean, cov, eta, _check=_check, _autodiff=_autodiff
-    )
+    rois_pred, mean_jac, cov_jac, mag_jac = gmm2d_and_jac(obs, mean, cov, eta, **_kwargs)
 
     # compute cost and cost grad
-    if loss == "mse":
-        rois_pred -= rois.reshape(*rois_pred.shape)
-        cost = torch.sum(rois_pred * rois_pred, dim=1) / areas
-        rois_pred += rois_pred  # grad
-        rois_pred /= areas.unsqueeze(1)
-    else:
-        rois_pred = rois_pred.detach()
-        rois_pred.requires_grad = True
-        rois_pred.grad = None
-        cost = loss(rois.reshape(*rois_pred.shape), rois_pred).sum(dim=1) / areas
-        cost.sum().backward()
-        rois_pred = rois_pred.grad  # grad
+    rois_pred -= rois.reshape(*rois_pred.shape)
+    cost = torch.sum(rois_pred * rois_pred, dim=1) / areas
+    rois_pred += rois_pred  # grad
+    rois_pred /= areas.unsqueeze(1)
 
     # compute grad
     mean_jac *= rois_pred.reshape(*rois_pred.shape, 1, 1, 1)
@@ -206,7 +182,7 @@ def cost_and_grad(
     return cost, torch.sum(mean_jac, dim=1), torch.sum(cov_jac, dim=1), torch.sum(mag_jac, dim=1)
 
 
-def gmm2d_and_jac(
+def gmm2d_and_jac(  # pylint: disable=R0914
     obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, eta: torch.Tensor,
     *, _check: bool = True, _autodiff: bool = False
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -273,142 +249,99 @@ def gmm2d_and_jac(
     if _check:
         check_gmm((mean, cov, eta))
 
-    *batch, n_obs, _ = obs.shape
-    *_, n_clu, _, _ = mean.shape
-
     if _autodiff:
         return _gmm2d_and_jac_autodiff(obs, mean, cov, eta)
 
-    corr = cov[..., :, 0, 1].unsqueeze(-2)  # (..., 1, n_clu)
-    sigma_d0 = cov[..., :, 0, 0].unsqueeze(-2)  # (..., 1, n_clu)
-    sigma_d1 = cov[..., :, 1, 1].unsqueeze(-2)  # (..., 1, n_clu)
+    corr = cov[..., 0, 1].unsqueeze(-2).unsqueeze(-1)  # (..., 1, n_clu, 1)
+    sigmas = cov[..., [1, 0], [1, 0]].unsqueeze(-3)  # (..., 1, n_clu, 2)
     obs = obs.unsqueeze(-2) - mean.squeeze(-1).unsqueeze(-3)  # (..., n_obs, n_clu, 2)
-    eta = eta.unsqueeze(-2)  # (..., 1, n_clu)
-    o_d0 = obs[..., :, :, 0]  # (..., n_obs, n_clu)
-    o_d1 = obs[..., :, :, 1]  # (..., n_obs, n_clu)
+    eta = eta.unsqueeze(-2).unsqueeze(-1)  # (..., 1, n_clu, 1)
 
-    _0 = -corr * corr
-    _6 = sigma_d0 * sigma_d1
-    _2 = _6 + _0  # det
-    _3 = torch.rsqrt(_2)
-    _1 = -_2**-1  # x**-1 faster than 1/x
-    _9 = _1 * o_d0
-    dcorr = _1 * o_d1
-    dmd0 = dcorr * corr
-    dmd0 -= _9 * sigma_d1
-    dmd1 = _9 * corr
-    dmd1 -= dcorr * sigma_d0
-    dsd1 = -0.5 * dmd1 * o_d1
-    _13 = -0.5 * dmd0 * o_d0
-    dsd1 += _13
-    dsd1 = torch.exp(dsd1, out=dsd1)
-    _13 = 0.1591549430918953357688838 * dsd1
-    deta = _13 * _3
-    probs = deta * eta
-    _2 **= 3
-    _2 = torch.rsqrt(_2, out=_2)
-    _2 *= eta
-    _16 = 0.07957747154594766788444188 * dsd1 * _2
-    _1 *= _1
-    _17 = _1 * o_d0
-    _18 = _1 * o_d1
-    _19 = -0.5 * o_d0
-    _20 = -0.5 * o_d1
-    _21 = corr * sigma_d0
-    _4 = corr * sigma_d1
-    dmd0 *= probs
-    dmd1 *= probs
-    dsd0 = -_16 * sigma_d1
-    _23 = _18 * _4
-    _24 = sigma_d1 * sigma_d1
-    _23 -= _17 * _24
-    _23 *= _19
-    _1 *= corr
-    o_d0 *= _1 * sigma_d1  # ok because o_d0 is a copy
-    o_d1 *= _1 * sigma_d0
-    _25 = o_d0 - (_18 * _6) - dcorr
-    _25 *= _20
-    _23 += _25
-    _23 *= _13 * _3 * eta
-    dsd0 += _23
-    _16 *= -sigma_d0
-    _23 = o_d1 - (_17 * _6) - _9
-    _23 *= _19
-    _25 = _17 * _21
-    _25 -= sigma_d0 * sigma_d0 * _18
-    _25 *= _20
-    _23 += _25
-    dsd1 *= 0.1591549430918953357688838 * _23 * _3 * eta
-    dsd1 += _16
-    _0 += _0
-    dcorr += (_0 * _18) + (2 * _17 * _4)
-    _9 += (_0 * _17) + (2 * _18 * _21)
-    dcorr *= _19
-    _9 *= _20
-    dcorr += _9
-    dcorr *= probs
-    _9 = _13 * _2 * corr
-    dcorr += _9
+    dcorr = corr**2  # (..., 1, n_clu, 1)
+    x25 = sigmas.prod(-1, keepdim=True)  # (..., 1, n_clu, 1)
+    x1 = x25 - dcorr  # (..., 1, n_clu, 1)
+    x3 = torch.rsqrt(x1)  # (..., 1, n_clu, 1)
+    x6 = x1**-1  # (..., 1, n_clu, 1), x**-1 faster than 1/x
+    x7 = x6 * obs  # (..., n_obs, n_clu, 2)
+    obs *= 0.5  # ok because copy
+    mean_jac = sigmas*x7 - corr*x7.flip(-1)  # (..., n_obs, n_clu, 2)
+    x14 = torch.exp(-(mean_jac*obs).sum(-1, keepdim=True)) / (2*torch.pi)  # (..., n_obs, n_clu, 1)
+    eta_jac = x14 * x3  # (..., n_obs, n_clu, 1)
+    prob = eta * eta_jac  # (..., n_obs, n_clu, 1)
+    mean_jac *= prob  # (..., n_obs, n_clu, 2)
+    x14 *= eta
+    x2 = x3**3 * x14  # (..., n_obs, n_clu, 1)
+    x6 *= x6  # (..., 1, n_clu, 1)
+    x22 = 2 * x6 * obs  # (..., n_obs, n_clu, 2)
+    x22f = x22.flip(-1)
+    x23 = corr * sigmas  # (..., 1, n_clu, 2)
+    dcorr += dcorr  # (..., 1, n_clu, 1)
+    obsf = obs.flip(-1)
+    dcorr = corr*x2 - prob*(obsf*(2*x23.flip(-1)*x22f - x22*dcorr - x7)).sum(-1, keepdim=True)
+    x3 = -x14 * x3 * (  # (..., n_obs, n_clu, 2)
+        obs*(x23*x22f - sigmas**2*x22) + obsf*(2*x6*x23*obs - x22f*x25 + x7.flip(-1))
+    ) - 0.5*sigmas*x2
+    prob = torch.sum(prob, axis=-2).squeeze(-1)
+    cov_jac = torch.cat([
+        x3[..., 0].unsqueeze(-1), dcorr, dcorr, x3[..., 1].unsqueeze(-1)
+    ], dim=-1).reshape(*obs.shape, 2)
 
-    prob = torch.sum(probs, axis=-1)
-    mean_jac = torch.cat([
-        dmd0.unsqueeze(-1).unsqueeze(-2), dmd1.unsqueeze(-1).unsqueeze(-2)
-    ], dim=-2)
-    half_cov_jac = torch.cat([
-        dsd0.unsqueeze(-1), dcorr.unsqueeze(-1), dcorr.unsqueeze(-1), dsd1.unsqueeze(-1)
-    ], dim=-1).reshape(*batch, n_obs, n_clu, 2, 2)
-    eta_jac = deta
-
-    return prob, mean_jac, half_cov_jac, eta_jac
+    return prob, mean_jac.unsqueeze(-1), cov_jac, eta_jac.squeeze(-1)
 
 
-def gmm2d_and_jac_sympy():
-    """Find the algebrical expression of the jacobian."""
-    # from laueimproc.gmm.gmm import gmm2d_and_jac_sympy
-    # jac = gmm2d_and_jac_sympy()
-    from sympy import cancel, exp, pi, pprint, sqrt, symbols, Matrix, Symbol
+# def gmm2d_and_jac_sympy():
+#     """Find the algebrical expression of the jacobian."""
+#     # from laueimproc.gmm.gmm import gmm2d_and_jac_sympy
+#     # jac = gmm2d_and_jac_sympy()
+#     from sympy import cancel, exp, pi, sqrt, symbols, Matrix, Symbol
 
-    o_d0, o_d1 = symbols("o_d0 o_d1", real=True)
-    obs = Matrix([[o_d0], [o_d1]])
-    mu_d0, mu_d1 = symbols("mu_d0 mu_d1", real=True)
-    mean = Matrix([[mu_d0], [mu_d1]])
-    sigma_d0, sigma_d1 = symbols("sigma_d0 sigma_d1", real=True, positive=True)
-    corr = Symbol("corr", real=True)
-    cov = Matrix([[sigma_d0, corr], [corr, sigma_d1]])
+#     o_d0, o_d1 = symbols("o_d0 o_d1", real=True)
+#     obs = Matrix([[o_d0], [o_d1]])
+#     mu_d0, mu_d1 = symbols("mu_d0 mu_d1", real=True)
+#     mean = Matrix([[mu_d0], [mu_d1]])
+#     sigma_d0, sigma_d1 = symbols("sigma_d0 sigma_d1", real=True, positive=True)
+#     corr = Symbol("corr", real=True)
+#     cov = Matrix([[sigma_d0, corr], [corr, sigma_d1]])
 
-    # compute one gaussian
-    det, inv_cov = cov.det(), cancel(cov.inv())
-    mean_center = obs - mean
-    scalar = (mean_center.T @ inv_cov @ mean_center)[0, 0]
-    prob = exp(-scalar/2) / sqrt(4*pi**2*det)
-    #print("single gaussian expression:")
-    #pprint(prob)
+#     # compute one gaussian
+#     det, inv_cov = cov.det(), cancel(cov.inv())
+#     mean_center = obs - mean
+#     scalar = (mean_center.T @ inv_cov @ mean_center)[0, 0]
+#     prob = exp(-scalar/2) / sqrt(4*pi**2*det)
+#     # print("single gaussian expression:")
+#     # pprint(prob)
 
-    # compute diff
-    eta = Symbol("eta", real=True, positive=True)
-    probs = eta * prob
-    jac = [
-        probs,  # partial, sum on j
-        probs.diff(eta),  # equal prob
-        probs.diff(mu_d0),
-        probs.diff(mu_d1),
-        probs.diff(sigma_d0),
-        probs.diff(sigma_d1),
-        probs.diff(corr),
-    ]
+#     # compute diff
+#     eta = Symbol("eta", real=True, positive=True)
+#     probs = eta * prob
+#     jac = [
+#         probs,  # partial, sum on j
+#         probs.diff(eta),  # equal prob
+#         probs.diff(mu_d0),
+#         probs.diff(mu_d1),
+#         probs.diff(sigma_d0),
+#         probs.diff(sigma_d1),
+#         probs.diff(corr),
+#     ]
 
-    # compile source code
-    from cutcutcodec.core.compilation.sympy_to_torch.lambdify import Lambdify
-    # lamb = Lambdify(  # for C
-    #     jac,
-    #     cst_args={eta, mu_d0, mu_d1, sigma_d0, sigma_d1, corr},
-    #     shapes={(o_d0, o_d1, eta, mu_d0, mu_d1, sigma_d0, sigma_d1, corr)}
-    # )
-    lamb = Lambdify(  # for torch
-        jac,
-        shapes={(o_d0, o_d1), (eta, mu_d0, mu_d1, sigma_d0, sigma_d1, corr)}
-    )
-    # print(lamb)
-    # print(lamb._tree["dyn_code"])
+#     # pseudo simplification
+#     from sympy import cse, pprint
+#     pprint(cse(jac, list=False))
 
-    return jac
+#     # compile source code
+#     from cutcutcodec.core.compilation.sympy_to_torch.lambdify import (
+#         Lambdify  # pylint: disable=C0415
+#     )
+#     # lamb = Lambdify(  # for C
+#     #     jac,
+#     #     cst_args={eta, mu_d0, mu_d1, sigma_d0, sigma_d1, corr},
+#     #     shapes={(o_d0, o_d1, eta, mu_d0, mu_d1, sigma_d0, sigma_d1, corr)}
+#     # )
+#     lamb = Lambdify(  # for torch
+#         jac,
+#         shapes={(o_d0, o_d1), (eta, mu_d0, mu_d1, sigma_d0, sigma_d1, corr)}
+#     )
+#     print(lamb)
+#     print(lamb._tree["dyn_code"])
+
+#     return jac

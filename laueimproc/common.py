@@ -3,6 +3,7 @@
 """Little common tools."""
 
 import numbers
+import pathlib
 
 
 def bytes2human(size: numbers.Real) -> str:
@@ -16,3 +17,19 @@ def bytes2human(size: numbers.Real) -> str:
         (False, False, False): ("B", 1.0),
     }[(size > 1e9, size > 1e6, size > 1e3)]
     return f"{size*factor:.1f}{unit}"
+
+
+def get_project_root() -> pathlib.Path:
+    """Return the absolute project root folder.
+
+    Examples
+    --------
+    >>> from laueimproc.common import get_project_root
+    >>> root = get_project_root()
+    >>> root.is_dir()
+    True
+    >>> root.name
+    'laueimproc'
+    >>>
+    """
+    return pathlib.Path(__file__).resolve().parent

@@ -130,7 +130,7 @@ def gauss2d(
     norm = norm.unsqueeze(-1)  # (..., n_clu, 1)
     norm *= (2.0*torch.pi)**2
     norm = torch.rsqrt(norm)  # no "out=None if cov.requires_grad else norm" for jacobian
-    inv = inv.unsqueeze(-3) # (..., n_clu, n_obs, n_var, n_var)
+    inv = inv.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, n_var)
 
     cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
     prob = cent_obs.transpose(-1, -2) @ inv @ cent_obs  # (..., n_clu, n_obs, 1, 1)

@@ -3,7 +3,6 @@
 """Group of diagrams."""
 
 import gc
-import multiprocessing.pool
 import numbers
 import threading
 import time
@@ -44,12 +43,23 @@ class DiagramManager(threading.Thread, metaclass=MetaSingleton):
                 self._diagrams_dict[diagram] = len(self._diagrams_list)
                 self._diagrams_list.append(diagram)
 
-    def get_nexts_diagrams(self, diagram, nbr: int) -> list:
-        """Get the `nbr` next diagrams after the given one."""
+    def collect(self) -> int:
+        """Try to keep only reachable diagrams."""
+        from laueimproc.classes.diagram import Diagram  # pylint: disable=C0415
         with self._lock:
-            if (index := self._diagrams_dict.get(diagram, None)) is None:
-                return []
-            return self._diagrams_list[index+1:index+nbr+1]
+            before = len(self._diagrams_list)
+            diagrams_id = [id(diagram) for diagram in self._diagrams_list]
+            self._diagrams_dict = {}
+            self._diagrams_list = []
+            gc.collect()
+            new_diagrams = {id(o): o for o in gc.get_objects() if isinstance(o, Diagram)}
+            self._diagrams_list = [new_diagrams[id_] for id_ in diagrams_id if id_ in new_diagrams]
+            self._diagrams_dict = {
+                diagram: index for index, diagram in enumerate(self._diagrams_list)
+            }
+            after = len(self._diagrams_list)
+        free_malloc()
+        return before - after
 
     @property
     def max_mem_percent(self) -> float:
@@ -71,37 +81,17 @@ class DiagramManager(threading.Thread, metaclass=MetaSingleton):
                 target = mem_to_free(self._max_mem_percent)
                 if nbr and (target := mem_to_free(self._max_mem_percent)):
                     total = 0
-                    with multiprocessing.pool.ThreadPool() as pool:
-                        for level in (0, 1, 2):
-                            total += sum(pool.imap(
-                                lambda d: d.compress((target-total)//nbr, _levels={level}),
-                                self._diagrams_list,
-                            ))
-                            if total >= target:
-                                break
+                    for level in (0, 1, 2):
+                        total += sum(
+                            d.compress((target-total)//nbr, _levels={level})
+                            for d in self._diagrams_list
+                        )
+                        if total >= target:
+                            break
                     if self._verbose:
                         print(f"{bytes2human(total)} of cache removed (level {level})")
                     free_malloc()
-            time.sleep(1)
-
-    def update(self):
-        """Try to keep only reachable diagrams."""
-        from laueimproc.classes.diagram import Diagram  # pylint: disable=C0415
-        with self._lock:
-            before = len(self._diagrams_list)
-            diagrams_id = [id(diagram) for diagram in self._diagrams_list]
-            self._diagrams_dict = {}
-            self._diagrams_list = []
-            gc.collect()
-            new_diagrams = {id(o): o for o in gc.get_objects() if isinstance(o, Diagram)}
-            self._diagrams_list = [new_diagrams[id_] for id_ in diagrams_id if id_ in new_diagrams]
-            self._diagrams_dict = {
-                diagram: index for index, diagram in enumerate(self._diagrams_list)
-            }
-            after = len(self._diagrams_list)
-        free_malloc()
-        if self._verbose:
-            print(f"update tracked diagrams, {before-after} are freed, {after} remain")
+            time.sleep(0.1)
 
     @property
     def verbose(self) -> bool:
@@ -113,3 +103,14 @@ class DiagramManager(threading.Thread, metaclass=MetaSingleton):
         """Set the chatting status of the experiment."""
         assert isinstance(verbose, bool), verbose.__class__.__name__
         self._verbose = verbose
+
+
+def collect():
+    """Release all unreachable diagrams.
+
+    Returns
+    -------
+    nbr : int
+        The number of diagrams juste released.
+    """
+    return DiagramManager().collect()

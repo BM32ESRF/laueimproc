@@ -16,16 +16,13 @@ from laueimproc.improc.spot.fit import fit_gaussians_em, fit_gaussians
 from laueimproc.improc.spot.pca import pca
 from laueimproc.improc.spot.rot_sym import compute_rot_sym
 from laueimproc.opti.cache import auto_cache
-from laueimproc.opti.parallel import auto_parallel
 from .base_diagram import check_init, BaseDiagram
-
 
 
 class Diagram(BaseDiagram):
     """A Laue diagram image."""
 
     @auto_cache  # put the result in thread safe cache (no multiprocessing)
-    @auto_parallel  # automaticaly multithreading
     @check_init  # throws an exception if the diagram is not initialized
     def compute_barycenters(self, indexing: str = "ij") -> torch.Tensor:
         """Compute the barycenter of each spots."""
@@ -41,7 +38,6 @@ class Diagram(BaseDiagram):
         return barycenters
 
     @auto_cache
-    @auto_parallel
     @check_init
     def compute_pca(self) -> torch.Tensor:
         """Compute the pca on each spot.
@@ -54,27 +50,23 @@ class Diagram(BaseDiagram):
         data, shapes = self._rois[0], self._rois[1][:, 2:].numpy(force=True)
         return pca(data, shapes)
 
-    @auto_parallel
     @check_init
     def compute_rois_max(self) -> torch.Tensor:
         """Get the intensity of the hottest pixel for each roi."""
         return compute_rois_max(self.rois)
 
-    @auto_parallel
     @check_init
     def compute_rois_sum(self) -> torch.Tensor:
         """Sum the intensities of the pixels for each roi."""
         return compute_rois_sum(self.rois)
 
     @auto_cache
-    @auto_parallel
     @check_init
     def compute_rot_sym(self) -> torch.Tensor:
         """Compute the similarity by rotation of each spots."""
         return compute_rot_sym(self.rois)
 
     @auto_cache
-    @auto_parallel
     @check_init
     def compute_nb_extremums(self) -> torch.Tensor:
         """Find the number of extremums in each roi.
@@ -114,7 +106,6 @@ class Diagram(BaseDiagram):
         return mean, cov, infodict
 
     @auto_cache
-    @auto_parallel
     @check_init
     def fit_gaussians_em(
         self,
@@ -130,6 +121,8 @@ class Diagram(BaseDiagram):
         ----------
         photon_density : arraylike, optional
             Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
+        indexing : str, default="ij"
+            The convention used for the returned positions values. Can be "ij" or "xy".
         **kwargs : dict
             Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
 
@@ -190,13 +183,9 @@ class Diagram(BaseDiagram):
         return mean, cov, magnitude, infodict
 
     @auto_cache
-    @auto_parallel
     @check_init
     def fit_gaussians(
-        self,
-        loss: typing.Union[typing.Callable[[torch.Tensor, torch.Tensor], torch.Tensor], str] = "mse",
-        indexing: str = "ij",
-        **kwargs,
+        self, loss: str = "mse", indexing: str = "ij", **kwargs
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by \(K\) gaussians.
 
@@ -204,9 +193,9 @@ class Diagram(BaseDiagram):
 
         Parameters
         ----------
-        loss : callable or str, default="mse"
+        loss : str, default="mse"
             Quantify the difference between ``self.rois`` and estimated rois from the gmm.
-            The specific string values are understood:
+            The possible values are:
 
             * "l1" (absolute difference): \(
                 \frac{1}{H.W}
@@ -219,7 +208,8 @@ class Diagram(BaseDiagram):
                 \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
                 \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
             \)
-
+        indexing : str, default="ij"
+            The convention used for the returned positions values. Can be "ij" or "xy".
         **kwargs : dict
             Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
 
@@ -234,6 +224,8 @@ class Diagram(BaseDiagram):
         infodict : dict[str]
             See ``laueimproc.improc.spot.fit.fit_gaussians``.
         """
+        assert loss == "mse", "only mse is implemented"
+
         # preparation
         with self._rois_lock:
             data = self._rois[0]
@@ -241,7 +233,7 @@ class Diagram(BaseDiagram):
             shift = self._rois[1][:, :2]
 
         # main fit
-        mean, cov, magnitude, infodict = fit_gaussians(data, shapes, loss, **kwargs)
+        mean, cov, magnitude, infodict = fit_gaussians(data, shapes, **kwargs)
 
         # spot base to diagram base
         if mean.requires_grad:

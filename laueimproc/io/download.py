@@ -12,9 +12,7 @@ import urllib.request
 import tqdm
 
 
-
 DEFAULT_FOLDER = pathlib.Path("~/.cache/laueimproc/").expanduser()
-
 
 
 def _download(url: str):

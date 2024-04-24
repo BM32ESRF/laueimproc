@@ -47,7 +47,7 @@ To install the lastest development version from `GitHub <https://github.com/BM32
     git clone https://github.com/BM32ESRF/laueimproc.git
     cd laueimproc/
     pip install --upgrade pip setuptools wheel numpy
-    pip install --no-build-isolation --editable .[all]
+    pip -v install --no-build-isolation --editable .[all]
 
 Then, you can generate the documentation:
 
@@ -78,7 +78,7 @@ There are a lot of jupyter-notebook examples in the folder ``notebooks``.
     for diagram in diagrams:
         intensities = diagram.compute_pxl_intensities()
         if intensities.shape[0]:
-            indexes = torch.argsort(intensities, descending=True)[:10]
-            diagram.filter_spots(indexes)
+            indices = torch.argsort(intensities, descending=True)[:10]
+            diagram.filter_spots(indices)
         print(diagram)
         diagram.plot(plt.figure(layout="tight")); plt.show()

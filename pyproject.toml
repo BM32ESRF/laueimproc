@@ -8,6 +8,7 @@ name = "laueimproc"
 dynamic = ["version"]
 requires-python = ">=3.9"
 dependencies = [
+  "click",
   "fabio",
   "matplotlib >= 3.6.0",  # for norm="log"
   "numpy",
@@ -45,6 +46,9 @@ classifiers = [
 [project.optional-dependencies]
 all = [
   "pdoc3",
+  "pylama[all]",
+  "pylama[toml]",
+  "pytest",
   "recommonmark",
   "sphinx",
   "sphinx-copybutton",
@@ -52,6 +56,10 @@ all = [
   "sphinx-rtd-theme",
   "sphinxext-opengraph",
 ]
+
+[project.scripts]
+laueimproc = "laueimproc.__main__:main"
+laueimproc-test = "laueimproc.testing.__main__:main"
 
 [project.urls]
 Repository = "https://github.com/BM32ESRF/laueimproc"
@@ -71,3 +79,39 @@ build_py = "c_build.Build"
 
 [tool.setuptools.dynamic]
 version = {attr = "laueimproc.__version__"}
+
+[tool.pytest.ini_options]
+filterwarnings = [
+  "ignore:Module already imported:pytest.PytestAssertRewriteWarning"
+]
+markers = [
+  "slow: marks tests as slow",
+]
+
+[tool.pylama]
+sort = "E,W,D"
+skip = "./doc, ./dist*"
+linters = "mccabe,pycodestyle,pydocstyle,pyflakes,mypy,pylint"
+# E226 false detection pycodestyle 2.11.1
+# D212 and D213 are mutualy exclusive, PEP 257 is in favor of D212
+# D211 and D203 are mutualy exclusive, PEP 257 is in favor of D211
+# D107 is in contradiction with the numpy doc convention
+# D413 disable in the google, numpy, and pep257 convention
+ignore = "E226,D213,D203,D107,D413"
+max_line_length = 100
+
+[tool.mypy]
+cache_dir = "~/.cache/mypy_cache"
+ignore_missing_imports = true
+show_error_codes = true
+
+[tool.pylint]
+# E0611 failed to import c compiled modules
+# C0103 method name not conform because qt impose the name
+# E1101 'no member' failed in all c extensions
+# E1102 'not callable' false detection in pylint 3.1.0
+# E1133 'no iterable' false positive in pylint 3.1.0
+# E1135 'doesn't support membership test' false positive in pylint 3.1.0
+disable = "E0611,C0103,E1101,E1102,E1133,E1135"
+extension-pkg-allow-list = ["laueimproc.improc.spot.c_pca", "laueimproc.opti.c_rois"]
+# enable = "all"

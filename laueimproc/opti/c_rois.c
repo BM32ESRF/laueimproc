@@ -4,38 +4,18 @@
 #include <numpy/arrayobject.h>
 #include <stdio.h>
 #include <Python.h>
+#include <laueimproc/c_check.h>
 
 
 
-int checkBboxes(PyArrayObject *bboxes) {
+int checkIndexs(PyArrayObject *indices) {
     // Raise an exception if shape format is not correct.
-    if (PyArray_NDIM(bboxes) != 2) {
-        PyErr_SetString(PyExc_ValueError, "'bboxes' requires 2 dimensions");
+    if (PyArray_NDIM(indices) != 1) {
+        PyErr_SetString(PyExc_ValueError, "'indices' requires 1 dimensions");
         return 1;
     }
-    if (PyArray_DIM(bboxes, 1) != 4) {
-        PyErr_SetString(
-            PyExc_ValueError,
-            "second axis of 'bboxes' has to be of size 4, for *anchors, height and width"
-       );
-        return 1;
-    }
-    if (PyArray_TYPE(bboxes) != NPY_INT32) {
-        PyErr_SetString(PyExc_TypeError, "'bboxes' has to be of type int32");
-        return 1;
-    }
-    return 0;
-}
-
-
-int checkIndexs(PyArrayObject *indexes) {
-    // Raise an exception if shape format is not correct.
-    if (PyArray_NDIM(indexes) != 1) {
-        PyErr_SetString(PyExc_ValueError, "'indexes' requires 1 dimensions");
-        return 1;
-    }
-    if (PyArray_TYPE(indexes) != NPY_INT64) {
-        PyErr_SetString(PyExc_TypeError, "'indexes' has to be of type int64");
+    if (PyArray_TYPE(indices) != NPY_INT64) {
+        PyErr_SetString(PyExc_TypeError, "'indices' has to be of type int64");
         return 1;
     }
     return 0;
@@ -96,17 +76,17 @@ int checkShapes(PyArrayObject *shapes) {
 }
 
 
-int getDataIndexs(npy_int64 **data_indexes_p, PyArrayObject *bboxes) {
+int getDataIndexs(npy_int64 **data_indices_p, PyArrayObject *bboxes) {
     // find the boundaries of unfoleded rois in data
     const npy_intp len_bboxes = PyArray_DIM(bboxes, 0);
     npy_intp i;
     npy_int32 height, width;
-    *data_indexes_p = malloc((len_bboxes+1)*sizeof(npy_int64));
-    if (NULL == data_indexes_p) {
+    *data_indices_p = malloc((len_bboxes+1)*sizeof(npy_int64));
+    if (NULL == data_indices_p) {
         fprintf(stderr, "failed to alloc the cummulated bboxes area array\n");
         return 1;
     }
-    **data_indexes_p = 0;
+    **data_indices_p = 0;
     for (i = 0; i < len_bboxes; ++i) {
         height = *(npy_int32 *)PyArray_GETPTR2(bboxes, i, 2);
         width = *(npy_int32 *)PyArray_GETPTR2(bboxes, i, 3);
@@ -114,7 +94,7 @@ int getDataIndexs(npy_int64 **data_indexes_p, PyArrayObject *bboxes) {
             fprintf(stderr, "the area of the roi of index %ld if not > 0\n", i);
             return 1;
         }
-        *(*data_indexes_p + i + 1) = *(*data_indexes_p + i) + (npy_int64)(height*width);
+        *(*data_indices_p + i + 1) = *(*data_indices_p + i) + (npy_int64)(height*width);
     }
     return 0;
 }
@@ -266,11 +246,11 @@ int fillRois(PyArrayObject *rois, npy_float *data, const Py_ssize_t datalen, PyA
 }
 
 
-int reorderBBoxes(PyArrayObject *newbboxes, Py_ssize_t *newdatalen, PyArrayObject *indexes, PyArrayObject *bboxes) {
-    // fill the newbboxes in the order provided by indexes
+int reorderBBoxes(PyArrayObject *newbboxes, Py_ssize_t *newdatalen, PyArrayObject *indices, PyArrayObject *bboxes) {
+    // fill the newbboxes in the order provided by indices
     // find the new datalen
     // set the negative index positive
-    const npy_intp len_indexes = PyArray_DIM(indexes, 0);
+    const npy_intp len_indices = PyArray_DIM(indices, 0);
     const npy_intp len_bboxes = PyArray_DIM(bboxes, 0);
     npy_intp i;
     npy_int64 index;
@@ -278,16 +258,16 @@ int reorderBBoxes(PyArrayObject *newbboxes, Py_ssize_t *newdatalen, PyArrayObjec
     npy_int32 *newbboxesdata = PyArray_DATA(newbboxes);  // ok because it is c contiguous
 
     *newdatalen = 0;
-    for (i = 0; i < len_indexes; ++i) {
+    for (i = 0; i < len_indices; ++i) {
         // get new index, set positive
-        index = *(npy_int64 *)PyArray_GETPTR1(indexes, i);
+        index = *(npy_int64 *)PyArray_GETPTR1(indices, i);
         if (index < 0) {
             index += len_bboxes;
             if (index < 0) {
                 fprintf(stderr, "the new index %ld of index %ld it too negative\n", index-len_bboxes, i);
                 return 1;
             }
-            *(npy_int64 *)PyArray_GETPTR1(indexes, i) = index;  // set index positive
+            *(npy_int64 *)PyArray_GETPTR1(indices, i) = index;  // set index positive
         }
         else if (index >= len_bboxes) {
             fprintf(stderr, "the new index %ld of index %ld it too big\n", index, i);
@@ -310,8 +290,8 @@ int reorderBBoxes(PyArrayObject *newbboxes, Py_ssize_t *newdatalen, PyArrayObjec
 }
 
 
-int reorderData(PyObject *newdata, PyObject *data, PyArrayObject *indexes, npy_int64 *data_indexes) {
-    const npy_intp len_indexes = PyArray_DIM(indexes, 0);
+int reorderData(PyObject *newdata, PyObject *data, PyArrayObject *indices, npy_int64 *data_indices) {
+    const npy_intp len_indices = PyArray_DIM(indices, 0);
     npy_float *rawnewdata, *rawdata;
     npy_intp i;
     npy_int64 index, shift_in, shift_out, size;
@@ -327,10 +307,10 @@ int reorderData(PyObject *newdata, PyObject *data, PyArrayObject *indexes, npy_i
         return 1;
     }
     shift_out = 0;
-    for (i = 0; i < len_indexes; ++i) {
-        index = *(npy_int64 *)PyArray_GETPTR1(indexes, i);
-        shift_in = data_indexes[index];
-        size = data_indexes[index+1] - shift_in;
+    for (i = 0; i < len_indices; ++i) {
+        index = *(npy_int64 *)PyArray_GETPTR1(indices, i);
+        shift_in = data_indices[index];
+        size = data_indices[index+1] - shift_in;
         memcpy(rawnewdata + shift_out, rawdata + shift_in, size*sizeof(npy_float));
         shift_out += size;
     }
@@ -340,20 +320,20 @@ int reorderData(PyObject *newdata, PyObject *data, PyArrayObject *indexes, npy_i
 
 static PyObject *filterByIndexs(PyObject *self, PyObject *args) {
     PyObject *data, *newdata;
-    PyArrayObject *indexes, *bboxes, *newbboxes;
+    PyArrayObject *indices, *bboxes, *newbboxes;
     npy_intp shape[2];
     Py_ssize_t newdatalen;
     int error;
-    npy_int64 *data_indexes = NULL;
+    npy_int64 *data_indices = NULL;
     PyObject *out;
 
 
-    if (!PyArg_ParseTuple(args, "O!YO!", &PyArray_Type, &indexes, &data, &PyArray_Type, &bboxes)) {
+    if (!PyArg_ParseTuple(args, "O!YO!", &PyArray_Type, &indices, &data, &PyArray_Type, &bboxes)) {
         return NULL;
     }
 
     // verifications
-    if (checkIndexs(indexes)) {
+    if (checkIndexs(indices)) {
         return NULL;
     }
     if (checkBboxes(bboxes)) {
@@ -361,7 +341,7 @@ static PyObject *filterByIndexs(PyObject *self, PyObject *args) {
     }
 
     // creation of the new bbox array
-    shape[0] = PyArray_DIM(indexes, 0);
+    shape[0] = PyArray_DIM(indices, 0);
     shape[1] = 4;
     newbboxes = (PyArrayObject *)PyArray_EMPTY(2, shape, NPY_INT32, 0);  // c contiguous
     if (NULL == newbboxes) {
@@ -370,7 +350,7 @@ static PyObject *filterByIndexs(PyObject *self, PyObject *args) {
 
     // fill new bbox and compute, cum old bbox area for data indexing
     Py_BEGIN_ALLOW_THREADS
-    error = getDataIndexs(&data_indexes, bboxes);
+    error = getDataIndexs(&data_indices, bboxes);
     Py_END_ALLOW_THREADS
     if (error) {
         Py_DECREF(newbboxes);
@@ -379,12 +359,12 @@ static PyObject *filterByIndexs(PyObject *self, PyObject *args) {
 
     // reorder the bboxes
     Py_BEGIN_ALLOW_THREADS
-    error = reorderBBoxes(newbboxes, &newdatalen, indexes, bboxes);
+    error = reorderBBoxes(newbboxes, &newdatalen, indices, bboxes);
     Py_END_ALLOW_THREADS
     if (error) {
         Py_DECREF(newbboxes);
-        free(data_indexes);
-        PyErr_SetString(PyExc_IndexError, "invalid indexes values");
+        free(data_indices);
+        PyErr_SetString(PyExc_IndexError, "invalid indices values");
         return NULL;
     }
 
@@ -392,12 +372,12 @@ static PyObject *filterByIndexs(PyObject *self, PyObject *args) {
     newdata = PyByteArray_FromStringAndSize(NULL, newdatalen*sizeof(npy_float));
     if (NULL == newdata) {
         Py_DECREF(newbboxes);
-        free(data_indexes);
+        free(data_indices);
         return NULL;
     }
     Py_BEGIN_ALLOW_THREADS
-    error = reorderData(newdata, data, indexes, data_indexes);
-    free(data_indexes);
+    error = reorderData(newdata, data, indices, data_indices);
+    free(data_indices);
     Py_END_ALLOW_THREADS
     if (error) {
         Py_DECREF(newbboxes);
@@ -602,7 +582,7 @@ static PyObject *roisshapes2raw(PyObject *self, PyObject *args) {
 
 
 static PyMethodDef roisMethods[] = {
-    {"filter_by_indexes", filterByIndexs, METH_VARARGS, "Select the rois of the given indexes."},
+    {"filter_by_indices", filterByIndexs, METH_VARARGS, "Select the rois of the given indices."},
     {"imgbboxes2raw", imgbboxes2raw, METH_VARARGS, "Extract the rois from the image."},
     {"rawshapes2rois", rawshapes2rois, METH_VARARGS, "Unfold and pad the flatten rois data into a tensor."},
     {"roisshapes2raw", roisshapes2raw, METH_VARARGS, "Compress the rois into a flatten no padded respresentation."},

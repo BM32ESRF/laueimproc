@@ -30,7 +30,7 @@ def associate_spots(
     Returns
     -------
     pair : torch.Tensor
-        The couple of the indexes of the closest spots, of shape (n, 2).
+        The couple of the indices of the closest spots, of shape (n, 2).
 
     Examples
     --------
@@ -65,7 +65,7 @@ def associate_spots(
 
 def group_spots(
     spot_to_diags: dict[int, set[int]],
-    eps: numbers.Real = 0.1,
+    eps: numbers.Real = 0.25,
     min_samples: numbers.Integral = 3,
 ) -> dict[int, set[int]]:
     """Group the spots sharing the same set of diagrams.
@@ -73,12 +73,16 @@ def group_spots(
     Parameters
     ----------
     spot_to_diags : dict[int, set[int]]
-        To each spot index, associate the set of diagram indexes, containg the spot.
+        To each spot index, associate the set of diagram indices, containg the spot.
+    eps : float
+        The maximum distance between two set of diagrams to consider they share the same cluster.
+    min_samples : int
+        The minimum cardinal of a cluster.
 
     Returns
     -------
     clusters : dict[int, set[int]]
-        To each cluster label, associate the set of spots clusters.
+        To each cluster label, associate the set of spots labels.
 
     Examples
     --------
@@ -102,15 +106,16 @@ def group_spots(
     assert isinstance(min_samples, numbers.Integral), min_samples
     assert min_samples >= 1, min_samples
 
-    from sklearn.cluster import DBSCAN
+    from sklearn.cluster import DBSCAN  # pylint: disable=C0415
 
-    # compute the matrix of distances, usin the Jaccard set norm
+    # compute the matrix of distances, using the Jaccard norm
     dist_matrix = np.zeros((len(spot_to_diags), len(spot_to_diags)), dtype=np.float32)
     spot_labels = list(spot_to_diags)
     diag_sets = [spot_to_diags[s] for s in spot_labels]  # not .values() for order
     for i, set_1 in enumerate(diag_sets[:-1]):
         for j, set_2 in zip(range(i+1, len(diag_sets)), diag_sets[i+1:]):
-            dist_matrix[i, j] = 1 - (len(set_1 & set_2) / len(set_1 | set_2))
+            inter_len = float(len(set_1 & set_2))
+            dist_matrix[i, j] = 1.0 - (inter_len / (len(set_1) + len(set_2) - inter_len))
     dist_matrix += dist_matrix.transpose()
 
     # clustering
@@ -128,7 +133,50 @@ def group_spots(
     return clusters
 
 
-def labelize_close_spots(
+def spotslabel_to_diag(labels: dict[int, torch.Tensor]) -> dict[int, set[int]]:
+    """Inverse the representation, from diagram to spots.
+
+    Parameters
+    ----------
+    labels : dict[int, torch.Tensor]
+        To each diagram index, associate the label of each spot as a compact dict.
+        Each value is a tensor of shape (n, 2), first column is native spot index into the diagram,
+        then second column corresponds to the label.
+
+    Returns
+    -------
+    diagrams : dict[int, set[int]]
+        To each spot label, associate the set of diagram indices, containg the spot.
+
+    Examples
+    --------
+    >>> import torch
+    >>> from laueimproc.clustering.spot_dist import (associate_spots, track_spots,
+    ...     spotslabel_to_diag)
+    >>> h, w = 5, 10
+    >>> diags = torch.tensor(
+    ...     sum(([[j, j+1] for j in range(i*w, (i+1)*w-1)] for i in range(h)), start=[])
+    ...     + sum(([[j, j+w] for j in range(i*w, (i+1)*w)] for i in range(h-1)), start=[])
+    ... )
+    >>> pos = [torch.rand((2000, 2), dtype=torch.float32) for _ in range(diags.max()+1)]
+    >>> pairs = [associate_spots(pos[i], pos[j], 5e-3) for i, j in diags.tolist()]
+    >>> labels = track_spots(pairs, diags)
+    >>> diagrams = spotslabel_to_diag(labels)
+    >>>
+    """
+    assert isinstance(labels, dict), labels.__class__.__name__
+    diagrams = {}
+    for diag, spotidx_to_label in labels.items():
+        assert isinstance(diag, int), diag.__class__.__name__
+        assert isinstance(spotidx_to_label, torch.Tensor), spotidx_to_label.__class__.__name__
+        assert spotidx_to_label.ndim == 2 and spotidx_to_label.shape[1] == 2, spotidx_to_label.shape
+        for spot_label in spotidx_to_label[:, 1].tolist():
+            diagrams[spot_label] = diagrams.get(spot_label, set())
+            diagrams[spot_label].add(diag)
+    return diagrams
+
+
+def track_spots(
     pairs: list[torch.Tensor],
     diags: torch.Tensor,
     *, _labels_rename: typing.Optional[tuple[dict[int, torch.Tensor], dict[int, int]]] = None,
@@ -138,7 +186,7 @@ def labelize_close_spots(
     Parameters
     ----------
     pairs : list[torch.Tensor]
-        For each pair of diagrams, contains the couple of close spots indexes.
+        For each pair of diagrams, contains the couple of close spots indices.
     diags : torch.Tensor
         The index of the diagrams for each pair, shape (len(pairs), 2).
 
@@ -152,15 +200,15 @@ def labelize_close_spots(
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.clustering.spot_dist import associate_spots, labelize_close_spots
-    >>> h, w = 10, 20
+    >>> from laueimproc.clustering.spot_dist import associate_spots, track_spots
+    >>> h, w = 5, 10
     >>> diags = torch.tensor(
     ...     sum(([[j, j+1] for j in range(i*w, (i+1)*w-1)] for i in range(h)), start=[])
     ...     + sum(([[j, j+w] for j in range(i*w, (i+1)*w)] for i in range(h-1)), start=[])
     ... )
     >>> pos = [torch.rand((2000, 2), dtype=torch.float32) for _ in range(diags.max()+1)]
     >>> pairs = [associate_spots(pos[i], pos[j], 5e-3) for i, j in diags.tolist()]
-    >>> labels = labelize_close_spots(pairs, diags)
+    >>> labels = track_spots(pairs, diags)
     >>>
     """
     assert isinstance(pairs, list), pairs.__class__.__name__
@@ -179,7 +227,7 @@ def labelize_close_spots(
         next_label = max((int(spots[:, 1].max()) for spots in _labels_rename[0].values()), start=0)
         rename = _labels_rename[1]
     else:
-        labels = {diag_idx: {} for indexes in diags for diag_idx in indexes}
+        labels = {diag_idx: {} for indices in diags for diag_idx in indices}
         next_label = 0  # the max label name
         rename = {}  # old name -> new name
 
@@ -211,46 +259,3 @@ def labelize_close_spots(
     }
 
     return labels if _labels_rename is None else (labels, rename)
-
-
-def spotslabel_to_diag(labels: dict[int, torch.Tensor]) -> dict[int, set[int]]:
-    """Inverse the representation, from diagram to spots.
-
-    Parameters
-    ----------
-    labels : dict[int, torch.Tensor]
-        To each diagram index, associate the label of each spot as a compact dict.
-        Each value is a tensor of shape (n, 2), first column is native spot index into the diagram,
-        then second column corresponds to the label.
-
-    Returns
-    -------
-    diagrams : dict[int, set[int]]
-        To each spot index, associate the set of diagram indexes, containg the spot.
-
-    Examples
-    --------
-    >>> import torch
-    >>> from laueimproc.clustering.spot_dist import (associate_spots, labelize_close_spots,
-    ...     spotslabel_to_diag)
-    >>> h, w = 10, 20
-    >>> diags = torch.tensor(
-    ...     sum(([[j, j+1] for j in range(i*w, (i+1)*w-1)] for i in range(h)), start=[])
-    ...     + sum(([[j, j+w] for j in range(i*w, (i+1)*w)] for i in range(h-1)), start=[])
-    ... )
-    >>> pos = [torch.rand((2000, 2), dtype=torch.float32) for _ in range(diags.max()+1)]
-    >>> pairs = [associate_spots(pos[i], pos[j], 5e-3) for i, j in diags.tolist()]
-    >>> labels = labelize_close_spots(pairs, diags)
-    >>> diagrams = spotslabel_to_diag(labels)
-    >>>
-    """
-    assert isinstance(labels, dict), labels.__class__.__name__
-    diagrams = {}
-    for diag, spotidx_to_label in labels.items():
-        assert isinstance(diag, int), diag.__class__.__name__
-        assert isinstance(spotidx_to_label, torch.Tensor), spotidx_to_label.__class__.__name__
-        assert spotidx_to_label.ndim == 2 and spotidx_to_label.shape[1] == 2, spotidx_to_label.shape
-        for spot_label in spotidx_to_label[:, 1].tolist():
-            diagrams[spot_label] = diagrams.get(spot_label, set())
-            diagrams[spot_label].add(diag)
-    return diagrams

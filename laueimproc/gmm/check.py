@@ -22,7 +22,7 @@ def _assert_to_warn(checker):
 
 
 def check_gmm(gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -> None:
-    r"""Ensures the provided parameters are corrects.
+    r"""Ensure the provided parameters are corrects.
 
     Parameters
     ----------
@@ -59,7 +59,7 @@ def check_gmm(gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -> None:
     *mean_batch, mean_K, mean_D, mean_1 = mean.shape
     *cov_batch, cov_K, cov_D1, cov_D2 = cov.shape
     *eta_batch, eta_K = eta.shape
-    assert  mean_batch == cov_batch == eta_batch, \
+    assert mean_batch == cov_batch == eta_batch, \
         f"batch dimension dosent match {mean_batch} vs {cov_batch} vs {eta_batch}"
     assert mean_D == cov_D1 == cov_D2, \
         f"space dimension inconsistant {mean_D} vs {cov_D1} vs {cov_D2}"
@@ -69,7 +69,7 @@ def check_gmm(gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -> None:
 
 
 def check_infit(obs: torch.Tensor, weights: typing.Optional[torch.Tensor]) -> None:
-    r"""Ensures the provided parameters are corrects.
+    r"""Ensure the provided parameters are corrects.
 
     Parameters
     ----------
@@ -101,7 +101,7 @@ def check_infit(obs: torch.Tensor, weights: typing.Optional[torch.Tensor]) -> No
 
 
 def check_ingauss(obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor) -> None:
-    r"""Ensures the provided parameters are corrects.
+    r"""Ensure the provided parameters are corrects.
 
     Parameters
     ----------

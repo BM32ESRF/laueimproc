@@ -24,7 +24,7 @@ from laueimproc.improc.peaks_search import peaks_search
 from laueimproc.io.read import read_image, to_floattensor
 from laueimproc.opti.cache import getsizeof
 from laueimproc.opti.manager import DiagramManager
-from laueimproc.opti.rois import filter_by_indexes
+from laueimproc.opti.rois import filter_by_indices
 from laueimproc.opti.rois import imgbboxes2raw
 from laueimproc.opti.rois import rawshapes2rois
 from .spot import Spot
@@ -33,6 +33,7 @@ from .spot import Spot
 def check_init(meth: typing.Callable) -> typing.Callable:
     """Decorate a Diagram method to ensure the diagram has been init."""
     assert callable(meth), meth.__class__.__name__
+
     @functools.wraps(meth)
     def check_init_meth(diagram, *args, **kwargs):
         if not diagram.is_init():
@@ -41,6 +42,7 @@ def check_init(meth: typing.Callable) -> typing.Callable:
                 f"{repr(diagram)} by invoking 'find_spots' for example"
             )
         return meth(diagram, *args, **kwargs)
+
     return check_init_meth
 
 
@@ -91,8 +93,9 @@ class BaseDiagram:
             For memory management, it is better to provide a pathlike rather than an array.
         """
         # declaration
-        self._cache: dict[str] = {}  # contains the optional cached data
-        self._cache_lock = threading.Lock()  # make the cache acces thread safe
+        self._cache: tuple[threading.Lock, dict[str]] = (  # contains the optional cached data
+            threading.Lock(), {}
+        )
         self._file_or_data: typing.Union[pathlib.Path, torch.Tensor]  # the path to the image file
         self._find_spots_kwargs: typing.Optional[dict] = None  # the kwargs
         self._history: list[str] = []  # the history of the actions performed
@@ -119,14 +122,14 @@ class BaseDiagram:
         with self._rois_lock:
             rois = None if self._rois is None else (self._rois[0].copy(), self._rois[1].clone())
         if cache:
-            with self._cache_lock:
+            with self._cache[0]:
                 return (
                     self._file_or_data,
                     self._find_spots_kwargs,
                     self._history,
                     self._properties,
                     rois,
-                    self._cache.copy(),
+                    self._cache[1].copy(),
                 )
         return (
             self._file_or_data,
@@ -168,19 +171,18 @@ class BaseDiagram:
             self._properties,
             self._rois,
         ) = state[:5]
-        self._cache = state[5] if len(state) == 6 else {}
-        self._cache_lock = threading.Lock()
+        self._cache = (threading.Lock(), (state[5] if len(state) == 6 else {}))
         self._rois_lock = threading.Lock()
         DiagramManager().add_diagram(self)
 
     def __str__(self) -> str:
         """Return a nice sumary of the history of this diagram."""
-
         # title
-        if isinstance(self._file_or_data, pathlib.Path):
-            text = f"Diagram from {self._file_or_data.name}:"
-        else:
-            text = f"Diagram from Tensor of id {id(self._file_or_data)}:"
+        text = (
+            f"Diagram from {self._file_or_data.name}:"
+            if isinstance(self._file_or_data, pathlib.Path) else
+            f"Diagram from Tensor of id {id(self._file_or_data)}:"
+        )
 
         # history
         if self.is_init():
@@ -211,7 +213,7 @@ class BaseDiagram:
         text += f"\n        * id, state: {id(self)}, {self.state}"
         if self.is_init():
             text += f"\n        * nbr spots: {len(self)}"
-        with self._cache_lock, self._rois_lock:
+        with self._cache[0], self._rois_lock:
             size = sys.getsizeof(self) + sum(getsizeof(e) for e in self.__dict__.values())
         text += f"\n        * total mem: {bytes2human(size)}"
         return text
@@ -236,8 +238,7 @@ class BaseDiagram:
                     roi.numpy(force=True).ravel()
                     for roi, (h, w) in zip(rois, bboxes[:, 2:].tolist())
                 ],
-                dtype=np.float32,
-            )
+            ).astype(np.float32, copy=False)  # not 100% shure float32
             datarois = bytearray(flat_rois.tobytes())
         else:
             bboxes = torch.empty((0, 4), dtype=torch.int32)
@@ -278,7 +279,7 @@ class BaseDiagram:
         """
         assert isinstance(name, str), name.__class__.__name__
         assert isinstance(state_independent, bool), state_independent.__class__.__name__
-        with self._cache_lock:
+        with self._cache[0]:
             self._properties[name] = ((None if state_independent else self.state), value)
 
     @property
@@ -356,12 +357,12 @@ class BaseDiagram:
         if 0 in _levels:
             pattern = r"(?P<state>[0-9a-f]{32})\.\w+\([0-9a-f]{32}\)"
             state = self.state
-            with self._cache_lock:
-                for key in list(self._cache):  # copy keys for pop
+            with self._cache[0]:
+                for key in list(self._cache[1]):  # copy keys for pop
                     if (match := re.search(pattern, key)) is None:
                         continue
                     if match["state"] != state:
-                        removed += sys.getsizeof(key) + getsizeof(self._cache.pop(key))
+                        removed += sys.getsizeof(key) + getsizeof(self._cache[1].pop(key))
                 for key in list(self._properties):
                     match = self._properties[key][0]
                     if match is not None and match != state:
@@ -369,11 +370,11 @@ class BaseDiagram:
 
         # delete valid cache
         if 1 in _levels:
-            with self._cache_lock:
-                size_to_key = {getsizeof(v): k for k, v in self._cache.items()}
+            with self._cache[0]:
+                size_to_key = {getsizeof(v): k for k, v in self._cache[1].items()}
                 for item_size in sorted(size_to_key, reverse=True):  # delete biggest elements first
                     key = size_to_key[item_size]
-                    removed += sys.getsizeof(key) + getsizeof(self._cache.pop(key))
+                    removed += sys.getsizeof(key) + getsizeof(self._cache[1].pop(key))
                     if removed >= size:
                         return removed
 
@@ -388,7 +389,7 @@ class BaseDiagram:
 
     @check_init
     def filter_spots(
-        self, indexes: typing.Container, msg: str = "general filter", *, inplace: bool = False
+        self, indices: typing.Container, msg: str = "general filter", *, inplace: bool = False
     ):
         """Keep only the given spots, delete the rest.
 
@@ -396,8 +397,8 @@ class BaseDiagram:
 
         Parameters
         ----------
-        indexes : arraylike
-            The list of the indexes of the spots to keep (negatives indexes are allow),
+        indices : arraylike
+            The list of the indices of the spots to keep (negatives indices are allow),
             or the boolean vector with True for keeping the spot, False otherwise like a mask.
         msg : str
             The message to happend to the history.
@@ -412,19 +413,19 @@ class BaseDiagram:
             Return None if inplace is True, or a filtered clone of self otherwise.
         """
         # verifications and cast
-        assert hasattr(indexes, "__iter__"), indexes.__class__.__name__
+        assert hasattr(indices, "__iter__"), indices.__class__.__name__
         assert isinstance(msg, str), msg.__class__.__name__
         assert isinstance(inplace, bool), inplace.__class__.__name__
-        indexes = torch.squeeze(torch.as_tensor(indexes))
-        assert indexes.ndim == 1, f"only a 1d vector is accepted, shape is {indexes.shape}"
-        if indexes.dtype is torch.bool:  # case mask -> convert into index list
-            assert indexes.shape[0] == len(self), (
+        indices = torch.squeeze(torch.as_tensor(indices))
+        assert indices.ndim == 1, f"only a 1d vector is accepted, shape is {indices.shape}"
+        if indices.dtype is torch.bool:  # case mask -> convert into index list
+            assert indices.shape[0] == len(self), (
                 "the mask has to have the same length as the number of spots, "
-                f"there are {len(self)} spots and mask is of len {indexes.shape[0]}"
+                f"there are {len(self)} spots and mask is of len {indices.shape[0]}"
             )
-            indexes = torch.arange(len(self), dtype=torch.int64, device=indexes.device)[indexes]
-        elif indexes.dtype != torch.int64:
-            indexes = indexes.to(torch.int64)
+            indices = torch.arange(len(self), dtype=torch.int64, device=indices.device)[indices]
+        elif indices.dtype != torch.int64:
+            indices = indices.to(torch.int64)
 
         # manage inplace
         nb_spots = len(self)  # flush in background
@@ -432,11 +433,11 @@ class BaseDiagram:
             self = self.clone()  # pylint: disable=W0642
 
         # update history, it has to be done before changing state to be catched by signature
-        self._history.append(f"{nb_spots} to {len(indexes)} spots: {msg}")
+        self._history.append(f"{nb_spots} to {len(indices)} spots: {msg}")
 
         # apply filter
         with self._rois_lock:
-            self._rois = filter_by_indexes(indexes, *self._rois)
+            self._rois = filter_by_indices(indices, *self._rois)
 
         return None if inplace else self
 
@@ -477,7 +478,7 @@ class BaseDiagram:
             Is the property has never been defined or if the state changed.
         """
         assert isinstance(name, str), name.__class__.__name__
-        with self._cache_lock:
+        with self._cache[0]:
             try:
                 state, value = self._properties[name]
             except KeyError as err:
@@ -504,14 +505,14 @@ class BaseDiagram:
     @property
     def image(self) -> torch.Tensor:
         """Return the complete image of the diagram."""
-        with self._cache_lock:
-            if "image" not in self._cache:  # no auto ache because it is state invariant
-                self._cache["image"] = (
+        with self._cache[0]:
+            if "image" not in self._cache[1]:  # no auto ache because it is state invariant
+                self._cache[1]["image"] = (
                     read_image(self._file_or_data)
                     if isinstance(self._file_or_data, pathlib.Path) else
                     self._file_or_data
                 )
-            return self._cache["image"]
+            return self._cache[1]["image"]
 
     def plot(
         self,
@@ -647,8 +648,8 @@ class BaseDiagram:
         assert hasattr(new_spots, "__iter__"), new_spots.__class__.__name__
 
         # clear history and internal state (self._rois is cleared later)
-        with self._cache_lock:
-            self._cache = {}
+        with self._cache[0]:
+            self._cache[1].clear()
         self._history = []
 
         # case tensor

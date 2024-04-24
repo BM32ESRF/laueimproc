@@ -116,26 +116,3 @@ def log_likelihood(
     ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)
     ind_prob = torch.log(ind_prob, out=None if ind_prob.requires_grad else ind_prob)
     return torch.sum(ind_prob, axis=-1, keepdim=False)  # (...,)
-
-
-def _mse():
-    r"""
-     * mse: Mean Square Error. \(
-        mse = \frac
-            {
-                \sum\limits_{i=1}^N
-                \left(
-                    \left(\sum\limits_{i=1}^N\alpha_i\right)\Gamma(\mathbf{X}_i)-\alpha_i
-                \right)^2
-            }
-            {\sum\limits_{i=1}^N\alpha_i}
-    \)
-    """
-    # mean, cov, eta = gmm
-    # prob = _gauss(obs, mean, cov)  # (..., n_clu, n_pxl)
-    # prob *= eta.unsqueeze(-1)  # relative proba
-    # mass = torch.sum(dup_w, axis=-1, keepdim=True)  # (..., 1)
-    # surface = torch.sum(prob, axis=-2)  # (..., n_pxl)
-    # surface *= mass
-    # mse = torch.mean((surface - dup_w)**2, axis=-1)  # (...,)
-    # return mse

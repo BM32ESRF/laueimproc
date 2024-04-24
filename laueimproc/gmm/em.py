@@ -299,7 +299,7 @@ def _fit_n_clusters_serveral_steps_serveral_tries(
         .expand(nbr_tries, *batch, nbr_clusters, n_var, n_var)
         .clone()
     )
-    eta = ( # (n_tries, ..., n_clu)
+    eta = (  # (n_tries, ..., n_clu)
         eta.unsqueeze(0).expand(nbr_tries, *batch, nbr_clusters).clone()
     )
 
@@ -330,7 +330,7 @@ def em(
     nbr_tries: numbers.Integral = 2,
     **metrics,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-    r"""A weighted implementation of the EM algorithm.
+    r"""Implement a weighted version of the EM algorithm.
 
     Parameters
     ----------

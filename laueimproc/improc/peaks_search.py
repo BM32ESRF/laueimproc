@@ -10,7 +10,6 @@ import cv2
 import numpy as np
 import torch
 
-from laueimproc.io.read import to_floattensor
 from laueimproc.opti.rois import imgbboxes2raw
 
 
@@ -98,7 +97,7 @@ def estimate_background(
     bg_image = cv2.morphologyEx(brut_image, dst=bg_image, op=cv2.MORPH_OPEN, kernel=kernel_font)
     # ksize = (3*kernel_font.shape[0], 3*kernel_font.shape[1])
     # bg_image = cv2.GaussianBlur(brut_image, dst=bg_image, ksize=ksize, sigmaX=0)
-    bg_image = np.clip(bg_image, a_min=0.0, a_max=brut_image, out=bg_image)  # avoid 0 when substract
+    bg_image = np.clip(bg_image, a_min=0.0, a_max=brut_image, out=bg_image)  # avoid <0 when sub
     return bg_image
 
 
@@ -113,6 +112,8 @@ def peaks_search(
 
     Parameters
     ----------
+    brut_image : torch.Tensor
+        The 2d grayscale float32 image to annalyse.
     density : float, default=0.5
         Correspond to the density of spots found.
         This value is normalized so that it can evolve 'linearly' between ]0, 1].
@@ -137,6 +138,7 @@ def peaks_search(
     """
     assert isinstance(brut_image, torch.Tensor), brut_image.__class__.__name__
     assert brut_image.ndim == 2, brut_image.shape
+    assert brut_image.dtype == torch.float32, brut_image.dtype
     assert isinstance(density, numbers.Real), density.__class__.__type__
     assert 0.0 < density <= 1.0, density
     density = float(density)
@@ -165,7 +167,7 @@ def peaks_search(
         (i, j, h, w) for j, i, w, h in map(  # cv2 to numpy convention
             cv2.boundingRect,
             cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0],
-        ) if max(h, w) <= 200 # remove too big spots
+        ) if max(h, w) <= 200  # remove too big spots
     ]
 
     if bboxes:

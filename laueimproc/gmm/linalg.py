@@ -5,7 +5,7 @@
 import torch
 
 
-def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool=True, theta: bool=True) -> torch.Tensor:
+def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool = True, theta: bool = True) -> torch.Tensor:
     r"""Rotate the covariance matrix into canonical base, like a PCA.
 
     Work only for dimension \(D = 2\), ie 2*2 square matrix.
@@ -135,8 +135,8 @@ def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool=True, theta: bool=True) -> to
     return out
 
 
-def _inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.Tensor]:
-    """Helper for ``inv_cov2d``."""
+def _inv_cov2d(cov: torch.Tensor, inv: bool = True) -> tuple[torch.Tensor, torch.Tensor]:
+    """Help ``inv_cov2d``."""
     # preparation
     sigma1 = cov[..., 0, 0]
     sigma2 = cov[..., 1, 1]
@@ -154,7 +154,7 @@ def _inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.T
     return det, out
 
 
-def inv_cov2d(cov: torch.Tensor, inv: bool=True) -> tuple[torch.Tensor, torch.Tensor]:
+def inv_cov2d(cov: torch.Tensor, inv: bool = True) -> tuple[torch.Tensor, torch.Tensor]:
     r"""Compute the det and the inverse of covariance matrix.
 
     Parameters

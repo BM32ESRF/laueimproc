@@ -16,15 +16,14 @@ import traceback
 import typing
 import warnings
 
+import numpy as np
 import psutil
 import torch
 import tqdm
 
 from .diagram import Diagram
-import numpy as np
 
 
-GENTYPE = type((lambda: (yield))())
 NCPU = len(psutil.Process().cpu_affinity())
 
 
@@ -33,6 +32,7 @@ def _excepthook(args):
     if isinstance(args.thread, (DiagramDataset, _ChainThread)):
         traceback.print_tb(args.exc_traceback)
         raise args.exc_value
+
 
 threading.excepthook = _excepthook
 
@@ -113,7 +113,7 @@ class DiagramDataset(threading.Thread):
         if position is not None:
             self._check_position(position)
         self._position = [position, {}]  # the dict associate (x, y) to index
-        self._diagrams: dict[int, Diagram] = {}  # index to diagram
+        self._diagrams: dict[int, typing.Union[Diagram, queue.Queue]] = {}  # index to diagram
         self._lock = threading.Lock()
         self._to_sniff: dict = {"dirs": [], "readed": set()}  # for the async run method
         self._operations_chain: list[tuple[typing.Callable[[Diagram], object], tuple]] = []
@@ -155,14 +155,14 @@ class DiagramDataset(threading.Thread):
         if isinstance(item, numbers.Integral):
             return self._get_diagram_from_index(item)
         if isinstance(item, slice):
-            return self._get_diagrams_from_indexes(range(*item.indices(max(self._diagrams)+1)))
+            return self._get_diagrams_from_indices(range(*item.indices(max(self._diagrams)+1)))
         if isinstance(item, (range, list, np.ndarray, torch.Tensor)):
             item = torch.squeeze(torch.as_tensor(item))
             if item.dtype is torch.bool:
                 item = torch.arange(len(item), dtype=torch.int64, device=item.device)[item]
             elif item.dtype != torch.int64:
                 item = item.to(torch.int64)
-            return self._get_diagrams_from_indexes(item.tolist())
+            return self._get_diagrams_from_indices(item.tolist())
         if isinstance(item, tuple):  # case grid
             if self._position[0] is None:
                 raise AttributeError(
@@ -225,7 +225,6 @@ class DiagramDataset(threading.Thread):
 
     def __str__(self) -> str:
         """Return an exaustive printable string giving informations on the dataset."""
-
         # title
         if len(folders := {d.file.parent for d in self if d.file is not None}) == 1:
             text = f"DiagramDataset from the folder {folders.pop()}:"
@@ -291,7 +290,7 @@ class DiagramDataset(threading.Thread):
 
     @staticmethod
     def _check_position(position: typing.Callable[[int], tuple[numbers.Real, numbers.Real]]):
-        """Ensures that the position function has the right input / outputs."""
+        """Ensure that the position function has the right input / outputs."""
         assert callable(position), \
             f"`position` has to be callable, not {position.__class__.__name__}"
         try:
@@ -318,7 +317,7 @@ class DiagramDataset(threading.Thread):
             )
         return_args = typing.get_args(signature.return_annotation)
         assert len(return_args) == 2, \
-                f"the function `position` has to return 2 elements, not {len(return_args)}"
+            f"the function `position` has to return 2 elements, not {len(return_args)}"
         assert issubclass(return_args[0], numbers.Real), \
             f"first output element of `position` has to be a real number, not a {return_args[0]}"
         assert issubclass(return_args[1], numbers.Real), \
@@ -330,10 +329,10 @@ class DiagramDataset(threading.Thread):
         assert isinstance(second_idx, numbers.Real), second_idx.__class__.__name__
         with self._lock:
             if isinstance(self._position[1], dict):  # dict to tensor
-                coords, indexes = zip(*self._position[1].items())
+                coords, indices = zip(*self._position[1].items())
                 self._position[1] = (
                     torch.tensor(coords, dtype=torch.float32),
-                    torch.tensor(indexes, dtype=torch.int64),
+                    torch.tensor(indices, dtype=torch.int64),
                 )
             coord = torch.tensor(
                 [[first_idx, second_idx]],
@@ -358,16 +357,18 @@ class DiagramDataset(threading.Thread):
             except KeyError as err:
                 raise IndexError(f"The diagram of index {index} is not in the dataset") from err
             if isinstance(diagram, queue.Queue):
-                diagram = diagram.get()  # passive waiting
+                diagram, nb_ops = diagram.get()  # passive waiting
+                for func, args in self._operations_chain[nb_ops:]:  # simple precaution
+                    func(diagram, *args)
                 self._diagrams[index] = diagram
         return diagram
 
-    def _get_diagrams_from_indexes(self, indexes: typing.Iterable):
+    def _get_diagrams_from_indices(self, indices: typing.Iterable):
         """Return a frozen sub dataset view."""
-        diagrams = {i: self._get_diagram_from_index(i) for i in indexes}
+        diagrams = {i: self._get_diagram_from_index(i) for i in indices}
         new_dataset = self.__class__.__new__(self.__class__)
         new_dataset.__setstate__(self.__getstate__())
-        new_dataset._diagrams = diagrams
+        new_dataset._diagrams = diagrams  # pylint: disable=W0212
         return new_dataset
 
     def add_property(self, name: str, value: object, *, state_independent: bool = False):
@@ -463,7 +464,7 @@ class DiagramDataset(threading.Thread):
 
         Parameters
         ----------
-        new_diagram
+        new_diagrams
             The diagram references, they can be of this natures:
 
                 * laueimproc.classes.diagram.Diagram : Could be a simple Diagram instance.
@@ -486,7 +487,9 @@ class DiagramDataset(threading.Thread):
                 self.add_diagram(Diagram(new_diagrams))  # case file
         elif isinstance(new_diagrams, (str, bytes)):
             self.add_diagrams(pathlib.Path(new_diagrams))
-        elif isinstance(new_diagrams, (tuple, list, set, frozenset, GENTYPE, self.__class__)):
+        elif isinstance(
+            new_diagrams, (tuple, list, set, frozenset, typing.Generator, self.__class__)
+        ):
             for new_diagram in new_diagrams:
                 self.add_diagrams(new_diagram)
         else:
@@ -548,8 +551,10 @@ class DiagramDataset(threading.Thread):
                 ) from err
 
         # apply
+        with self._lock:
+            idxs = list(self._diagrams)
+        idxs_diags = [(i, self._get_diagram_from_index(i)) for i in idxs]
         with self._lock, multiprocessing.pool.ThreadPool(NCPU) as pool:
-            idxs_diags = list((i, d) for i, d in self._diagrams.items() if isinstance(d, Diagram))
             res = dict(
                 tqdm.tqdm(
                     pool.imap_unordered(
@@ -562,7 +567,7 @@ class DiagramDataset(threading.Thread):
             )
             self._operations_chain.append((func, args))
 
-        # filter properties
+        # filter properties (delete obsolete)
         with self._lock:
             state = self.state
             for key in list(self._properties):
@@ -587,7 +592,9 @@ class DiagramDataset(threading.Thread):
         """
         new_dataset = self.__class__.__new__(self.__class__)
         new_dataset.__setstate__(self.__getstate__())
-        new_dataset._diagrams = {i: d.clone(**kwargs) for i, d in new_dataset._diagrams.items()}
+        new_dataset._diagrams = {  # pylint: disable=W0212
+            i: d.clone(**kwargs) for i, d in new_dataset._diagrams.items()  # pylint: disable=W0212
+        }
         return new_dataset
 
     def get_property(self, name: str) -> object:
@@ -620,7 +627,7 @@ class DiagramDataset(threading.Thread):
         """Return a hash of the dataset.
 
         If two datasets gots the same state, it means they are the same.
-        The hash take in consideration the indexes of the diagrams and the functions applyed.
+        The hash take in consideration the indices of the diagrams and the functions applyed.
         The retruned value is a hexadecimal string of length 32.
         """
         hasher = hashlib.md5(usedforsecurity=False)
@@ -647,18 +654,18 @@ class DiagramDataset(threading.Thread):
                     diagram = Diagram(file)
                     self.add_diagram(diagram)  # update self._to_sniff["readed"]
 
-            # make accessible the just borned diagrams
-            with self._lock:
-                for idx in list(self._diagrams):  # copy for allowing modification
-                    if not isinstance(self._diagrams[idx], queue.Queue):
-                        continue
-                    try:
-                        diagram, nb_ops = self._diagrams[idx].get_nowait()
-                    except queue.Empty:
-                        continue
-                    if nb_ops != len(self._operations_chain):  # if apply called during thread run
-                        for func, args in self._operations_chain[nb_ops:]:
-                            func(diagram, *args)
-                    self._diagrams[idx] = diagram
+            # # make accessible the just borned diagrams
+            # with self._lock:
+            #     for idx in list(self._diagrams):  # copy for allowing modification
+            #         if not isinstance(self._diagrams[idx], queue.Queue):
+            #             continue
+            #         try:
+            #             diagram, nb_ops = self._diagrams[idx].get_nowait()
+            #         except queue.Empty:
+            #             continue
+            #         if nb_ops != len(self._operations_chain):  # if apply called during thread run
+            #             for func, args in self._operations_chain[nb_ops:]:
+            #                 func(diagram, *args)
+            #         self._diagrams[idx] = diagram
 
             time.sleep(10)

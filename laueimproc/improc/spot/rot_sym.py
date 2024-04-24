@@ -41,7 +41,11 @@ def compute_rot_sym(tensor_spots: torch.Tensor) -> torch.Tensor:
     # apply rotations
     for i, angle in enumerate(range(0, 360, 30)):
         cos, sin = math.cos(math.radians(angle)), math.sin(math.radians(angle))
-        dst = np.float32([(.5*width, .5*height), (.5*width+cos, .5*height+sin), (.5*width-sin, .5*height+cos)])
+        dst = np.float32([
+            (.5*width, .5*height),
+            (.5*width+cos, .5*height+sin),
+            (.5*width-sin, .5*height+cos),
+        ])
         corr = torch.cat([
             torch.from_numpy(cv2.warpAffine(
                 roi,
@@ -66,14 +70,3 @@ def compute_rot_sym(tensor_spots: torch.Tensor) -> torch.Tensor:
     sim = torch.min(all_corr, dim=0).values
     sim = torch.clamp(sim, min=0, out=sim)  # [-1, 1] -> [0, 1]
     return sim
-
-if __name__ == '__main__':
-    from laueimproc import Diagram
-    from laueimproc.io.download import get_samples
-    all_files = sorted(get_samples().glob("*.jp2"))
-    diagrams = [Diagram(f) for f in all_files]
-    for diagram in diagrams:
-        diagram.find_spots()
-    for diagram in diagrams:
-        rois = diagram.rois
-        compute_rot_sym(rois)

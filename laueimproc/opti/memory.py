@@ -18,6 +18,7 @@ def free_malloc():
     except OSError:
         pass
 
+
 def get_swappiness() -> int:
     """Return the system swapiness value."""
     file = pathlib.Path("/proc/sys/vm/swappiness")
@@ -25,6 +26,7 @@ def get_swappiness() -> int:
         return 60
     with open(file, "r", encoding="ascii") as raw:
         return int(raw.read())
+
 
 def mem_to_free(max_mem_percent: numbers.Integral) -> int:
     """Return the number of bytes to be removed from the cache.
@@ -46,6 +48,7 @@ def mem_to_free(max_mem_percent: numbers.Integral) -> int:
     size = max(0, used_memory() - threshold*90//100)  # 10% under
     return size
 
+
 @functools.cache
 def total_memory() -> int:
     """Return the total usable memory in bytes."""
@@ -60,8 +63,9 @@ def total_memory() -> int:
     restricted_mem = restricted_mem or psutil.virtual_memory().total
     return restricted_mem
 
+
 def used_memory() -> int:
-    """The total memory used in bytes."""
+    """Return the total memory used in bytes."""
     if "SLURM_MEM_PER_NODE" in os.environ:
         return psutil.Process().memory_info().rss
     memory = psutil.virtual_memory()

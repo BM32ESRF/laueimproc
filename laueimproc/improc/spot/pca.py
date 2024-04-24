@@ -18,7 +18,6 @@ except ImportError:
 from laueimproc.opti.rois import rawshapes2rois
 
 
-
 def pca(data: bytearray, shapes: np.ndarray[np.int32], *, _no_c: bool = False) -> torch.Tensor:
     r"""Compute the PCA for each spot.
 
@@ -49,7 +48,9 @@ def pca(data: bytearray, shapes: np.ndarray[np.int32], *, _no_c: bool = False) -
     >>> from laueimproc.improc.spot.pca import pca
     >>> shapes = np.zeros((1000, 2), dtype=np.int32)
     >>> shapes[::2, 0], shapes[1::2, 0], shapes[::2, 1], shapes[1::2, 1] = 10, 20, 30, 40
-    >>> data = bytearray(np.linspace(0, 1, (shapes[:, 0]*shapes[:, 1]).sum(), dtype=np.float32).tobytes())
+    >>> data = bytearray(
+    ...     np.linspace(0, 1, (shapes[:, 0]*shapes[:, 1]).sum(), dtype=np.float32).tobytes()
+    ... )
     >>> std1_std2_theta = pca(data, shapes)
     >>> assert torch.allclose(std1_std2_theta[:, :2], pca(data, shapes, _no_c=True)[:, :2])
     >>>
@@ -91,8 +92,7 @@ def pca(data: bytearray, shapes: np.ndarray[np.int32], *, _no_c: bool = False) -
     >>>
     """
     if not _no_c and c_pca is not None:
-        pca_np = c_pca.pca(data, shapes)
-        return torch.from_numpy(pca_np)
+        return torch.from_numpy(c_pca.pca(data, shapes))
 
     # preparation
     rois = rawshapes2rois(data, shapes, _no_c=_no_c)  # verifs here

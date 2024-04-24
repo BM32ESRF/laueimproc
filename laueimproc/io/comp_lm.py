@@ -184,7 +184,6 @@ class Decoder(torch.nn.Module):
             torch.nn.Sigmoid(),
         )
 
-
     def forward(self, lat: torch.Tensor) -> torch.Tensor:
         """Apply the function on the latent images.
 
@@ -233,7 +232,7 @@ class LMCodec(torch.nn.Module):
     """Encode and Decode Laue Max images."""
 
     def __init__(self, weights: typing.Union[str, bytes, pathlib.Path]):
-        """Initialise the codec
+        """Initialise the codec.
 
         Parameters
         ----------
@@ -311,7 +310,7 @@ class LMCodec(torch.nn.Module):
     def encode(
         self, img: typing.Union[torch.Tensor, np.ndarray]
     ) -> typing.Union[tuple[torch.Tensor, tuple[int, int, int, int]], bytes]:
-        """Encode the image
+        """Encode the image.
 
         Parameters
         ----------
