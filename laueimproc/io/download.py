@@ -46,7 +46,7 @@ def _decompress(suffix: str, data_gen: typing.Iterator):
 
 def download(
     url: str,
-    folder: typing.Union[str, bytes, pathlib.Path] = DEFAULT_FOLDER,
+    folder: typing.Union[str, pathlib.Path] = DEFAULT_FOLDER,
     force_download: bool = False,
 ) -> pathlib.Path:
     """Download, decompress and unpack the data given by the url.
@@ -66,7 +66,7 @@ def download(
         The path of the final data.
     """
     assert isinstance(url, str), url.__class__.__name__
-    assert isinstance(folder, (str, bytes, pathlib.Path)), folder.__class__.__name__
+    assert isinstance(folder, (str, pathlib.Path)), folder.__class__.__name__
     assert isinstance(force_download, bool), force_download.__class__.__name__
 
     # prepare env

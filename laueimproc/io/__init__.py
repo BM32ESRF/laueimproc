@@ -8,19 +8,19 @@ import pathlib
 from laueimproc.io.download import get_samples
 
 
-__all__ = ["get_samples", "get_test_sample"]
+__all__ = ["get_sample", "get_samples"]
 
 
 @functools.cache
-def get_test_sample() -> pathlib.Path:
+def get_sample() -> pathlib.Path:
     """Return the path of the test image.
 
     Examples
     --------
-    >>> from laueimproc.io import get_test_sample
-    >>> get_test_sample().name
+    >>> from laueimproc.io import get_sample
+    >>> get_sample().name
     'ge_blanc.jp2'
-    >>> get_test_sample().exists()
+    >>> get_sample().exists()
     True
     >>>
     """

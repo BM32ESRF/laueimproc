@@ -145,7 +145,7 @@ class Diagram(BaseDiagram):
         photon_density = (
             float(photon_density)
             if isinstance(photon_density, numbers.Real)
-            else torch.as_tensor(photon_density, dtype=torch.float32)
+            else torch.asarray(photon_density, dtype=torch.float32)
         )
         rois = self.rois
         shift = self.bboxes[:, :2]

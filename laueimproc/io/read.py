@@ -12,7 +12,7 @@ import numpy as np
 import torch
 
 
-def read_image(filename: typing.Union[str, bytes, pathlib.Path]) -> torch.Tensor:
+def read_image(filename: typing.Union[str, pathlib.Path]) -> torch.Tensor:
     """Read and decode a grayscale image into a numpy array.
 
     Use cv2 as possible, and fabio if cv2 failed.
@@ -33,7 +33,7 @@ def read_image(filename: typing.Union[str, bytes, pathlib.Path]) -> torch.Tensor
     OSError
         If the given path is not a file, or if the image reading failed.
     """
-    assert isinstance(filename, (str, bytes, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve()
     if not filename.is_file():
         raise OSError(f"the filename {filename} is not a file")

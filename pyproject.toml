@@ -9,6 +9,7 @@ dynamic = ["version"]
 requires-python = ">=3.9"
 dependencies = [
   "click",
+  "cloudpickle",
   "fabio",
   "matplotlib >= 3.6.0",  # for norm="log"
   "numpy",

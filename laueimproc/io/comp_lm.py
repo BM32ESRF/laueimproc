@@ -231,7 +231,7 @@ class Decoder(torch.nn.Module):
 class LMCodec(torch.nn.Module):
     """Encode and Decode Laue Max images."""
 
-    def __init__(self, weights: typing.Union[str, bytes, pathlib.Path]):
+    def __init__(self, weights: typing.Union[str, pathlib.Path]):
         """Initialise the codec.
 
         Parameters
@@ -239,7 +239,7 @@ class LMCodec(torch.nn.Module):
         weights : pathlike
             The filename of the model data.
         """
-        assert isinstance(weights, (str, bytes, pathlib.Path)), weights.__class__.__name__
+        assert isinstance(weights, (str, pathlib.Path)), weights.__class__.__name__
         weights = pathlib.Path(weights).expanduser().resolve()
         assert not weights.is_dir(), weights
 

@@ -12,7 +12,7 @@ from laueimproc.classes.diagram import Diagram
 from laueimproc import __version__
 
 
-def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram):
+def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
     """Write the dat file associate to the provided diagram.
 
     The file contains the following columns:
@@ -90,7 +90,7 @@ def write_dat(filename: typing.Union[str, bytes, pathlib.Path], diagram: Diagram
     >>>
     """
     # verification
-    assert isinstance(filename, (str, bytes, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".dat")
     assert isinstance(diagram, Diagram), diagram.__class__.__name__
 

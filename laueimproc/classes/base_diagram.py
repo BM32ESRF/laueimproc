@@ -25,7 +25,6 @@ from laueimproc.opti.manager import DiagramManager
 from laueimproc.opti.rois import filter_by_indices
 from laueimproc.opti.rois import imgbboxes2raw
 from laueimproc.opti.rois import rawshapes2rois
-from .spot import Spot
 
 
 def check_init(meth: typing.Callable) -> typing.Callable:
@@ -67,14 +66,11 @@ class BaseDiagram:
         The tensor of the provided regions of interest for each spots (readonly).
         For writing, use `self.spots = ...`.
         Return None until spots are initialized. The shape is (n, h, w).
-    spots : list[laueimproc.classes.spot.Spot] or None
-        All the spots contained in this diagram (read and write).
-        Return None until spots are initialized.
     """
 
     def __init__(
         self,
-        data: typing.Union[np.ndarray, torch.Tensor, str, bytes, pathlib.Path],
+        data: typing.Union[np.ndarray, torch.Tensor, str, pathlib.Path],
         *,
         _check: bool = True,
     ):
@@ -98,7 +94,7 @@ class BaseDiagram:
         self._rois_lock = threading.Lock()  # make the rois acces thread safe
 
         # initialisation
-        if isinstance(data, (str, bytes, pathlib.Path)):
+        if isinstance(data, (str, pathlib.Path)):
             self._file_or_data = data
             if _check:
                 self._file_or_data = pathlib.Path(self._file_or_data).expanduser().resolve()
@@ -138,9 +134,9 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> diagram = BaseDiagram(get_test_sample())
+        >>> diagram = BaseDiagram(get_sample())
         >>> len(diagram)
         0
         >>> diagram.find_spots()
@@ -159,9 +155,9 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> BaseDiagram(get_test_sample())
+        >>> BaseDiagram(get_sample())
         BaseDiagram(ge_blanc.jp2)
         >>>
         """
@@ -181,9 +177,9 @@ class BaseDiagram:
         Examples
         --------
         >>> import pickle
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> diagram = BaseDiagram(get_test_sample())
+        >>> diagram = BaseDiagram(get_sample())
         >>> diagram_bis = pickle.loads(pickle.dumps(diagram))
         >>> assert id(diagram) != id(diagram_bis)
         >>> assert diagram.state == diagram_bis.state
@@ -207,9 +203,9 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> print(BaseDiagram(get_test_sample()))  # doctest: +ELLIPSIS
+        >>> print(BaseDiagram(get_sample()))  # doctest: +ELLIPSIS
         Diagram from ge_blanc.jp2:
             History empty, please initialize the spots `self.find_spots()`.
             No Properties
@@ -274,9 +270,9 @@ class BaseDiagram:
         --------
         >>> import itertools, random
         >>> import numpy as np
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> diagram = BaseDiagram(get_test_sample())
+        >>> diagram = BaseDiagram(get_sample())
         >>> anchors = list(  # numpy convention
         ...     itertools.product(range(15, min(diagram.image.shape)-30, 200), repeat=2)
         ... )
@@ -284,7 +280,7 @@ class BaseDiagram:
         ...     np.empty((random.randint(5, 30), random.randint(5, 30)), np.uint16)
         ...     for _ in anchors
         ... ]
-        >>> diagram.spots = anchors, rois
+        >>> diagram.set_spots((anchors, rois))
         >>> len(diagram)
         121
         >>> diagram.rois.min() >= 0 and diagram.rois.max() <= 1  # range in [0, 1]
@@ -317,14 +313,14 @@ class BaseDiagram:
         Examples
         --------
         >>> import itertools, random
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> diagram = BaseDiagram(get_test_sample())
+        >>> diagram = BaseDiagram(get_sample())
         >>> bboxes = [  # numpy convention (*anchor, *shape)
         ...     (i, j, random.randint(5, 30), random.randint(5, 30))
         ...     for i, j in itertools.product(range(15, min(diagram.image.shape), 200), repeat=2)
         ... ]
-        >>> diagram.spots = bboxes
+        >>> diagram.set_spots(bboxes)
         >>> len(diagram)
         121
         >>> diagram.rois.min() >= 0 and diagram.rois.max() <= 1  # range in [0, 1]
@@ -336,13 +332,6 @@ class BaseDiagram:
             self._rois = (datarois, bboxes)
         self._history = [f"{len(self)} spots from external bboxes"]
         self._find_spots_kwargs = None
-
-    def _set_spots_from_spots(self, new_spots: list[Spot]):
-        """Set the new spots, from Spots instances."""
-        rois = [s.roi for s in new_spots]
-        anchors = torch.tensor([s.anchor for s in new_spots], dtype=torch.int32)
-        self._set_spots_from_anchors_rois(anchors, rois)
-        self._history[-1] = f"{len(self)} spots from external spots"
 
     def add_property(self, name: str, value: object, *, erasable: bool = True):
         """Add a property to the diagram.
@@ -369,9 +358,9 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> diagram = BaseDiagram(get_test_sample())
+        >>> diagram = BaseDiagram(get_sample())
         >>> print(diagram.bboxes)
         None
         >>> diagram.find_spots()
@@ -413,9 +402,9 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> diagram = BaseDiagram(get_test_sample())
+        >>> diagram = BaseDiagram(get_sample())
         >>> diagram_bis = diagram.clone()
         >>> assert id(diagram) != id(diagram_bis)
         >>> assert diagram.state == diagram_bis.state
@@ -463,10 +452,10 @@ class BaseDiagram:
                         continue
                     if match["state"] != state:
                         removed += sys.getsizeof(key) + getsizeof(self._cache[1].pop(key))
-                for key in list(self._properties):
-                    match = self._properties[key][0]
-                    if match is not None and match != state:
-                        removed += sys.getsizeof(key) + getsizeof(self._properties.pop(key))
+                # for key in list(self._properties):
+                #     match = self._properties[key][0]
+                #     if match is not None and match != state:
+                #         removed += sys.getsizeof(key) + getsizeof(self._properties.pop(key))
 
         # delete valid cache
         if 1 in _levels:
@@ -486,9 +475,9 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> BaseDiagram(get_test_sample()).file  # doctest: +ELLIPSIS
+        >>> BaseDiagram(get_sample()).file  # doctest: +ELLIPSIS
         PosixPath('/.../laueimproc/io/ge_blanc.jp2')
         >>>
         """
@@ -523,9 +512,9 @@ class BaseDiagram:
         --------
         >>> from pprint import pprint
         >>> import torch
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> diagram = BaseDiagram(get_test_sample())
+        >>> diagram = BaseDiagram(get_sample())
         >>> diagram.find_spots()
         >>> indices = torch.arange(0, len(diagram), 2)
         >>> diagram.filter_spots(indices, "keep even spots")
@@ -543,7 +532,7 @@ class BaseDiagram:
         assert hasattr(criteria, "__iter__"), criteria.__class__.__name__
         assert isinstance(msg, str), msg.__class__.__name__
         assert isinstance(inplace, bool), inplace.__class__.__name__
-        criteria = torch.squeeze(torch.as_tensor(criteria))
+        criteria = torch.squeeze(torch.asarray(criteria))
         assert criteria.ndim == 1, f"only a 1d vector is accepted, shape is {criteria.shape}"
         if criteria.dtype is torch.bool:  # case mask -> convert into index list
             assert criteria.shape[0] == len(self), (
@@ -606,9 +595,9 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> diagram = BaseDiagram(get_test_sample())
+        >>> diagram = BaseDiagram(get_sample())
         >>> diagram.add_property("prop1", value="any python object 1", erasable=False)
         >>> diagram.add_property("prop2", value="any python object 2")
         >>> diagram.get_property("prop1")
@@ -639,6 +628,8 @@ class BaseDiagram:
             except KeyError as err:
                 raise KeyError(f"the property {repr(name)} does no exist") from err
         if state is not None and state != self.state:
+            # with self._lock:
+            #     self._properties[name] = (state, None)
             raise KeyError(
                 f"the property {repr(name)} is no longer valid "
                 "because the state of the diagram has changed"
@@ -658,9 +649,9 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> diagram = BaseDiagram(get_test_sample())
+        >>> diagram = BaseDiagram(get_sample())
         >>> diagram.is_init()
         False
         >>> diagram.find_spots()
@@ -679,9 +670,9 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> diagram = BaseDiagram(get_test_sample())
+        >>> diagram = BaseDiagram(get_sample())
         >>> diagram.image.shape
         torch.Size([2048, 2048])
         >>> diagram.image.min() >= 0
@@ -818,9 +809,9 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> diagram = BaseDiagram(get_test_sample())
+        >>> diagram = BaseDiagram(get_sample())
         >>> diagram.find_spots()
         >>> diagram.rawrois.shape
         torch.Size([781, 20, 20])
@@ -843,7 +834,7 @@ class BaseDiagram:
         Paremeters
         ----------
         new_spots : typing.Container
-            * Can be an iterable (list, tuple, set, ...) of `Spot` instances.
+            * Can be an iterable (list, tuple, set, ...).
             * Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width)
             * Can be a tuple of anchors (arraylike of shape n * (anchor_i, anchor_i))
                 and rois (iterable of images patches).
@@ -873,11 +864,6 @@ class BaseDiagram:
         if not isinstance(new_spots, list):
             new_spots = list(new_spots)  # freeze the order
 
-        # case from Spot instances
-        cls = {s.__class__ for s in new_spots}
-        if not cls or (len(cls) == 1 and next(iter(cls)) is Spot):  # catch empty case
-            return self._set_spots_from_spots(new_spots)  # reset self._rois
-
         # case from anchors, rois
         if (
             len(new_spots) == 2
@@ -886,12 +872,13 @@ class BaseDiagram:
             and len(new_spots[0]) == len(new_spots[1])
         ):
             if not isinstance(new_spots[0], torch.Tensor):  # no torch.as_array memory leak
-                new_spots[0] = torch.as_tensor(new_spots[0], dtype=torch.int32)
+                new_spots[0] = torch.asarray(new_spots[0], dtype=torch.int32)
             anchors = new_spots[0]
             rois = [to_floattensor(roi) for roi in new_spots[1]]
             return self._set_spots_from_anchors_rois(anchors, rois)
 
         # case tensor (recursive delegation)
+        cls = {s.__class__ for s in new_spots}
         if len(cls) == 1 and issubclass(next(iter(cls)), (list, tuple)):
             return self.set_spots(torch.tensor(new_spots, dtype=torch.int32))
 
@@ -900,18 +887,6 @@ class BaseDiagram:
             "it has to be a container of Spot instance "
             "or a container of bounding boxes"
         )
-
-    @property
-    def spots(self) -> typing.Union[None, list[Spot]]:
-        """Return the list of the spots."""
-        if not self.is_init():
-            return None
-        return [Spot.__new__(Spot).__setstate__((self, i)) for i in range(len(self))]
-
-    @spots.setter
-    def spots(self, new_spots: typing.Container):
-        """Alias to ``set_spots``."""
-        self.set_spots(new_spots)
 
     @property
     def state(self) -> str:
@@ -923,9 +898,9 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_test_sample
+        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> diagram = BaseDiagram(get_test_sample())
+        >>> diagram = BaseDiagram(get_sample())
         >>> diagram.state
         '8a831b7fb5c219694818af917e3800cb'
         >>> diagram.find_spots()

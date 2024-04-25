@@ -2,7 +2,7 @@
 
 """Defines the data structure used throughout the rest of the module."""
 
-from .dataset import DiagramDataset
+from .dataset import DiagramsDataset
 from .diagram import Diagram
 
-__all__ = ["Diagram", "DiagramDataset"]
+__all__ = ["Diagram", "DiagramsDataset"]

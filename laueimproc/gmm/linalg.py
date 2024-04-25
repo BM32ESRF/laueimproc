@@ -80,7 +80,7 @@ def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool = True, theta: bool = True) -
     True
     >>> theta = eigtheta[..., 2]
     >>> rot = [[torch.cos(theta), -torch.sin(theta)], [torch.sin(theta), torch.cos(theta)]]
-    >>> rot = torch.as_tensor(np.array(rot)).movedim((0, -2), (1, -1))
+    >>> rot = torch.asarray(np.array(rot)).movedim((0, -2), (1, -1))
     >>> diag = torch.zeros_like(cov)
     >>> diag[..., 0, 0] = eigtheta[..., 0]
     >>> diag[..., 1, 1] = eigtheta[..., 1]
