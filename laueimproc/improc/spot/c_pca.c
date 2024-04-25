@@ -1,29 +1,13 @@
 /* Fast computation of PCA. */
 
 #define PY_SSIZE_T_CLEAN
+#include <laueimproc/c_check.h>
 #include <math.h>
 #include <numpy/arrayobject.h>
 #include <Python.h>
 #include <stdio.h>
 
 #define EPS 1.1920929e-7f
-
-int checkShapes(PyArrayObject *shapes) {
-    // Raise an exception if shape format is not correct.
-    if ( PyArray_NDIM(shapes) != 2 ) {
-        PyErr_SetString(PyExc_ValueError, "'shapes' requires 2 dimensions");
-        return 1;
-    }
-    if ( PyArray_DIM(shapes, 1) != 2 ) {
-        PyErr_SetString(PyExc_ValueError, "second axis of 'shapes' has to be of size 2, for height and width");
-        return 1;
-    }
-    if ( PyArray_TYPE(shapes) != NPY_INT32 ) {
-        PyErr_SetString(PyExc_TypeError, "'shapes' has to be of type int32");
-        return 1;
-    }
-    return 0;
-}
 
 
 int computeSinglePCA(npy_float *rawout, npy_float *weights, const npy_int32 height, const npy_int32 width) {
@@ -147,7 +131,7 @@ static PyObject *pca(PyObject *self, PyObject *args) {
         PyErr_SetString(PyExc_ValueError, "data is empty");
         return NULL;
     }
-    if ( checkShapes(shapes) ) {
+    if ( CheckShapes(shapes) ) {
         return NULL;
     }
 

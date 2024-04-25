@@ -8,13 +8,10 @@ import typing
 import numpy as np
 import torch
 
-from laueimproc.improc.spot.basic import (
-    compute_barycenters, compute_rois_max, compute_rois_sum
-)
+from laueimproc.improc.spot.basic import compute_rois_max, compute_rois_sum
 from laueimproc.improc.spot.extrema import find_nb_extremums
 from laueimproc.improc.spot.fit import fit_gaussians_em, fit_gaussians
 from laueimproc.improc.spot.pca import pca
-from laueimproc.improc.spot.rot_sym import compute_rot_sym
 from laueimproc.opti.cache import auto_cache
 from .base_diagram import check_init, BaseDiagram
 
@@ -24,18 +21,36 @@ class Diagram(BaseDiagram):
 
     @auto_cache  # put the result in thread safe cache (no multiprocessing)
     @check_init  # throws an exception if the diagram is not initialized
-    def compute_barycenters(self, indexing: str = "ij") -> torch.Tensor:
-        """Compute the barycenter of each spots."""
-        barycenters = compute_barycenters(self.rois)  # relative to each spots
-        barycenters += self.bboxes[:, :2].to(barycenters.dtype)  # absolute
+    def compute_barycenters(self) -> torch.Tensor:
+        """Compute the barycenter of each spots.
 
-        assert isinstance(indexing, str), indexing.__class__.__name__
-        assert indexing in {"ij", "xy"}, indexing
-        if indexing == "xy":
-            barycenters = torch.flip(barycenters, 1)
-            barycenters += 0.5
+        Returns
+        -------
+        positions : torch.Tensor
+            The 2 barycenter position for each roi.
+            Each line corresponds to a spot and each column to an axis (shape (n, 2)).
 
-        return barycenters
+        Examples
+        --------
+        >>> from laueimproc.classes.diagram import Diagram
+        >>> from laueimproc.io import get_sample
+        >>> diagram = Diagram(get_sample())
+        >>> diagram.find_spots()
+        >>> print(diagram.compute_barycenters())
+        tensor([[1987.1576,  896.4261],
+                [1945.4674,  913.8295],
+                [1908.5780,  971.4541],
+                ...,
+                [  55.2341, 1352.7832],
+                [  19.2854, 1208.5648],
+                [   9.2786,  904.4847]])
+        >>>
+        """
+        from laueimproc.improc.spot.basic import compute_barycenters
+        self.flush()
+        with self._rois_lock:
+            data, bboxes = self._rois
+        return compute_barycenters(data, bboxes)
 
     @auto_cache
     @check_init
@@ -59,12 +74,6 @@ class Diagram(BaseDiagram):
     def compute_rois_sum(self) -> torch.Tensor:
         """Sum the intensities of the pixels for each roi."""
         return compute_rois_sum(self.rois)
-
-    @auto_cache
-    @check_init
-    def compute_rot_sym(self) -> torch.Tensor:
-        """Compute the similarity by rotation of each spots."""
-        return compute_rot_sym(self.rois)
 
     @auto_cache
     @check_init

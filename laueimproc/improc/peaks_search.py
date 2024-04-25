@@ -171,8 +171,8 @@ def peaks_search(
     ]
 
     if bboxes:
-        bboxes = torch.tensor(bboxes, dtype=torch.int32)
+        bboxes = torch.tensor(bboxes, dtype=torch.int16)
     else:
-        bboxes = torch.empty((0, 4), dtype=torch.int32, device=brut_image.device)
+        bboxes = torch.empty((0, 4), dtype=torch.int16, device=brut_image.device)
     datarois = imgbboxes2raw(torch.from_numpy(fg_image), bboxes)
     return datarois, bboxes

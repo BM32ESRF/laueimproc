@@ -134,8 +134,8 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> len(diagram)
         0
@@ -155,8 +155,8 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> BaseDiagram(get_sample())
         BaseDiagram(ge_blanc.jp2)
         >>>
@@ -177,8 +177,8 @@ class BaseDiagram:
         Examples
         --------
         >>> import pickle
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram_bis = pickle.loads(pickle.dumps(diagram))
         >>> assert id(diagram) != id(diagram_bis)
@@ -203,8 +203,8 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> print(BaseDiagram(get_sample()))  # doctest: +ELLIPSIS
         Diagram from ge_blanc.jp2:
             History empty, please initialize the spots `self.find_spots()`.
@@ -270,8 +270,8 @@ class BaseDiagram:
         --------
         >>> import itertools, random
         >>> import numpy as np
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> anchors = list(  # numpy convention
         ...     itertools.product(range(15, min(diagram.image.shape)-30, 200), repeat=2)
@@ -313,8 +313,8 @@ class BaseDiagram:
         Examples
         --------
         >>> import itertools, random
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> bboxes = [  # numpy convention (*anchor, *shape)
         ...     (i, j, random.randint(5, 30), random.randint(5, 30))
@@ -358,8 +358,8 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> print(diagram.bboxes)
         None
@@ -402,8 +402,8 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram_bis = diagram.clone()
         >>> assert id(diagram) != id(diagram_bis)
@@ -475,8 +475,8 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> BaseDiagram(get_sample()).file  # doctest: +ELLIPSIS
         PosixPath('/.../laueimproc/io/ge_blanc.jp2')
         >>>
@@ -512,8 +512,8 @@ class BaseDiagram:
         --------
         >>> from pprint import pprint
         >>> import torch
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram.find_spots()
         >>> indices = torch.arange(0, len(diagram), 2)
@@ -595,8 +595,8 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram.add_property("prop1", value="any python object 1", erasable=False)
         >>> diagram.add_property("prop2", value="any python object 2")
@@ -649,8 +649,8 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram.is_init()
         False
@@ -670,8 +670,8 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram.image.shape
         torch.Size([2048, 2048])
@@ -809,8 +809,8 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram.find_spots()
         >>> diagram.rawrois.shape
@@ -898,8 +898,8 @@ class BaseDiagram:
 
         Examples
         --------
-        >>> from laueimproc.io import get_sample
         >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram.state
         '8a831b7fb5c219694818af917e3800cb'

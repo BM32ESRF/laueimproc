@@ -157,8 +157,8 @@ class DiagramsDataset(threading.Thread):
         Examples
         --------
         >>> import torch
-        >>> from laueimproc.io import get_samples
         >>> from laueimproc.classes.dataset import DiagramsDataset
+        >>> from laueimproc.io import get_samples
         >>> dataset = DiagramsDataset(get_samples())
         >>>
         >>> # from integer
@@ -220,8 +220,8 @@ class DiagramsDataset(threading.Thread):
 
         Examples
         --------
-        >>> from laueimproc.io import get_samples
         >>> from laueimproc.classes.dataset import DiagramsDataset
+        >>> from laueimproc.io import get_samples
         >>> dataset = DiagramsDataset(get_samples())
         >>> count = 0
         >>> for diagram in dataset:
@@ -249,8 +249,8 @@ class DiagramsDataset(threading.Thread):
 
         Examples
         --------
-        >>> from laueimproc.io import get_samples
         >>> from laueimproc.classes.dataset import DiagramsDataset
+        >>> from laueimproc.io import get_samples
         >>> len(DiagramsDataset(get_samples()))
         100
         >>>
@@ -262,8 +262,8 @@ class DiagramsDataset(threading.Thread):
 
         Examples
         --------
-        >>> from laueimproc.io import get_samples
         >>> from laueimproc.classes.dataset import DiagramsDataset
+        >>> from laueimproc.io import get_samples
         >>> DiagramsDataset(get_samples())
         <DiagramsDataset with 100 diagrams>
         >>>
@@ -282,8 +282,8 @@ class DiagramsDataset(threading.Thread):
         Examples
         --------
         >>> import pickle
-        >>> from laueimproc.io import get_samples
         >>> from laueimproc.classes.dataset import DiagramsDataset
+        >>> from laueimproc.io import get_samples
         >>> dataset = DiagramsDataset(get_samples())
         >>> dataset_bis = pickle.loads(pickle.dumps(dataset))
         >>> assert id(dataset) != id(dataset_bis)
@@ -311,8 +311,8 @@ class DiagramsDataset(threading.Thread):
 
         Examples
         --------
-        >>> from laueimproc.io import get_samples
         >>> from laueimproc.classes.dataset import DiagramsDataset
+        >>> from laueimproc.io import get_samples
         >>> print(DiagramsDataset(get_samples()))  # doctest: +ELLIPSIS
         DiagramsDataset from the folder /home/.../.cache/laueimproc/samples:
             No function has been applied.
