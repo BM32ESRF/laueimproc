@@ -290,7 +290,7 @@ class BaseDiagram:
         if anchors.shape[0]:
             bboxes = torch.tensor(
                 [(i, j, *roi.shape) for (i, j), roi in zip(anchors.tolist(), rois)],
-                dtype=torch.int32,
+                dtype=torch.int16,
             )
             flat_rois = np.concatenate(
                 [
@@ -300,7 +300,7 @@ class BaseDiagram:
             ).astype(np.float32, copy=False)  # not 100% shure float32
             datarois = bytearray(flat_rois.tobytes())
         else:
-            bboxes = torch.empty((0, 4), dtype=torch.int32)
+            bboxes = torch.empty((0, 4), dtype=torch.int16)
             datarois = bytearray(b"")
         with self._rois_lock:
             self._rois = (datarois, bboxes)
@@ -801,7 +801,7 @@ class BaseDiagram:
         self.flush()
         with self._rois_lock:
             _, bboxes = self._rois
-        return rawshapes2rois(imgbboxes2raw(self.image, bboxes), bboxes[:, 2:].numpy(force=True))
+        return rawshapes2rois(imgbboxes2raw(self.image, bboxes), bboxes[:, 2:])
 
     @property
     def rois(self) -> typing.Union[None, torch.Tensor]:
@@ -826,7 +826,7 @@ class BaseDiagram:
         self.flush()
         with self._rois_lock:
             datarois, bboxes = self._rois
-        return rawshapes2rois(datarois, bboxes[:, 2:].numpy(force=True))
+        return rawshapes2rois(datarois, bboxes[:, 2:])
 
     def set_spots(self, new_spots: typing.Container) -> None:
         """Set the new spots as the current spots, reset the history and the cache.
@@ -872,7 +872,7 @@ class BaseDiagram:
             and len(new_spots[0]) == len(new_spots[1])
         ):
             if not isinstance(new_spots[0], torch.Tensor):  # no torch.as_array memory leak
-                new_spots[0] = torch.asarray(new_spots[0], dtype=torch.int32)
+                new_spots[0] = torch.asarray(new_spots[0], dtype=torch.int16)
             anchors = new_spots[0]
             rois = [to_floattensor(roi) for roi in new_spots[1]]
             return self._set_spots_from_anchors_rois(anchors, rois)
@@ -880,7 +880,7 @@ class BaseDiagram:
         # case tensor (recursive delegation)
         cls = {s.__class__ for s in new_spots}
         if len(cls) == 1 and issubclass(next(iter(cls)), (list, tuple)):
-            return self.set_spots(torch.tensor(new_spots, dtype=torch.int32))
+            return self.set_spots(torch.tensor(new_spots, dtype=torch.int16))
 
         raise NotImplementedError(
             f"impossible to set new spots from {new_spots}, "

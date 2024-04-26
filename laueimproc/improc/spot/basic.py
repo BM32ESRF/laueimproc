@@ -19,12 +19,12 @@ from laueimproc.opti.rois import rawshapes2rois
 def compute_barycenters(
     data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False
 ) -> torch.Tensor:
-    """Find the weighted barycenter of each roi.
+    r"""Find the weighted barycenter of each roi.
 
     Parameters
     ----------
     data : bytearray
-        The raw data of the concatenated not padded float32 rois.
+        The raw data \(\alpha_i\) of the concatenated not padded float32 rois.
     bboxes : torch.Tensor
         The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
         for each spots, of shape (n, 4). It doesn't have to be c contiguous.
@@ -44,13 +44,19 @@ def compute_barycenters(
     ...     torch.tensor([[0.0, 0.0, 1.0, 0.0, 0.0]]),
     ... ] * 2
     >>> data = bytearray(torch.cat([p.ravel() for p in patches]).numpy().tobytes())
-    >>> bboxes = tensor([[ 0,  0,  1,  1],
-    ...                  [ 0,  0,  2,  2],
-    ...                  [ 0,  0,  5,  1],
-    ...                  [10, 10,  1,  1],
-    ...                  [10, 10,  2,  2],
-    ...                  [10, 10,  5,  1]], dtype=torch.int16)
+    >>> bboxes = torch.tensor([[ 0,  0,  1,  1],
+    ...                        [ 0,  0,  2,  2],
+    ...                        [ 0,  0,  1,  5],
+    ...                        [10, 10,  1,  1],
+    ...                        [10, 10,  2,  2],
+    ...                        [10, 10,  1,  5]], dtype=torch.int16)
     >>> print(compute_barycenters(data, bboxes))
+    tensor([[ 0.5000,  0.5000],
+            [ 1.1000,  1.1000],
+            [ 0.5000,  2.5000],
+            [10.5000, 10.5000],
+            [11.1000, 11.1000],
+            [10.5000, 12.5000]])
     >>> torch.allclose(
     ...     compute_barycenters(data, bboxes),
     ...     compute_barycenters(data, bboxes, _no_c=True),
@@ -59,20 +65,15 @@ def compute_barycenters(
     >>>
     """
     if not _no_c and c_basic is not None:
-        bboxes_np = bboxes.numpy(force=True)
-        barycenters_np = c_basic.compute_barycenters(data, bboxes_np)
-        return torch.from_numpy(barycenters_np).to(bboxes.device)
+        return torch.from_numpy(
+            c_basic.compute_barycenters(data, bboxes.numpy(force=True))
+        ).to(bboxes.device)
 
-    assert isinstance(data, bytearray), data.__class__.__name__
     assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
     assert bboxes.ndim == 2, bboxes.shape
     assert bboxes.shape[1] == 4, bboxes.shape
-    assert bboxes.dtype == torch.int16, bboxes.dtype
-    assert torch.all(bboxes[:, 2:] >= 1), "some bboxes have area of zero"
-    assert len(data) == torch.float32.itemsize*(bboxes[:, 2]*bboxes[:, 3]).sum(), \
-        "data length dosen't match rois area"
 
-    rois = rawshapes2rois(data, bboxes[:, 2:])  # (n, h, w)
+    rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=_no_c)  # (n, h, w), more verif here
     _, height, width = rois.shape
     points_i, points_j = torch.meshgrid(
         torch.arange(0.5, height+0.5, dtype=rois.dtype, device=rois.device),
@@ -83,8 +84,8 @@ def compute_barycenters(
     points = points.unsqueeze(0)  # (1, 2, h*w)
     weight = rois.reshape(-1, 1, height*width)  # (n, 1, h*w)
     pond_points = points * weight  # (n, 2, h*w)
-    pond_points /= torch.sum(weight, axis=-1, keepdim=True)  # (n, 2, h*w)
-    mean = torch.sum(pond_points, axis=-1)  # (n, 2)
+    pond_points /= torch.sum(weight, axis=2, keepdim=True)  # (n, 2, h*w)
+    mean = torch.sum(pond_points, axis=2)  # (n, 2)
     mean += bboxes[:, :2].to(rois.dtype)  # relative to absolute base
     return mean
 

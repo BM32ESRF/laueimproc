@@ -15,7 +15,7 @@ from laueimproc.opti.rois import imgbboxes2raw
 def test_memory_imgbboxes2raw():
     """Test imgbboxes2raw memory leak."""
     img = torch.rand((2000, 2000))
-    bboxes = torch.zeros((1000, 4), dtype=torch.int32)
+    bboxes = torch.zeros((1000, 4), dtype=torch.int16)
     bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
 
     tracemalloc.start()
@@ -37,7 +37,7 @@ def test_memory_imgbboxes2raw():
 def test_memory_filter_by_indices():
     """Test imgbboxes2raw memory leak."""
     indices = torch.tensor([1, 1, 0, -1, -2, *range(100, 1000)])
-    bboxes = torch.zeros((1000, 4), dtype=torch.int32)
+    bboxes = torch.zeros((1000, 4), dtype=torch.int16)
     bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
     data = bytearray(
         np.linspace(0, 1, (bboxes[:, 2]*bboxes[:, 3]).sum(), dtype=np.float32).tobytes()

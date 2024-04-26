@@ -4,7 +4,6 @@
 
 import logging
 
-import numpy as np
 import torch
 
 from laueimproc.gmm.linalg import cov2d_to_eigtheta
@@ -18,7 +17,7 @@ except ImportError:
 from laueimproc.opti.rois import rawshapes2rois
 
 
-def pca(data: bytearray, shapes: np.ndarray[np.int32], *, _no_c: bool = False) -> torch.Tensor:
+def compute_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False) -> torch.Tensor:
     r"""Compute the PCA for each spot.
 
     See ``laueimproc.gmm`` for terminology.
@@ -26,12 +25,10 @@ def pca(data: bytearray, shapes: np.ndarray[np.int32], *, _no_c: bool = False) -
     Parameters
     ----------
     data : bytearray
-        The raw data of the concatenated not padded float32 rois.
-        It corresponds the the folded \(\alpha_i\).
-    shapes : np.ndarray[np.int32]
-        Contains the information of the bboxes shapes.
-        heights = shapes[:, 0] and widths = shapes[:, 1].
-        It doesn't have to be c contiguous.
+        The raw data \(\alpha_i\) of the concatenated not padded float32 rois.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4). It doesn't have to be c contiguous.
 
     Returns
     -------
@@ -43,17 +40,9 @@ def pca(data: bytearray, shapes: np.ndarray[np.int32], *, _no_c: bool = False) -
 
     Examples
     --------
-    >>> import numpy as np
     >>> import torch
-    >>> from laueimproc.improc.spot.pca import pca
-    >>> shapes = np.zeros((1000, 2), dtype=np.int32)
-    >>> shapes[::2, 0], shapes[1::2, 0], shapes[::2, 1], shapes[1::2, 1] = 10, 20, 30, 40
-    >>> data = bytearray(
-    ...     np.linspace(0, 1, (shapes[:, 0]*shapes[:, 1]).sum(), dtype=np.float32).tobytes()
-    ... )
-    >>> std1_std2_theta = pca(data, shapes)
-    >>> assert torch.allclose(std1_std2_theta[:, :2], pca(data, shapes, _no_c=True)[:, :2])
-    >>>
+    >>> import numpy as np
+    >>> from laueimproc.improc.spot.pca import compute_pca
     >>> rois = np.zeros((4, 5, 5), np.float32)
     >>> rois[0, :, 2] = 1
     >>> rois[1, range(5), range(5)] = 1
@@ -84,18 +73,29 @@ def pca(data: bytearray, shapes: np.ndarray[np.int32], *, _no_c: bool = False) -
             [0., 1., 1., 1., 0.],
             [0., 0., 1., 0., 0.],
             [0., 0., 1., 0., 0.]]], dtype=float32)
-    >>> pca(bytearray(rois.tobytes()), np.array([[5, 5]]*4, dtype=np.int32))
+    >>> compute_pca(bytearray(rois.tobytes()), torch.tensor([[0, 0, 5, 5]]*4, dtype=torch.int16))
     tensor([[0.6325, 0.0000, 0.0000],
             [0.8944, 0.0000, 0.7854],
             [0.6325, 0.0000, 1.5708],
             [0.4518, 0.2020, 0.0000]])
+    >>> bboxes = torch.zeros((1000, 4), dtype=torch.int16)
+    >>> bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
+    >>> data = bytearray(
+    ...     np.linspace(0, 1, (bboxes[:, 2]*bboxes[:, 3]).sum(), dtype=np.float32).tobytes()
+    ... )
+    >>> std1_std2_theta = compute_pca(data, bboxes)
+    >>> assert torch.allclose(std1_std2_theta[:, :2], compute_pca(data, bboxes, _no_c=True)[:, :2])
     >>>
     """
     if not _no_c and c_pca is not None:
-        return torch.from_numpy(c_pca.pca(data, shapes))
+        return torch.from_numpy(c_pca.compute_pca(data, bboxes.numpy(force=True))).to(bboxes.device)
+
+    assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
+    assert bboxes.ndim == 2, bboxes.shape
+    assert bboxes.shape[1] == 4, bboxes.shape
 
     # preparation
-    rois = rawshapes2rois(data, shapes, _no_c=_no_c)  # verifs here
+    rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=_no_c)  # (n, h, w), more verif here
     points_i, points_j = torch.meshgrid(
         torch.arange(rois.shape[1], dtype=rois.dtype, device=rois.device),
         torch.arange(rois.shape[2], dtype=rois.dtype, device=rois.device),
@@ -112,7 +112,8 @@ def pca(data: bytearray, shapes: np.ndarray[np.int32], *, _no_c: bool = False) -
     mean = torch.sum(dup_w*obs, dim=1, keepdim=True) / mass  # (batch, 1, 2)
     obs = dup_w * (obs - mean)  # centered and weighted
     cov = obs.mT @ obs  # (batch, 2, 2)
-    cov /= mass**2
+    mass *= mass
+    cov /= mass
     eig1, eig2, theta = cov2d_to_eigtheta(cov).mT  # diagonalization
     std1, std2 = torch.sqrt(eig1), torch.sqrt(eig2)  # var to std
     return torch.cat([std1.unsqueeze(1), std2.unsqueeze(1), theta.unsqueeze(1)], axis=1)

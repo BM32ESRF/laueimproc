@@ -47,6 +47,7 @@ classifiers = [
 [project.optional-dependencies]
 all = [
   "pdoc3",
+  "pydocstyle<=6.1.1",  # 6.1.2 bug on pylama 8.4.1
   "pylama[all]",
   "pylama[toml]",
   "pytest",

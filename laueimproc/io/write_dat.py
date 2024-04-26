@@ -77,7 +77,7 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
     1945.967 914.329 5263.6 5223.0 4.403 4.025 -20.4 0.000 0.0 40.6 5264.0
     ...
     19.785 1209.065 48.7 30.0 2.781 1.585 -80.7 0.000 0.0 18.7 55.0
-    9.779 904.985 50.8 29.0 2.682 1.720 82.0 -0.000 0.0 21.8 58.0
+    9.779 904.985 50.8 29.0 2.682 1.720 82.0 0.000 0.0 21.8 58.0
     # file created by laueimproc ...
     # Diagram from ge_blanc.jp2:
     #     History:
@@ -86,7 +86,7 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
     #     Current state:
     #         * id, state: ...
     #         * nbr spots: 781
-    #         * total mem: 17.0MB
+    #         * total mem: 16.9MB
     >>>
     """
     # verification

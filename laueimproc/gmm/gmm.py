@@ -121,7 +121,7 @@ def cost_and_grad(
     >>> import torch
     >>> from laueimproc.gmm.gmm import cost_and_grad
     >>> rois = torch.rand((1000, 10, 10))
-    >>> shapes = torch.full((1000, 4), 10, dtype=torch.int32)
+    >>> shapes = torch.full((1000, 4), 10, dtype=torch.int16)
     >>> mean = torch.randn((1000, 3, 2, 1)) + 5.0  # (n, n_clu, n_var, 1)
     >>> cov = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 1, 2, 2).expand(1000, 3, 2, 2).clone()
     >>> eta = torch.rand((1000, 3))  # (n, n_clu)

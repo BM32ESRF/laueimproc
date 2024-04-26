@@ -181,7 +181,7 @@ def rawshapes2rois(
     if not _no_c and c_rois is not None:
         shapes_np = shapes.numpy(force=True)
         rois_np = c_rois.rawshapes2rois(data, shapes_np)
-        return torch.from_numpy(rois_np).to(shapes.dtype)
+        return torch.from_numpy(rois_np).to(shapes.device)
 
     assert isinstance(data, bytearray), data.__class__.__name__
     assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__

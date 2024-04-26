@@ -40,24 +40,24 @@ class Build(_build_py):
             self.distribution.ext_modules = []
         self.distribution.ext_modules.append(
             Extension(
-                "laueimproc.opti.c_rois",
-                sources=["laueimproc/opti/c_rois.c"],
+                "laueimproc.improc.spot.c_basic",
+                sources=["laueimproc/improc/spot/c_basic.c"],
                 optional=True,
                 **COMP_RULES,
             )
         )
-        # self.distribution.ext_modules.append(
-        #     Extension(
-        #         "laueimproc.improc.spot.c_pca",
-        #         sources=["laueimproc/improc/spot/c_pca.c"],
-        #         optional=True,
-        #         **COMP_RULES,
-        #     )
-        # )
         self.distribution.ext_modules.append(
             Extension(
-                "laueimproc.improc.spot.c_basic",
-                sources=["laueimproc/improc/spot/c_basic.c"],
+                "laueimproc.improc.spot.c_pca",
+                sources=["laueimproc/improc/spot/c_pca.c"],
+                optional=True,
+                **COMP_RULES,
+            )
+        )
+        self.distribution.ext_modules.append(
+            Extension(
+                "laueimproc.opti.c_rois",
+                sources=["laueimproc/opti/c_rois.c"],
                 optional=True,
                 **COMP_RULES,
             )

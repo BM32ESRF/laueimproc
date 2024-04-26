@@ -9,8 +9,27 @@
 #include <stdio.h>
 
 
-int barycenter(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
-    *(npy_float *)PyArray_GETPTR2(out, i, 0) = 1.0;
+int Barycenter(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
+    npy_float weight, total_weight = 0;
+    long shift;
+    npy_float pos[2];
+    npy_float bary[2] = {0, 0};
+    for (long i = 0; i < bbox[2]; ++i) {
+        shift = (long)bbox[3] * i;
+        pos[0] = (npy_float)i;
+        for (long j = 0; j < bbox[3]; ++j) {
+            pos[1] = (npy_float)j;
+            weight = roi[j + shift];
+            bary[0] += pos[0] * weight, bary[1] += pos[1] * weight;  // SIMD
+            total_weight += weight;
+        }
+    }
+    total_weight = 1 / total_weight;
+    bary[0] *= total_weight; bary[1] *= total_weight;
+    bary[0] += 0.5; bary[1] += 0.5;
+    bary[0] += (npy_float)bbox[0]; bary[1] += (npy_float)bbox[1];  // relative to absolute base
+    *(npy_float *)PyArray_GETPTR2(out, i, 0) = bary[0];
+    *(npy_float *)PyArray_GETPTR2(out, i, 1) = bary[1];
     return 0;
 }
 
@@ -37,7 +56,7 @@ static PyObject* ComputeBarycenters(PyObject* self, PyObject* args) {
     }
 
     Py_BEGIN_ALLOW_THREADS
-    error = ApplyToRois(barycenters, data, bboxes, &barycenter);
+    error = ApplyToRois(barycenters, data, bboxes, &Barycenter);
     Py_END_ALLOW_THREADS
     if (error) {
         Py_DECREF(barycenters);
@@ -50,7 +69,7 @@ static PyObject* ComputeBarycenters(PyObject* self, PyObject* args) {
 
 
 static PyMethodDef basicMethods[] = {
-    {"compute_barycenters", ComputeBarycenters, METH_VARARGS, "Find the weighted barycenter of each roi."},
+    {"compute_barycenters", ComputeBarycenters, METH_VARARGS, "Compute the weighted barycenter of each roi."},
     {NULL, NULL, 0, NULL}
 };
 
@@ -71,4 +90,3 @@ PyMODINIT_FUNC PyInit_c_basic(void) {
     }
     return PyModule_Create(&c_basic);
 }
-

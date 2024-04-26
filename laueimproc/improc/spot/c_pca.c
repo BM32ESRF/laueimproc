@@ -2,166 +2,117 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <laueimproc/c_check.h>
+#include <laueimproc/improc/spot/c_spot_apply.h>
 #include <math.h>
 #include <numpy/arrayobject.h>
 #include <Python.h>
 #include <stdio.h>
 
-#define EPS 1.1920929e-7f
+#define EPS 1.1920929e-7
 
 
-int computeSinglePCA(npy_float *rawout, npy_float *weights, const npy_int32 height, const npy_int32 width) {
+int Pca(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
     // compute one PCA, store std1, std2 and theta in rawout
-    npy_float weight, norm, mu_h, mu_w;
-    npy_float sigma1, sigma2, corr, i_cent, j_cent;
-    npy_int32 i, j, k;
+    long shift;
+    npy_float weight, norm = 0, corr = 0;
+    npy_float pos[2];
+    npy_float mu[2] = {0, 0};
+    npy_float sigma[2] = {0, 0};
 
     // get mean and total intensity
-    norm = 0, mu_h = 0, mu_w = 0;
-    for ( i = 0; i < height; ++i ) {
-        k = i * width;
-        for ( j = 0; j < width; ++j ) {
-            weight = *(weights + k + j);
+    for (long i = 0; i < bbox[2]; ++i) {
+        shift = (long)bbox[3] * i;
+        pos[0] = (npy_float)i;
+        for (long j = 0; j < bbox[3]; ++j) {
+            pos[1] = (npy_float)j;
+            weight = roi[j + shift];
+            mu[0] += pos[0] * weight, mu[1] += pos[1] * weight;  // SIMD
             norm += weight;
-            mu_h += weight * (npy_float)i;
-            mu_w += weight * (npy_float)j;
         }
     }
-    if ( !norm ) {
+    if (!norm) {
         fprintf(stderr, "failed to compute pca because all the dup_w are equal to 0\n");
         return 1;
     }
     norm = 1 / norm;
-    mu_h *= norm;
-    mu_w *= norm;
+    mu[0] *= norm; mu[1] *= norm;
 
     // get cov matrix
-    sigma1 = 0, sigma2 = 0, corr = 0;
-    for ( i = 0; i < height; ++i ) {
-        k = i * width;
-        i_cent = (npy_float)i - mu_h;
-        for ( j = 0; j < width; ++j ) {
-            weight = *(weights + k + j);
+    for (long i = 0; i < bbox[2]; ++i) {
+        shift = (long)bbox[3] * i;
+        pos[0] = (npy_float)i - mu[0]; // i centered
+        for (long j = 0; j < bbox[3]; ++j) {
+            pos[1] = (npy_float)j - mu[1];  // j centered
+            weight = roi[j + shift];
             weight *= weight;
-            j_cent = (npy_float)j - mu_w;
-            sigma1 += weight * i_cent * i_cent;
-            sigma2 += weight * j_cent * j_cent;
-            corr += weight * i_cent * j_cent;
+            corr += weight * pos[0] * pos[1];
+            sigma[0] += weight * pos[0] * pos[0], sigma[1] += weight * pos[1] * pos[1];  // SIMD
         }
     }
     norm *= norm;
-    sigma1 *= norm;
-    sigma2 *= norm;
     corr *= norm;
+    sigma[0] *= norm, sigma[1] *= norm;
 
     // diagonalization
     corr *= 2;  // 2*c
-    sigma2 += sigma1;  // s1+s2
-    sigma1 = sigma2 - 2*sigma1;  // s2-s1
-    norm = corr*corr + sigma1*sigma1;  // (2*c)**2 + (s2-s1)**2
-    norm = sqrtf( norm );  // sqrt((2*c)**2 + (s2-s1)**2)
-    if ( fabsf( corr ) > EPS ) {
-        sigma1 += norm;  // s2 - s1 + sqrt((2*c)**2 + (s2-s1)**2)
-        sigma1 /= corr;  // (s2 - s1 + sqrt((2*c)**2 + (s2-s1)**2)) / (2*c)
-        rawout[2] = atanf( sigma1 );  // theta
+    sigma[1] += sigma[0];  // s1+s2
+    sigma[0] = sigma[1] - 2*sigma[0];  // s2-s1
+    norm = corr*corr + sigma[0]*sigma[0];  // (2*c)**2 + (s2-s1)**2
+    norm = sqrtf(norm);  // sqrt((2*c)**2 + (s2-s1)**2)
+    if (fabsf(corr) > EPS) {
+        sigma[0] += norm;  // s2 - s1 + sqrt((2*c)**2 + (s2-s1)**2)
+        sigma[0] /= corr;  // (s2 - s1 + sqrt((2*c)**2 + (s2-s1)**2)) / (2*c)
+        *(npy_float *)PyArray_GETPTR2(out, i, 2) = atanf(sigma[0]);  // theta
     }
     else {
-        rawout[2] = sigma1 > EPS ? 0.5*M_PI : 0;  // theta
+        *(npy_float *)PyArray_GETPTR2(out, i, 2) = sigma[0] > EPS ? 0.5*M_PI : 0;  // theta
     }
-    sigma1 = sigma2 - norm;  // s1 + s2 - sqrt((2*c)**2 + (s2-s1)**2)
-    sigma2 += norm;  // s1 + s2 + sqrt((2*c)**2 + (s2-s1)**2)
-    sigma1 *= 0.5;  // lambda2 = 1/2 * (s1 + s2 - sqrt((2*c)**2 + (s2-s1)**2))
-    sigma2 *= 0.5;  // lambda1 = 1/2 * (s1 + s2 + sqrt((2*c)**2 + (s2-s1)**2))
-    rawout[1] = sqrtf( sigma1 );  // std2
-    rawout[0] = sqrtf( sigma2 );  // std1
+    sigma[0] = sigma[1] - norm;  // s1 + s2 - sqrt((2*c)**2 + (s2-s1)**2)
+    sigma[1] += norm;  // s1 + s2 + sqrt((2*c)**2 + (s2-s1)**2)
+    sigma[0] *= 0.5;  // lambda2 = 1/2 * (s1 + s2 - sqrt((2*c)**2 + (s2-s1)**2))
+    sigma[1] *= 0.5;  // lambda1 = 1/2 * (s1 + s2 + sqrt((2*c)**2 + (s2-s1)**2))
+    *(npy_float *)PyArray_GETPTR2(out, i, 1) = sqrtf(sigma[0]);  // std2
+    *(npy_float *)PyArray_GETPTR2(out, i, 0) = sqrtf(sigma[1]);  // std1
     return 0;
 }
 
 
-int computeAllPCA(npy_float *rawout, npy_float *weights, const Py_ssize_t datalen, PyArrayObject *shapes) {
-    const npy_intp n = PyArray_DIM(shapes, 0);
-    npy_intp i;
-    npy_int32 height, width, area;
-    Py_ssize_t shift = 0;
-    for ( i = 0; i < n; ++i ) {
-        height = *(npy_int32 *)PyArray_GETPTR2(shapes, i, 0);
-        width = *(npy_int32 *)PyArray_GETPTR2(shapes, i, 1);
-        area = height * width;
-        if ( !area ) {
-            fprintf(stderr, "the bbox %ld has zero area\n", i);
-            return 1;
-        }
-        if ( shift + area > datalen ) {
-            fprintf(stderr, "the data length 4*%ld is too short to fill roi of index %ld\n", datalen, i);
-            return 1;
-        }
-        if ( computeSinglePCA(rawout+3*i, weights+shift, height, width) ) {
-            return 1;
-        }
-        shift += area;
-    }
-    if ( datalen != shift ) {  // data to long
-        fprintf(stderr, "the data length 4*%ld is too long to fill a total area of %ld pxls.\n", datalen, shift);
-        return 1;
-    }
-    return 0;
-}
-
-
-static PyObject *pca(PyObject *self, PyObject *args) {
-    // compute pca on each spot
-    PyArrayObject *out, *shapes;
+static PyObject* ComputePCA(PyObject* self, PyObject* args) {
+    // Compute the PCA
+    PyArrayObject *pca, *bboxes;
+    PyByteArrayObject* data;
     npy_intp shape[2];
-    PyByteArrayObject *data;
-    npy_float *rawout, *weights;
-    Py_ssize_t datalen;
     int error;
 
-    if ( !PyArg_ParseTuple(args, "YO!", &data, &PyArray_Type, &shapes) ) {
+    if (!PyArg_ParseTuple(args, "YO!", &data, &PyArray_Type, &bboxes)) {
         return NULL;
     }
-    weights = (npy_float *)PyByteArray_AsString((PyObject *)data);
-
-    // verifications
-    if ( PyByteArray_Size((PyObject *)data) % sizeof(npy_float) ) {
-        PyErr_SetString(PyExc_ValueError, "data length is not a multiple of float32 length");
-        return NULL;
-    }
-    if ( NULL == weights ){
-        PyErr_SetString(PyExc_ValueError, "data is empty");
-        return NULL;
-    }
-    if ( CheckShapes(shapes) ) {
+    if (CheckBboxes(bboxes)) {
         return NULL;
     }
 
-    // create output array
-    shape[0] = PyArray_DIM(shapes, 0);
+    shape[0] = PyArray_DIM(bboxes, 0);
     shape[1] = 3;
-    out = (PyArrayObject *)PyArray_EMPTY(2, shape, NPY_FLOAT32, 0);  // c contiguous
-    if ( NULL == out ) {
-        PyErr_SetString(PyExc_RuntimeError, "failed to create the output array");
-        return NULL;
+    pca = (PyArrayObject *)PyArray_EMPTY(2, shape, NPY_FLOAT32, 0);  // c contiguous
+    if (pca == NULL) {
+        PyErr_NoMemory();
     }
-    rawout = (npy_float *)PyArray_DATA(out);
 
-    // compute pca
     Py_BEGIN_ALLOW_THREADS
-    datalen = PyByteArray_Size((PyObject *)data) / sizeof(npy_float);
-    error = computeAllPCA(rawout, weights, datalen, shapes);
+    error = ApplyToRois(pca, data, bboxes, &Pca);
     Py_END_ALLOW_THREADS
-    if ( error ) {
-        Py_DECREF(out);
-        PyErr_SetString(PyExc_RuntimeError, "failed to compute the pca");
+    if (error) {
+        Py_DECREF(pca);
+        PyErr_SetString(PyExc_RuntimeError, "failed to apply the pca function on each roi");
         return NULL;
     }
 
-    return (PyObject *)out;
+    return (PyObject *)pca;
 }
 
 
 static PyMethodDef pcaMethods[] = {
-    {"pca", pca, METH_VARARGS, "Compute the PCA for each spot."},
+    {"compute_pca", ComputePCA, METH_VARARGS, "Compute the PCA of each roi."},
     {NULL, NULL, 0, NULL}
 };
 

@@ -11,7 +11,6 @@ import torch
 from laueimproc.improc.spot.basic import compute_rois_max, compute_rois_sum
 from laueimproc.improc.spot.extrema import find_nb_extremums
 from laueimproc.improc.spot.fit import fit_gaussians_em, fit_gaussians
-from laueimproc.improc.spot.pca import pca
 from laueimproc.opti.cache import auto_cache
 from .base_diagram import check_init, BaseDiagram
 
@@ -21,7 +20,7 @@ class Diagram(BaseDiagram):
 
     @auto_cache  # put the result in thread safe cache (no multiprocessing)
     @check_init  # throws an exception if the diagram is not initialized
-    def compute_barycenters(self) -> torch.Tensor:
+    def compute_barycenters(self, **_kwargs) -> torch.Tensor:
         """Compute the barycenter of each spots.
 
         Returns
@@ -50,20 +49,40 @@ class Diagram(BaseDiagram):
         self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
-        return compute_barycenters(data, bboxes)
+        return compute_barycenters(data, bboxes, **_kwargs)
 
     @auto_cache
     @check_init
-    def compute_pca(self) -> torch.Tensor:
+    def compute_pca(self, **_kwargs) -> torch.Tensor:
         """Compute the pca on each spot.
 
         Returns
         -------
         std1_std2_theta : torch.Tensor
-            Return the same values as ``laueimproc.improc.spot.pca``.
+            The concatenation of the colum vectors of the two std in pixel and the angle.
+            See ``laueimproc.improc.spot.pca.compute_pca`` for more details.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.diagram import Diagram
+        >>> from laueimproc.io import get_sample
+        >>> diagram = Diagram(get_sample())
+        >>> diagram.find_spots()
+        >>> print(diagram.compute_pca())
+        tensor([[ 0.2694,  0.2636, -1.4625],
+                [ 0.1830,  0.1499,  0.0815],
+                [ 0.2784,  0.2402,  0.3340],
+                ...,
+                [ 0.3560,  0.2605,  1.1708],
+                [ 0.3535,  0.1901, -1.3840],
+                [ 0.3169,  0.2077,  1.4719]])
+        >>>
         """
-        data, shapes = self._rois[0], self._rois[1][:, 2:].numpy(force=True)
-        return pca(data, shapes)
+        from laueimproc.improc.spot.pca import compute_pca
+        self.flush()
+        with self._rois_lock:
+            data, bboxes = self._rois
+        return compute_pca(data, bboxes, **_kwargs)
 
     @check_init
     def compute_rois_max(self) -> torch.Tensor:
