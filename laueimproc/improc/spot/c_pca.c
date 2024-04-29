@@ -11,7 +11,7 @@
 #define EPS 1.1920929e-7
 
 
-int Pca(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
+int RoiPCA(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
     // compute one PCA, store std1, std2 and theta in rawout
     long shift;
     npy_float weight, norm = 0, corr = 0;
@@ -77,7 +77,7 @@ int Pca(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_in
 }
 
 
-static PyObject* ComputePCA(PyObject* self, PyObject* args) {
+static PyObject* ComputeRoisPCA(PyObject* self, PyObject* args) {
     // Compute the PCA
     PyArrayObject *pca, *bboxes;
     PyByteArrayObject* data;
@@ -99,11 +99,11 @@ static PyObject* ComputePCA(PyObject* self, PyObject* args) {
     }
 
     Py_BEGIN_ALLOW_THREADS
-    error = ApplyToRois(pca, data, bboxes, &Pca);
+    error = ApplyToRois(pca, data, bboxes, &RoiPCA);
     Py_END_ALLOW_THREADS
     if (error) {
         Py_DECREF(pca);
-        PyErr_SetString(PyExc_RuntimeError, "failed to apply the pca function on each roi");
+        PyErr_SetString(PyExc_RuntimeError, "failed to apply the roi_pca function on each roi");
         return NULL;
     }
 
@@ -112,7 +112,7 @@ static PyObject* ComputePCA(PyObject* self, PyObject* args) {
 
 
 static PyMethodDef pcaMethods[] = {
-    {"compute_pca", ComputePCA, METH_VARARGS, "Compute the PCA of each roi."},
+    {"compute_rois_pca", ComputeRoisPCA, METH_VARARGS, "Compute the PCA of each roi."},
     {NULL, NULL, 0, NULL}
 };
 
@@ -120,7 +120,7 @@ static PyMethodDef pcaMethods[] = {
 static struct PyModuleDef c_pca = {
     PyModuleDef_HEAD_INIT,
     "pca",
-    "Fast Principal Componant Annalysis Clculus.",
+    "Fast Principal Componant Annalysis Calculus.",
     -1,
     pcaMethods
 };

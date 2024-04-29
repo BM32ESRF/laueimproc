@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 
-int Barycenter(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
+int RoiCentroid(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
     npy_float weight, total_weight = 0;
     long shift;
     npy_float pos[2];
@@ -34,7 +34,33 @@ int Barycenter(PyArrayObject* out, const npy_intp i, const npy_float* roi, const
 }
 
 
-static PyObject* ComputeBarycenters(PyObject* self, PyObject* args) {
+int RoiMax(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
+    npy_float max = roi[0];
+    long argmax = 0;
+    for (long k = 1; k < bbox[2]*bbox[3]; ++k) {
+        if (roi[k] > max) {
+            argmax = k;
+            max = roi[k];
+        }
+    }
+    *(npy_float *)PyArray_GETPTR2(out, i, 0) = (npy_float)bbox[0] + 0.5 + (npy_float)(argmax / bbox[3]);
+    *(npy_float *)PyArray_GETPTR2(out, i, 1) = (npy_float)bbox[1] + 0.5 + (npy_float)(argmax % bbox[3]);
+    *(npy_float *)PyArray_GETPTR2(out, i, 2) = max;
+    return 0;
+}
+
+
+int RoiSum(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
+    npy_float sum = roi[0];
+    for (long k = 1; k < bbox[2]*bbox[3]; ++k) {
+        sum += roi[k];
+    }
+    *(npy_float *)PyArray_GETPTR1(out, i) = sum;
+    return 0;
+}
+
+
+static PyObject* ComputeRoisCentroid(PyObject* self, PyObject* args) {
     // Compute the barycenters
     PyArrayObject *barycenters, *bboxes;
     PyByteArrayObject* data;
@@ -56,7 +82,7 @@ static PyObject* ComputeBarycenters(PyObject* self, PyObject* args) {
     }
 
     Py_BEGIN_ALLOW_THREADS
-    error = ApplyToRois(barycenters, data, bboxes, &Barycenter);
+    error = ApplyToRois(barycenters, data, bboxes, &RoiCentroid);
     Py_END_ALLOW_THREADS
     if (error) {
         Py_DECREF(barycenters);
@@ -68,8 +94,77 @@ static PyObject* ComputeBarycenters(PyObject* self, PyObject* args) {
 }
 
 
+static PyObject* ComputeRoisMax(PyObject* self, PyObject* args) {
+    // Compute the rois max
+    PyArrayObject *roismax, *bboxes;
+    PyByteArrayObject* data;
+    npy_intp shape[2];
+    int error;
+
+    if (!PyArg_ParseTuple(args, "YO!", &data, &PyArray_Type, &bboxes)) {
+        return NULL;
+    }
+    if (CheckBboxes(bboxes)) {
+        return NULL;
+    }
+
+    shape[0] = PyArray_DIM(bboxes, 0);
+    shape[1] = 3;
+    roismax = (PyArrayObject *)PyArray_EMPTY(2, shape, NPY_FLOAT32, 0);  // c contiguous
+    if (roismax == NULL) {
+        PyErr_NoMemory();
+    }
+
+    Py_BEGIN_ALLOW_THREADS
+    error = ApplyToRois(roismax, data, bboxes, &RoiMax);
+    Py_END_ALLOW_THREADS
+    if (error) {
+        Py_DECREF(roismax);
+        PyErr_SetString(PyExc_RuntimeError, "failed to apply the rois_max function on each roi");
+        return NULL;
+    }
+
+    return (PyObject *)roismax;
+}
+
+
+static PyObject* ComputeRoisSum(PyObject* self, PyObject* args) {
+    // Compute the rois max
+    PyArrayObject *roissum, *bboxes;
+    PyByteArrayObject* data;
+    npy_intp shape[1];
+    int error;
+
+    if (!PyArg_ParseTuple(args, "YO!", &data, &PyArray_Type, &bboxes)) {
+        return NULL;
+    }
+    if (CheckBboxes(bboxes)) {
+        return NULL;
+    }
+
+    shape[0] = PyArray_DIM(bboxes, 0);
+    roissum = (PyArrayObject *)PyArray_EMPTY(1, shape, NPY_FLOAT32, 0);  // c contiguous
+    if (roissum == NULL) {
+        PyErr_NoMemory();
+    }
+
+    Py_BEGIN_ALLOW_THREADS
+    error = ApplyToRois(roissum, data, bboxes, &RoiSum);
+    Py_END_ALLOW_THREADS
+    if (error) {
+        Py_DECREF(roissum);
+        PyErr_SetString(PyExc_RuntimeError, "failed to apply the rois_sum function on each roi");
+        return NULL;
+    }
+
+    return (PyObject *)roissum;
+}
+
+
 static PyMethodDef basicMethods[] = {
-    {"compute_barycenters", ComputeBarycenters, METH_VARARGS, "Compute the weighted barycenter of each roi."},
+    {"compute_rois_centroid", ComputeRoisCentroid, METH_VARARGS, "Compute the weighted barycenter of each roi."},
+    {"compute_rois_max", ComputeRoisMax, METH_VARARGS, "Compute the argmax of the intensity and the intensity max of each roi."},
+    {"compute_rois_sum", ComputeRoisSum, METH_VARARGS, "Compute the sum of the intensities of each roi."},
     {NULL, NULL, 0, NULL}
 };
 

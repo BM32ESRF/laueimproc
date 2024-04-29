@@ -8,8 +8,6 @@ import typing
 import numpy as np
 import torch
 
-from laueimproc.improc.spot.basic import compute_rois_max, compute_rois_sum
-from laueimproc.improc.spot.extrema import find_nb_extremums
 from laueimproc.improc.spot.fit import fit_gaussians_em, fit_gaussians
 from laueimproc.opti.cache import auto_cache
 from .base_diagram import check_init, BaseDiagram
@@ -20,7 +18,7 @@ class Diagram(BaseDiagram):
 
     @auto_cache  # put the result in thread safe cache (no multiprocessing)
     @check_init  # throws an exception if the diagram is not initialized
-    def compute_barycenters(self, **_kwargs) -> torch.Tensor:
+    def compute_rois_centroid(self, **_kwargs) -> torch.Tensor:
         """Compute the barycenter of each spots.
 
         Returns
@@ -28,6 +26,7 @@ class Diagram(BaseDiagram):
         positions : torch.Tensor
             The 2 barycenter position for each roi.
             Each line corresponds to a spot and each column to an axis (shape (n, 2)).
+            See ``laueimproc.improc.spot.basic.compute_rois_centroid`` for more details.
 
         Examples
         --------
@@ -35,7 +34,7 @@ class Diagram(BaseDiagram):
         >>> from laueimproc.io import get_sample
         >>> diagram = Diagram(get_sample())
         >>> diagram.find_spots()
-        >>> print(diagram.compute_barycenters())
+        >>> print(diagram.compute_rois_centroid())
         tensor([[1987.1576,  896.4261],
                 [1945.4674,  913.8295],
                 [1908.5780,  971.4541],
@@ -45,22 +44,22 @@ class Diagram(BaseDiagram):
                 [   9.2786,  904.4847]])
         >>>
         """
-        from laueimproc.improc.spot.basic import compute_barycenters
+        from laueimproc.improc.spot.basic import compute_rois_centroid
         self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
-        return compute_barycenters(data, bboxes, **_kwargs)
+        return compute_rois_centroid(data, bboxes, **_kwargs)
 
     @auto_cache
     @check_init
-    def compute_pca(self, **_kwargs) -> torch.Tensor:
-        """Compute the pca on each spot.
+    def compute_rois_max(self, **_kwargs) -> torch.Tensor:
+        """Get the intensity and the position of the hottest pixel for each roi.
 
         Returns
         -------
-        std1_std2_theta : torch.Tensor
-            The concatenation of the colum vectors of the two std in pixel and the angle.
-            See ``laueimproc.improc.spot.pca.compute_pca`` for more details.
+        imax_pos1_pos2 : torch.Tensor
+            The concatenation of the colum vectors of the argmax and the intensity (shape (n, 3)).
+            See ``laueimproc.improc.spot.basic.compute_rois_max`` for more details.
 
         Examples
         --------
@@ -68,7 +67,78 @@ class Diagram(BaseDiagram):
         >>> from laueimproc.io import get_sample
         >>> diagram = Diagram(get_sample())
         >>> diagram.find_spots()
-        >>> print(diagram.compute_pca())
+        >>> print(diagram.compute_rois_max())
+        tensor([[1.9875e+03, 8.9650e+02, 4.1199e-04],
+                [1.9455e+03, 9.1350e+02, 7.9698e-02],
+                [1.9085e+03, 9.7150e+02, 4.1199e-04],
+                ...,
+                [5.4500e+01, 1.3535e+03, 5.4932e-04],
+                [1.8500e+01, 1.2085e+03, 4.5777e-04],
+                [8.5000e+00, 9.0450e+02, 4.4251e-04]])
+        >>>
+        """
+        from laueimproc.improc.spot.basic import compute_rois_max
+        self.flush()
+        with self._rois_lock:
+            data, bboxes = self._rois
+        return compute_rois_max(data, bboxes, **_kwargs)
+
+    @auto_cache
+    @check_init
+    def compute_rois_nb_peaks(self, **_kwargs) -> torch.Tensor:
+        """Find the number of extremums in each roi.
+
+        Returns
+        -------
+        nbr_of_peaks : torch.Tensor
+            The number of extremums (shape (n,)).
+            See ``laueimproc.improc.spot.extrema.compute_rois_nb_peaks`` for more details.
+
+        Notes
+        -----
+        No noise filtering. Doesn't detect shoulders.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.diagram import Diagram
+        >>> from laueimproc.io import get_sample
+        >>> diagram = Diagram(get_sample())
+        >>> diagram.find_spots()
+        >>> print(diagram.compute_rois_nb_peaks())  # doctest: +ELLIPSIS
+        tensor([ 5,  6,  1,  2,  2,  3,  2,  3,  5,  1,  2,  2,  4,  3,  5,  4,  2,  2,
+                 2,  3,  2,  4,  4,  3,  2,  2,  4,  7,  2,  1,  3,  4,  1,  5,  4,  1,
+                 5,  2,  3,  3,  3,  5,  3,  1,  4,  4,  3,  3,  7,  2,  5,  2,  4,  3,
+                 ...
+                 1,  3,  3,  2,  4,  1,  2,  1,  2,  3,  2,  4,  4,  4,  2,  3,  1,  3,
+                 4,  3,  1,  5,  2,  4,  7,  2,  2,  2,  4,  2,  2,  3,  2,  4,  2,  4,
+                 3,  2,  5,  2,  3,  2,  3,  1,  2,  2,  1,  1,  2,  3,  3,  5,  4,  4,
+                 3,  2,  3,  2,  3,  2,  1], dtype=torch.int16)
+        >>>
+        """
+        from laueimproc.improc.spot.extrema import compute_rois_nb_peaks
+        self.flush()
+        with self._rois_lock:
+            data, bboxes = self._rois
+        return compute_rois_nb_peaks(data, bboxes, **_kwargs)
+
+    @auto_cache
+    @check_init
+    def compute_rois_pca(self, **_kwargs) -> torch.Tensor:
+        """Compute the pca on each spot.
+
+        Returns
+        -------
+        std1_std2_theta : torch.Tensor
+            The concatenation of the colum vectors of the two std and the angle (shape (n, 3)).
+            See ``laueimproc.improc.spot.pca.compute_rois_pca`` for more details.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.diagram import Diagram
+        >>> from laueimproc.io import get_sample
+        >>> diagram = Diagram(get_sample())
+        >>> diagram.find_spots()
+        >>> print(diagram.compute_rois_pca())
         tensor([[ 0.2694,  0.2636, -1.4625],
                 [ 0.1830,  0.1499,  0.0815],
                 [ 0.2784,  0.2402,  0.3340],
@@ -78,32 +148,45 @@ class Diagram(BaseDiagram):
                 [ 0.3169,  0.2077,  1.4719]])
         >>>
         """
-        from laueimproc.improc.spot.pca import compute_pca
+        from laueimproc.improc.spot.pca import compute_rois_pca
         self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
-        return compute_pca(data, bboxes, **_kwargs)
-
-    @check_init
-    def compute_rois_max(self) -> torch.Tensor:
-        """Get the intensity of the hottest pixel for each roi."""
-        return compute_rois_max(self.rois)
-
-    @check_init
-    def compute_rois_sum(self) -> torch.Tensor:
-        """Sum the intensities of the pixels for each roi."""
-        return compute_rois_sum(self.rois)
+        return compute_rois_pca(data, bboxes, **_kwargs)
 
     @auto_cache
     @check_init
-    def compute_nb_extremums(self) -> torch.Tensor:
-        """Find the number of extremums in each roi.
+    def compute_rois_sum(self, **_kwargs) -> torch.Tensor:
+        """Sum the intensities of the pixels for each roi.
 
-        Notes
-        -----
-        No noise filtering. Doesn't detect shoulders.
+        Returns
+        -------
+        total_intensity : torch.Tensor
+            The intensity of each roi, sum of the pixels (shape (n,)).
+            See ``laueimproc.improc.spot.basic.compute_rois_sum`` for more details.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.diagram import Diagram
+        >>> from laueimproc.io import get_sample
+        >>> diagram = Diagram(get_sample())
+        >>> diagram.find_spots()
+        >>> print(diagram.compute_rois_sum())  # doctest: +ELLIPSIS
+        tensor([3.9216e-03, 5.7542e-01, 6.6529e-03, 1.6938e-03, 1.0986e-02, 2.4811e-02,
+                2.0935e-02, 3.5966e-02, 2.7893e-02, 4.9592e-03, 5.6901e-02, 1.0986e-03,
+                1.0588e-01, 1.9989e-03, 4.2100e-02, 4.5542e-01, 8.2399e-03, 3.0842e-01,
+                ...
+                5.3590e-02, 1.7853e-03, 4.1199e-03, 9.8131e-02, 2.2431e-03, 1.8158e-03,
+                2.8077e-03, 6.2394e-02, 2.5025e-03, 2.3697e-02, 2.5284e-02, 5.3864e-03,
+                1.3931e-02, 9.8726e-03, 3.4943e-03, 2.1515e-03, 2.6398e-03, 3.7690e-03,
+                3.9979e-03])
+        >>>
         """
-        return find_nb_extremums(self.rois)
+        from laueimproc.improc.spot.basic import compute_rois_sum
+        self.flush()
+        with self._rois_lock:
+            data, bboxes = self._rois
+        return compute_rois_sum(data, bboxes, **_kwargs)
 
     def fit_gaussian_em(self, *args, **kwargs) -> tuple[torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by one gaussian using the EM algorithm in one shot, very fast.

@@ -17,7 +17,7 @@ except ImportError:
 from laueimproc.opti.rois import rawshapes2rois
 
 
-def compute_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False) -> torch.Tensor:
+def compute_rois_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False) -> torch.Tensor:
     r"""Compute the PCA for each spot.
 
     See ``laueimproc.gmm`` for terminology.
@@ -42,7 +42,7 @@ def compute_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False) -
     --------
     >>> import torch
     >>> import numpy as np
-    >>> from laueimproc.improc.spot.pca import compute_pca
+    >>> from laueimproc.improc.spot.pca import compute_rois_pca
     >>> rois = np.zeros((4, 5, 5), np.float32)
     >>> rois[0, :, 2] = 1
     >>> rois[1, range(5), range(5)] = 1
@@ -73,7 +73,9 @@ def compute_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False) -
             [0., 1., 1., 1., 0.],
             [0., 0., 1., 0., 0.],
             [0., 0., 1., 0., 0.]]], dtype=float32)
-    >>> compute_pca(bytearray(rois.tobytes()), torch.tensor([[0, 0, 5, 5]]*4, dtype=torch.int16))
+    >>> compute_rois_pca(
+    ...     bytearray(rois.tobytes()), torch.tensor([[0, 0, 5, 5]]*4, dtype=torch.int16)
+    ... )
     tensor([[0.6325, 0.0000, 0.0000],
             [0.8944, 0.0000, 0.7854],
             [0.6325, 0.0000, 1.5708],
@@ -83,12 +85,15 @@ def compute_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False) -
     >>> data = bytearray(
     ...     np.linspace(0, 1, (bboxes[:, 2]*bboxes[:, 3]).sum(), dtype=np.float32).tobytes()
     ... )
-    >>> std1_std2_theta = compute_pca(data, bboxes)
-    >>> assert torch.allclose(std1_std2_theta[:, :2], compute_pca(data, bboxes, _no_c=True)[:, :2])
+    >>> std1_std2_theta = compute_rois_pca(data, bboxes)
+    >>> torch.allclose(std1_std2_theta[:, :2], compute_rois_pca(data, bboxes, _no_c=True)[:, :2])
+    True
     >>>
     """
     if not _no_c and c_pca is not None:
-        return torch.from_numpy(c_pca.compute_pca(data, bboxes.numpy(force=True))).to(bboxes.device)
+        return torch.from_numpy(
+            c_pca.compute_rois_pca(data, bboxes.numpy(force=True))
+        ).to(bboxes.device)
 
     assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
     assert bboxes.ndim == 2, bboxes.shape

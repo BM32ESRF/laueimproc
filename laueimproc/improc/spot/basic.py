@@ -16,7 +16,7 @@ except ImportError:
 from laueimproc.opti.rois import rawshapes2rois
 
 
-def compute_barycenters(
+def compute_rois_centroid(
     data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False
 ) -> torch.Tensor:
     r"""Find the weighted barycenter of each roi.
@@ -37,11 +37,11 @@ def compute_barycenters(
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.improc.spot.basic import compute_barycenters
+    >>> from laueimproc.improc.spot.basic import compute_rois_centroid
     >>> patches = [
-    ...     torch.tensor([[1.0]]),
-    ...     torch.tensor([[1.0, 1.0], [1.0, 2.0]]),
-    ...     torch.tensor([[0.0, 0.0, 1.0, 0.0, 0.0]]),
+    ...     torch.tensor([[0.5]]),
+    ...     torch.tensor([[0.5, 0.5], [0.5, 1.0]]),
+    ...     torch.tensor([[0.0, 0.0, 0.5, 0.0, 0.0]]),
     ... ] * 2
     >>> data = bytearray(torch.cat([p.ravel() for p in patches]).numpy().tobytes())
     >>> bboxes = torch.tensor([[ 0,  0,  1,  1],
@@ -50,7 +50,7 @@ def compute_barycenters(
     ...                        [10, 10,  1,  1],
     ...                        [10, 10,  2,  2],
     ...                        [10, 10,  1,  5]], dtype=torch.int16)
-    >>> print(compute_barycenters(data, bboxes))
+    >>> print(compute_rois_centroid(data, bboxes))
     tensor([[ 0.5000,  0.5000],
             [ 1.1000,  1.1000],
             [ 0.5000,  2.5000],
@@ -58,15 +58,15 @@ def compute_barycenters(
             [11.1000, 11.1000],
             [10.5000, 12.5000]])
     >>> torch.allclose(
-    ...     compute_barycenters(data, bboxes),
-    ...     compute_barycenters(data, bboxes, _no_c=True),
+    ...     compute_rois_centroid(data, bboxes),
+    ...     compute_rois_centroid(data, bboxes, _no_c=True),
     ... )
     True
     >>>
     """
     if not _no_c and c_basic is not None:
         return torch.from_numpy(
-            c_basic.compute_barycenters(data, bboxes.numpy(force=True))
+            c_basic.compute_rois_centroid(data, bboxes.numpy(force=True))
         ).to(bboxes.device)
 
     assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
@@ -90,45 +90,119 @@ def compute_barycenters(
     return mean
 
 
-def compute_rois_max(tensor_spots: torch.Tensor) -> torch.Tensor:
-    """Return the intensity maxi of each roi, max of the pixels.
+def compute_rois_max(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False) -> torch.Tensor:
+    r"""Return the argmax of the intensity and the intensity max of each roi.
 
     Parameters
     ----------
-    tensor_spots : torch.Tensor
-        The batch of spots of shape (n, h, w).
+    data : bytearray
+        The raw data \(\alpha_i\) of the concatenated not padded float32 rois.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4). It doesn't have to be c contiguous.
 
     Returns
     -------
-    maxi : torch.Tensor
-        The vector of the maxi pixel value of shape (n,).
+    imax_pos1_pos2 : torch.Tensor
+        The concatenation of the colum vectors
+        of the argmax along i axis, argmax along j axis and the max intensity.
+        The shape is (n, 3).
 
-    Notes
-    -----
-    * No verifications are performed,
-    * Call this method from a ``laueimproc.classes.spot.Spot``
-        or ``laueimproc.classes.diagram.Diagram`` instance.
+    Examples
+    --------
+    >>> import torch
+    >>> from laueimproc.improc.spot.basic import compute_rois_max
+    >>> patches = [
+    ...     torch.tensor([[0.5]]),
+    ...     torch.tensor([[0.5, 0.5], [0.5, 1.0]]),
+    ...     torch.tensor([[0.0, 0.0, 0.5, 0.0, 0.0]]),
+    ... ] * 2
+    >>> data = bytearray(torch.cat([p.ravel() for p in patches]).numpy().tobytes())
+    >>> bboxes = torch.tensor([[ 0,  0,  1,  1],
+    ...                        [ 0,  0,  2,  2],
+    ...                        [ 0,  0,  1,  5],
+    ...                        [10, 10,  1,  1],
+    ...                        [10, 10,  2,  2],
+    ...                        [10, 10,  1,  5]], dtype=torch.int16)
+    >>> print(compute_rois_max(data, bboxes))
+    tensor([[ 0.5000,  0.5000,  0.5000],
+            [ 1.5000,  1.5000,  1.0000],
+            [ 0.5000,  2.5000,  0.5000],
+            [10.5000, 10.5000,  0.5000],
+            [11.5000, 11.5000,  1.0000],
+            [10.5000, 12.5000,  0.5000]])
+    >>> torch.allclose(
+    ...     compute_rois_max(data, bboxes),
+    ...     compute_rois_max(data, bboxes, _no_c=True),
+    ... )
+    True
+    >>>
     """
-    return torch.amax(tensor_spots, axis=(1, 2))
+    if not _no_c and c_basic is not None:
+        return torch.from_numpy(
+            c_basic.compute_rois_max(data, bboxes.numpy(force=True))
+        ).to(bboxes.device)
+
+    assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
+    assert bboxes.ndim == 2, bboxes.shape
+    assert bboxes.shape[1] == 4, bboxes.shape
+
+    rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=_no_c)  # (n, h, w), more verif here
+    nb_spots, height, width = rois.shape
+    out = torch.empty((nb_spots, 3), dtype=rois.dtype, device=rois.device)
+    out[:, :2] = bboxes[:, :2] + 0.5
+    out[:, 2], indice = torch.max(rois.reshape(nb_spots, height*width), axis=1)
+    out[:, 0] += indice // width
+    out[:, 1] += indice % width
+    return out
 
 
-def compute_rois_sum(tensor_spots: torch.Tensor) -> torch.Tensor:
-    """Return the intensity of each roi, sum of the pixels.
+def compute_rois_sum(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False) -> torch.Tensor:
+    r"""Return the intensity of each roi, sum of the pixels.
 
     Parameters
     ----------
-    tensor_spots : torch.Tensor
-        The batch of spots of shape (n, h, w).
+    data : bytearray
+        The raw data \(\alpha_i\) of the concatenated not padded float32 rois.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4). It doesn't have to be c contiguous.
 
     Returns
     -------
     intensity : torch.Tensor
         The vector of the intensity of shape (n,).
 
-    Notes
-    -----
-    * No verifications are performed,
-    * Call this method from a ``laueimproc.classes.spot.Spot``
-        or ``laueimproc.classes.diagram.Diagram`` instance.
+    Examples
+    --------
+    >>> import torch
+    >>> from laueimproc.improc.spot.basic import compute_rois_sum
+    >>> patches = [
+    ...     torch.tensor([[0.5]]),
+    ...     torch.tensor([[0.5, 0.5], [0.5, 1.0]]),
+    ...     torch.tensor([[0.0, 0.0, 0.5, 0.0, 0.0]]),
+    ... ]
+    >>> data = bytearray(torch.cat([p.ravel() for p in patches]).numpy().tobytes())
+    >>> bboxes = torch.tensor([[ 0,  0,  1,  1],
+    ...                        [ 0,  0,  2,  2],
+    ...                        [ 0,  0,  1,  5]], dtype=torch.int16)
+    >>> print(compute_rois_sum(data, bboxes))
+    tensor([0.5000, 2.5000, 0.5000])
+    >>> torch.allclose(
+    ...     compute_rois_sum(data, bboxes),
+    ...     compute_rois_sum(data, bboxes, _no_c=True),
+    ... )
+    True
+    >>>
     """
-    return torch.sum(tensor_spots, axis=(1, 2))
+    if not _no_c and c_basic is not None:
+        return torch.from_numpy(
+            c_basic.compute_rois_sum(data, bboxes.numpy(force=True))
+        ).to(bboxes.device)
+
+    assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
+    assert bboxes.ndim == 2, bboxes.shape
+    assert bboxes.shape[1] == 4, bboxes.shape
+
+    rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=_no_c)  # (n, h, w), more verif here
+    return torch.sum(rois, axis=(1, 2))

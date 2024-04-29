@@ -8,7 +8,7 @@
 # import numpy as np
 # import torch
 
-# from laueimproc.improc.spot.basic import compute_barycenters
+# from laueimproc.improc.spot.basic import compute_rois_centroid
 
 
 # def compute_rot_sym(tensor_spots: torch.Tensor) -> torch.Tensor:
@@ -31,7 +31,7 @@
 #     cr_rois *= torch.rsqrt(power, out=power)
 
 #     # preparation
-#     centers = compute_barycenters(tensor_spots)
+#     centers = compute_rois_centroid(tensor_spots)
 #     centers -= 0.5
 #     centers = centers.tolist()
 #     all_corr = torch.empty((11, cr_rois.shape[0]), dtype=cr_rois.dtype, device=cr_rois.device)

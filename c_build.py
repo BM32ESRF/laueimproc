@@ -48,6 +48,14 @@ class Build(_build_py):
         )
         self.distribution.ext_modules.append(
             Extension(
+                "laueimproc.improc.spot.c_extrema",
+                sources=["laueimproc/improc/spot/c_extrema.c"],
+                optional=True,
+                **COMP_RULES,
+            )
+        )
+        self.distribution.ext_modules.append(
+            Extension(
                 "laueimproc.improc.spot.c_pca",
                 sources=["laueimproc/improc/spot/c_pca.c"],
                 optional=True,

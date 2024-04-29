@@ -117,7 +117,7 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
         (65535*magnitudes).tolist(), (65535*backgrounds).tolist(),
         (2*torch.sqrt(infodict["eigtheta"][:, :2])).tolist(),
         torch.rad2deg(infodict["eigtheta"][:, 2]).tolist(),
-        diagram.compute_barycenters().tolist(),
+        diagram.compute_rois_centroid().tolist(),
         (65535*torch.amax(diagram.rawrois, dim=(1, 2))).tolist(),
     ):
         file_content += (
