@@ -70,7 +70,7 @@ static PyObject* ComputeRoisCentroid(PyObject* self, PyObject* args) {
     if (!PyArg_ParseTuple(args, "YO!", &data, &PyArray_Type, &bboxes)) {
         return NULL;
     }
-    if (CheckBboxes(bboxes)) {
+    if (CheckBBoxes(bboxes)) {
         return NULL;
     }
 
@@ -78,7 +78,7 @@ static PyObject* ComputeRoisCentroid(PyObject* self, PyObject* args) {
     shape[1] = 2;
     barycenters = (PyArrayObject *)PyArray_EMPTY(2, shape, NPY_FLOAT32, 0);  // c contiguous
     if (barycenters == NULL) {
-        PyErr_NoMemory();
+        return PyErr_NoMemory();
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -104,7 +104,7 @@ static PyObject* ComputeRoisMax(PyObject* self, PyObject* args) {
     if (!PyArg_ParseTuple(args, "YO!", &data, &PyArray_Type, &bboxes)) {
         return NULL;
     }
-    if (CheckBboxes(bboxes)) {
+    if (CheckBBoxes(bboxes)) {
         return NULL;
     }
 
@@ -112,7 +112,7 @@ static PyObject* ComputeRoisMax(PyObject* self, PyObject* args) {
     shape[1] = 3;
     roismax = (PyArrayObject *)PyArray_EMPTY(2, shape, NPY_FLOAT32, 0);  // c contiguous
     if (roismax == NULL) {
-        PyErr_NoMemory();
+        return PyErr_NoMemory();
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -138,14 +138,14 @@ static PyObject* ComputeRoisSum(PyObject* self, PyObject* args) {
     if (!PyArg_ParseTuple(args, "YO!", &data, &PyArray_Type, &bboxes)) {
         return NULL;
     }
-    if (CheckBboxes(bboxes)) {
+    if (CheckBBoxes(bboxes)) {
         return NULL;
     }
 
     shape[0] = PyArray_DIM(bboxes, 0);
     roissum = (PyArrayObject *)PyArray_EMPTY(1, shape, NPY_FLOAT32, 0);  // c contiguous
     if (roissum == NULL) {
-        PyErr_NoMemory();
+        return PyErr_NoMemory();
     }
 
     Py_BEGIN_ALLOW_THREADS

@@ -87,7 +87,7 @@ static PyObject* ComputeRoisPCA(PyObject* self, PyObject* args) {
     if (!PyArg_ParseTuple(args, "YO!", &data, &PyArray_Type, &bboxes)) {
         return NULL;
     }
-    if (CheckBboxes(bboxes)) {
+    if (CheckBBoxes(bboxes)) {
         return NULL;
     }
 
@@ -95,7 +95,7 @@ static PyObject* ComputeRoisPCA(PyObject* self, PyObject* args) {
     shape[1] = 3;
     pca = (PyArrayObject *)PyArray_EMPTY(2, shape, NPY_FLOAT32, 0);  // c contiguous
     if (pca == NULL) {
-        PyErr_NoMemory();
+        return PyErr_NoMemory();
     }
 
     Py_BEGIN_ALLOW_THREADS

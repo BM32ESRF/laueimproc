@@ -51,14 +51,14 @@ static PyObject* ComputeRoisNbPeaks(PyObject* self, PyObject* args) {
     if (!PyArg_ParseTuple(args, "YO!", &data, &PyArray_Type, &bboxes)) {
         return NULL;
     }
-    if (CheckBboxes(bboxes)) {
+    if (CheckBBoxes(bboxes)) {
         return NULL;
     }
 
     shape[0] = PyArray_DIM(bboxes, 0);
     nbpeaks = (PyArrayObject *)PyArray_EMPTY(1, shape, NPY_INT16, 0);  // c contiguous
     if (nbpeaks == NULL) {
-        PyErr_NoMemory();
+        return PyErr_NoMemory();
     }
 
     Py_BEGIN_ALLOW_THREADS

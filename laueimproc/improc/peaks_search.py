@@ -11,6 +11,7 @@ import numpy as np
 import torch
 
 from laueimproc.opti.rois import imgbboxes2raw
+from laueimproc.improc.find_bboxes import find_bboxes
 
 
 DEFAULT_KERNEL_FONT = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (19, 19))  # 17 - 21
@@ -163,16 +164,6 @@ def peaks_search(
         (fg_image > _density_to_threshold_torch(torch.from_numpy(fg_image), density)).view(np.uint8)
     )
     binary = cv2.dilate(binary, kernel_aglo, dst=bg_image, iterations=1)
-    bboxes = [
-        (i, j, h, w) for j, i, w, h in map(  # cv2 to numpy convention
-            cv2.boundingRect,
-            cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0],
-        ) if max(h, w) <= 200  # remove too big spots
-    ]
-
-    if bboxes:
-        bboxes = torch.tensor(bboxes, dtype=torch.int16)
-    else:
-        bboxes = torch.empty((0, 4), dtype=torch.int16, device=brut_image.device)
-    datarois = imgbboxes2raw(torch.from_numpy(fg_image), bboxes)
+    bboxes = find_bboxes(binary).to(brut_image.device)
+    datarois = imgbboxes2raw(torch.from_numpy(fg_image).to(brut_image.device), bboxes)
     return datarois, bboxes

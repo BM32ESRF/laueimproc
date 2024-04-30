@@ -5,7 +5,7 @@
 #include <Python.h>
 
 
-int CheckBboxes(PyArrayObject* bboxes) {
+int CheckBBoxes(PyArrayObject* bboxes) {
     // Print an exception if shape or format is not correct.
     if (PyArray_NDIM(bboxes) != 2) {
         PyErr_SetString(PyExc_ValueError, "'bboxes' requires 2 dimensions");
@@ -15,7 +15,7 @@ int CheckBboxes(PyArrayObject* bboxes) {
         PyErr_SetString(
             PyExc_ValueError,
             "second axis of 'bboxes' has to be of size 4, for *anchors, height and width"
-       );
+        );
         return 1;
     }
     if (PyArray_TYPE(bboxes) != NPY_INT16) {
@@ -26,13 +26,33 @@ int CheckBboxes(PyArrayObject* bboxes) {
 }
 
 
-int CheckImg(PyArrayObject* img) {
+int CheckImg(PyArrayObject* img, enum NPY_TYPES dtype) {
     // Print an exception if shape or format is not correct.
     if (PyArray_NDIM(img) != 2) {
         PyErr_SetString(PyExc_ValueError, "'img' requires 2 dimensions");
         return 1;
     }
-    if (PyArray_TYPE(img) != NPY_FLOAT32) {
+    if (PyArray_DIM(img, 0) < 1) {
+        PyErr_SetString(PyExc_ValueError, "'img.shape[0]' has to be >= 1");
+        return 1;
+    }
+    if (PyArray_DIM(img, 1) < 1) {
+        PyErr_SetString(PyExc_ValueError, "'img.shape[1]' has to be >= 1");
+        return 1;
+    }
+    if (PyArray_DIM(img, 0) > NPY_MAX_INT16) {
+        PyErr_SetString(PyExc_ValueError, "'img.shape[0]' is to big to be encoded with int16");
+        return 1;
+    }
+    if (PyArray_DIM(img, 1) > NPY_MAX_INT16) {
+        PyErr_SetString(PyExc_ValueError, "'img.shape[1]' is to big to be encoded with int16");
+        return 1;
+    }
+    if (!PyArray_IS_C_CONTIGUOUS(img)) {
+        PyErr_SetString(PyExc_ValueError, "'img' has to be c contiguous");
+        return 1;
+    }
+    if ((enum NPY_TYPES)PyArray_TYPE(img) != dtype) {
         PyErr_SetString(PyExc_TypeError, "'img' has to be of type float32");
         return 1;
     }

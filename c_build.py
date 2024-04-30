@@ -40,6 +40,14 @@ class Build(_build_py):
             self.distribution.ext_modules = []
         self.distribution.ext_modules.append(
             Extension(
+                "laueimproc.improc.c_find_bboxes",
+                sources=["laueimproc/improc/c_find_bboxes.c"],
+                optional=True,
+                **COMP_RULES,
+            )
+        )
+        self.distribution.ext_modules.append(
+            Extension(
                 "laueimproc.improc.spot.c_basic",
                 sources=["laueimproc/improc/spot/c_basic.c"],
                 optional=True,

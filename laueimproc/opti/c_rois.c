@@ -11,7 +11,7 @@ int FindDataBoundaries(npy_int64* data_indices_p[], PyArrayObject* bboxes) {
     // find the boundaries of unfoleded rois in data
     const npy_intp len_bboxes = PyArray_DIM(bboxes, 0);
     npy_int16 height, width;
-    *data_indices_p = malloc((len_bboxes+1)*sizeof(npy_int64));
+    *data_indices_p = malloc((len_bboxes+1) * sizeof(**data_indices_p));
     if (data_indices_p == NULL) {
         fprintf(stderr, "failed to alloc the cummulated bboxes area array\n");
         return 1;
@@ -30,7 +30,7 @@ int FindDataBoundaries(npy_int64* data_indices_p[], PyArrayObject* bboxes) {
 }
 
 
-int FillRawfromBboxesImg(npy_float* rawdata, PyArrayObject* bboxes, PyArrayObject* img_cont) {
+int FillRawfromBBoxesImg(npy_float* rawdata, PyArrayObject* bboxes, PyArrayObject* img_cont) {
     // copy the patches into the flatten rois.
     const npy_intp n = PyArray_DIM(bboxes, 0);
     const npy_intp img_shape[2] = {PyArray_DIM(img_cont, 0), PyArray_DIM(img_cont, 1)};
@@ -246,7 +246,7 @@ static PyObject* FilterByIndices(PyObject* self, PyObject* args) {
     if (CheckIndices(indices)) {
         return NULL;
     }
-    if (CheckBboxes(bboxes)) {
+    if (CheckBBoxes(bboxes)) {
         return NULL;
     }
 
@@ -304,7 +304,7 @@ static PyObject* FilterByIndices(PyObject* self, PyObject* args) {
 }
 
 
-static PyObject* ImgBboxes2Raw(PyObject* self, PyObject* args) {
+static PyObject* ImgBBoxes2Raw(PyObject* self, PyObject* args) {
     PyObject* data = NULL;
     npy_float* rawdata = NULL;
     PyArrayObject *img, *img_cont, *bboxes;
@@ -316,10 +316,10 @@ static PyObject* ImgBboxes2Raw(PyObject* self, PyObject* args) {
     }
 
     // verifications
-    if (CheckImg(img)) {
+    if (CheckImg(img, NPY_FLOAT32)) {
         return NULL;
     }
-    if (CheckBboxes(bboxes)) {
+    if (CheckBBoxes(bboxes)) {
         return NULL;
     }
 
@@ -346,7 +346,7 @@ static PyObject* ImgBboxes2Raw(PyObject* self, PyObject* args) {
     // fill bytes
     img_cont = PyArray_GETCONTIGUOUS(img);
     Py_BEGIN_ALLOW_THREADS
-    error = FillRawfromBboxesImg(rawdata, bboxes, img_cont);
+    error = FillRawfromBBoxesImg(rawdata, bboxes, img_cont);
     Py_END_ALLOW_THREADS
     Py_DECREF(img_cont);
     if (error) {
@@ -397,7 +397,7 @@ static PyObject* RawShapes2Rois(PyObject* self, PyObject* args) {
     }
     rois = (PyArrayObject *)PyArray_EMPTY(3, shape, NPY_FLOAT32, 0);  // c contiguous
     if (rois == NULL) {
-        PyErr_NoMemory();
+        return PyErr_NoMemory();
     }
 
     // fill rois
@@ -474,7 +474,7 @@ static PyObject* RoisShapes2Raw(PyObject* self, PyObject* args) {
 
 static PyMethodDef roisMethods[] = {
     {"filter_by_indices", FilterByIndices, METH_VARARGS, "Select the rois of the given indices."},
-    {"imgbboxes2raw", ImgBboxes2Raw, METH_VARARGS, "Extract the rois from the image."},
+    {"imgbboxes2raw", ImgBBoxes2Raw, METH_VARARGS, "Extract the rois from the image."},
     {"rawshapes2rois", RawShapes2Rois, METH_VARARGS, "Unfold and pad the flatten rois data into a tensor."},
     {"roisshapes2raw", RoisShapes2Raw, METH_VARARGS, "Compress the rois into a flatten no padded respresentation."},
     {NULL, NULL, 0, NULL}
