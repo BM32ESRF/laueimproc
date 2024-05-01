@@ -118,7 +118,7 @@ if __name__ == '__main__':
     bg_image = estimate_background(src, DEFAULT_KERNEL_FONT)
     fg_image = src - bg_image
 
-    for density in (0.86,): # (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9):
+    for density in (0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95):
         print(f"density: {density}")
         binary = (
             (fg_image > _density_to_threshold_torch(torch.from_numpy(fg_image), density)).view(np.uint8)
@@ -128,59 +128,60 @@ if __name__ == '__main__':
         import timeit
         t1 = min(timeit.repeat(lambda: find_bboxes(binary, _no_c=True), repeat=20, number=10))
         print(f"time cv2 {1000*t1/10:.2f}ms")
+        bboxes = find_bboxes(binary, _no_c=False)
         t2 = min(timeit.repeat(lambda: find_bboxes(binary, _no_c=False), repeat=20, number=10))
         print(f"time c {1000*t2/10:.2f}ms")
-        print(f"the c version is {t1/t2:.2f} time faster than the cv2")
-        print(f"bbox mean: {bboxes.mean(dim=0)}")
+        print(f"the c version is {t1/t2:.2f} time faster than the cv2 one")
+        print(f"bbox mean: {bboxes.to(float).mean(dim=0)}")
 
-        import matplotlib.pyplot as plt
-        plt.imshow(
-            binary.transpose(),
-            cmap="gray",
-            aspect="equal",
-            extent=(0, binary.shape[0], binary.shape[1], 0),
-            interpolation=None,  # antialiasing is True
-        )
-        bboxes = find_bboxes(binary, _no_c=True)
-        plt.plot(
-            np.vstack((
-                bboxes[:, 0],
-                bboxes[:, 0]+bboxes[:, 2],
-                bboxes[:, 0]+bboxes[:, 2],
-                bboxes[:, 0],
-                bboxes[:, 0],
-            )),
-            np.vstack((
-                bboxes[:, 1],
-                bboxes[:, 1],
-                bboxes[:, 1]+bboxes[:, 3],
-                bboxes[:, 1]+bboxes[:, 3],
-                bboxes[:, 1],
-            )),
-            color="blue",
-            scalex=False,
-            scaley=False,
-            alpha=0.5,
-        )
-        bboxes = find_bboxes(binary, _no_c=False)
-        plt.plot(
-            np.vstack((
-                bboxes[:, 0],
-                bboxes[:, 0]+bboxes[:, 2],
-                bboxes[:, 0]+bboxes[:, 2],
-                bboxes[:, 0],
-                bboxes[:, 0],
-            )),
-            np.vstack((
-                bboxes[:, 1],
-                bboxes[:, 1],
-                bboxes[:, 1]+bboxes[:, 3],
-                bboxes[:, 1]+bboxes[:, 3],
-                bboxes[:, 1],
-            )),
-            color="red",
-            scalex=False,
-            scaley=False,
-            alpha=0.5,
-        )
-        plt.show()
+        # import matplotlib.pyplot as plt
+        # plt.imshow(
+        #     binary.transpose(),
+        #     cmap="gray",
+        #     aspect="equal",
+        #     extent=(0, binary.shape[0], binary.shape[1], 0),
+        #     interpolation=None,  # antialiasing is True
+        # )
+        # bboxes = find_bboxes(binary, _no_c=True)
+        # plt.plot(
+        #     np.vstack((
+        #         bboxes[:, 0],
+        #         bboxes[:, 0]+bboxes[:, 2],
+        #         bboxes[:, 0]+bboxes[:, 2],
+        #         bboxes[:, 0],
+        #         bboxes[:, 0],
+        #     )),
+        #     np.vstack((
+        #         bboxes[:, 1],
+        #         bboxes[:, 1],
+        #         bboxes[:, 1]+bboxes[:, 3],
+        #         bboxes[:, 1]+bboxes[:, 3],
+        #         bboxes[:, 1],
+        #     )),
+        #     color="blue",
+        #     scalex=False,
+        #     scaley=False,
+        #     alpha=0.5,
+        # )
+        # bboxes = find_bboxes(binary, _no_c=False)
+        # plt.plot(
+        #     np.vstack((
+        #         bboxes[:, 0],
+        #         bboxes[:, 0]+bboxes[:, 2],
+        #         bboxes[:, 0]+bboxes[:, 2],
+        #         bboxes[:, 0],
+        #         bboxes[:, 0],
+        #     )),
+        #     np.vstack((
+        #         bboxes[:, 1],
+        #         bboxes[:, 1],
+        #         bboxes[:, 1]+bboxes[:, 3],
+        #         bboxes[:, 1]+bboxes[:, 3],
+        #         bboxes[:, 1],
+        #     )),
+        #     color="red",
+        #     scalex=False,
+        #     scaley=False,
+        #     alpha=0.5,
+        # )
+        # plt.show()
