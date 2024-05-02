@@ -65,28 +65,29 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
     >>> from laueimproc.classes.diagram import Diagram
     >>> from laueimproc.io.write_dat import write_dat
     >>> import laueimproc.io
-    >>> diagram = Diagram(pathlib.Path(laueimproc.io.__file__).parent / "ge_blanc.jp2")
+    >>> diagram = Diagram(pathlib.Path(laueimproc.io.__file__).parent / "ge.jp2")
     >>> diagram.find_spots()
     >>> file = pathlib.Path(tempfile.gettempdir()) / "ge_blanc.dat"
     >>> write_dat(file, diagram)
+    >>>
     >>> with open(file, "r", encoding="utf-8") as raw:  # doctest: +ELLIPSIS
     ...     print(raw.read())
     ...
-    peak_X peak_Y peak_Itot peak_Isub ... peak_inclination Xdev Ydev peak_bkg Ipixmax
-    1987.658 896.926 57.0 27.0 2.682 2.561 62.9 0.000 0.0 30.0 57.0
-    1945.967 914.329 5263.6 5223.0 4.403 4.025 -20.4 0.000 0.0 40.6 5264.0
+       peak_X    peak_Y   peak_Itot   peak_Isub peak_fwaxmaj ...ation   Xdev   Ydev peak_bkg Ipixmax
+        5.248    23.529    164799.5    163837.5       41.919 ... -1.9  0.000  0.000    962.0  1121.0
+       26.715     1.379     33789.8     32767.5        5.934 ...-88.5  0.000  0.000   1022.3  1129.0
     ...
-    19.785 1209.065 48.7 30.0 2.781 1.585 -80.7 0.000 0.0 18.7 55.0
-    9.779 904.985 50.8 29.0 2.682 1.720 82.0 0.000 0.0 21.8 58.0
+     1974.984  1938.129 126975109.0 126974064.0        4.004 ... 34.5  0.000  0.000   1045.0  4999.0
+     1179.911  1976.159 129465492.7 129464392.0        5.581 ...  6.1  0.000  0.000   1100.7 20258.0
     # file created by laueimproc ...
-    # Diagram from ge_blanc.jp2:
+    # Diagram from ge.jp2:
     #     History:
-    #         1. 781 spots from self.find_spots()
+    #         1. 219 spots from self.find_spots()
     #     No Properties
     #     Current state:
     #         * id, state: ...
-    #         * nbr spots: 781
-    #         * total mem: 16.9MB
+    #         * nbr spots: 219
+    #         * total mem: 16.4MB
     >>>
     """
     # verification
@@ -97,17 +98,17 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
     # positions, _, magnitudes, infodict = diagram.fit_gaussian(eigtheta=True)
     # positions = positions.squeeze(2)
     positions, _, infodict = diagram.fit_gaussian_em(eigtheta=True)
-    magnitudes = torch.amax(diagram.rois, dim=(1, 2))
+    magnitudes = diagram.compute_rois_max()[:, 0]
 
     backgrounds = torch.sum(diagram.rawrois - diagram.rois, dim=(1, 2))
     backgrounds /= (diagram.bboxes[:, 2]*diagram.bboxes[:, 3]).to(backgrounds.dtype)
 
     # header
     file_content = (
-        "peak_X peak_Y "
-        "peak_Itot peak_Isub "
+        "   peak_X    peak_Y "
+        "  peak_Itot   peak_Isub "
         "peak_fwaxmaj peak_fwaxmin peak_inclination "
-        "Xdev Ydev "
+        "  Xdev   Ydev "
         "peak_bkg Ipixmax\n"
     )
 
@@ -121,11 +122,11 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
         (65535*torch.amax(diagram.rawrois, dim=(1, 2))).tolist(),
     ):
         file_content += (
-            f"{pos[0]+0.5:.3f} {pos[1]+0.5:.3f} "
-            f"{mag+bkg:.1f} {mag:.1f} "
-            f"{two_std[0]:.3f} {two_std[1]:.3f} {theta:.1f} "
-            f"{pos[0]-bary[0]:.3f} {pos[1]-bary[1]} "
-            f"{bkg:.1f} {pixmax:.1f}\n"
+            f"{pos[1]+0.5:9.3f} {pos[0]+0.5:9.3f} "  # ij to xy
+            f"{mag+bkg:11.1f} {mag:11.1f} "
+            f"{two_std[0]:12.3f} {two_std[1]:12.3f} {theta:16.1f} "
+            f"{pos[1]-bary[1]:6.3f} {pos[0]-bary[0]:6.3f} "  # ij to xy
+            f"{bkg:8.1f} {pixmax:7.1f}\n"
         )
 
     # comments

@@ -34,14 +34,14 @@ class Diagram(BaseDiagram):
         >>> from laueimproc.io import get_sample
         >>> diagram = Diagram(get_sample())
         >>> diagram.find_spots()
-        >>> print(diagram.compute_rois_centroid())
-        tensor([[1987.1576,  896.4261],
-                [1945.4674,  913.8295],
-                [1908.5780,  971.4541],
+        >>> print(diagram.compute_rois_centroid())  # doctset: +ELLIPSIS
+        tensor([[2.3029e+01, 4.7476e+00],
+                [8.7884e-01, 2.6215e+01],
+                [5.6444e-01, 1.9546e+03],
                 ...,
-                [  55.2341, 1352.7832],
-                [  19.2854, 1208.5648],
-                [   9.2786,  904.4847]])
+                [1.9119e+03, 1.8759e+02],
+                [1.9376e+03, 1.9745e+03],
+                [1.9757e+03, 1.1794e+03]])
         >>>
         """
         from laueimproc.improc.spot.basic import compute_rois_centroid
@@ -67,14 +67,14 @@ class Diagram(BaseDiagram):
         >>> from laueimproc.io import get_sample
         >>> diagram = Diagram(get_sample())
         >>> diagram.find_spots()
-        >>> print(diagram.compute_rois_max())
-        tensor([[1.9875e+03, 8.9650e+02, 4.1199e-04],
-                [1.9455e+03, 9.1350e+02, 7.9698e-02],
-                [1.9085e+03, 9.7150e+02, 4.1199e-04],
+        >>> print(diagram.compute_rois_max())  # doctset: +ELLIPSIS
+        tensor([[2.5000e+00, 5.5000e+00, 9.2165e-03],
+                [5.0000e-01, 2.2500e+01, 1.4343e-03],
+                [5.0000e-01, 1.9545e+03, 1.3977e-02],
                 ...,
-                [5.4500e+01, 1.3535e+03, 5.4932e-04],
-                [1.8500e+01, 1.2085e+03, 4.5777e-04],
-                [8.5000e+00, 9.0450e+02, 4.4251e-04]])
+                [1.9125e+03, 1.8750e+02, 1.1257e-01],
+                [1.9375e+03, 1.9745e+03, 6.0334e-02],
+                [1.9755e+03, 1.1795e+03, 2.9229e-01]])
         >>>
         """
         from laueimproc.improc.spot.basic import compute_rois_max
@@ -104,15 +104,23 @@ class Diagram(BaseDiagram):
         >>> from laueimproc.io import get_sample
         >>> diagram = Diagram(get_sample())
         >>> diagram.find_spots()
-        >>> print(diagram.compute_rois_nb_peaks())  # doctest: +ELLIPSIS
-        tensor([ 5,  6,  1,  2,  2,  3,  2,  3,  5,  1,  2,  2,  4,  3,  5,  4,  2,  2,
-                 2,  3,  2,  4,  4,  3,  2,  2,  4,  7,  2,  1,  3,  4,  1,  5,  4,  1,
-                 5,  2,  3,  3,  3,  5,  3,  1,  4,  4,  3,  3,  7,  2,  5,  2,  4,  3,
-                 ...
-                 1,  3,  3,  2,  4,  1,  2,  1,  2,  3,  2,  4,  4,  4,  2,  3,  1,  3,
-                 4,  3,  1,  5,  2,  4,  7,  2,  2,  2,  4,  2,  2,  3,  2,  4,  2,  4,
-                 3,  2,  5,  2,  3,  2,  3,  1,  2,  2,  1,  1,  2,  3,  3,  5,  4,  4,
-                 3,  2,  3,  2,  3,  2,  1], dtype=torch.int16)
+        >>> print(diagram.compute_rois_nb_peaks())
+        tensor([109,   4,   7,   1,   1,   1,   3,   1,   2,   3,   1,   1,   3,   2,
+                  3,   5,   1,   4,   1,   1,   3,   1,   4,   2,   1,   2,   1,   2,
+                  2,   1,   2,   2,   3,   2,   1,   2,   2,   2,   3,   3,   1,   1,
+                  4,   3,   1,   6,   4,   5,   3,   2,   1,   3,   3,   2,   4,   1,
+                  2,   3,   1,   3,   3,   3,   3,   2,   2,   4,   7,   4,   3,   2,
+                  3,   1,   3,   7,   8,   2,   3,   3,   3,   3,   2,   4,   1,   1,
+                  3,   4,   1,   4,   2,   5,   4,   3,   3,   1,   1,   3,   4,   2,
+                  5,   3,   7,   2,   6,   3,   5,   1,   5,   2,   2,   5,   3,   1,
+                  2,   3,   3,   2,   5,   1,   6,   2,   5,   9,   2,   2,   3,   2,
+                  3,   9,   2,   4,   8,   5,   2,   1,   3,   5,   5,   4,   3,  12,
+                  5,   4,   3,   3,   1,   2,   4,   5,   5,   2,   3,   3,   4,   2,
+                  2,   4,   3,   3,  12,  12,   3,   6,   3,   1,   4,   4,   4,   2,
+                  2,   2,  22,   3,   1,   3,   2,   4,   1,   7,   1,   1,   5,   4,
+                  6,   5,   5,   3,   2,   4,   4,   7,   2,   2,   3,   2,   8,   3,
+                  3,   3,   3,   8,   7,   2,   1,   4,   2,   3,   3,   2,   7,   5,
+                  2,   2,   2,   4,   2,   3,   2,   1,   8], dtype=torch.int16)
         >>>
         """
         from laueimproc.improc.spot.extrema import compute_rois_nb_peaks
@@ -138,14 +146,14 @@ class Diagram(BaseDiagram):
         >>> from laueimproc.io import get_sample
         >>> diagram = Diagram(get_sample())
         >>> diagram.find_spots()
-        >>> print(diagram.compute_rois_pca())
-        tensor([[ 0.2694,  0.2636, -1.4625],
-                [ 0.1830,  0.1499,  0.0815],
-                [ 0.2784,  0.2402,  0.3340],
+        >>> print(diagram.compute_rois_pca())  # doctset: +ELLIPSIS
+        tensor([[ 1.7984,  0.2661, -0.0691],
+                [ 0.6548,  0.1057, -1.5652],
+                [ 0.4958,  0.0275, -1.5699],
                 ...,
-                [ 0.3560,  0.2605,  1.1708],
-                [ 0.3535,  0.1901, -1.3840],
-                [ 0.3169,  0.2077,  1.4719]])
+                [ 0.1979,  0.1378, -0.6388],
+                [ 0.1983,  0.1403,  0.6780],
+                [ 0.1643,  0.1428,  0.5152]])
         >>>
         """
         from laueimproc.improc.spot.pca import compute_rois_pca
@@ -171,15 +179,14 @@ class Diagram(BaseDiagram):
         >>> from laueimproc.io import get_sample
         >>> diagram = Diagram(get_sample())
         >>> diagram.find_spots()
-        >>> print(diagram.compute_rois_sum())  # doctest: +ELLIPSIS
-        tensor([3.9216e-03, 5.7542e-01, 6.6529e-03, 1.6938e-03, 1.0986e-02, 2.4811e-02,
-                2.0935e-02, 3.5966e-02, 2.7893e-02, 4.9592e-03, 5.6901e-02, 1.0986e-03,
-                1.0588e-01, 1.9989e-03, 4.2100e-02, 4.5542e-01, 8.2399e-03, 3.0842e-01,
-                ...
-                5.3590e-02, 1.7853e-03, 4.1199e-03, 9.8131e-02, 2.2431e-03, 1.8158e-03,
-                2.8077e-03, 6.2394e-02, 2.5025e-03, 2.3697e-02, 2.5284e-02, 5.3864e-03,
-                1.3931e-02, 9.8726e-03, 3.4943e-03, 2.1515e-03, 2.6398e-03, 3.7690e-03,
-                3.9979e-03])
+        >>> print(diagram.compute_rois_sum())  # doctset: +ELLIPSIS
+        tensor([0.4616, 0.0144, 0.0699, 0.0701, 0.0427, 0.0143, 0.0038, 0.0149, 0.2076,
+                0.0227, 0.0379, 0.0977, 0.0375, 0.0914, 0.0498, 0.1586, 0.1652, 0.0930,
+                0.0164, 0.0139, 0.6218, 0.2907, 0.1272, 0.0521, 0.1488, 0.0205, 0.0121,
+                ...,
+                0.1944, 1.4311, 2.6470, 0.3129, 0.4095, 0.9661, 0.9877, 0.0476, 0.1102,
+                0.4026, 1.2076, 1.6338, 0.1650, 0.4204, 0.6469, 1.3667, 0.6257, 1.7097,
+                0.9394, 0.5000, 2.0946])
         >>>
         """
         from laueimproc.improc.spot.basic import compute_rois_sum

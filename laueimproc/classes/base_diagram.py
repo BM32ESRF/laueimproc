@@ -141,7 +141,7 @@ class BaseDiagram:
         0
         >>> diagram.find_spots()
         >>> len(diagram)
-        781
+        219
         >>>
         """
         self.flush()
@@ -158,7 +158,7 @@ class BaseDiagram:
         >>> from laueimproc.classes.base_diagram import BaseDiagram
         >>> from laueimproc.io import get_sample
         >>> BaseDiagram(get_sample())
-        BaseDiagram(ge_blanc.jp2)
+        BaseDiagram(ge.jp2)
         >>>
         """
         if self.file is None:
@@ -206,7 +206,7 @@ class BaseDiagram:
         >>> from laueimproc.classes.base_diagram import BaseDiagram
         >>> from laueimproc.io import get_sample
         >>> print(BaseDiagram(get_sample()))  # doctest: +ELLIPSIS
-        Diagram from ge_blanc.jp2:
+        Diagram from ge.jp2:
             History empty, please initialize the spots `self.find_spots()`.
             No Properties
             Current state:
@@ -282,7 +282,7 @@ class BaseDiagram:
         ... ]
         >>> diagram.set_spots((anchors, rois))
         >>> len(diagram)
-        121
+        100
         >>> diagram.rois.min() >= 0 and diagram.rois.max() <= 1  # range in [0, 1]
         tensor(True)
         >>>
@@ -318,11 +318,11 @@ class BaseDiagram:
         >>> diagram = BaseDiagram(get_sample())
         >>> bboxes = [  # numpy convention (*anchor, *shape)
         ...     (i, j, random.randint(5, 30), random.randint(5, 30))
-        ...     for i, j in itertools.product(range(15, min(diagram.image.shape), 200), repeat=2)
+        ...     for i, j in itertools.product(range(15, min(diagram.image.shape)-30, 200), repeat=2)
         ... ]
         >>> diagram.set_spots(bboxes)
         >>> len(diagram)
-        121
+        100
         >>> diagram.rois.min() >= 0 and diagram.rois.max() <= 1  # range in [0, 1]
         tensor(True)
         >>>
@@ -364,14 +364,14 @@ class BaseDiagram:
         >>> print(diagram.bboxes)
         None
         >>> diagram.find_spots()
-        >>> print(diagram.bboxes)
-        tensor([[1985,  894,    5,    5],
-                [1937,  905,   18,   17],
-                [1906,  969,    5,    5],
+        >>> print(diagram.bboxes)  # doctest: +ELLIPSIS
+        tensor([[   0,    0,   69,   17],
+                [   0,   20,    3,   12],
+                [   0, 1948,    3,   15],
                 ...,
-                [  52, 1350,    5,    6],
-                [  16, 1206,    5,    5],
-                [   6,  902,    5,    5]], dtype=torch.int16)
+                [1904,  180,   16,   15],
+                [1931, 1968,   13,   13],
+                [1964, 1170,   23,   19]], dtype=torch.int16)
         >>>
         """
         if not self.is_init():
@@ -478,7 +478,7 @@ class BaseDiagram:
         >>> from laueimproc.classes.base_diagram import BaseDiagram
         >>> from laueimproc.io import get_sample
         >>> BaseDiagram(get_sample()).file  # doctest: +ELLIPSIS
-        PosixPath('/.../laueimproc/io/ge_blanc.jp2')
+        PosixPath('/.../laueimproc/io/ge.jp2')
         >>>
         """
         return self._file_or_data if isinstance(self._file_or_data, pathlib.Path) else None
@@ -521,11 +521,11 @@ class BaseDiagram:
         >>> cond = diagram.bboxes[:, 1] < diagram.image.shape[1]//2
         >>> diag_final = diagram.filter_spots(cond, "keep spots on left", inplace=False)
         >>> pprint(diagram.history)
-        ['781 spots from self.find_spots()', '781 to 391 spots: keep even spots']
+        ['219 spots from self.find_spots()', '219 to 110 spots: keep even spots']
         >>> pprint(diag_final.history)
-        ['781 spots from self.find_spots()',
-         '781 to 391 spots: keep even spots',
-         '391 to 213 spots: keep spots on left']
+        ['219 spots from self.find_spots()',
+         '219 to 110 spots: keep even spots',
+         '110 to 62 spots: keep spots on left']
         >>>
         """
         # verifications and cast
@@ -674,7 +674,7 @@ class BaseDiagram:
         >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram.image.shape
-        torch.Size([2048, 2048])
+        torch.Size([2018, 2016])
         >>> diagram.image.min() >= 0
         tensor(True)
         >>> diagram.image.max() <= 1
@@ -760,9 +760,9 @@ class BaseDiagram:
             ).set_ylabel("i (first dim in 'ij' conv)")
         if kwargs.get("show_image", True):
             axes.imshow(
-                image.numpy(force=True).transpose(),
+                image.numpy(force=True),
                 aspect="equal",
-                extent=(0.5, self.image.shape[0]+.5, self.image.shape[1]+.5, .5),
+                extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
                 interpolation=None,  # antialiasing is True
                 norm="log",
                 cmap="gray",
@@ -771,21 +771,21 @@ class BaseDiagram:
             )
         if kwargs.get("show_boxes", True) and len(self):
             bboxes = self.bboxes.numpy(force=True).astype(np.float32)
-            bboxes[:, :2] += 0.5
+            bboxes[:, :2] += 0.5  # ok inplace because copy has been made at previous line
             axes.plot(
                 np.vstack((
-                    bboxes[:, 0],
-                    bboxes[:, 0]+bboxes[:, 2],
-                    bboxes[:, 0]+bboxes[:, 2],
-                    bboxes[:, 0],
-                    bboxes[:, 0],
+                    bboxes[:, 1],
+                    bboxes[:, 1],
+                    bboxes[:, 1]+bboxes[:, 3],
+                    bboxes[:, 1]+bboxes[:, 3],
+                    bboxes[:, 1],
                 )),
                 np.vstack((
-                    bboxes[:, 1],
-                    bboxes[:, 1],
-                    bboxes[:, 1]+bboxes[:, 3],
-                    bboxes[:, 1]+bboxes[:, 3],
-                    bboxes[:, 1],
+                    bboxes[:, 0],
+                    bboxes[:, 0]+bboxes[:, 2],
+                    bboxes[:, 0]+bboxes[:, 2],
+                    bboxes[:, 0],
+                    bboxes[:, 0],
                 )),
                 color="blue",
                 scalex=False,
@@ -814,9 +814,9 @@ class BaseDiagram:
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram.find_spots()
         >>> diagram.rawrois.shape
-        torch.Size([781, 20, 20])
+        torch.Size([219, 69, 19])
         >>> diagram.rois.shape
-        torch.Size([781, 20, 20])
+        torch.Size([219, 69, 19])
         >>> diagram.rois.mean() < diagram.rawrois.mean()  # no background
         tensor(True)
         >>>
@@ -902,10 +902,10 @@ class BaseDiagram:
         >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram.state
-        '8a831b7fb5c219694818af917e3800cb'
+        '3e50c54ac44f75f23d8f5c3170d5ecfb'
         >>> diagram.find_spots()
         >>> diagram.state
-        '1b2ab36275db39b915afebd807960eea'
+        '58291975dd11f34db66378d50e8a87f1'
         >>>
         """
         hasher = hashlib.md5(usedforsecurity=False)

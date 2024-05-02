@@ -26,7 +26,6 @@ def read_image(filename: typing.Union[str, pathlib.Path]) -> torch.Tensor:
     -------
     image : torch.Tensor
         The grayscale laue image matrix in float between with value range in [0, 1].
-        The image is transposed to be compatible with mccd.
 
     Raises
     ------
@@ -39,13 +38,13 @@ def read_image(filename: typing.Union[str, pathlib.Path]) -> torch.Tensor:
         raise OSError(f"the filename {filename} is not a file")
 
     if (image := cv2.imread(str(filename), cv2.IMREAD_ANYDEPTH | cv2.IMREAD_GRAYSCALE)) is not None:
-        return to_floattensor(image.transpose())  # cv2 9% faster than fabio on .mccd files
+        return to_floattensor(image)  # cv2 9% faster than fabio on .mccd files
     try:
         with fabio.open(filename) as raw:
             image = raw.data
     except KeyError as err:
         raise OSError(f"failed to read {filename} with cv2 and fabio") from err
-    return to_floattensor(image.transpose())
+    return to_floattensor(image)
 
 
 def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -> torch.Tensor:

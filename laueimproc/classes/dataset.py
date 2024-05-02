@@ -700,16 +700,16 @@ class DiagramsDataset(threading.Thread):
         ...
         >>> res = dataset.apply(peak_search, args=(0.5,))
         >>> pprint(res)
-        {0: 135,
-         10: 311,
-         20: 550,
-         30: 474,
-         40: 443,
-         50: 534,
-         60: 1380,
+        {0: 133,
+         10: 317,
+         20: 552,
+         30: 476,
+         40: 404,
+         50: 537,
+         60: 1954,
          70: 253,
          80: 277,
-         90: 443}
+         90: 447}
         >>>
         """
         # verifications

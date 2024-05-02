@@ -19,9 +19,9 @@ def get_sample() -> pathlib.Path:
     --------
     >>> from laueimproc.io import get_sample
     >>> get_sample().name
-    'ge_blanc.jp2'
+    'ge.jp2'
     >>> get_sample().exists()
     True
     >>>
     """
-    return pathlib.Path(__file__).parent / "ge_blanc.jp2"
+    return pathlib.Path(__file__).parent / "ge.jp2"

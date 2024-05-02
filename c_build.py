@@ -19,6 +19,8 @@ COMP_RULES = {
         "-march=native",  # uses local processor instructions for optimization
         "-O3",  # hight optimization, -O3 include -ffast-math
         # "-Wall", "-Wextra", "-Wconversion",  # activate warnings, -Wtraditional
+        # "-pedantic", # ensurse all is standard and compilable anywhere
+        "-std=c99",  # use iso c norm
     ],
     "include_dirs": [
         np.get_include(),  # requires for  #include <numpy/arrayobject.h>
