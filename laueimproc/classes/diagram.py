@@ -8,6 +8,7 @@ import typing
 import numpy as np
 import torch
 
+from laueimproc.convention import ij_to_xy_decorator
 from laueimproc.improc.spot.fit import fit_gaussians_em, fit_gaussians
 from laueimproc.opti.cache import auto_cache
 from .base_diagram import check_init, BaseDiagram
@@ -18,6 +19,7 @@ class Diagram(BaseDiagram):
 
     @auto_cache  # put the result in thread safe cache (no multiprocessing)
     @check_init  # throws an exception if the diagram is not initialized
+    @ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))
     def compute_rois_centroid(self, **_kwargs) -> torch.Tensor:
         """Compute the barycenter of each spots.
 
@@ -52,6 +54,7 @@ class Diagram(BaseDiagram):
 
     @auto_cache
     @check_init
+    @ij_to_xy_decorator(i=(slice(None), 1), j=(slice(None), 2))
     def compute_rois_max(self, **_kwargs) -> torch.Tensor:
         """Get the intensity and the position of the hottest pixel for each roi.
 
