@@ -53,7 +53,7 @@ int CheckImg(PyArrayObject* img, enum NPY_TYPES dtype) {
         return 1;
     }
     if ((enum NPY_TYPES)PyArray_TYPE(img) != dtype) {
-        PyErr_SetString(PyExc_TypeError, "'img' has to be of type float32");
+        PyErr_SetString(PyExc_TypeError, "'img' has to be of an other dtype");
         return 1;
     }
     return 0;
@@ -68,6 +68,48 @@ int CheckIndices(PyArrayObject* indices) {
     }
     if (PyArray_TYPE(indices) != NPY_INT64) {
         PyErr_SetString(PyExc_TypeError, "'indices' has to be of type int64");
+        return 1;
+    }
+    return 0;
+}
+
+
+int CheckKernel(PyArrayObject* kernel, enum NPY_TYPES dtype) {
+    // Print an exception if shape or format is not correct.
+    if (PyArray_NDIM(kernel) != 2) {
+        PyErr_SetString(PyExc_ValueError, "'kernel' requires 2 dimensions");
+        return 1;
+    }
+    if (PyArray_DIM(kernel, 0) < 1) {
+        PyErr_SetString(PyExc_ValueError, "'kernel.shape[0]' has to be >= 1");
+        return 1;
+    }
+    if (PyArray_DIM(kernel, 1) < 1) {
+        PyErr_SetString(PyExc_ValueError, "'kernel.shape[1]' has to be >= 1");
+        return 1;
+    }
+    if (PyArray_DIM(kernel, 0) > NPY_MAX_INT16) {
+        PyErr_SetString(PyExc_ValueError, "'kernel.shape[0]' is to big to be encoded with int16");
+        return 1;
+    }
+    if (PyArray_DIM(kernel, 1) > NPY_MAX_INT16) {
+        PyErr_SetString(PyExc_ValueError, "'kernel.shape[1]' is to big to be encoded with int16");
+        return 1;
+    }
+    if (PyArray_DIM(kernel, 0) % 2 != 1) {
+        PyErr_SetString(PyExc_ValueError, "'kernel.shape[0]' has to be odd number");
+        return 1;
+    }
+    if (PyArray_DIM(kernel, 1) % 2 != 1) {
+        PyErr_SetString(PyExc_ValueError, "'kernel.shape[1]' has to be odd number");
+        return 1;
+    }
+    if (!PyArray_IS_C_CONTIGUOUS(kernel)) {
+        PyErr_SetString(PyExc_ValueError, "'kernel' has to be c contiguous");
+        return 1;
+    }
+    if ((enum NPY_TYPES)PyArray_TYPE(kernel) != dtype) {
+        PyErr_SetString(PyExc_TypeError, "'kernel' has to be of an other dtype");
         return 1;
     }
     return 0;

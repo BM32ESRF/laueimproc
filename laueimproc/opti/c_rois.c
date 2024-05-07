@@ -1,7 +1,7 @@
 /* Compact representation of rois tensor. */
 
 #define PY_SSIZE_T_CLEAN
-#include <laueimproc/c_check.h>
+#include "laueimproc/c_check.h"
 #include <numpy/arrayobject.h>
 #include <Python.h>
 #include <stdio.h>

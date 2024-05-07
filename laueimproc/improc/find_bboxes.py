@@ -237,3 +237,33 @@ def find_bboxes(
     else:
         bboxes = torch.empty((0, 4), dtype=torch.int16)
     return bboxes
+
+
+# if __name__ == '__main__':
+#     from laueimproc.improc.peaks_search import (_density_to_threshold_torch,
+#         DEFAULT_KERNEL_FONT, DEFAULT_KERNEL_AGLO, estimate_background
+#     )
+#     from laueimproc.io import get_sample
+#     from laueimproc import Diagram
+#     src = Diagram(get_sample()).image.numpy(force=True)
+#     bg_image = estimate_background(src, DEFAULT_KERNEL_FONT)
+#     fg_image = src - bg_image
+#     import timeit
+#     for density in (0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95):
+#         print("density", density)
+#         binary = (
+#             (fg_image > _density_to_threshold_torch(torch.from_numpy(fg_image), density))
+#             .view(np.uint8)
+#         )
+#         binary = cv2.dilate(binary, DEFAULT_KERNEL_AGLO, dst=bg_image, iterations=1)
+#         t1=min(timeit.repeat(lambda: find_bboxes(binary, use_cv2=True), repeat=10, number=50))/50
+#         print(f"time cv2 {1000*t1:.2f}ms")
+#         t2 = min(timeit.repeat(lambda: find_bboxes(binary), repeat=10, number=50))/50
+#         print(f"time c   {1000*t2:.2f}ms")
+#         print(f"c is {t1/t2:.1f} times faster than cv2")
+#         import matplotlib.pyplot as plt
+#         diagram = Diagram(get_sample())
+#         diagram.find_spots(density=density)
+#         fig = plt.figure()
+#         diagram.plot(fig)
+#         plt.show()

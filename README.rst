@@ -53,6 +53,7 @@ Then, you can generate the documentation:
 
 .. code::
 
+    find laueimproc/ -name *.so -exec rm {} \;
     cd doc/
     make clean && make html
     firefox build/html/index.html

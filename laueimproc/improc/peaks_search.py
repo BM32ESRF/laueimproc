@@ -12,9 +12,9 @@ import torch
 
 from laueimproc.opti.rois import imgbboxes2raw
 from laueimproc.improc.find_bboxes import find_bboxes
+from laueimproc.improc.morpho import morpho_open
 
 
-DEFAULT_KERNEL_FONT = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (19, 19))  # 17 - 21
 DEFAULT_KERNEL_AGLO = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
 
 
@@ -58,20 +58,18 @@ def _density_to_threshold_torch(img: torch.Tensor, density: float) -> float:
 
 
 def estimate_background(
-    brut_image: np.ndarray,
-    kernel_font: typing.Optional[np.ndarray[np.uint8, np.uint8]] = None,
-    *, _check: bool = True,
-) -> np.ndarray:
+    brut_image: torch.Tensor, radius_font: numbers.Real = 9, **_kwargs
+) -> torch.Tensor:
     """Estimate and Return the background of the image.
 
     Parameters
     ----------
     brut_image : torch.Tensor
         The 2d array brut image of the Laue diagram in float between 0 and 1.
-    kernel_font : np.ndarray[np.uint8, np.uint8], optional
-        The structurant element used for the morphological opening.
-        If it is not provided a circle of diameter 21 pixels is taken.
-        More the size or the kernel is important, better the estimation is,
+    radius_font : float, default = 9
+        The structurant element radius used for the morphological opening.
+        If it is not provided a circle of diameter 19 pixels is taken.
+        More the radius or the kernel is big, better the estimation is,
         but slower the proccess is.
 
     Returns
@@ -80,25 +78,20 @@ def estimate_background(
         An estimation of the background.
     """
     # verifications
-    assert isinstance(brut_image, np.ndarray), brut_image.__class__.__name__
+    assert isinstance(brut_image, torch.Tensor), brut_image.__class__.__name__
     assert brut_image.ndim == 2, brut_image.shape
-    if kernel_font is None:
-        kernel_font = DEFAULT_KERNEL_FONT
-    elif _check:
-        assert isinstance(kernel_font, np.ndarray), kernel_font.__class__.__name__
-        assert kernel_font.dtype == np.uint8, kernel_font.dtype
-        assert kernel_font.ndim == 2, kernel_font.shape
-        assert kernel_font.shape[0] % 2 and kernel_font.shape[1] % 2, \
-            f"the kernel has to be odd, current shape is {kernel_font.shape}"
 
     # extraction of the background
-    bg_image = cv2.medianBlur(brut_image, 5)  # 5 is the max size
+    bg_image = torch.from_numpy(
+        cv2.medianBlur(brut_image.numpy(force=True), 5)  # 5 is the max size
+    ).to(brut_image.device)
     # from scipy import signal
     # bg_image = signal.medfilt2d(brut_image, 5)  # no limitation but very slow!
-    bg_image = cv2.morphologyEx(brut_image, dst=bg_image, op=cv2.MORPH_OPEN, kernel=kernel_font)
+    # bg_image = cv2.morphologyEx(brut_image, dst=bg_image, op=cv2.MORPH_OPEN, kernel=kernel_font)
+    bg_image = morpho_open(bg_image, radius=radius_font, **_kwargs)
     # ksize = (3*kernel_font.shape[0], 3*kernel_font.shape[1])
     # bg_image = cv2.GaussianBlur(brut_image, dst=bg_image, ksize=ksize, sigmaX=0)
-    bg_image = np.clip(bg_image, a_min=0.0, a_max=brut_image, out=bg_image)  # avoid <0 when sub
+    bg_image = torch.minimum(bg_image, brut_image, out=bg_image)  # avoid < 0 when sub
     return bg_image
 
 
@@ -153,17 +146,11 @@ def peaks_search(
             f"the kernel has to be odd, current shape is {kernel_aglo.shape}"
 
     # peaks search
-    src = brut_image.numpy(force=True)  # not nescessary copy
-    bg_image = estimate_background(src, **kwargs, _check=_check)
-    if brut_image.data_ptr() == src.__array_interface__["data"][0]:
-        fg_image = src - bg_image  # copy to keep brut_image unchanged
-    else:
-        fg_image = src
-        fg_image -= bg_image  # inplace
-    binary = (
-        (fg_image > _density_to_threshold_torch(torch.from_numpy(fg_image), density)).view(np.uint8)
-    )
-    binary = cv2.dilate(binary, kernel_aglo, dst=bg_image, iterations=1)
+    # src = brut_image.numpy(force=True)  # not nescessary copy
+    bg_image = estimate_background(brut_image, **kwargs)
+    fg_image = brut_image - bg_image  # copy to keep brut_image unchanged
+    binary = (fg_image > _density_to_threshold_torch(fg_image, density)).view(torch.uint8)
+    binary = cv2.dilate(binary.numpy(force=True), kernel_aglo, iterations=1)
     bboxes = find_bboxes(binary).to(brut_image.device)
-    datarois = imgbboxes2raw(torch.from_numpy(fg_image).to(brut_image.device), bboxes)
+    datarois = imgbboxes2raw(fg_image, bboxes)
     return datarois, bboxes

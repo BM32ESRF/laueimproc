@@ -1,8 +1,8 @@
 /* Fast computation of PCA. */
 
 #define PY_SSIZE_T_CLEAN
-#include <laueimproc/c_check.h>
-#include <laueimproc/improc/spot/c_spot_apply.h>
+#include "laueimproc/c_check.h"
+#include "laueimproc/improc/spot/c_spot_apply.h"
 #include <math.h>
 #include <numpy/arrayobject.h>
 #include <Python.h>

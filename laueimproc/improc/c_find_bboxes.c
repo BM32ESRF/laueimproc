@@ -49,8 +49,8 @@ int CFindBBoxes(
         fprintf(stderr, "failed to allocate the full bboxes array\n");
         return 1;
     }
-    clusters = calloc(width, sizeof(*clusters));  // top line of the 2d image of the clusters
-    if (clusters == NULL) {  // even if all elements are not zero, calloc is faster than malloc + set 0
+    clusters = malloc(width * sizeof(*clusters));  // top line of the 2d image of the clusters
+    if (clusters == NULL) {
         free(*bboxes_p);
         fprintf(stderr, "failed to allocate a cluster line\n");
         return 1;
@@ -68,12 +68,13 @@ int CFindBBoxes(
     // *****************
 
     for (unsigned long istep = 0; istep < area; istep += width) {
-        for (j = 0, clus_left = 0; j < width; clus_left = clusters[j++]) {
-            if (!binary[istep + j]) {  // case black pixel
-                clusters[j] = 0;
-                continue;
-            }
-            clus_top = clusters[j];
+        clus_left = 0;
+        for (j = 0; j < width; ++j) {
+            if (!binary[istep + j]) continue;  // case black pixel
+
+            clus_left = j && binary[istep + j - 1] ? clus_left : 0;
+            clus_top = (istep && binary[istep - width + j]) ? clusters[j] : 0;
+
             if (!clus_top && !clus_left) {  // case new cluster
                 stride = 4 * curr_clus;
                 i = istep / width;
@@ -108,6 +109,7 @@ int CFindBBoxes(
                 clusters[j] = clus_top;
                 MergeBBoxes((*bboxes_p) + 4 * (clus_left-1), (*bboxes_p) + 4 * (clus_top-1));
             }
+            clus_left = clusters[j];
         }
     }
 
@@ -151,8 +153,8 @@ int CFindBBoxes(
 static PyObject* FindBBoxes(PyObject* self, PyObject* args) {
     // Find the bboxes
     npy_int16* full_bboxes;
-    PyArrayObject *binary;
-    PyObject *bboxes;
+    PyArrayObject* binary;
+    PyObject* bboxes;
     long max_size;
     long unsigned height, width;
     npy_intp bboxes_shape[2];

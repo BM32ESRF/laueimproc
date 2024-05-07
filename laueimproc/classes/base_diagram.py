@@ -141,7 +141,7 @@ class BaseDiagram:
         0
         >>> diagram.find_spots()
         >>> len(diagram)
-        219
+        240
         >>>
         """
         self.flush()
@@ -365,13 +365,13 @@ class BaseDiagram:
         None
         >>> diagram.find_spots()
         >>> print(diagram.bboxes)  # doctest: +ELLIPSIS
-        tensor([[   0,    0,   69,   17],
+        tensor([[   0,    0,   17,   17],
                 [   0,   20,    3,   12],
-                [   0, 1948,    3,   15],
-                ...,
-                [1904,  180,   16,   15],
-                [1931, 1968,   13,   13],
-                [1964, 1170,   23,   19]], dtype=torch.int16)
+                [   0, 1949,    3,   11],
+                ...
+                [1903,  180,   18,   15],
+                [1930, 1967,   15,   14],
+                [1963, 1170,   24,   19]], dtype=torch.int16)
         >>>
         """
         if not self.is_init():
@@ -521,11 +521,11 @@ class BaseDiagram:
         >>> cond = diagram.bboxes[:, 1] < diagram.image.shape[1]//2
         >>> diag_final = diagram.filter_spots(cond, "keep spots on left", inplace=False)
         >>> pprint(diagram.history)
-        ['219 spots from self.find_spots()', '219 to 110 spots: keep even spots']
+        ['240 spots from self.find_spots()', '240 to 120 spots: keep even spots']
         >>> pprint(diag_final.history)
-        ['219 spots from self.find_spots()',
-         '219 to 110 spots: keep even spots',
-         '110 to 62 spots: keep spots on left']
+        ['240 spots from self.find_spots()',
+         '240 to 120 spots: keep even spots',
+         '120 to 63 spots: keep spots on left']
         >>>
         """
         # verifications and cast
@@ -814,9 +814,9 @@ class BaseDiagram:
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram.find_spots()
         >>> diagram.rawrois.shape
-        torch.Size([219, 69, 19])
+        torch.Size([240, 24, 19])
         >>> diagram.rois.shape
-        torch.Size([219, 69, 19])
+        torch.Size([240, 24, 19])
         >>> diagram.rois.mean() < diagram.rawrois.mean()  # no background
         tensor(True)
         >>>

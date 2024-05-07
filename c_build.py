@@ -18,13 +18,13 @@ COMP_RULES = {
         "-lm",  # for math functions
         "-march=native",  # uses local processor instructions for optimization
         "-O3",  # hight optimization, -O3 include -ffast-math
-        # "-Wall", "-Wextra", "-Wconversion",  # activate warnings, -Wtraditional
+        # "-Wall", "-Wextra",  # "-Wconversion",  # -Wtraditional,  # activate warnings,
         # "-pedantic", # ensurse all is standard and compilable anywhere
         "-std=c99",  # use iso c norm
     ],
     "include_dirs": [
         np.get_include(),  # requires for  #include <numpy/arrayobject.h>
-        os.path.dirname(__file__),  # for  #include <laueimproc/c_check.h>
+        os.path.dirname(__file__),  # for  #include "laueimproc/c_check.h"
     ],
 }
 
@@ -44,6 +44,14 @@ class Build(_build_py):
             Extension(
                 "laueimproc.improc.c_find_bboxes",
                 sources=["laueimproc/improc/c_find_bboxes.c"],
+                optional=True,
+                **COMP_RULES,
+            )
+        )
+        self.distribution.ext_modules.append(
+            Extension(
+                "laueimproc.improc.c_morpho",
+                sources=["laueimproc/improc/c_morpho.c"],
                 optional=True,
                 **COMP_RULES,
             )
