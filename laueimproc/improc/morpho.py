@@ -3,20 +3,20 @@
 """Morphological image operation with rond kernels."""
 
 import functools
-import logging
+# import logging
 import math
 import numbers
 
 import cv2
 import torch
 
-try:
-    from laueimproc.improc import c_morpho
-except ImportError:
-    logging.warning(
-        "failed to import laueimproc.improc.c_find_bboxes, a slow python version is used instead"
-    )
-    c_morpho = None
+# try:
+#     from laueimproc.improc import c_morpho
+# except ImportError:
+#     logging.warning(
+#         "failed to import laueimproc.improc.c_find_bboxes, a slow python version is used instead"
+#     )
+#     c_morpho = None
 
 
 @functools.lru_cache(2)
@@ -94,9 +94,7 @@ def get_circle_kernel(radius: numbers.Real) -> torch.Tensor:
     return kernel
 
 
-def morphology(
-    image: torch.Tensor, radius: numbers.Real, operation: str, *, _no_c: bool = False
-) -> torch.Tensor:
+def morphology(image: torch.Tensor, radius: numbers.Real, operation: str) -> torch.Tensor:
     """Apply the morphological operation on the image.
 
     Parameters
@@ -119,24 +117,27 @@ def morphology(
     >>> from laueimproc.improc.morpho import morphology
     >>> image = torch.rand((2048, 2048))
     >>> out = morphology(image.clone(), radius=3, operation="open")
-    >>> torch.equal(out, morphology(image.clone(), radius=3, operation="open", _no_c=True))
-    True
+    >>> out.sum() < image.sum()
+    tensor(True)
+    >>> out = morphology(image.clone(), radius=3, operation="close")
+    >>> out.sum() > image.sum()
+    tensor(True)
     >>>
     """
     assert isinstance(image, torch.Tensor), image.__class__.__name__
     image_np = image.numpy(force=True)
 
-    if not _no_c and c_morpho is not None and image.shape[1] >= 4:
-        c_func = {
-            "close": c_morpho.close,
-            "dilate": c_morpho.dilate,
-            "erode": c_morpho.erode,
-            "open": c_morpho.open,
-        }[operation]
-        return torch.from_numpy(c_func(image_np, radius)).to(device=image.device)
+    # if not _no_c and c_morpho is not None and image.shape[1] >= 4:
+    #     c_func = {
+    #         "close": c_morpho.close,
+    #         "dilate": c_morpho.dilate,
+    #         "erode": c_morpho.erode,
+    #         "open": c_morpho.open,
+    #     }[operation]
+    #     return torch.from_numpy(c_func(image_np, radius)).to(device=image.device)
 
     assert image.ndim == 2, image.shape
-    assert image.dtype == torch.float32, image.dtype
+    assert image.dtype in {torch.float32, torch.uint8}, image.dtype
     assert image.is_contiguous(), "image has to be c contiguous"
     assert isinstance(radius, numbers.Real), radius.__class__.__name__
     assert radius >= 0, radius
@@ -145,7 +146,7 @@ def morphology(
 
     kernel = get_circle_kernel(radius).numpy(force=True)
     operation_cv2 = {
-        "close": cv2.MORPH_OPEN,
+        "close": cv2.MORPH_CLOSE,
         "dilate": cv2.MORPH_DILATE,
         "erode": cv2.MORPH_ERODE,
         "open": cv2.MORPH_OPEN,
@@ -155,7 +156,7 @@ def morphology(
     return image
 
 
-def morpho_close(image: torch.Tensor, radius: numbers.Real, *, _no_c: bool = False) -> torch.Tensor:
+def morpho_close(image: torch.Tensor, radius: numbers.Real) -> torch.Tensor:
     """Apply a morphological closing on the image.
 
     Parameters
@@ -170,12 +171,10 @@ def morpho_close(image: torch.Tensor, radius: numbers.Real, *, _no_c: bool = Fal
     image : torch.Tensor
         The closed image as a reference to the input image.
     """
-    return morphology(image, radius, "close", _no_c=_no_c)
+    return morphology(image, radius, "close")
 
 
-def morpho_dilate(
-    image: torch.Tensor, radius: numbers.Real, *, _no_c: bool = False
-) -> torch.Tensor:
+def morpho_dilate(image: torch.Tensor, radius: numbers.Real) -> torch.Tensor:
     """Apply a morphological dilatation on the image.
 
     Parameters
@@ -217,10 +216,10 @@ def morpho_dilate(
             [1., 1., 1., 1., 1., 0., 0., 1., 1., 1.]])
     >>>
     """
-    return morphology(image, radius, "dilate", _no_c=_no_c)
+    return morphology(image, radius, "dilate")
 
 
-def morpho_erode(image: torch.Tensor, radius: numbers.Real, *, _no_c: bool = False) -> torch.Tensor:
+def morpho_erode(image: torch.Tensor, radius: numbers.Real) -> torch.Tensor:
     """Apply a morphological erosion on the image.
 
     Parameters
@@ -262,10 +261,10 @@ def morpho_erode(image: torch.Tensor, radius: numbers.Real, *, _no_c: bool = Fal
             [1., 1., 1., 0., 0., 0., 0., 0., 0., 1.]])
     >>>
     """
-    return morphology(image, radius, "erode", _no_c=_no_c)
+    return morphology(image, radius, "erode")
 
 
-def morpho_open(image: torch.Tensor, radius: numbers.Real, *, _no_c: bool = False) -> torch.Tensor:
+def morpho_open(image: torch.Tensor, radius: numbers.Real) -> torch.Tensor:
     """Apply a morphological opening on the image.
 
     Parameters
@@ -280,4 +279,4 @@ def morpho_open(image: torch.Tensor, radius: numbers.Real, *, _no_c: bool = Fals
     image : torch.Tensor
         The opend image as a reference to the input image.
     """
-    return morphology(image, radius, "open", _no_c=_no_c)
+    return morphology(image, radius, "open")

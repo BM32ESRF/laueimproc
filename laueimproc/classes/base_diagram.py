@@ -211,7 +211,7 @@ class BaseDiagram:
             No Properties
             Current state:
                 * id, state: ...
-                * total mem: 536.0B
+                * total mem: ...
         >>>
         """
         # title

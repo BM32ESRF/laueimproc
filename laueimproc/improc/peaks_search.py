@@ -7,15 +7,11 @@ import numbers
 import typing
 
 import cv2
-import numpy as np
 import torch
 
 from laueimproc.opti.rois import imgbboxes2raw
 from laueimproc.improc.find_bboxes import find_bboxes
-from laueimproc.improc.morpho import morpho_open
-
-
-DEFAULT_KERNEL_AGLO = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+from laueimproc.improc.morpho import morpho_dilate, morpho_open
 
 
 def _density_to_threshold_torch(img: torch.Tensor, density: float) -> float:
@@ -79,8 +75,9 @@ def estimate_background(
 
 def peaks_search(
     brut_image: torch.Tensor,
-    density: float = 0.5,
-    kernel_aglo: typing.Optional[np.ndarray[np.uint8, np.uint8]] = None,
+    density: typing.Optional[numbers.Real] = None,
+    threshold: typing.Optional[numbers.Real] = None,
+    radius_aglo: numbers.Real = 2,
     *, _check: bool = True,
     **kwargs,
 ) -> tuple[torch.Tensor, torch.Tensor]:
@@ -94,11 +91,16 @@ def peaks_search(
         Correspond to the density of spots found.
         This value is normalized so that it can evolve 'linearly' between ]0, 1].
         The smaller the value, the fewer spots will be captured.
-    kernel_aglo : np.ndarray[np.uint8, np.uint8], optional
-        The structurant element for the aglomeration of close grain
+    threshold : float, optional
+        If provided, it replaces `density`.
+        It corresponds to the lowest density such as the pixel is considered as a spot.
+        The threshold is appled after having removed the background.
+        It evolves between ]0, 1[.
+    radius_aglo : float, default = 9
+        The structurant element radius used for the aglomeration of close grain
         by morhpological dilatation applied on the thresholed image.
-        If it is not provide, it takes a circle of diameter 5.
-        Bigger is the kernel, higher are the number of aglomerated spots.
+        If it is not provided a circle of diameter 5 pixels is taken.
+        Bigger is the kernel, higher are the number of aglomerated spots but slower the proccess is.
     **kwargs : dict
         Transmitted to ``estimate_background``.
 
@@ -111,28 +113,58 @@ def peaks_search(
         The positions of the corners point (0, 0) and the shape (i, j, h, w)
         of the roi of each spot in the brut_image, and the height and width of each roi.
         The shape is (n, 4) and the type is int.
+
+    Examples
+    --------
+    >>> from laueimproc.improc.peaks_search import peaks_search
+    >>> from laueimproc.io import get_sample
+    >>> from laueimproc.io.read import read_image
+    >>> def print_stats(rois, bboxes):
+    ...     area = float((bboxes[:, 2]*bboxes[:, 3]).to(float).mean())
+    ...     print(f"{len(rois)} bytes, {len(bboxes)} bboxes with average area of {area:.1f} pxl**2")
+    ...
+    >>> img = read_image(get_sample())
+    >>> print_stats(*peaks_search(img))
+    89576 bytes, 240 bboxes with average area of 93.3 pxl**2
+    >>>
+    >>> print_stats(*peaks_search(img, density=0.3))
+    9184 bytes, 64 bboxes with average area of 35.9 pxl**2
+    >>> print_stats(*peaks_search(img, density=0.7))
+    3179076 bytes, 15199 bboxes with average area of 52.3 pxl**2
+    >>> print_stats(*peaks_search(img, threshold=0.01))
+    23440 bytes, 125 bboxes with average area of 46.9 pxl**2
+    >>> print_stats(*peaks_search(img, threshold=0.02))
+    16540 bytes, 107 bboxes with average area of 38.6 pxl**2
+    >>>
+    >>> print_stats(*peaks_search(img, radius_aglo=1))
+    58908 bytes, 241 bboxes with average area of 61.1 pxl**2
+    >>> print_stats(*peaks_search(img, radius_aglo=5))
+    229052 bytes, 235 bboxes with average area of 243.7 pxl**2
+    >>>
     """
     assert isinstance(brut_image, torch.Tensor), brut_image.__class__.__name__
     assert brut_image.ndim == 2, brut_image.shape
     assert brut_image.dtype == torch.float32, brut_image.dtype
-    assert isinstance(density, numbers.Real), density.__class__.__type__
-    assert 0.0 < density <= 1.0, density
-    density = float(density)
-    if kernel_aglo is None:
-        kernel_aglo = DEFAULT_KERNEL_AGLO
-    else:
-        assert isinstance(kernel_aglo, np.ndarray), kernel_aglo.__class__.__type__
-        assert kernel_aglo.dtype == np.uint8, kernel_aglo.dtype
-        assert kernel_aglo.ndim == 2, kernel_aglo.shape
-        assert kernel_aglo.shape[0] % 2 and kernel_aglo.shape[1] % 2, \
-            f"the kernel has to be odd, current shape is {kernel_aglo.shape}"
+    assert density is None or isinstance(density, numbers.Real), density.__class__.__type__
+    assert threshold is None or isinstance(threshold, numbers.Real), threshold.__class__.__type__
 
     # peaks search
-    # src = brut_image.numpy(force=True)  # not nescessary copy
     bg_image = estimate_background(brut_image, **kwargs)
     fg_image = brut_image - bg_image  # copy to keep brut_image unchanged
-    binary = (fg_image > _density_to_threshold_torch(fg_image, density)).view(torch.uint8)
-    binary = cv2.dilate(binary.numpy(force=True), kernel_aglo, iterations=1)
-    bboxes = find_bboxes(binary).to(brut_image.device)
+
+    # threashold
+    if density is None and threshold is None:
+        density = 0.5  # default value
+    if density is not None:
+        assert threshold is None, "you can't specify `density` and `threshold`, you have to choose"
+        density = float(density)
+        assert 0.0 < density <= 1.0, density
+        threshold = _density_to_threshold_torch(fg_image, density)
+    else:
+        assert 0.0 < threshold < 1.0, threshold
+
+    binary = (fg_image > threshold).view(torch.uint8)
+    binary = morpho_dilate(binary, radius=radius_aglo)
+    bboxes = find_bboxes(binary.numpy(force=True)).to(brut_image.device)
     datarois = imgbboxes2raw(fg_image, bboxes)
     return datarois, bboxes

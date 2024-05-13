@@ -48,14 +48,14 @@ class Build(_build_py):
                 **COMP_RULES,
             )
         )
-        self.distribution.ext_modules.append(
-            Extension(
-                "laueimproc.improc.c_morpho",
-                sources=["laueimproc/improc/c_morpho.c"],
-                optional=True,
-                **COMP_RULES,
-            )
-        )
+        # self.distribution.ext_modules.append(
+        #     Extension(
+        #         "laueimproc.improc.c_morpho",
+        #         sources=["laueimproc/improc/c_morpho.c"],
+        #         optional=True,
+        #         **COMP_RULES,
+        #     )
+        # )
         self.distribution.ext_modules.append(
             Extension(
                 "laueimproc.improc.spot.c_basic",

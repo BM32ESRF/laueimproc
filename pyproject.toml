@@ -118,7 +118,6 @@ show_error_codes = true
 disable = "E0611,C0103,E1101,E1102,E1133,E1135,C0415"
 extension-pkg-allow-list = [
   "laueimproc.improc.c_find_bboxes",
-  "laueimproc.improc.c_morpho",
   "laueimproc.improc.spot.c_basic",
   "laueimproc.improc.spot.c_extrema",
   "laueimproc.improc.spot.c_pca",
