@@ -18,24 +18,6 @@ from laueimproc.improc.morpho import morpho_open
 DEFAULT_KERNEL_AGLO = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
 
 
-def _density_to_threshold_numpy(img: np.ndarray, density: float) -> float:
-    """Analyse the image histogram in order to find the correspondant threshold."""
-    hist, bin_edges = np.histogram(
-        img,
-        bins=np.logspace(-5.0, np.log10(np.max(img)+1e-5), 101) - 1e-5,  # borns are [0, max(img)]
-        density=False,
-    )
-    hist = hist.astype(float) / float(img.size)  # density hist
-    cum_hist = np.flip(np.cumsum(np.flip(hist), out=hist))  # repartition function
-    real_density = (
-        density**(np.log(0.01)/np.log(0.5))  # make density linear [0, 0.5, 1] -> [0, 0.01, 1]
-        * np.pi * 0.25  # circle to square <=> bbox to spot
-        * 0.25  # max 25% filled
-    )
-    threshold = bin_edges[np.argmin(cum_hist >= real_density) + 1]
-    return threshold
-
-
 def _density_to_threshold_torch(img: torch.Tensor, density: float) -> float:
     """Analyse the image histogram in order to find the correspondant threshold."""
     device = img.device

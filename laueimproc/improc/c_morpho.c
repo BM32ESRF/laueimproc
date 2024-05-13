@@ -149,6 +149,40 @@ int UpdateLineAllLayers(
 }
 
 
+void CompFirstLine(
+    npy_float32* line_src,
+    npy_float32* line_dst,
+    const long width,
+    npy_float32 (*comp)(const npy_float32 val1, const npy_float32 val2),
+    void (*callback)(
+        npy_float32* line,
+        const long width,
+        const npy_float32 elem,
+        const long j,
+        npy_float32 (*comp)(const npy_float32 val1, const npy_float32 val2)
+    )
+) {
+    /*
+        Group the elements of the line by 3, call a function by given the comparaison of the 3 elements.
+    */
+    npy_float32 elem;
+
+    // left
+    elem = comp(line_src[0], line_src[1]);
+    callback(line_dst, width, elem, 0, comp);
+
+    // middle
+    for (long j = 1; j < width - 1; ++j) {
+        elem = comp(comp(line_src[j - 1], line_src[j]), line_src[j + 1]);
+        callback(line_dst, width, elem, j, comp);
+    }
+
+    // end
+    elem = comp(line_src[width - 1], line_src[width - 2]);
+    callback(line_dst, width, elem, width - 1, comp);
+}
+
+
 int Morpho_1(
     npy_float32* img, npy_float32* out, const long height, const long width,
     npy_float32 (*comp)(const npy_float32 val1, const npy_float32 val2)
@@ -158,6 +192,18 @@ int Morpho_1(
     */
     memcpy(out, img, height * width * sizeof(*img));
     return 0;
+}
+
+
+void callback_1_3(
+    npy_float32* line,
+    const long width,
+    const npy_float32 elem,
+    const long j,
+    npy_float32 (*comp)(const npy_float32 val1, const npy_float32 val2)
+) {
+    fprintf(stderr, "toto %ld\n", line);
+    line[j] = comp(comp(line[j - width], line[j + width]), elem);
 }
 
 
@@ -181,14 +227,7 @@ int Morpho_1_3(
     }
 
     for (long line_shift = width; line_shift < final_shift; line_shift += width) {
-        UpdateLine(img + line_shift, out + line_shift, 1, width, comp);
-        #pragma omp simd
-        for (long j = 0; j < width; ++j) {
-            out[j + line_shift] = comp(
-                out[j + line_shift],
-                comp(img[j + line_shift - width], img[j + line_shift + width])
-            );
-        }
+        CompFirstLine(img + line_shift, out + line_shift, width, comp, &callback_1_3);
     }
 
     UpdateLine(img + final_shift, out + final_shift, 1, width, comp);
