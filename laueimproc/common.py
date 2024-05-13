@@ -2,6 +2,7 @@
 
 """Little common tools."""
 
+import functools
 import numbers
 import pathlib
 
@@ -33,6 +34,7 @@ def bytes2human(size: numbers.Real) -> str:
     return f"{size*factor:.1f}{unit}"
 
 
+@functools.cache
 def get_project_root() -> pathlib.Path:
     """Return the absolute project root folder.
 

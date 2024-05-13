@@ -23,32 +23,32 @@ def run_tests(
     # install check
     if not skip_install:
         print("Checking if the dependencies are corrected...")
-        paths = [f"{root / 'testing' / 'install.py'}"]
+        path = str(root / "testing" / "install.py")
         if (
-            code := pytest.main(debug_options + ["--verbose"] + paths)
+            code := pytest.main(debug_options + ["--verbose", path])
         ):
             return int(code)
 
     # code quality check
     if not skip_coding_style:
         print("Checking if the coding style respects the PEP...")
-        paths = [f"{root / 'testing' / 'coding_style.py'}"]
+        path = str(root / "testing" / "coding_style.py")
         if (
             code := pytest.main(debug_options + [
-                "--verbose", "--exitfirst", "--capture=no", "--tb=no", "-rN"  # no rapport
-            ] + paths)
+                "--verbose", "--exitfirst", "--capture=no", "--tb=no", "-rN", path  # no rapport
+            ])
         ):
             return int(code)
 
     # classical tests
     print("Runing all the little unit tests...")
-    paths = [str(root)] + sorted(str(p) for p in (root / "testing" / "tests").rglob("*.py"))
-    if (code := pytest.main(debug_options + ["-m", "not slow", "--doctest-modules"] + paths)):
+    path = str(root)
+    if (code := pytest.main(debug_options + ["-m", "not slow", "--doctest-modules", path])):
         return int(code)
 
     # slow tests
     if not skip_slow:
         print("Runing the slow unit tests...")
-        if (code := pytest.main(debug_options + ["-m", "slow", "--verbose"] + paths)):
+        if (code := pytest.main(debug_options + ["-m", "slow", "--verbose", path])):
             return int(code)
     return 0

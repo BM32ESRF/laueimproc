@@ -104,10 +104,6 @@ int CheckKernel(PyArrayObject* kernel, enum NPY_TYPES dtype) {
         PyErr_SetString(PyExc_ValueError, "'kernel.shape[1]' has to be odd number");
         return 1;
     }
-    if (!PyArray_IS_C_CONTIGUOUS(kernel)) {
-        PyErr_SetString(PyExc_ValueError, "'kernel' has to be c contiguous");
-        return 1;
-    }
     if ((enum NPY_TYPES)PyArray_TYPE(kernel) != dtype) {
         PyErr_SetString(PyExc_TypeError, "'kernel' has to be of an other dtype");
         return 1;
