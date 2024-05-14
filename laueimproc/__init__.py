@@ -3,8 +3,8 @@
 """Group some image processing tools to annalyse Laue diagrams."""
 
 from .classes import Diagram, DiagramsDataset
-from .opti import collect, DiagramManager
+from .opti import collect
 
-__all__ = ["collect", "Diagram", "DiagramsDataset", "DiagramManager"]
+__all__ = ["collect", "Diagram", "DiagramsDataset"]
 __author__ = "J.S. Micha, O. Robach., S. Tardif, R. Richard"
-__version__ = "1.2.0"  # pep 440
+__version__ = "1.2.1"  # pep 440
