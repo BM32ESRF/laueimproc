@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>laueimproc.improc.find_bboxes API documentation</title>
+<meta name="description" content="Find the bboxes of a binary image." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>laueimproc.improc.find_bboxes</code></h1>
+</header>
+<section id="section-intro">
+<p>Find the bboxes of a binary image.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+&#34;&#34;&#34;Find the bboxes of a binary image.&#34;&#34;&#34;
+
+import logging
+import numbers
+
+import cv2
+import numpy as np
+import torch
+
+try:
+    from laueimproc.improc import c_find_bboxes
+except ImportError:
+    logging.warning(
+        &#34;failed to import laueimproc.improc.c_find_bboxes, a slow python version is used instead&#34;
+    )
+    c_find_bboxes = None
+
+
+def _merge_bboxes(bboxes: list[list[int]], src: int, dst: int) -&gt; list[list[int]]:
+    &#34;&#34;&#34;Merge the bboxes inplace.
+
+    bbox_dst = union(bbox_dst, bbox_src)
+    &#34;&#34;&#34;
+    bbox_src, bbox_dst = bboxes[src-1], bboxes[dst-1]
+    end = max(bbox_src[0] + bbox_src[2], bbox_dst[0] + bbox_dst[2])
+    bbox_dst[0] = min(bbox_src[0], bbox_dst[0])
+    bbox_dst[2] = end - bbox_dst[0]
+    end = max(bbox_src[1] + bbox_src[3], bbox_dst[1] + bbox_dst[3])
+    bbox_dst[1] = min(bbox_src[1], bbox_dst[1])
+    bbox_dst[3] = end - bbox_dst[1]
+    return bboxes
+
+
+def _python_find_bboxes(binary: np.ndarray[np.uint8], max_size: numbers.Integral) -&gt; list:
+    &#34;&#34;&#34;Help find_bboxes with a pure very slow python version.&#34;&#34;&#34;
+    curr_clus = 0
+    bboxes: list[list[int]] = []
+    clusters: list[int] = [0 for _ in range(binary.shape[1])]
+    merge: dict[int, int] = {}
+
+    # find clusters
+    for i in range(binary.shape[0]):
+        clus_left = 0
+        for j in range(binary.shape[1]):
+            if not binary[i, j]:  # case black pixel
+                clusters[j] = 0
+                clus_left = 0
+                continue
+            clus_top = clusters[j]
+            if (not clus_top) and (not clus_left):  # case new cluster
+                bboxes.append([i, j, 1, 1])
+                curr_clus += 1
+                clusters[j] = curr_clus  # next cluster
+            elif clus_top == clus_left:  # case same clusters
+                clusters[j] = clus_top
+            elif not clus_top:  # case same as left
+                clus_left = merge.get(clus_left, clus_left)  # avoid cycle
+                right = max(j+1, bboxes[clus_left-1][1] + bboxes[clus_left-1][3])  # right pos
+                bboxes[clus_left-1][3] = right - bboxes[clus_left-1][1]
+                clusters[j] = clus_left
+            elif not clus_left:  # case same as top
+                clus_top = merge.get(clus_top, clus_top)  # avoid cycle
+                bottom = max(i+1, bboxes[clus_top-1][0] + bboxes[clus_top-1][2])  # bottom pos
+                bboxes[clus_top-1][2] = bottom - bboxes[clus_top-1][0]
+                clusters[j] = clus_top
+            else:  # case merge
+                if clus_top &gt; clus_left:  # guaranteed that clu &gt; merge[clu-1]
+                    clus_left, clus_top = clus_top, clus_left
+                clus_top = merge.get(clus_top, clus_top)  # avoid cycle
+                merge[clus_left] = clus_top
+                clusters[j] = clus_top
+                bboxes = _merge_bboxes(bboxes, clus_left, clus_top)
+            clus_left = clusters[j]
+
+    # merge clusters
+    for src, dst in merge.items():  # merge
+        bboxes = _merge_bboxes(bboxes, src, dst)
+    bboxes = [  # concatenate
+        bbox for clu_m1, bbox in enumerate(bboxes)
+        if (
+            clu_m1 + 1 not in merge  # skip same bboxes
+            and (bbox[2] &lt;= max_size and bbox[3] &lt;= max_size)  # remove too tall bboxes
+        )
+    ]
+    return bboxes
+
+
+def find_bboxes(
+    binary: np.ndarray[np.uint8],
+    max_size: numbers.Integral = 255,
+    *, use_cv2: bool = False,
+    _no_c: bool = False,
+) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Find the bboxes of the binary image.
+
+    The proposed algorithm is strictely equivalent to find the clusters of the binary image
+    with a DBSCAN of distance 1, then to find the bboxes of each cluster.
+
+    Parameters
+    ----------
+    binary : np.ndarray
+        The c contiguous 2d image of boolean.
+    max_size : int
+        The max bounding boxe size, reject the strictly bigger bboxes.
+    use_cv2 : bool, default=False
+        If set to True, use the algorithm provided by cv2 rather than laueimproc&#39;s own algorithme.
+        Be carefull, behavior is not the same!
+        There are a few misses and the clusters next to each other on a diagonal are merged.
+        The cv2 algorithm is about 3 times slowler than the compiled C version for high density,
+        but still around 100 times faster than the pure python version.
+        The cv2 algorithm doesn&#39;t release the GIL, making it difficult to multithread.
+
+    Returns
+    -------
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        They are sorted by ascending colums then lignes. This order optimizes the image cache acces.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import numpy as np
+    &gt;&gt;&gt; from laueimproc.improc.find_bboxes import find_bboxes
+    &gt;&gt;&gt; binary = np.array([[1, 0, 1, 0, 1],
+    ...                    [0, 1, 0, 1, 0],
+    ...                    [1, 0, 1, 0, 1]],
+    ...                   dtype=np.uint8)
+    &gt;&gt;&gt; find_bboxes(binary)
+    tensor([[0, 0, 1, 1],
+            [0, 2, 1, 1],
+            [0, 4, 1, 1],
+            [1, 1, 1, 1],
+            [1, 3, 1, 1],
+            [2, 0, 1, 1],
+            [2, 2, 1, 1],
+            [2, 4, 1, 1]], dtype=torch.int16)
+    &gt;&gt;&gt; binary = np.array([[1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    ...                    [0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1],
+    ...                    [0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+    ...                    [0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    ...                    [0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+    ...                    [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1],
+    ...                    [1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    ...                    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ...                    [1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+    ...                    [1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+    ...                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+    ...                    [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ...                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+    ...                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+    ...                    [0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0],
+    ...                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0],
+    ...                    [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+    ...                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1],
+    ...                    [0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+    ...                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+    ...                    [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1]],
+    ...                   dtype=np.uint8)
+    &gt;&gt;&gt; find_bboxes(binary)
+    tensor([[ 0,  0,  1,  1],
+            [ 0,  6,  3,  1],
+            [ 0,  8,  3,  2],
+            [ 0, 11,  7, 10],
+            [ 1,  1,  1,  1],
+            [ 1,  3,  1,  2],
+            [ 3,  1,  2,  1],
+            [ 3,  3,  2,  2],
+            [ 4,  4,  5,  5],
+            [ 6,  0,  1,  3],
+            [ 8,  0,  2,  3],
+            [ 8,  8,  3,  3],
+            [ 8, 12,  3,  4],
+            [11,  0, 10,  7],
+            [12,  8,  4,  3],
+            [12, 14,  2,  2],
+            [14, 12,  2,  2],
+            [14, 16,  2,  2],
+            [16, 14,  2,  2],
+            [17, 17,  4,  4]], dtype=torch.int16)
+    &gt;&gt;&gt; def show():
+    ...     import matplotlib.pyplot as plt
+    ...     plt.imshow(
+    ...         binary,
+    ...         extent=(0, binary.shape[1], binary.shape[0], 0),
+    ...         cmap=&#34;gray&#34;,
+    ...         interpolation=None,
+    ...     )
+    ...     bboxes = find_bboxes(binary)
+    ...     plt.plot(
+    ...         np.vstack((
+    ...             bboxes[:, 1],
+    ...             bboxes[:, 1],
+    ...             bboxes[:, 1]+bboxes[:, 3],
+    ...             bboxes[:, 1]+bboxes[:, 3],
+    ...             bboxes[:, 1],
+    ...         )),
+    ...         np.vstack((
+    ...             bboxes[:, 0],
+    ...             bboxes[:, 0]+bboxes[:, 2],
+    ...             bboxes[:, 0]+bboxes[:, 2],
+    ...             bboxes[:, 0],
+    ...             bboxes[:, 0],
+    ...         )),
+    ...     )
+    ...     plt.show()
+    ...
+    &gt;&gt;&gt; show()  # doctest: +SKIP
+    &gt;&gt;&gt; binary = (np.random.random((2048, 2048)) &gt; 0.75).view(np.uint8)
+    &gt;&gt;&gt; np.array_equal(find_bboxes(binary), find_bboxes(binary, _no_c=True))
+    True
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(use_cv2, bool), use_cv2.__class__.__name__
+
+    if not use_cv2 and not _no_c and c_find_bboxes is not None:
+        return torch.from_numpy(c_find_bboxes.find_bboxes(binary, max_size))
+
+    assert isinstance(binary, np.ndarray), binary.__class__.__name__
+    assert binary.ndim == 2, binary.shape
+    assert binary.dtype == np.uint8, binary.dtype
+    assert isinstance(max_size, numbers.Integral), max_size.__class__.__name__
+    assert max_size &gt;= 1, max_size
+
+    if use_cv2:
+        bboxes = [
+            [i, j, h, w] for j, i, w, h in map(  # cv2 to numpy convention
+                cv2.boundingRect,
+                cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0],
+            ) if max(h, w) &lt;= max_size  # remove too big spots
+        ]
+    else:
+        bboxes = _python_find_bboxes(binary, max_size)
+
+    if bboxes:
+        bboxes = torch.tensor(bboxes, dtype=torch.int16)
+    else:
+        bboxes = torch.empty((0, 4), dtype=torch.int16)
+    return bboxes
+
+
+# if __name__ == &#39;__main__&#39;:
+#     from laueimproc.improc.peaks_search import (_density_to_threshold_torch,
+#         DEFAULT_KERNEL_FONT, DEFAULT_KERNEL_AGLO, estimate_background
+#     )
+#     from laueimproc.io import get_sample
+#     from laueimproc import Diagram
+#     src = Diagram(get_sample()).image.numpy(force=True)
+#     bg_image = estimate_background(src, DEFAULT_KERNEL_FONT)
+#     fg_image = src - bg_image
+#     import timeit
+#     for density in (0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95):
+#         print(&#34;density&#34;, density)
+#         binary = (
+#             (fg_image &gt; _density_to_threshold_torch(torch.from_numpy(fg_image), density))
+#             .view(np.uint8)
+#         )
+#         binary = cv2.dilate(binary, DEFAULT_KERNEL_AGLO, dst=bg_image, iterations=1)
+#         t1=min(timeit.repeat(lambda: find_bboxes(binary, use_cv2=True), repeat=10, number=50))/50
+#         print(f&#34;time cv2 {1000*t1:.2f}ms&#34;)
+#         t2 = min(timeit.repeat(lambda: find_bboxes(binary), repeat=10, number=50))/50
+#         print(f&#34;time c   {1000*t2:.2f}ms&#34;)
+#         print(f&#34;c is {t1/t2:.1f} times faster than cv2&#34;)
+#         import matplotlib.pyplot as plt
+#         diagram = Diagram(get_sample())
+#         diagram.find_spots(density=density)
+#         fig = plt.figure()
+#         diagram.plot(fig)
+#         plt.show()</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="laueimproc.improc.find_bboxes.find_bboxes"><code class="name flex">
+<span>def <span class="ident">find_bboxes</span></span>(<span>binary: numpy.ndarray[numpy.uint8], max_size: numbers.Integral = 255, *, use_cv2: bool = False) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Find the bboxes of the binary image.</p>
+<p>The proposed algorithm is strictely equivalent to find the clusters of the binary image
+with a DBSCAN of distance 1, then to find the bboxes of each cluster.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>binary</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>The c contiguous 2d image of boolean.</dd>
+<dt><strong><code>max_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>The max bounding boxe size, reject the strictly bigger bboxes.</dd>
+<dt><strong><code>use_cv2</code></strong> :&ensp;<code>bool</code>, default=<code>False</code></dt>
+<dd>If set to True, use the algorithm provided by cv2 rather than laueimproc's own algorithme.
+Be carefull, behavior is not the same!
+There are a few misses and the clusters next to each other on a diagonal are merged.
+The cv2 algorithm is about 3 times slowler than the compiled C version for high density,
+but still around 100 times faster than the pure python version.
+The cv2 algorithm doesn't release the GIL, making it difficult to multithread.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bboxes</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+They are sorted by ascending colums then lignes. This order optimizes the image cache acces.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; from laueimproc.improc.find_bboxes import find_bboxes
+&gt;&gt;&gt; binary = np.array([[1, 0, 1, 0, 1],
+...                    [0, 1, 0, 1, 0],
+...                    [1, 0, 1, 0, 1]],
+...                   dtype=np.uint8)
+&gt;&gt;&gt; find_bboxes(binary)
+tensor([[0, 0, 1, 1],
+        [0, 2, 1, 1],
+        [0, 4, 1, 1],
+        [1, 1, 1, 1],
+        [1, 3, 1, 1],
+        [2, 0, 1, 1],
+        [2, 2, 1, 1],
+        [2, 4, 1, 1]], dtype=torch.int16)
+&gt;&gt;&gt; binary = np.array([[1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+...                    [0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1],
+...                    [0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+...                    [0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+...                    [0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+...                    [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1],
+...                    [1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+...                    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+...                    [1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+...                    [1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+...                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+...                    [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+...                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+...                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+...                    [0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0],
+...                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0],
+...                    [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+...                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1],
+...                    [0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+...                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+...                    [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1]],
+...                   dtype=np.uint8)
+&gt;&gt;&gt; find_bboxes(binary)
+tensor([[ 0,  0,  1,  1],
+        [ 0,  6,  3,  1],
+        [ 0,  8,  3,  2],
+        [ 0, 11,  7, 10],
+        [ 1,  1,  1,  1],
+        [ 1,  3,  1,  2],
+        [ 3,  1,  2,  1],
+        [ 3,  3,  2,  2],
+        [ 4,  4,  5,  5],
+        [ 6,  0,  1,  3],
+        [ 8,  0,  2,  3],
+        [ 8,  8,  3,  3],
+        [ 8, 12,  3,  4],
+        [11,  0, 10,  7],
+        [12,  8,  4,  3],
+        [12, 14,  2,  2],
+        [14, 12,  2,  2],
+        [14, 16,  2,  2],
+        [16, 14,  2,  2],
+        [17, 17,  4,  4]], dtype=torch.int16)
+&gt;&gt;&gt; def show():
+...     import matplotlib.pyplot as plt
+...     plt.imshow(
+...         binary,
+...         extent=(0, binary.shape[1], binary.shape[0], 0),
+...         cmap=&quot;gray&quot;,
+...         interpolation=None,
+...     )
+...     bboxes = find_bboxes(binary)
+...     plt.plot(
+...         np.vstack((
+...             bboxes[:, 1],
+...             bboxes[:, 1],
+...             bboxes[:, 1]+bboxes[:, 3],
+...             bboxes[:, 1]+bboxes[:, 3],
+...             bboxes[:, 1],
+...         )),
+...         np.vstack((
+...             bboxes[:, 0],
+...             bboxes[:, 0]+bboxes[:, 2],
+...             bboxes[:, 0]+bboxes[:, 2],
+...             bboxes[:, 0],
+...             bboxes[:, 0],
+...         )),
+...     )
+...     plt.show()
+...
+&gt;&gt;&gt; show()  # doctest: +SKIP
+&gt;&gt;&gt; binary = (np.random.random((2048, 2048)) &gt; 0.75).view(np.uint8)
+&gt;&gt;&gt; np.array_equal(find_bboxes(binary), find_bboxes(binary, _no_c=True))
+True
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_bboxes(
+    binary: np.ndarray[np.uint8],
+    max_size: numbers.Integral = 255,
+    *, use_cv2: bool = False,
+    _no_c: bool = False,
+) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Find the bboxes of the binary image.
+
+    The proposed algorithm is strictely equivalent to find the clusters of the binary image
+    with a DBSCAN of distance 1, then to find the bboxes of each cluster.
+
+    Parameters
+    ----------
+    binary : np.ndarray
+        The c contiguous 2d image of boolean.
+    max_size : int
+        The max bounding boxe size, reject the strictly bigger bboxes.
+    use_cv2 : bool, default=False
+        If set to True, use the algorithm provided by cv2 rather than laueimproc&#39;s own algorithme.
+        Be carefull, behavior is not the same!
+        There are a few misses and the clusters next to each other on a diagonal are merged.
+        The cv2 algorithm is about 3 times slowler than the compiled C version for high density,
+        but still around 100 times faster than the pure python version.
+        The cv2 algorithm doesn&#39;t release the GIL, making it difficult to multithread.
+
+    Returns
+    -------
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        They are sorted by ascending colums then lignes. This order optimizes the image cache acces.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import numpy as np
+    &gt;&gt;&gt; from laueimproc.improc.find_bboxes import find_bboxes
+    &gt;&gt;&gt; binary = np.array([[1, 0, 1, 0, 1],
+    ...                    [0, 1, 0, 1, 0],
+    ...                    [1, 0, 1, 0, 1]],
+    ...                   dtype=np.uint8)
+    &gt;&gt;&gt; find_bboxes(binary)
+    tensor([[0, 0, 1, 1],
+            [0, 2, 1, 1],
+            [0, 4, 1, 1],
+            [1, 1, 1, 1],
+            [1, 3, 1, 1],
+            [2, 0, 1, 1],
+            [2, 2, 1, 1],
+            [2, 4, 1, 1]], dtype=torch.int16)
+    &gt;&gt;&gt; binary = np.array([[1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    ...                    [0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1],
+    ...                    [0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+    ...                    [0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    ...                    [0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+    ...                    [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1],
+    ...                    [1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    ...                    [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ...                    [1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+    ...                    [1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+    ...                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+    ...                    [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ...                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+    ...                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+    ...                    [0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0],
+    ...                    [0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0],
+    ...                    [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+    ...                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1],
+    ...                    [0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+    ...                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+    ...                    [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1]],
+    ...                   dtype=np.uint8)
+    &gt;&gt;&gt; find_bboxes(binary)
+    tensor([[ 0,  0,  1,  1],
+            [ 0,  6,  3,  1],
+            [ 0,  8,  3,  2],
+            [ 0, 11,  7, 10],
+            [ 1,  1,  1,  1],
+            [ 1,  3,  1,  2],
+            [ 3,  1,  2,  1],
+            [ 3,  3,  2,  2],
+            [ 4,  4,  5,  5],
+            [ 6,  0,  1,  3],
+            [ 8,  0,  2,  3],
+            [ 8,  8,  3,  3],
+            [ 8, 12,  3,  4],
+            [11,  0, 10,  7],
+            [12,  8,  4,  3],
+            [12, 14,  2,  2],
+            [14, 12,  2,  2],
+            [14, 16,  2,  2],
+            [16, 14,  2,  2],
+            [17, 17,  4,  4]], dtype=torch.int16)
+    &gt;&gt;&gt; def show():
+    ...     import matplotlib.pyplot as plt
+    ...     plt.imshow(
+    ...         binary,
+    ...         extent=(0, binary.shape[1], binary.shape[0], 0),
+    ...         cmap=&#34;gray&#34;,
+    ...         interpolation=None,
+    ...     )
+    ...     bboxes = find_bboxes(binary)
+    ...     plt.plot(
+    ...         np.vstack((
+    ...             bboxes[:, 1],
+    ...             bboxes[:, 1],
+    ...             bboxes[:, 1]+bboxes[:, 3],
+    ...             bboxes[:, 1]+bboxes[:, 3],
+    ...             bboxes[:, 1],
+    ...         )),
+    ...         np.vstack((
+    ...             bboxes[:, 0],
+    ...             bboxes[:, 0]+bboxes[:, 2],
+    ...             bboxes[:, 0]+bboxes[:, 2],
+    ...             bboxes[:, 0],
+    ...             bboxes[:, 0],
+    ...         )),
+    ...     )
+    ...     plt.show()
+    ...
+    &gt;&gt;&gt; show()  # doctest: +SKIP
+    &gt;&gt;&gt; binary = (np.random.random((2048, 2048)) &gt; 0.75).view(np.uint8)
+    &gt;&gt;&gt; np.array_equal(find_bboxes(binary), find_bboxes(binary, _no_c=True))
+    True
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(use_cv2, bool), use_cv2.__class__.__name__
+
+    if not use_cv2 and not _no_c and c_find_bboxes is not None:
+        return torch.from_numpy(c_find_bboxes.find_bboxes(binary, max_size))
+
+    assert isinstance(binary, np.ndarray), binary.__class__.__name__
+    assert binary.ndim == 2, binary.shape
+    assert binary.dtype == np.uint8, binary.dtype
+    assert isinstance(max_size, numbers.Integral), max_size.__class__.__name__
+    assert max_size &gt;= 1, max_size
+
+    if use_cv2:
+        bboxes = [
+            [i, j, h, w] for j, i, w, h in map(  # cv2 to numpy convention
+                cv2.boundingRect,
+                cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0],
+            ) if max(h, w) &lt;= max_size  # remove too big spots
+        ]
+    else:
+        bboxes = _python_find_bboxes(binary, max_size)
+
+    if bboxes:
+        bboxes = torch.tensor(bboxes, dtype=torch.int16)
+    else:
+        bboxes = torch.empty((0, 4), dtype=torch.int16)
+    return bboxes</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="laueimproc.improc" href="index.html">laueimproc.improc</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="laueimproc.improc.find_bboxes.find_bboxes" href="#laueimproc.improc.find_bboxes.find_bboxes">find_bboxes</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

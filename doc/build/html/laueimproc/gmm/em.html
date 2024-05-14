@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>laueimproc.gmm.em API documentation</title>
+<meta name="description" content="Implement the EM (Esperance Maximisation) algo …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>laueimproc.gmm.em</code></h1>
+</header>
+<section id="section-intro">
+<p>Implement the EM (Esperance Maximisation) algo.</p>
+<p>Detailed algorithm for going from step <span><span class="MathJax_Preview">s</span><script type="math/tex">s</script></span> to step <span><span class="MathJax_Preview">s+1</span><script type="math/tex">s+1</script></span>:</p>
+<ul>
+<li><span><span class="MathJax_Preview">
+p_{i,j} = \frac{
+\eta_j^{(s)}
+\mathcal{N}_{\mathbf{\mu}_j^{(s)}, \mathbf{\Sigma}_j^{(s)}}\left(\mathbf{x}_i\right)
+}{
+\sum\limits_{k=1}^K
+\eta_k^{(s)}
+\mathcal{N}_{\mathbf{\mu}_k^{(s)}, \mathbf{\Sigma}_k^{(s)}}\left(\mathbf{x}_i\right)
+}
+</span><script type="math/tex">
+p_{i,j} = \frac{
+\eta_j^{(s)}
+\mathcal{N}_{\mathbf{\mu}_j^{(s)}, \mathbf{\Sigma}_j^{(s)}}\left(\mathbf{x}_i\right)
+}{
+\sum\limits_{k=1}^K
+\eta_k^{(s)}
+\mathcal{N}_{\mathbf{\mu}_k^{(s)}, \mathbf{\Sigma}_k^{(s)}}\left(\mathbf{x}_i\right)
+}
+</script></span> Posterior probability that observation <span><span class="MathJax_Preview">i</span><script type="math/tex">i</script></span> belongs to cluster <span><span class="MathJax_Preview">j</span><script type="math/tex">j</script></span>.</li>
+<li><span><span class="MathJax_Preview">
+\eta_j^{(s+1)} = \frac{\sum\limits_{i=1}^N \alpha_i p_{i,j}}{\sum\limits_{i=1}^N \alpha_i}
+</span><script type="math/tex">
+\eta_j^{(s+1)} = \frac{\sum\limits_{i=1}^N \alpha_i p_{i,j}}{\sum\limits_{i=1}^N \alpha_i}
+</script></span> The relative weight of each gaussian.</li>
+<li><span><span class="MathJax_Preview">
+\mathbf{\mu}_j^{(s+1)} = \frac{
+\sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j} \mathbf{x}_i
+}{
+\sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j}
+}
+</span><script type="math/tex">
+\mathbf{\mu}_j^{(s+1)} = \frac{
+\sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j} \mathbf{x}_i
+}{
+\sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j}
+}
+</script></span> The mean of each gaussian.</li>
+<li><span><span class="MathJax_Preview">
+\mathbf{\Sigma}_j^{(s+1)} = \frac{
+\sum\limits_{i=1}^N
+\omega_i \alpha_i p_{i,j}
+\left(\mathbf{x}_i - \mathbf{\mu}_j^{(s+1)}\right)
+\left(\mathbf{x}_i - \mathbf{\mu}_j^{(s+1)}\right)^{\intercal}
+}{
+\sum\limits_{i=1}^N \alpha_i p_{i,j}
+}
+</span><script type="math/tex">
+\mathbf{\Sigma}_j^{(s+1)} = \frac{
+\sum\limits_{i=1}^N
+\omega_i \alpha_i p_{i,j}
+\left(\mathbf{x}_i - \mathbf{\mu}_j^{(s+1)}\right)
+\left(\mathbf{x}_i - \mathbf{\mu}_j^{(s+1)}\right)^{\intercal}
+}{
+\sum\limits_{i=1}^N \alpha_i p_{i,j}
+}
+</script></span> The cov of each gaussian.</li>
+</ul>
+<p>This sted is iterated as long as the log likelihood increases.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+r&#34;&#34;&#34;Implement the EM (Esperance Maximisation) algo.
+
+Detailed algorithm for going from step \(s\) to step \(s+1\):
+
+* \(
+    p_{i,j} = \frac{
+        \eta_j^{(s)}
+        \mathcal{N}_{\mathbf{\mu}_j^{(s)}, \mathbf{\Sigma}_j^{(s)}}\left(\mathbf{x}_i\right)
+    }{
+        \sum\limits_{k=1}^K
+        \eta_k^{(s)}
+        \mathcal{N}_{\mathbf{\mu}_k^{(s)}, \mathbf{\Sigma}_k^{(s)}}\left(\mathbf{x}_i\right)
+    }
+\) Posterior probability that observation \(i\) belongs to cluster \(j\).
+* \(
+    \eta_j^{(s+1)} = \frac{\sum\limits_{i=1}^N \alpha_i p_{i,j}}{\sum\limits_{i=1}^N \alpha_i}
+\) The relative weight of each gaussian.
+* \(
+    \mathbf{\mu}_j^{(s+1)} = \frac{
+        \sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j} \mathbf{x}_i
+    }{
+        \sum\limits_{i=1}^N \alpha_i \omega_i p_{i,j}
+    }
+\) The mean of each gaussian.
+* \(
+    \mathbf{\Sigma}_j^{(s+1)} = \frac{
+        \sum\limits_{i=1}^N
+        \omega_i \alpha_i p_{i,j}
+        \left(\mathbf{x}_i - \mathbf{\mu}_j^{(s+1)}\right)
+        \left(\mathbf{x}_i - \mathbf{\mu}_j^{(s+1)}\right)^{\intercal}
+    }{
+        \sum\limits_{i=1}^N \alpha_i p_{i,j}
+    }
+\) The cov of each gaussian.
+
+This sted is iterated as long as the log likelihood increases.
+&#34;&#34;&#34;
+
+import logging
+import numbers
+import typing
+
+import torch
+
+from .check import check_infit
+from .gmm import gmm2d
+from .metric import aic_bic, log_likelihood
+
+
+def _fit_one_cluster(
+    obs: torch.Tensor, weights: typing.Optional[torch.Tensor]
+) -&gt; tuple[torch.Tensor, torch.Tensor]:
+    r&#34;&#34;&#34;Fit one gaussian.
+
+    Parameters
+    ----------
+    obs : torch.Tensor
+        The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
+    weights : torch.Tensor, optional
+        The duplication weights of shape (..., \(N\)).
+
+    Returns
+    -------
+    mean : torch.Tensor
+        The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(D\), 1).
+    cov : torch.Tensor
+        The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(D\), \(D\)).
+
+    Notes
+    -----
+    * No verifications are performed for performance reason.
+    &#34;&#34;&#34;
+    if weights is None:
+        mean = torch.mean(obs, dim=-2, keepdim=True)  # (..., 1, n_var)
+    else:
+        mean = torch.sum((weights.unsqueeze(-1) * obs), dim=-2, keepdim=True)
+        mean /= torch.sum(weights.unsqueeze(-1), dim=-2, keepdim=True)  # (..., 1, n_var)
+    cent_obs = (obs - mean).unsqueeze(-1)  # (..., n_obs, n_var, 1)
+    mean = mean.squeeze(-2).unsqueeze(-1)  # (..., n_var, 1)
+    if weights is None:
+        cov = torch.mean(  # (..., n_var, n_var)
+            cent_obs @ cent_obs.transpose(-1, -2),
+            dim=-3, keepdim=False  # (..., n_obs, n_var, n_var) -&gt; (..., n_var, n_var)
+        )
+    else:
+        cov = torch.sum(  # (..., n_var, n_var)
+            weights.unsqueeze(-1).unsqueeze(-1) * cent_obs @ cent_obs.mT,
+            dim=-3, keepdim=False  # (..., n_obs, n_var, n_var) -&gt; (..., n_var, n_var)
+        )
+        cov /= torch.sum(weights, dim=-1, keepdim=False).unsqueeze(-1).unsqueeze(-1)
+    return mean, cov
+
+
+def _fit_n_clusters_one_step(
+    obs: torch.Tensor,
+    weights: typing.Optional[torch.Tensor],
+    gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    r&#34;&#34;&#34;One step of the EM algo.
+
+    Parameters
+    ----------
+    obs : torch.Tensor
+        The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
+    weights : torch.Tensor, optional
+        The duplication weights of shape (..., \(N\)).
+    gmm : tuple of torch.Tensor
+        * mean : torch.Tensor
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+        * cov : torch.Tensor
+            The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
+        * eta : torch.Tensor
+            The relative mass \(\eta_j\) of shape (..., \(K\)).
+
+    Returns
+    -------
+    mean : torch.Tensor
+        A reference to the input parameter `mean`.
+    cov : torch.Tensor
+        A reference to the input parameter `cov`.
+    eta : torch.Tensor
+        A reference to the input parameter `eta`.
+
+    Notes
+    -----
+    * No verifications are performed for performance reason.
+    &#34;&#34;&#34;
+    mean, cov, eta = gmm
+    eps = torch.finfo(obs.dtype).eps
+
+    # posterior probability that observation j belongs to cluster i
+    post = gmm2d(obs, mean, cov, eta, _check=False)  # (..., n_clu, n_obs)
+    post += eps  # prevention again division by 0
+    post /= torch.sum(post, dim=-2, keepdim=True)  # (..., n_clu, n_obs)
+
+    # update the relative mass of each gaussians (not normalized because it it used for cov)
+    if weights is None:
+        eta = torch.sum(post, dim=-1)  # (..., n_clu)
+    else:
+        eta = torch.sum(weights.unsqueeze(-2) * post, dim=-1, keepdim=False, out=eta)
+
+    # mean
+    if weights is None:
+        weighted_post = post
+        mean = torch.mean(
+            obs.unsqueeze(-3).unsqueeze(-1),  # (..., n_clu, n_obs, n_var, 1)
+            dim=-3, keepdim=False, out=mean  # (..., n_clus, n_var, 1)
+        )
+    else:
+        weighted_post = weights.unsqueeze(-2) * post  # (..., n_clu, n_obs)
+        weighted_post = weighted_post.unsqueeze(-1).unsqueeze(-1)  # (..., n_clu, n_obs, 1, 1)
+        mean = torch.sum(
+            weighted_post * obs.unsqueeze(-3).unsqueeze(-1),  # (..., n_clu, n_obs, n_var, 1)
+            dim=-3, keepdim=False, out=mean  # (..., n_clus, n_var, 1)
+        )
+        mean /= torch.sum(weighted_post, dim=-3, keepdim=False)  # (..., n_clus, n_var, 1)
+
+    # cov
+    cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
+    cov = torch.sum(
+        weighted_post * cent_obs @ cent_obs.transpose(-1, -2),  # (..., n_clu, n_obs, n_var, n_var)
+        dim=-3, keepdim=False, out=cov  # (..., n_clu, n_var, n_var)
+    )
+    cov /= eta.unsqueeze(-1).unsqueeze(-1)
+
+    # normalize eta
+    if weights is not None:
+        eta /= torch.sum(weights.unsqueeze(-2), dim=-1, keepdim=False)  # (..., n_clu)
+
+    return mean, cov, eta
+
+
+def _fit_n_clusters_serveral_steps(
+    obs: torch.Tensor,
+    weights: typing.Optional[torch.Tensor],
+    gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+) -&gt; tuple[tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor]:
+    r&#34;&#34;&#34;N steps of the EM algo.
+
+    Parameters
+    ----------
+    obs : torch.Tensor
+        The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
+    weights : torch.Tensor, optional
+        The duplication weights of shape (..., \(N\)).
+    gmm : tuple of torch.Tensor
+        * mean : torch.Tensor
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+        * cov : torch.Tensor
+            The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
+        * eta : torch.Tensor
+            The relative mass \(\eta_j\) of shape (..., \(K\)).
+
+    Returns
+    -------
+    gmm : tuple of torch.Tensor
+        mean : torch.Tensor
+            A reference to the input parameter `mean`.
+        cov : torch.Tensor
+            A reference to the input parameter `cov`.
+        eta : torch.Tensor
+            A reference to the input parameter `eta`.
+    log_likelihood : torch.Tensor
+        The log likelihood of the last result of shape (...,).
+
+    Notes
+    -----
+    * No verifications are performed for performance reason.
+    &#34;&#34;&#34;
+    mean, cov, eta = gmm
+    llh = log_likelihood(obs, weights, gmm, _check=False)  # (...,)
+    ongoing = torch.ones_like(llh, dtype=bool)  # mask for clusters converging
+
+    for _ in range(1000):  # not while True for security
+        on_weights = None if weights is None else weights[ongoing]
+        new_gmm = _fit_n_clusters_one_step(
+            obs[ongoing], on_weights, (mean[ongoing], cov[ongoing], eta[ongoing])
+        )
+        mean[ongoing], cov[ongoing], eta[ongoing] = new_gmm
+        new_llh = log_likelihood(obs[ongoing], on_weights, new_gmm, _check=False)
+        converged = (   # the mask of the converged clusters
+            new_llh - llh[ongoing] &lt;= 1e-3
+        )
+        llh[ongoing] = new_llh
+        if torch.all(converged):
+            break
+        # we want to do equivalent of ongoing[ongoing][converged] = False
+        ongoing_ = ongoing[ongoing]
+        ongoing_[converged] = False
+        ongoing[ongoing.clone()] = ongoing_
+    else:
+        logging.warning(&#34;some gmm clusters failed to converge after 1000 iterations&#34;)
+
+    return (mean, cov, eta), llh
+
+
+def _fit_n_clusters_serveral_steps_serveral_tries(
+    nbr_tries: int,
+    obs: torch.Tensor,
+    weights: typing.Optional[torch.Tensor],
+    gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+) -&gt; tuple[tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor]:
+    r&#34;&#34;&#34;N steps and serveral tries of the EM algo.
+
+    Keep only the best result for each run.
+
+    Parameters
+    ----------
+    nbr_tries : int
+        The number of times the algo is applied to the same data,
+        but with different random initializations.
+    obs : torch.Tensor
+        The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
+    weights : torch.Tensor, optional
+        The duplication weights of shape (..., \(N\)).
+    gmm : tuple of torch.Tensor
+        * mean : torch.Tensor
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+        * cov : torch.Tensor
+            The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
+        * eta : torch.Tensor
+            The relative mass \(\eta_j\) of shape (..., \(K\)).
+
+    Returns
+    -------
+    gmm : tuple of torch.Tensor
+        mean : torch.Tensor
+            A reference to the input parameter `mean`.
+        cov : torch.Tensor
+            A reference to the input parameter `cov`.
+        eta : torch.Tensor
+            A reference to the input parameter `eta`.
+    log_likelihood : torch.Tensor
+        The log likelihood of the last result of shape (...,).
+
+    Notes
+    -----
+    * No verifications are performed for performance reason.
+    &#34;&#34;&#34;
+    *batch, n_obs, n_var = obs.shape
+    mean, cov, eta = gmm
+    nbr_clusters = eta.shape[-1]
+
+    # draw random initial conditions
+    mean = (  # (n_tries, ..., n_clu, n_var, 1)
+        mean.unsqueeze(-3).unsqueeze(0)
+        + (
+            torch.randn(
+                (nbr_tries, *batch, nbr_clusters, n_var),
+                dtype=obs.dtype, device=obs.device
+            ) @ cov
+        ).unsqueeze(-1)
+    )
+    cov = (  # (n_tries, ..., n_clu, n_var, n_var)
+        cov
+        .unsqueeze(-3).unsqueeze(0)
+        .expand(nbr_tries, *batch, nbr_clusters, n_var, n_var)
+        .clone()
+    )
+    eta = (  # (n_tries, ..., n_clu)
+        eta.unsqueeze(0).expand(nbr_tries, *batch, nbr_clusters).clone()
+    )
+
+    # prepare data for several draw
+    obs = obs.unsqueeze(0).expand(nbr_tries, *batch, n_obs, n_var)
+    if weights is not None:
+        weights = weights.unsqueeze(0).expand(nbr_tries, *batch, n_obs)
+
+    # run em on each cluster and each tries
+    (mean, cov, eta), llh = _fit_n_clusters_serveral_steps(obs, weights, (mean, cov, eta))
+
+    # keep the best
+    if nbr_clusters == 1:
+        mean, cov, eta = mean.unsqueeze(0), cov.unsqueeze(0), eta.unsqueeze(0)
+    else:
+        llh, best = torch.max(llh, dim=0)
+        mean = mean[best, range(mean.shape[1])]
+        cov = cov[best, range(cov.shape[1])]
+        eta = eta[best, range(eta.shape[1])]
+    return (mean, cov, eta), llh
+
+
+def em(
+    obs: torch.Tensor,
+    weights: typing.Optional[torch.Tensor] = None,
+    *,
+    nbr_clusters: numbers.Integral = 1,
+    nbr_tries: numbers.Integral = 2,
+    **metrics,
+) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    r&#34;&#34;&#34;Implement a weighted version of the EM algorithm.
+
+    Parameters
+    ----------
+    obs : arraylike
+        The observations \(\mathbf{x}\). Shape (..., \(N\), \(D\)).
+    weights : arraylike, optional
+        The weights \(\alpha\) has the relative number of time the individual has been drawn.
+        Shape (..., \(N\)).
+    nbr_clusters : int, default=1
+        The number \(K\) of gaussians.
+    nbr_tries : int, default=2
+        The number of times that the algorithm converges
+        in order to have the best possible solution.
+        It is ignored in the case `nbr_clusters` = 1.
+    aic, bic, log_likelihood : boolean, default=False
+        If set to True, the metric is happend into `infodict`.
+
+        * aic: Akaike Information Criterion of shape (...,). \(aic = 2p-2\log(L_{\alpha,\omega})\),
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        * bic: Bayesian Information Criterion of shape (...,).
+        \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        * log_likelihood of shape (...,): \(
+            L_{\alpha,\omega} = \log\left(
+                \prod\limits_{i=1}^N \sum\limits_{j=1}^K
+                \eta_j \left(
+                    \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+                \right)^{\alpha_i}
+            \right)
+        \)
+        * log_likelihood of shape (...,): See ``laueimproc.gmm.metric.log_likelihood``.
+
+    Returns
+    -------
+    mean : torch.Tensor
+        The vectors \(\mathbf{\mu}\). Shape (..., \(K\), \(D\), 1).
+    cov : torch.Tensor
+        The matrices \(\mathbf{\Sigma}\). Shape (..., \(K\), \(D\), \(D\)).
+    eta : torch.Tensor
+        The relative mass \(\eta\). Shape (..., \(K\)).
+    infodict : dict[str]
+        A dictionary of optional outputs.
+    &#34;&#34;&#34;
+    m_name = {&#34;aic&#34;, &#34;bic&#34;, &#34;log_likelihood&#34;}
+
+    # verifications
+    check_infit(obs, weights)
+    assert isinstance(nbr_clusters, numbers.Integral), nbr_clusters.__class__.__name__
+    assert nbr_clusters &gt; 0, nbr_clusters
+    nbr_clusters = int(nbr_clusters)
+    assert isinstance(nbr_tries, numbers.Integral), nbr_tries.__class__.__name__
+    assert nbr_tries &gt; 0, nbr_tries
+    nbr_tries = int(nbr_tries)
+    assert all(isinstance(metrics.get(k, False), bool) for k in metrics), metrics
+    assert set(metrics).issubset(m_name), f&#34;unrecognise parameters {set(metrics)-m_name}&#34;
+
+    # main gmm
+    *batch, _, _ = obs.shape
+    mean, cov = _fit_one_cluster(obs, weights)  # (..., n_var, 1) and (..., n_var, n_var)
+    eta = torch.full((*batch, nbr_clusters), 1.0/nbr_clusters, dtype=obs.dtype, device=obs.device)
+    llh = None
+    if nbr_clusters != 1:
+        (mean, cov, eta), llh = _fit_n_clusters_serveral_steps_serveral_tries(
+            nbr_tries, obs, weights, (mean, cov, eta)
+        )
+    else:  # case one cluster
+        mean = mean.unsqueeze(-3)  # (..., 1, n_var, 1)
+        cov = cov.unsqueeze(-3)  # (..., 1, n_var, n_var)
+        if any(metrics.get(n, False) for n in (&#34;log_likelihood&#34;, &#34;aic&#34;, &#34;bic&#34;)):
+            llh = log_likelihood(obs, weights, (mean, cov, eta), _check=False)
+
+    # finalization
+    infodict = {}
+
+    if any(metrics.get(n, False) for n in (&#34;aic&#34;, &#34;bic&#34;)):
+        aic_bic_ = aic_bic(obs, weights, (mean, cov, eta), _llh=llh, _check=False)
+        if metrics.get(&#34;aic&#34;, False):
+            infodict[&#34;aic&#34;] = aic_bic_[0]
+        if metrics.get(&#34;bic&#34;, False):
+            infodict[&#34;bic&#34;] = aic_bic_[1]
+    if metrics.get(&#34;log_likelihood&#34;, False):
+        infodict[&#34;log_likelihood&#34;] = llh
+
+    # cast
+    return mean, cov, eta, infodict</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="laueimproc.gmm.em.em"><code class="name flex">
+<span>def <span class="ident">em</span></span>(<span>obs: torch.Tensor, weights: Optional[None] = None, *, nbr_clusters: numbers.Integral = 1, nbr_tries: numbers.Integral = 2, **metrics) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Implement a weighted version of the EM algorithm.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>obs</code></strong> :&ensp;<code>arraylike</code></dt>
+<dd>The observations <span><span class="MathJax_Preview">\mathbf{x}</span><script type="math/tex">\mathbf{x}</script></span>. Shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</dd>
+<dt><strong><code>weights</code></strong> :&ensp;<code>arraylike</code>, optional</dt>
+<dd>The weights <span><span class="MathJax_Preview">\alpha</span><script type="math/tex">\alpha</script></span> has the relative number of time the individual has been drawn.
+Shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>).</dd>
+<dt><strong><code>nbr_clusters</code></strong> :&ensp;<code>int</code>, default=<code>1</code></dt>
+<dd>The number <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span> of gaussians.</dd>
+<dt><strong><code>nbr_tries</code></strong> :&ensp;<code>int</code>, default=<code>2</code></dt>
+<dd>The number of times that the algorithm converges
+in order to have the best possible solution.
+It is ignored in the case <code>nbr_clusters</code> = 1.</dd>
+<dt><strong><code>aic</code></strong>, <strong><code>bic</code></strong>, <strong><code>log_likelihood</code></strong> :&ensp;<code>boolean</code>, default=<code>False</code></dt>
+<dd>
+<p>If set to True, the metric is happend into <code>infodict</code>.</p>
+<ul>
+<li>aic: Akaike Information Criterion of shape (&hellip;,). <span><span class="MathJax_Preview">aic = 2p-2\log(L_{\alpha,\omega})</span><script type="math/tex">aic = 2p-2\log(L_{\alpha,\omega})</script></span>,
+<span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the log likelihood.</li>
+<li>bic: Bayesian Information Criterion of shape (&hellip;,).
+<span><span class="MathJax_Preview">bic = \log(N)p-2\log(L_{\alpha,\omega})</span><script type="math/tex">bic = \log(N)p-2\log(L_{\alpha,\omega})</script></span>,
+<span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the log likelihood.</li>
+<li>log_likelihood of shape (&hellip;,): <span><span class="MathJax_Preview">
+L_{\alpha,\omega} = \log\left(
+\prod\limits_{i=1}^N \sum\limits_{j=1}^K
+\eta_j \left(
+\mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+\right)^{\alpha_i}
+\right)
+</span><script type="math/tex">
+L_{\alpha,\omega} = \log\left(
+\prod\limits_{i=1}^N \sum\limits_{j=1}^K
+\eta_j \left(
+\mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+\right)^{\alpha_i}
+\right)
+</script></span></li>
+<li>log_likelihood of shape (&hellip;,): See <code><a title="laueimproc.gmm.metric.log_likelihood" href="metric.html#laueimproc.gmm.metric.log_likelihood">log_likelihood()</a></code>.</li>
+</ul>
+</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The vectors <span><span class="MathJax_Preview">\mathbf{\mu}</span><script type="math/tex">\mathbf{\mu}</script></span>. Shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, 1).</dd>
+<dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The matrices <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span>. Shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</dd>
+<dt><strong><code>eta</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The relative mass <span><span class="MathJax_Preview">\eta</span><script type="math/tex">\eta</script></span>. Shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
+<dt><strong><code>infodict</code></strong> :&ensp;<code>dict[str]</code></dt>
+<dd>A dictionary of optional outputs.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def em(
+    obs: torch.Tensor,
+    weights: typing.Optional[torch.Tensor] = None,
+    *,
+    nbr_clusters: numbers.Integral = 1,
+    nbr_tries: numbers.Integral = 2,
+    **metrics,
+) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    r&#34;&#34;&#34;Implement a weighted version of the EM algorithm.
+
+    Parameters
+    ----------
+    obs : arraylike
+        The observations \(\mathbf{x}\). Shape (..., \(N\), \(D\)).
+    weights : arraylike, optional
+        The weights \(\alpha\) has the relative number of time the individual has been drawn.
+        Shape (..., \(N\)).
+    nbr_clusters : int, default=1
+        The number \(K\) of gaussians.
+    nbr_tries : int, default=2
+        The number of times that the algorithm converges
+        in order to have the best possible solution.
+        It is ignored in the case `nbr_clusters` = 1.
+    aic, bic, log_likelihood : boolean, default=False
+        If set to True, the metric is happend into `infodict`.
+
+        * aic: Akaike Information Criterion of shape (...,). \(aic = 2p-2\log(L_{\alpha,\omega})\),
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        * bic: Bayesian Information Criterion of shape (...,).
+        \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        * log_likelihood of shape (...,): \(
+            L_{\alpha,\omega} = \log\left(
+                \prod\limits_{i=1}^N \sum\limits_{j=1}^K
+                \eta_j \left(
+                    \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+                \right)^{\alpha_i}
+            \right)
+        \)
+        * log_likelihood of shape (...,): See ``laueimproc.gmm.metric.log_likelihood``.
+
+    Returns
+    -------
+    mean : torch.Tensor
+        The vectors \(\mathbf{\mu}\). Shape (..., \(K\), \(D\), 1).
+    cov : torch.Tensor
+        The matrices \(\mathbf{\Sigma}\). Shape (..., \(K\), \(D\), \(D\)).
+    eta : torch.Tensor
+        The relative mass \(\eta\). Shape (..., \(K\)).
+    infodict : dict[str]
+        A dictionary of optional outputs.
+    &#34;&#34;&#34;
+    m_name = {&#34;aic&#34;, &#34;bic&#34;, &#34;log_likelihood&#34;}
+
+    # verifications
+    check_infit(obs, weights)
+    assert isinstance(nbr_clusters, numbers.Integral), nbr_clusters.__class__.__name__
+    assert nbr_clusters &gt; 0, nbr_clusters
+    nbr_clusters = int(nbr_clusters)
+    assert isinstance(nbr_tries, numbers.Integral), nbr_tries.__class__.__name__
+    assert nbr_tries &gt; 0, nbr_tries
+    nbr_tries = int(nbr_tries)
+    assert all(isinstance(metrics.get(k, False), bool) for k in metrics), metrics
+    assert set(metrics).issubset(m_name), f&#34;unrecognise parameters {set(metrics)-m_name}&#34;
+
+    # main gmm
+    *batch, _, _ = obs.shape
+    mean, cov = _fit_one_cluster(obs, weights)  # (..., n_var, 1) and (..., n_var, n_var)
+    eta = torch.full((*batch, nbr_clusters), 1.0/nbr_clusters, dtype=obs.dtype, device=obs.device)
+    llh = None
+    if nbr_clusters != 1:
+        (mean, cov, eta), llh = _fit_n_clusters_serveral_steps_serveral_tries(
+            nbr_tries, obs, weights, (mean, cov, eta)
+        )
+    else:  # case one cluster
+        mean = mean.unsqueeze(-3)  # (..., 1, n_var, 1)
+        cov = cov.unsqueeze(-3)  # (..., 1, n_var, n_var)
+        if any(metrics.get(n, False) for n in (&#34;log_likelihood&#34;, &#34;aic&#34;, &#34;bic&#34;)):
+            llh = log_likelihood(obs, weights, (mean, cov, eta), _check=False)
+
+    # finalization
+    infodict = {}
+
+    if any(metrics.get(n, False) for n in (&#34;aic&#34;, &#34;bic&#34;)):
+        aic_bic_ = aic_bic(obs, weights, (mean, cov, eta), _llh=llh, _check=False)
+        if metrics.get(&#34;aic&#34;, False):
+            infodict[&#34;aic&#34;] = aic_bic_[0]
+        if metrics.get(&#34;bic&#34;, False):
+            infodict[&#34;bic&#34;] = aic_bic_[1]
+    if metrics.get(&#34;log_likelihood&#34;, False):
+        infodict[&#34;log_likelihood&#34;] = llh
+
+    # cast
+    return mean, cov, eta, infodict</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="laueimproc.gmm" href="index.html">laueimproc.gmm</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="laueimproc.gmm.em.em" href="#laueimproc.gmm.em.em">em</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
