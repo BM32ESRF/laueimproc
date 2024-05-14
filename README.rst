@@ -20,66 +20,37 @@ Using **general image processing** tools, it classifies and gives some scores to
 Installation
 ============
 
+Refer to the ``installation`` tab in the documentation.
 
-It is preferable to install LaueImProc in a virtual environment. Please refer to the `pyenv installation guide <https://github.com/pyenv/pyenv>`_. It is possible to use ``python3-venv`` or ``conda`` as well.
-
-Dependencies
-------------
-
-If you have a GPU, please install CUDA or ROC then follow the `PyTorch installation guide <https://pytorch.org/>`_. Without CUDA or ROC, the module is not able to use the GPU (CPU only).
-
-
-Basic Installation
-^^^^^^^^^^^^^^^^^^
-
-.. note::
-
-    The project is not yet on pypi! Please install it from source.
-
-
-Building From Source
-^^^^^^^^^^^^^^^^^^^^
-
-To install the lastest development version from `GitHub <https://github.com/BM32ESRF/laueimproc>`_ source, clone LaueImProc using ``git`` and install it using ``pip``:
+To access a pre-built documentation, clone the repository then open the ``index.html`` file with a local browser:
 
 .. code::
 
     git clone https://github.com/BM32ESRF/laueimproc.git
-    cd laueimproc/
-    pip install --upgrade pip setuptools wheel numpy
-    pip -v install --no-build-isolation --editable .[all]
-
-Then, you can generate the documentation:
-
-.. code::
-
-    find laueimproc/ -name *.so -exec rm {} \;
-    cd doc/
-    make clean && make html
-    firefox build/html/index.html
-    cd -
+    firefox laueimproc/doc/build/html/index.html
 
 
 Example
 =======
 
-There are a lot of jupyter-notebook examples in the folder ``notebooks``.
+There are a lot of jupyter-notebook examples in the folder ``notebooks`` and a lot of atomic example are directly written in the docstrings.
 
 .. code:: python
 
     import matplotlib.pyplot as plt
-    import torch
-    from laueimproc.io.download import get_samples
-    from laueimproc import Diagram
+    from laueimproc import Diagram, DiagramsDataset
+    from laueimproc.io import get_samples
 
-    files = list(get_samples().iterdir())
-    diagrams = [Diagram(f) for f in files]
-    for diagram in diagrams:
-        diagram.find_spots()
-    for diagram in diagrams:
-        intensities = diagram.compute_pxl_intensities()
-        if intensities.shape[0]:
-            indices = torch.argsort(intensities, descending=True)[:10]
-            diagram.filter_spots(indices)
-        print(diagram)
-        diagram.plot(plt.figure(layout="tight")); plt.show()
+    def init(diag: Diagram) -> int:
+        """Find the spots and sorted it by intensities."""
+        diag.find_spots()  # peaks search
+        diag.filter_spots(diag.compute_rois_sum().argsort(descending=True))  # sorted
+        return len(diag)  # nbr of peaks
+
+    diagrams = DiagramsDataset(get_samples())  # create an ordered diagram dataset
+    diagrams[:10].apply(init)  # init the 10 first diagrams
+
+    diagrams[6].plot(plt.figure(layout="tight")); plt.show()
+
+.. image:: https://github.com/BM32ESRF/laueimproc/doc/images/diag_06.avif
+    :alt: matplotlib figure of diagram 6
