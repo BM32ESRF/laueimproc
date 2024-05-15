@@ -223,7 +223,9 @@ def find_bboxes(
     assert max_size >= 1, max_size
 
     if use_cv2:
-        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        contours, _ = (  # pylint: disable=E0633
+            cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        )
         bboxes = [
             [i, j, h, w] for j, i, w, h in map(  # cv2 to numpy convention
                 cv2.boundingRect, contours

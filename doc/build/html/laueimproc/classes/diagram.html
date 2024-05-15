@@ -77,7 +77,6 @@ class Diagram(BaseDiagram):
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         from laueimproc.improc.spot.basic import compute_rois_centroid
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_centroid(data, bboxes, **_kwargs)
@@ -111,7 +110,6 @@ class Diagram(BaseDiagram):
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         from laueimproc.improc.spot.basic import compute_rois_max
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_max(data, bboxes, **_kwargs)
@@ -155,7 +153,6 @@ class Diagram(BaseDiagram):
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         from laueimproc.improc.spot.extrema import compute_rois_nb_peaks
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_nb_peaks(data, bboxes, **_kwargs)
@@ -188,7 +185,6 @@ class Diagram(BaseDiagram):
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         from laueimproc.improc.spot.pca import compute_rois_pca
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_pca(data, bboxes, **_kwargs)
@@ -221,7 +217,6 @@ class Diagram(BaseDiagram):
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         from laueimproc.improc.spot.basic import compute_rois_sum
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_sum(data, bboxes, **_kwargs)
@@ -458,7 +453,6 @@ For memory management, it is better to provide a pathlike rather than an array.<
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         from laueimproc.improc.spot.basic import compute_rois_centroid
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_centroid(data, bboxes, **_kwargs)
@@ -492,7 +486,6 @@ For memory management, it is better to provide a pathlike rather than an array.<
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         from laueimproc.improc.spot.basic import compute_rois_max
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_max(data, bboxes, **_kwargs)
@@ -536,7 +529,6 @@ For memory management, it is better to provide a pathlike rather than an array.<
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         from laueimproc.improc.spot.extrema import compute_rois_nb_peaks
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_nb_peaks(data, bboxes, **_kwargs)
@@ -569,7 +561,6 @@ For memory management, it is better to provide a pathlike rather than an array.<
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         from laueimproc.improc.spot.pca import compute_rois_pca
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_pca(data, bboxes, **_kwargs)
@@ -602,7 +593,6 @@ For memory management, it is better to provide a pathlike rather than an array.<
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         from laueimproc.improc.spot.basic import compute_rois_sum
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_sum(data, bboxes, **_kwargs)
@@ -846,7 +836,6 @@ def compute_rois_centroid(self, **_kwargs) -&gt; torch.Tensor:
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     from laueimproc.improc.spot.basic import compute_rois_centroid
-    self.flush()
     with self._rois_lock:
         data, bboxes = self._rois
     return compute_rois_centroid(data, bboxes, **_kwargs)</code></pre>
@@ -911,7 +900,6 @@ def compute_rois_max(self, **_kwargs) -&gt; torch.Tensor:
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     from laueimproc.improc.spot.basic import compute_rois_max
-    self.flush()
     with self._rois_lock:
         data, bboxes = self._rois
     return compute_rois_max(data, bboxes, **_kwargs)</code></pre>
@@ -995,7 +983,6 @@ def compute_rois_nb_peaks(self, **_kwargs) -&gt; torch.Tensor:
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     from laueimproc.improc.spot.extrema import compute_rois_nb_peaks
-    self.flush()
     with self._rois_lock:
         data, bboxes = self._rois
     return compute_rois_nb_peaks(data, bboxes, **_kwargs)</code></pre>
@@ -1059,7 +1046,6 @@ def compute_rois_pca(self, **_kwargs) -&gt; torch.Tensor:
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     from laueimproc.improc.spot.pca import compute_rois_pca
-    self.flush()
     with self._rois_lock:
         data, bboxes = self._rois
     return compute_rois_pca(data, bboxes, **_kwargs)</code></pre>
@@ -1123,7 +1109,6 @@ def compute_rois_sum(self, **_kwargs) -&gt; torch.Tensor:
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     from laueimproc.improc.spot.basic import compute_rois_sum
-    self.flush()
     with self._rois_lock:
         data, bboxes = self._rois
     return compute_rois_sum(data, bboxes, **_kwargs)</code></pre>
@@ -1440,7 +1425,6 @@ def fit_gaussians_em(
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.file" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.file">file</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.filter_spots" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.filter_spots">filter_spots</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.find_spots" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.find_spots">find_spots</a></code></li>
-<li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.flush" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.flush">flush</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.get_property" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.get_property">get_property</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.history" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.history">history</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.image" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.image">image</a></code></li>

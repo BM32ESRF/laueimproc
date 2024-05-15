@@ -36,7 +36,7 @@ def check_init(meth: typing.Callable) -> typing.Callable:
         if not diagram.is_init():
             raise RuntimeError(
                 f"before calling the {meth} diagram method, initialize the diagram "
-                f"{repr(diagram)} by invoking 'find_spots' for example"
+                f"{repr(diagram)} by invoking 'find_spots' or 'set_spots'"
             )
         return meth(diagram, *args, **kwargs)
 
@@ -64,7 +64,7 @@ class BaseDiagram:
         Contrary to `self.rois`, it is only a view of `self.image`.
     rois : torch.Tensor or None
         The tensor of the provided regions of interest for each spots (readonly).
-        For writing, use `self.spots = ...`.
+        For writing, use `self.find_spost(...)` or  `self.set_spots(...)`.
         Return None until spots are initialized. The shape is (n, h, w).
     """
 
@@ -87,7 +87,6 @@ class BaseDiagram:
             threading.Lock(), {}
         )
         self._file_or_data: typing.Union[pathlib.Path, torch.Tensor]  # the path to the image file
-        self._find_spots_kwargs: typing.Optional[dict] = None  # the kwargs
         self._history: list[str] = []  # the history of the actions performed
         self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
         self._rois: typing.Optional[tuple[bytearray, torch.Tensor]] = None  # datarois, bboxes
@@ -115,7 +114,6 @@ class BaseDiagram:
             with self._cache[0]:
                 return (
                     self._file_or_data,
-                    self._find_spots_kwargs,
                     self._history,
                     self._properties,
                     rois,
@@ -123,7 +121,6 @@ class BaseDiagram:
                 )
         return (
             self._file_or_data,
-            self._find_spots_kwargs,
             self._history,
             self._properties,
             rois,
@@ -144,7 +141,6 @@ class BaseDiagram:
         240
         >>>
         """
-        self.flush()
         try:  # it doesn't matter if acces is not thread safe
             return len(self._rois[1])
         except TypeError:
@@ -189,11 +185,10 @@ class BaseDiagram:
         # because this method is never meant to be call from a thread.
         (
             self._file_or_data,
-            self._find_spots_kwargs,
             self._history,
             self._properties,
             self._rois,
-        ) = state[:5]
+        ) = state[:4]
         self._cache = (threading.Lock(), (state[5] if len(state) == 6 else {}))
         self._rois_lock = threading.Lock()
         DiagramManager().add_diagram(self)
@@ -255,84 +250,6 @@ class BaseDiagram:
         text += f"\n        * total mem: {bytes2human(size)}"
         return text
 
-    def _find_spots(self, **kwargs):
-        """Real version of `find_spots`."""
-        datarois, bboxes = peaks_search(self.image, **kwargs)
-        with self._rois_lock:
-            self._rois = (datarois, bboxes)
-        kwargs_str = ", ".join(f"{k}={repr(v)}" for k, v in kwargs.items())
-        self._history = [f"{len(self)} spots from self.find_spots({kwargs_str})"]
-
-    def _set_spots_from_anchors_rois(self, anchors: torch.Tensor, rois: list[torch.Tensor]):
-        """Set the new spots from anchors and regions of interest.
-
-        Examples
-        --------
-        >>> import itertools, random
-        >>> import numpy as np
-        >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> from laueimproc.io import get_sample
-        >>> diagram = BaseDiagram(get_sample())
-        >>> anchors = list(  # numpy convention
-        ...     itertools.product(range(15, min(diagram.image.shape)-30, 200), repeat=2)
-        ... )
-        >>> rois = [  # roi patches, as little images
-        ...     np.empty((random.randint(5, 30), random.randint(5, 30)), np.uint16)
-        ...     for _ in anchors
-        ... ]
-        >>> diagram.set_spots((anchors, rois))
-        >>> len(diagram)
-        100
-        >>> diagram.rois.min() >= 0 and diagram.rois.max() <= 1  # range in [0, 1]
-        tensor(True)
-        >>>
-        """
-        if anchors.shape[0]:
-            bboxes = torch.tensor(
-                [(i, j, *roi.shape) for (i, j), roi in zip(anchors.tolist(), rois)],
-                dtype=torch.int16,
-            )
-            flat_rois = np.concatenate(
-                [
-                    roi.numpy(force=True).ravel()
-                    for roi, (h, w) in zip(rois, bboxes[:, 2:].tolist())
-                ],
-            ).astype(np.float32, copy=False)  # not 100% shure float32
-            datarois = bytearray(flat_rois.tobytes())
-        else:
-            bboxes = torch.empty((0, 4), dtype=torch.int16)
-            datarois = bytearray(b"")
-        with self._rois_lock:
-            self._rois = (datarois, bboxes)
-        self._history = [f"{len(self)} spots from external anchors and rois"]
-        self._find_spots_kwargs = None
-
-    def _set_spots_from_bboxes(self, bboxes: torch.Tensor):
-        """Set the new spots from bboxes, in a cleared diagram.
-
-        Examples
-        --------
-        >>> import itertools, random
-        >>> from laueimproc.classes.base_diagram import BaseDiagram
-        >>> from laueimproc.io import get_sample
-        >>> diagram = BaseDiagram(get_sample())
-        >>> bboxes = [  # numpy convention (*anchor, *shape)
-        ...     (i, j, random.randint(5, 30), random.randint(5, 30))
-        ...     for i, j in itertools.product(range(15, min(diagram.image.shape)-30, 200), repeat=2)
-        ... ]
-        >>> diagram.set_spots(bboxes)
-        >>> len(diagram)
-        100
-        >>> diagram.rois.min() >= 0 and diagram.rois.max() <= 1  # range in [0, 1]
-        tensor(True)
-        >>>
-        """
-        datarois = imgbboxes2raw(self.image, bboxes)
-        with self._rois_lock:
-            self._rois = (datarois, bboxes)
-        self._history = [f"{len(self)} spots from external bboxes"]
-        self._find_spots_kwargs = None
-
     def add_property(self, name: str, value: object, *, erasable: bool = True):
         """Add a property to the diagram.
 
@@ -376,7 +293,6 @@ class BaseDiagram:
         """
         if not self.is_init():
             return None
-        self.flush()
         with self._rois_lock:
             bboxes = self._rois[1]
         return bboxes.clone()
@@ -544,7 +460,7 @@ class BaseDiagram:
             criteria = criteria.to(torch.int64)
 
         # manage inplace
-        nb_spots = len(self)  # flush in background
+        nb_spots = len(self)
         if not inplace:
             self = self.clone()  # pylint: disable=W0642
 
@@ -565,15 +481,11 @@ class BaseDiagram:
         kwargs : dict
             Transmitted to ``laueimproc.improc.peaks_search.peaks_search``.
         """
-        self._find_spots_kwargs = kwargs
-        self._history = ["x spots from self.find_spots(...)"]  # gonna be updated by _find_spots
+        datarois, bboxes = peaks_search(self.image, **kwargs)
         with self._rois_lock:
-            self._rois = None
-
-    def flush(self):
-        """Perform all pending calculations."""
-        if self._rois is None and self._find_spots_kwargs is not None:
-            self._find_spots(**self._find_spots_kwargs)
+            self._rois = (datarois, bboxes)
+        kwargs_str = ", ".join(f"{k}={repr(v)}" for k, v in kwargs.items())
+        self._history = [f"{len(self)} spots from self.find_spots({kwargs_str})"]
 
     def get_property(self, name: str) -> object:
         """Return the property associated to te given id.
@@ -639,9 +551,6 @@ class BaseDiagram:
     @property
     def history(self) -> list[str]:
         """Return the actions performed on the Diagram since the initialisation."""
-        if not self.is_init():
-            return []
-        self.flush()
         return self._history.copy()  # copy for user protection
 
     def is_init(self) -> bool:
@@ -657,12 +566,9 @@ class BaseDiagram:
         >>> diagram.find_spots()
         >>> diagram.is_init()
         True
-        >>> diagram.flush()
-        >>> diagram.is_init()
-        True
         >>>
         """
-        return self._rois is not None or self._find_spots_kwargs is not None
+        return self._rois is not None
 
     @property
     def image(self) -> torch.Tensor:
@@ -798,7 +704,6 @@ class BaseDiagram:
         """Return the tensor of the raw rois of the spots."""
         if not self.is_init():
             return None
-        self.flush()
         with self._rois_lock:
             _, bboxes = self._rois
         return rawshapes2rois(imgbboxes2raw(self.image, bboxes), bboxes[:, 2:])
@@ -823,70 +728,116 @@ class BaseDiagram:
         """
         if not self.is_init():
             return None
-        self.flush()
         with self._rois_lock:
             datarois, bboxes = self._rois
         return rawshapes2rois(datarois, bboxes[:, 2:])
 
-    def set_spots(self, new_spots: typing.Container) -> None:
+    def set_spots(self, *new_spots: tuple) -> None:
         """Set the new spots as the current spots, reset the history and the cache.
 
         Paremeters
         ----------
-        new_spots : typing.Container
-            * Can be an iterable (list, tuple, set, ...).
-            * Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width)
-            * Can be a tuple of anchors (arraylike of shape n * (anchor_i, anchor_i))
-                and rois (iterable of images patches).
-            * Can be None for reset all (same as calling the `reset` method)
+        new_spots : tuple
+            Can be an over diagram of type Diagram.
+            Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
+            Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
+            It can also be a combination of the above elements to unite the spots.
+
+        Examples
+        --------
+        >>> import torch
+        >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
+        >>>
+        >>> # from diagram
+        >>> diagram_ref = BaseDiagram(get_sample())
+        >>> diagram_ref.find_spots()
+        >>> diagram_ref.filter_spots(range(10))
+        >>>
+        >>> # from bboxes
+        >>> bboxes = [[300, 500, 10, 15], [600, 700, 20, 15]]
+        >>>
+        >>> # from anchor and roi
+        >>> spots = [[400, 600, torch.zeros((10, 15))], [700, 800, torch.zeros((20, 15))]]
+        >>>
+        >>> # union of the spots
+        >>> diagram = BaseDiagram(get_sample())
+        >>> diagram.set_spots(diagram_ref, bboxes, spots)
+        >>> len(diagram)
+        14
+        >>>
         """
-        assert hasattr(new_spots, "__iter__"), new_spots.__class__.__name__
+        datarois_l, bboxes_l = [], []
 
-        # clear history and internal state (self._rois is cleared later)
-        with self._cache[0]:
-            self._cache[1].clear()
-        self._history = []
+        def unfold(iterable):
+            if (
+                isinstance(iterable, (set, frozenset))
+                or (
+                    isinstance(iterable, (tuple, list))
+                    and not (
+                        (  # bboxes
+                            len(iterable) == 4
+                            and all(isinstance(e, numbers.Integral) for e in iterable)
+                        )
+                        or (  # anchor, roi
+                            len(iterable) == 3
+                            and isinstance(iterable[0], numbers.Integral)
+                            and isinstance(iterable[1], numbers.Integral)
+                            and isinstance(iterable[2], (np.ndarray, torch.Tensor))
+                        )
+                    )
+                )
+            ):
+                yield from (item_ for item in iterable for item_ in unfold(item))
+            else:
+                yield iterable
 
-        # case tensor
-        if isinstance(new_spots, np.ndarray):
-            new_spots = new_spots.from_numpy(new_spots)
-        if isinstance(new_spots, torch.Tensor):
-            if new_spots.dtype.is_floating_point:
-                new_spots = new_spots.to(torch.int16)
-            if new_spots.ndim == 2 and new_spots.shape[1] == 4:  # case from bounding boxes
-                return self._set_spots_from_bboxes(new_spots)
-            raise NotImplementedError(
-                f"impossible to set new spots from an array of shape {new_spots.shape}, "
-                "if has to be of shape (n, 4) for bounding boxes"
-            )
+        # extract datarois and anchors
+        for item in unfold(new_spots):
+            if (
+                isinstance(item, BaseDiagram)  # case diagram
+                and (datarois_bboxes := item._rois) is not None  # pylint: disable=W0212
+            ):
+                datarois_l.append(datarois_bboxes[0])
+                bboxes_l.append(datarois_bboxes[1])
+                continue
+            item = torch.from_numpy(item) if isinstance(item, np.ndarray) else item
+            if isinstance(item, (tuple, list)) and len(item) == 4:  # case bbox
+                item = torch.asarray([item], dtype=torch.int16)
+            if (
+                isinstance(item, torch.Tensor)
+                and item.ndim == 2
+                and item.shape[1] == 4
+                and not (item.dtype.is_complex or item.dtype.is_floating_point)
+            ):  # case bboxes
+                item = item.to(torch.int16)
+                datarois_l.append(imgbboxes2raw(self.image, item))
+                bboxes_l.append(item)
+                continue
+            if isinstance(item, (tuple, list)):  # case anchor and roi
+                datarois = item[2]
+                datarois = to_floattensor(datarois)
+                if isinstance(datarois, torch.Tensor):
+                    datarois = datarois.numpy(force=True)
+                datarois = datarois.astype(np.float32, copy=False)
+                assert datarois.ndim == 2, datarois.shape
+                bboxes_l.append(torch.asarray([[*item[:2], *datarois.shape]], dtype=torch.int16))
+                datarois_l.append(bytearray(datarois.ravel().tobytes()))
+                continue
 
-        # preparation of data
-        if not isinstance(new_spots, list):
-            new_spots = list(new_spots)  # freeze the order
+            raise ValueError(f"impossible to set new spots from {item}")
 
-        # case from anchors, rois
-        if (
-            len(new_spots) == 2
-            and isinstance(new_spots[0], (list, tuple, np.ndarray, torch.Tensor))
-            and isinstance(new_spots[1], (list, tuple))
-            and len(new_spots[0]) == len(new_spots[1])
-        ):
-            if not isinstance(new_spots[0], torch.Tensor):  # no torch.as_array memory leak
-                new_spots[0] = torch.asarray(new_spots[0], dtype=torch.int16)
-            anchors = new_spots[0]
-            rois = [to_floattensor(roi) for roi in new_spots[1]]
-            return self._set_spots_from_anchors_rois(anchors, rois)
-
-        # case tensor (recursive delegation)
-        cls = {s.__class__ for s in new_spots}
-        if len(cls) == 1 and issubclass(next(iter(cls)), (list, tuple)):
-            return self.set_spots(torch.tensor(new_spots, dtype=torch.int16))
-
-        raise NotImplementedError(
-            f"impossible to set new spots from {new_spots}, "
-            "it has to be a container of Spot instance "
-            "or a container of bounding boxes"
-        )
+        # replace old spots by the new one
+        datarois = bytearray(b"").join(datarois_l)
+        if bboxes_l:
+            device = {bboxes.device for bboxes in bboxes_l}
+            device = device.pop() if len(device) == 1 else "cpu"
+            bboxes = torch.cat([bboxes.to(device) for bboxes in bboxes_l], axis=0)
+        else:
+            bboxes = torch.empty((0, 4), dtype=torch.int16)
+        with self._rois_lock:
+            self._rois = (datarois, bboxes)
+        self._history = [f"{len(self)} spots from set_spots(...)"]
 
     @property
     def state(self) -> str:
@@ -902,10 +853,10 @@ class BaseDiagram:
         >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
         >>> diagram.state
-        '3e50c54ac44f75f23d8f5c3170d5ecfb'
+        '9570d3b8743757aa3bf89a42bc4911de'
         >>> diagram.find_spots()
         >>> diagram.state
-        '58291975dd11f34db66378d50e8a87f1'
+        '539428b799f2640150aab633de49b695'
         >>>
         """
         hasher = hashlib.md5(usedforsecurity=False)
@@ -913,6 +864,5 @@ class BaseDiagram:
             hasher.update(str(self._file_or_data.name).encode())
         else:
             hasher.update(id(self._file_or_data).to_bytes(8, "big"))
-        hasher.update(str(self._find_spots_kwargs).encode())  # order same since python3.7
-        hasher.update("\n".join(self._history[1:]).encode())
+        hasher.update("\n".join(self._history).encode())
         return hasher.hexdigest()

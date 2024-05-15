@@ -183,6 +183,7 @@ Install jupyter notebook
 .. code::
 
     pip install ipython jupyter notebook
+    pip install ipympl  # for matplotlib
     # jupyter-notebook
 
 

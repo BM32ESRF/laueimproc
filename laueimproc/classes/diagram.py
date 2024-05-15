@@ -47,7 +47,6 @@ class Diagram(BaseDiagram):
         >>>
         """
         from laueimproc.improc.spot.basic import compute_rois_centroid
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_centroid(data, bboxes, **_kwargs)
@@ -81,7 +80,6 @@ class Diagram(BaseDiagram):
         >>>
         """
         from laueimproc.improc.spot.basic import compute_rois_max
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_max(data, bboxes, **_kwargs)
@@ -125,7 +123,6 @@ class Diagram(BaseDiagram):
         >>>
         """
         from laueimproc.improc.spot.extrema import compute_rois_nb_peaks
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_nb_peaks(data, bboxes, **_kwargs)
@@ -158,7 +155,6 @@ class Diagram(BaseDiagram):
         >>>
         """
         from laueimproc.improc.spot.pca import compute_rois_pca
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_pca(data, bboxes, **_kwargs)
@@ -191,7 +187,6 @@ class Diagram(BaseDiagram):
         >>>
         """
         from laueimproc.improc.spot.basic import compute_rois_sum
-        self.flush()
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_sum(data, bboxes, **_kwargs)
