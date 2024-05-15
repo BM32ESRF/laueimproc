@@ -63,74 +63,74 @@ def associate_spots(
     return pair
 
 
-def group_spots(
-    spot_to_diags: dict[int, set[int]],
-    eps: numbers.Real = 0.25,
-    min_samples: numbers.Integral = 3,
-) -> dict[int, set[int]]:
-    """Group the spots sharing the same set of diagrams.
+# def group_spots(
+#     spot_to_diags: dict[int, set[int]],
+#     eps: numbers.Real = 0.25,
+#     min_samples: numbers.Integral = 3,
+# ) -> dict[int, set[int]]:
+#     """Group the spots sharing the same set of diagrams.
 
-    Parameters
-    ----------
-    spot_to_diags : dict[int, set[int]]
-        To each spot index, associate the set of diagram indices, containg the spot.
-    eps : float
-        The maximum distance between two set of diagrams to consider they share the same cluster.
-    min_samples : int
-        The minimum cardinal of a cluster.
+#     Parameters
+#     ----------
+#     spot_to_diags : dict[int, set[int]]
+#         To each spot index, associate the set of diagram indices, containg the spot.
+#     eps : float
+#         The maximum distance between two set of diagrams to consider they share the same cluster.
+#     min_samples : int
+#         The minimum cardinal of a cluster.
 
-    Returns
-    -------
-    clusters : dict[int, set[int]]
-        To each cluster label, associate the set of spots labels.
+#     Returns
+#     -------
+#     clusters : dict[int, set[int]]
+#         To each cluster label, associate the set of spots labels.
 
-    Examples
-    --------
-    >>> from pprint import pprint
-    >>> from laueimproc.clustering.spot_dist import group_spots
-    >>> spot_to_diag = {
-    ...     0: {0, 1, 4},
-    ...     1: {0, 1, 4},
-    ...     2: {1, 2, 4, 5},
-    ...     3: {1, 2, 3, 4, 5},
-    ...     4: {2, 3, 4, 5},
-    ...     5: {0, 1, 2, 3, 4, 5},
-    ...     6: {0, 1, 2, 4, 5},
-    ... }
-    >>> pprint(group_spots(spot_to_diag, eps=0.17, min_samples=2))
-    {0: {0, 1}, 1: {3, 5, 6}}
-    >>>
-    """
-    assert isinstance(eps, numbers.Real), eps.__class__.__name__
-    assert 0 <= eps < 1, eps
-    assert isinstance(min_samples, numbers.Integral), min_samples
-    assert min_samples >= 1, min_samples
+#     Examples
+#     --------
+#     >>> from pprint import pprint
+#     >>> from laueimproc.clustering.spot_dist import group_spots
+#     >>> spot_to_diag = {
+#     ...     0: {0, 1, 4},
+#     ...     1: {0, 1, 4},
+#     ...     2: {1, 2, 4, 5},
+#     ...     3: {1, 2, 3, 4, 5},
+#     ...     4: {2, 3, 4, 5},
+#     ...     5: {0, 1, 2, 3, 4, 5},
+#     ...     6: {0, 1, 2, 4, 5},
+#     ... }
+#     >>> pprint(group_spots(spot_to_diag, eps=0.17, min_samples=2))
+#     {0: {0, 1}, 1: {3, 5, 6}}
+#     >>>
+#     """
+#     assert isinstance(eps, numbers.Real), eps.__class__.__name__
+#     assert 0 <= eps < 1, eps
+#     assert isinstance(min_samples, numbers.Integral), min_samples
+#     assert min_samples >= 1, min_samples
 
-    from sklearn.cluster import DBSCAN
+#     from sklearn.cluster import DBSCAN
 
-    # compute the matrix of distances, using the Jaccard norm
-    dist_matrix = np.zeros((len(spot_to_diags), len(spot_to_diags)), dtype=np.float32)
-    spot_labels = list(spot_to_diags)
-    diag_sets = [spot_to_diags[s] for s in spot_labels]  # not .values() for order
-    for i, set_1 in enumerate(diag_sets[:-1]):
-        for j, set_2 in zip(range(i+1, len(diag_sets)), diag_sets[i+1:]):
-            inter_len = float(len(set_1 & set_2))
-            dist_matrix[i, j] = 1.0 - (inter_len / (len(set_1) + len(set_2) - inter_len))
-    dist_matrix += dist_matrix.transpose()
+#     # compute the matrix of distances, using the Jaccard norm
+#     dist_matrix = np.zeros((len(spot_to_diags), len(spot_to_diags)), dtype=np.float32)
+#     spot_labels = list(spot_to_diags)
+#     diag_sets = [spot_to_diags[s] for s in spot_labels]  # not .values() for order
+#     for i, set_1 in enumerate(diag_sets[:-1]):
+#         for j, set_2 in zip(range(i+1, len(diag_sets)), diag_sets[i+1:]):
+#             inter_len = float(len(set_1 & set_2))
+#             dist_matrix[i, j] = 1.0 - (inter_len / (len(set_1) + len(set_2) - inter_len))
+#     dist_matrix += dist_matrix.transpose()
 
-    # clustering
-    lbls = DBSCAN(
-        eps=eps, min_samples=min_samples, metric="precomputed", n_jobs=-1
-    ).fit_predict(dist_matrix)
+#     # clustering
+#     lbls = DBSCAN(
+#         eps=eps, min_samples=min_samples, metric="precomputed", n_jobs=-1
+#     ).fit_predict(dist_matrix)
 
-    # cast result
-    clusters = {}
-    for i, lbl in enumerate(lbls.tolist()):
-        if lbl == -1:
-            continue
-        clusters[lbl] = clusters.get(lbl, set())
-        clusters[lbl].add(spot_labels[i])
-    return clusters
+#     # cast result
+#     clusters = {}
+#     for i, lbl in enumerate(lbls.tolist()):
+#         if lbl == -1:
+#             continue
+#         clusters[lbl] = clusters.get(lbl, set())
+#         clusters[lbl].add(spot_labels[i])
+#     return clusters
 
 
 def spotslabel_to_diag(labels: dict[int, torch.Tensor]) -> dict[int, set[int]]:

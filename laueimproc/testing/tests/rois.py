@@ -18,6 +18,7 @@ def test_memory_imgbboxes2raw():
     bboxes = torch.zeros((1000, 4), dtype=torch.int16)
     bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
 
+    snapshot1 = None
     tracemalloc.start()
     for i in range(100):
         img_cpy, bboxes_cpy = img.clone(), bboxes.clone()
@@ -43,6 +44,7 @@ def test_memory_filter_by_indices():
         np.linspace(0, 1, (bboxes[:, 2]*bboxes[:, 3]).sum(), dtype=np.float32).tobytes()
     )
 
+    snapshot1 = None
     tracemalloc.start()
     for i in range(100):
         indices_cpy, data_cpy, bboxes_cpy = indices.clone(), data.copy(), bboxes.clone()

@@ -178,12 +178,12 @@ Create the virtual environement.
     pyenv virtualenv 3.12 laueenv
     pyenv activate laueenv
 
-Install jupter notebook
+Install jupyter notebook
 
 .. code::
 
     pip install ipython jupyter notebook
-    jupyter-notebook &
+    # jupyter-notebook
 
 
 Installation with pip
@@ -221,7 +221,9 @@ For running tests, some dependencies are requiered, you can install it passing t
 
 .. code::
 
-    python -m laueimproc test  # or laueimproc-test
+    laueimproc test
+
+If it segfault, maybe the problem comes from c-files, you can delete it with ``find laueimproc/ -name *.so -exec rm {} \;``.
 
 
 Platform Support
@@ -236,5 +238,7 @@ The tests were successful for teses configurations.
 +----------------------------------+------------------------+-------------------------+
 | Operating system                 | Tested Python versions | Tested architecture     |
 +==================================+========================+=========================+
-| Linux Mint 21.3                  | 3.9, 3.10, 3.11        | x86-64                  |
+| Linux Mint 21.3                  | 3.11                   | x86-64                  |
++----------------------------------+------------------------+-------------------------+
+| Ubuntu 22.04                     | 3.12                   | x86-64 13th gen core i7 |
 +----------------------------------+------------------------+-------------------------+
