@@ -51,7 +51,7 @@ from laueimproc.common import bytes2human
 from laueimproc.improc.peaks_search import peaks_search
 from laueimproc.io.read import read_image, to_floattensor
 from laueimproc.opti.cache import getsizeof
-from laueimproc.opti.manager import DiagramManager
+from laueimproc.opti.manager import CacheManager
 from laueimproc.opti.rois import filter_by_indices
 from laueimproc.opti.rois import imgbboxes2raw
 from laueimproc.opti.rois import rawshapes2rois
@@ -134,7 +134,7 @@ class BaseDiagram:
             assert self._file_or_data.ndim == 2, self._file_or_data.shape
 
         # track
-        DiagramManager().add_diagram(self)
+        CacheManager().add_diagram(self)
 
     def __getstate__(self, cache: bool = False):
         &#34;&#34;&#34;Make the diagram pickleable.&#34;&#34;&#34;
@@ -221,7 +221,7 @@ class BaseDiagram:
         ) = state[:4]
         self._cache = (threading.Lock(), (state[5] if len(state) == 6 else {}))
         self._rois_lock = threading.Lock()
-        DiagramManager().add_diagram(self)
+        CacheManager().add_diagram(self)
 
     def __str__(self) -&gt; str:
         &#34;&#34;&#34;Return a nice sumary of the history of this diagram.
@@ -1035,7 +1035,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
             assert self._file_or_data.ndim == 2, self._file_or_data.shape
 
         # track
-        DiagramManager().add_diagram(self)
+        CacheManager().add_diagram(self)
 
     def __getstate__(self, cache: bool = False):
         &#34;&#34;&#34;Make the diagram pickleable.&#34;&#34;&#34;
@@ -1122,7 +1122,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         ) = state[:4]
         self._cache = (threading.Lock(), (state[5] if len(state) == 6 else {}))
         self._rois_lock = threading.Lock()
-        DiagramManager().add_diagram(self)
+        CacheManager().add_diagram(self)
 
     def __str__(self) -&gt; str:
         &#34;&#34;&#34;Return a nice sumary of the history of this diagram.

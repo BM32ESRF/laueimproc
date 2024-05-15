@@ -2,7 +2,7 @@
 
 """Provide various tools for improving the efficiency of laueimproc."""
 
-__all__ = ["collect", "DiagramManager"]
+__all__ = ["collect", "CacheManager"]
 
 
-from .manager import collect, DiagramManager
+from .cache import collect, CacheManager

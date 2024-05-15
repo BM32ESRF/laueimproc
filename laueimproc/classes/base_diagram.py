@@ -20,8 +20,7 @@ import torch
 from laueimproc.common import bytes2human
 from laueimproc.improc.peaks_search import peaks_search
 from laueimproc.io.read import read_image, to_floattensor
-from laueimproc.opti.cache import getsizeof
-from laueimproc.opti.manager import DiagramManager
+from laueimproc.opti.cache import CacheManager, getsizeof
 from laueimproc.opti.rois import filter_by_indices
 from laueimproc.opti.rois import imgbboxes2raw
 from laueimproc.opti.rois import rawshapes2rois
@@ -102,9 +101,6 @@ class BaseDiagram:
             warnings.warn("please provide a path rather than an array", RuntimeWarning)
             self._file_or_data = to_floattensor(data)
             assert self._file_or_data.ndim == 2, self._file_or_data.shape
-
-        # track
-        DiagramManager().add_diagram(self)
 
     def __getstate__(self, cache: bool = False):
         """Make the diagram pickleable."""
@@ -189,9 +185,9 @@ class BaseDiagram:
             self._properties,
             self._rois,
         ) = state[:4]
-        self._cache = (threading.Lock(), (state[5] if len(state) == 6 else {}))
+        self._cache = (threading.Lock(), (state[4] if len(state) == 5 else {}))
         self._rois_lock = threading.Lock()
-        DiagramManager().add_diagram(self)
+        CacheManager().track(self)
 
     def __str__(self) -> str:
         """Return a nice sumary of the history of this diagram.
@@ -594,7 +590,9 @@ class BaseDiagram:
                     if isinstance(self._file_or_data, pathlib.Path) else
                     self._file_or_data
                 )
-            return self._cache[1]["image"]
+            image = self._cache[1]["image"]
+        CacheManager().track(self)
+        return image
 
     def plot(
         self,

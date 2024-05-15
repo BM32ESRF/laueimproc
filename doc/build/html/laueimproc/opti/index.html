@@ -32,10 +32,10 @@
 
 &#34;&#34;&#34;Provide various tools for improving the efficiency of laueimproc.&#34;&#34;&#34;
 
-__all__ = [&#34;collect&#34;, &#34;DiagramManager&#34;]
+__all__ = [&#34;collect&#34;, &#34;CacheManager&#34;]
 
 
-from .manager import collect, DiagramManager</code></pre>
+from .manager import collect, CacheManager</code></pre>
 </details>
 </section>
 <section>
@@ -94,7 +94,7 @@ from .manager import collect, DiagramManager</code></pre>
     nbr : int
         The number of diagrams juste released.
     &#34;&#34;&#34;
-    return DiagramManager().collect()</code></pre>
+    return CacheManager().collect()</code></pre>
 </details>
 </dd>
 </dl>
@@ -102,8 +102,8 @@ from .manager import collect, DiagramManager</code></pre>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="laueimproc.opti.DiagramManager"><code class="flex name class">
-<span>class <span class="ident">DiagramManager</span></span>
+<dt id="laueimproc.opti.CacheManager"><code class="flex name class">
+<span>class <span class="ident">CacheManager</span></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Manage a group of diagram asynchronousely.</p>
@@ -132,7 +132,7 @@ else to the thread.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DiagramManager(threading.Thread, metaclass=MetaSingleton):
+<pre><code class="python">class CacheManager(threading.Thread, metaclass=MetaSingleton):
     &#34;&#34;&#34;Manage a group of diagram asynchronousely.
 
     Parameters
@@ -230,14 +230,14 @@ else to the thread.</p></div>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="laueimproc.opti.DiagramManager.instances"><code class="name">var <span class="ident">instances</span> : dict[type, object]</code></dt>
+<dt id="laueimproc.opti.CacheManager.instances"><code class="name">var <span class="ident">instances</span> : dict[type, object]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="laueimproc.opti.DiagramManager.max_mem_percent"><code class="name">var <span class="ident">max_mem_percent</span> : float</code></dt>
+<dt id="laueimproc.opti.CacheManager.max_mem_percent"><code class="name">var <span class="ident">max_mem_percent</span> : float</code></dt>
 <dd>
 <div class="desc"><p>Return the threashold of ram in percent.</p></div>
 <details class="source">
@@ -250,7 +250,7 @@ def max_mem_percent(self) -&gt; float:
     return self._max_mem_percent</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.opti.DiagramManager.verbose"><code class="name">var <span class="ident">verbose</span> : bool</code></dt>
+<dt id="laueimproc.opti.CacheManager.verbose"><code class="name">var <span class="ident">verbose</span> : bool</code></dt>
 <dd>
 <div class="desc"><p>Get the chatting status of the experiment.</p></div>
 <details class="source">
@@ -266,7 +266,7 @@ def verbose(self) -&gt; bool:
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="laueimproc.opti.DiagramManager.add_diagram"><code class="name flex">
+<dt id="laueimproc.opti.CacheManager.add_diagram"><code class="name flex">
 <span>def <span class="ident">add_diagram</span></span>(<span>self, diagram)</span>
 </code></dt>
 <dd>
@@ -283,7 +283,7 @@ def verbose(self) -&gt; bool:
             self._diagrams_list.append(diagram)</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.opti.DiagramManager.collect"><code class="name flex">
+<dt id="laueimproc.opti.CacheManager.collect"><code class="name flex">
 <span>def <span class="ident">collect</span></span>(<span>self) ‑> int</span>
 </code></dt>
 <dd>
@@ -311,7 +311,7 @@ def verbose(self) -&gt; bool:
     return before - after</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.opti.DiagramManager.run"><code class="name flex">
+<dt id="laueimproc.opti.CacheManager.run"><code class="name flex">
 <span>def <span class="ident">run</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -376,14 +376,14 @@ def verbose(self) -&gt; bool:
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="laueimproc.opti.DiagramManager" href="#laueimproc.opti.DiagramManager">DiagramManager</a></code></h4>
+<h4><code><a title="laueimproc.opti.CacheManager" href="#laueimproc.opti.CacheManager">CacheManager</a></code></h4>
 <ul class="two-column">
-<li><code><a title="laueimproc.opti.DiagramManager.add_diagram" href="#laueimproc.opti.DiagramManager.add_diagram">add_diagram</a></code></li>
-<li><code><a title="laueimproc.opti.DiagramManager.collect" href="#laueimproc.opti.DiagramManager.collect">collect</a></code></li>
-<li><code><a title="laueimproc.opti.DiagramManager.instances" href="#laueimproc.opti.DiagramManager.instances">instances</a></code></li>
-<li><code><a title="laueimproc.opti.DiagramManager.max_mem_percent" href="#laueimproc.opti.DiagramManager.max_mem_percent">max_mem_percent</a></code></li>
-<li><code><a title="laueimproc.opti.DiagramManager.run" href="#laueimproc.opti.DiagramManager.run">run</a></code></li>
-<li><code><a title="laueimproc.opti.DiagramManager.verbose" href="#laueimproc.opti.DiagramManager.verbose">verbose</a></code></li>
+<li><code><a title="laueimproc.opti.CacheManager.add_diagram" href="#laueimproc.opti.CacheManager.add_diagram">add_diagram</a></code></li>
+<li><code><a title="laueimproc.opti.CacheManager.collect" href="#laueimproc.opti.CacheManager.collect">collect</a></code></li>
+<li><code><a title="laueimproc.opti.CacheManager.instances" href="#laueimproc.opti.CacheManager.instances">instances</a></code></li>
+<li><code><a title="laueimproc.opti.CacheManager.max_mem_percent" href="#laueimproc.opti.CacheManager.max_mem_percent">max_mem_percent</a></code></li>
+<li><code><a title="laueimproc.opti.CacheManager.run" href="#laueimproc.opti.CacheManager.run">run</a></code></li>
+<li><code><a title="laueimproc.opti.CacheManager.verbose" href="#laueimproc.opti.CacheManager.verbose">verbose</a></code></li>
 </ul>
 </li>
 </ul>
