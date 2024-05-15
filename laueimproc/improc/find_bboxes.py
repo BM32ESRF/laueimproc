@@ -226,8 +226,7 @@ def find_bboxes(
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         bboxes = [
             [i, j, h, w] for j, i, w, h in map(  # cv2 to numpy convention
-                cv2.boundingRect,
-                contours,
+                cv2.boundingRect, contours
             ) if max(h, w) <= max_size  # remove too big spots
         ]
     else:
