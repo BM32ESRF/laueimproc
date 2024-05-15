@@ -35,9 +35,7 @@ def _density_to_threshold_torch(img: torch.Tensor, density: float) -> float:
     return threshold
 
 
-def estimate_background(
-    brut_image: torch.Tensor, radius_font: numbers.Real = 9, **_kwargs
-) -> torch.Tensor:
+def estimate_background(brut_image: torch.Tensor, radius_font: numbers.Real = 9) -> torch.Tensor:
     """Estimate and Return the background of the image.
 
     Parameters
@@ -66,7 +64,7 @@ def estimate_background(
     # from scipy import signal
     # bg_image = signal.medfilt2d(brut_image, 5)  # no limitation but very slow!
     # bg_image = cv2.morphologyEx(brut_image, dst=bg_image, op=cv2.MORPH_OPEN, kernel=kernel_font)
-    bg_image = morpho_open(bg_image, radius=radius_font, **_kwargs)
+    bg_image = morpho_open(bg_image, radius=radius_font)
     # ksize = (3*kernel_font.shape[0], 3*kernel_font.shape[1])
     # bg_image = cv2.GaussianBlur(brut_image, dst=bg_image, ksize=ksize, sigmaX=0)
     bg_image = torch.minimum(bg_image, brut_image, out=bg_image)  # avoid < 0 when sub

@@ -125,7 +125,7 @@ int CFindBBoxes(
     for (unsigned long clu_m1 = 0; clu_m1 < curr_clus; ++clu_m1) {  // remove too tall bboxes
         stride = 4 * clu_m1;
         if ((*bboxes_p)[stride + 2] > max_size || (*bboxes_p)[stride + 3] > max_size) {
-            merge[clu_m1] = 0;  // hack to skip that one
+            merge[clu_m1] = 1;  // hack to skip that one
         }
     }
     *n = 0;

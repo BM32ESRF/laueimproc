@@ -832,7 +832,7 @@ class BaseDiagram:
         if bboxes_l:
             device = {bboxes.device for bboxes in bboxes_l}
             device = device.pop() if len(device) == 1 else "cpu"
-            bboxes = torch.cat([bboxes.to(device) for bboxes in bboxes_l], axis=0)
+            bboxes = torch.cat([bboxes.to(device) for bboxes in bboxes_l])
         else:
             bboxes = torch.empty((0, 4), dtype=torch.int16)
         with self._rois_lock:

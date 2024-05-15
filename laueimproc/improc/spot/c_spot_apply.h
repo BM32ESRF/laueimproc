@@ -29,11 +29,9 @@ int ApplyToRois(
         The function pointer to apply to each roi.
     */
     npy_float* rawdata;
-    npy_intp datalen = (npy_intp)PyByteArray_Size((PyObject *)data);
+    npy_intp datalen = (npy_intp)PyByteArray_Size((PyObject *)data), shift = 0, area;
     const npy_intp n = PyArray_DIM(bboxes, 0);
     npy_int16 bbox[4];
-    npy_intp shift = 0;
-    npy_int16 area;
 
     if (datalen % sizeof(npy_float)) {
         fprintf(stderr, "data length is not a multiple of float32 length\n");
