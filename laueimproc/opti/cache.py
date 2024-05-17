@@ -43,18 +43,29 @@ class CacheManager(threading.Thread, metaclass=MetaSingleton):
         super().__init__(daemon=True)  # daemon has to be true to allow to exit python
         self.start()
 
+    def _squeeze_untracked(self) -> int:
+        """Update the indices to remove the None values."""
+        new_index = 0
+        diagrams_list = []
+        for diagram in self._diagrams_list:
+            if diagram is None:
+                continue
+            diagrams_list.append(diagram)
+            self._diagrams_dict[diagram] = new_index
+            new_index += 1
+        self._diagrams_list = diagrams_list
+
     def _untrack(self, diagram):
         """Stop tracking this diagram."""
-        with self._lock:
-            if (index := self._diagrams_dict.get(diagram, None)) is not None:
-                del self._diagrams_dict[diagram]
-                self._diagrams_list[index] = None
+        if (index := self._diagrams_dict.get(diagram, None)) is not None:
+            del self._diagrams_dict[diagram]
+            self._diagrams_list[index] = None
 
     def collect(self) -> int:
         """Try to keep only reachable diagrams."""
         from laueimproc.classes.diagram import Diagram
-        self.squeeze_untracked()
         with self._lock:
+            self._squeeze_untracked()
             before = len(self._diagrams_list)
             diagrams_id = [id(diagram) for diagram in self._diagrams_list]
             self._diagrams_dict = {}
@@ -98,28 +109,12 @@ class CacheManager(threading.Thread, metaclass=MetaSingleton):
                         if not diagram._cache[1]:  # pylint: disable=W0212
                             self._untrack(diagram)
                         i += 1
-                    self.squeeze_untracked()
+                    self._squeeze_untracked()
                     if self._verbose:
                         print(f"{bytes2human(total)} of cache removed")
                     free_malloc()
 
             time.sleep(0.1)
-
-    def squeeze_untracked(self) -> int:
-        """Update the indices to remove the None values."""
-        new_index = 0
-        diagrams_list = []
-        with self._lock:
-            before = len(self._diagrams_list)
-            for diagram in self._diagrams_list:
-                if diagram is None:
-                    continue
-                diagrams_list.append(diagram)
-                self._diagrams_dict[diagram] = new_index
-                new_index += 1
-            self._diagrams_list = diagrams_list
-            after = len(self._diagrams_list)
-        return before - after
 
     def track(self, diagram):
         """Track the new diagram if it is not already tracked."""
