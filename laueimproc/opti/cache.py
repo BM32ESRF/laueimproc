@@ -103,7 +103,7 @@ class CacheManager(threading.Thread, metaclass=MetaSingleton):
                         d.compress(target//nbr, _levels={0}) for d in self._diagrams_list
                     )
                     i = 0
-                    while (total >= target and i < len(self._diagrams_list)):  # remove active cache
+                    while (total < target and i < len(self._diagrams_list)):  # remove active cache
                         diagram = self._diagrams_list[i]
                         total += diagram.compress((target-total)//nbr, _levels={1})
                         if not diagram._cache[1]:  # pylint: disable=W0212
