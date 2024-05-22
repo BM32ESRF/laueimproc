@@ -90,6 +90,84 @@ def compute_rois_centroid(
     return mean
 
 
+def compute_rois_inertia(
+    data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False
+) -> torch.Tensor:
+    r"""Return the order 2 momentum centered along the barycenter.
+
+    Parameters
+    ----------
+    data : bytearray
+        The raw data \(\alpha_i\) of the concatenated not padded float32 rois.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4). It doesn't have to be c contiguous.
+
+    Returns
+    -------
+    inertia : torch.Tensor
+        The order 2 momentum centered along the barycenter (shape (n,)).
+
+    Examples
+    --------
+    >>> import torch
+    >>> from laueimproc.improc.spot.basic import compute_rois_inertia
+    >>> patches = [
+    ...     torch.tensor([[0.5]]),
+    ...     torch.tensor([[1.0]]),
+    ...     torch.tensor([[0.5, 0.5], [0.5, 0.5]]),
+    ...     torch.tensor([[0.2, 0.0, 1.0, 0.0, 0.2]]),
+    ... ]
+    >>> data = bytearray(torch.cat([p.ravel() for p in patches]).numpy().tobytes())
+    >>> bboxes = torch.tensor([[ 0,  0,  1,  1],
+    ...                        [ 0,  0,  1,  1],
+    ...                        [ 0,  0,  2,  2],
+    ...                        [ 0,  0,  1,  5]], dtype=torch.int16)
+    >>> print(compute_rois_inertia(data, bboxes))
+    tensor([0.0000, 0.0000, 1.0000, 1.6000])
+    >>> torch.allclose(
+    ...     compute_rois_inertia(data, bboxes),
+    ...     compute_rois_inertia(data, bboxes, _no_c=True),
+    ... )
+    True
+    >>>
+    """
+    if not _no_c and c_basic is not None:
+        return torch.from_numpy(
+            c_basic.compute_rois_inertia(data, bboxes.numpy(force=True))
+        ).to(bboxes.device)
+
+    assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
+    assert bboxes.ndim == 2, bboxes.shape
+    assert bboxes.shape[1] == 4, bboxes.shape
+
+    # preparation
+    rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=_no_c)  # (n, h, w), more verif here
+    _, height, width = rois.shape
+    points_i, points_j = torch.meshgrid(
+        torch.arange(0.5, height+0.5, dtype=rois.dtype, device=rois.device),
+        torch.arange(0.5, width+0.5, dtype=rois.dtype, device=rois.device),
+        indexing="ij",
+    )  # (h, w)
+    points = torch.cat([points_i.ravel().unsqueeze(0), points_j.ravel().unsqueeze(0)])  # (2, h*w)
+    points = points.unsqueeze(0)  # (1, 2, h*w)
+    weight = rois.reshape(-1, 1, height*width)  # (n, 1, h*w)
+
+    # barycenter
+    pond_points = points * weight  # (n, 2, h*w)
+    pond_points /= torch.sum(weight, axis=2, keepdim=True)  # (n, 2, h*w)
+    mean = torch.sum(pond_points, axis=2, keepdim=True)  # (n, 2, 1)
+
+    # inertia
+    pond_points = points - mean  # (n, 2, h*w)
+    pond_points *= pond_points  # ri**2 and rj**2
+    pond_points = torch.sum(pond_points, axis=1, keepdim=True)  # (n, 1, h*w), r**2
+    pond_points *= weight  # m * r**2
+    inertia = torch.sum(pond_points, axis=2).squeeze(1)  # (n,)
+
+    return inertia
+
+
 def compute_rois_max(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False) -> torch.Tensor:
     r"""Return the argmax of the intensity and the intensity max of each roi.
 

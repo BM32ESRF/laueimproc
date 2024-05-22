@@ -52,6 +52,38 @@ class Diagram(BaseDiagram):
         return compute_rois_centroid(data, bboxes, **_kwargs)
 
     @auto_cache
+    @check_init
+    def compute_rois_inertia(self, **_kwargs) -> torch.Tensor:
+        """Compute the inertia of the spot along the center of mass.
+
+        Returns
+        -------
+        inertia : torch.Tensor
+            The order 2 momentum centered along the barycenter (shape (n,)).
+            See ``laueimproc.improc.spot.basic.compute_rois_inertia`` for more details.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.diagram import Diagram
+        >>> from laueimproc.io import get_sample
+        >>> diagram = Diagram(get_sample())
+        >>> diagram.find_spots()
+        >>> print(diagram.compute_rois_inertia())  # doctset: +ELLIPSIS
+        tensor([4.0506e+00, 9.7974e-02, 1.6362e-01, 2.1423e-03, 4.8515e-02, 2.6657e-01,
+                9.9830e-02, 1.7221e-03, 2.8771e-02, 5.3754e-03, 2.4759e-02, 8.7665e-01,
+                5.1118e-02, 9.6223e-02, 3.0648e-01, 1.1362e-01, 2.6335e-01, 1.1388e-01,
+                ...,
+                4.8586e+00, 4.4373e+00, 1.3409e-01, 3.1009e-01, 1.5538e-02, 8.4468e-03,
+                1.5235e+00, 1.0291e+01, 8.1125e+00, 5.4182e-01, 1.4235e+00, 4.4005e+00,
+                7.0188e+00, 2.5770e+00, 1.1837e+01, 7.0610e+00, 3.6725e+00, 2.2335e+01])
+        >>>
+        """
+        from laueimproc.improc.spot.basic import compute_rois_inertia
+        with self._rois_lock:
+            data, bboxes = self._rois
+        return compute_rois_inertia(data, bboxes, **_kwargs)
+
+    @auto_cache
     @ij_to_xy_decorator(i=(slice(None), 1), j=(slice(None), 2))
     @check_init
     def compute_rois_max(self, **_kwargs) -> torch.Tensor:
