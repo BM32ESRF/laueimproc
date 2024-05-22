@@ -83,8 +83,8 @@ For memory management, it is better to provide a pathlike rather than an array.<
     &#34;&#34;&#34;A Laue diagram image.&#34;&#34;&#34;
 
     @auto_cache  # put the result in thread safe cache (no multiprocessing)
+    @ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))  # append conv argument
     @check_init  # throws an exception if the diagram is not initialized
-    @ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))
     def compute_rois_centroid(self, **_kwargs) -&gt; torch.Tensor:
         &#34;&#34;&#34;Compute the barycenter of each spots.
 
@@ -117,14 +117,14 @@ For memory management, it is better to provide a pathlike rather than an array.<
         return compute_rois_centroid(data, bboxes, **_kwargs)
 
     @auto_cache
-    @check_init
     @ij_to_xy_decorator(i=(slice(None), 1), j=(slice(None), 2))
+    @check_init
     def compute_rois_max(self, **_kwargs) -&gt; torch.Tensor:
         &#34;&#34;&#34;Get the intensity and the position of the hottest pixel for each roi.
 
         Returns
         -------
-        imax_pos1_pos2 : torch.Tensor
+        pos1_pos2_imax : torch.Tensor
             The concatenation of the colum vectors of the argmax and the intensity (shape (n, 3)).
             See ``laueimproc.improc.spot.basic.compute_rois_max`` for more details.
 
@@ -466,8 +466,8 @@ tensor([[4.2637e+00, 5.0494e+00],
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@auto_cache  # put the result in thread safe cache (no multiprocessing)
+@ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))  # append conv argument
 @check_init  # throws an exception if the diagram is not initialized
-@ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))
 def compute_rois_centroid(self, **_kwargs) -&gt; torch.Tensor:
     &#34;&#34;&#34;Compute the barycenter of each spots.
 
@@ -507,7 +507,7 @@ def compute_rois_centroid(self, **_kwargs) -&gt; torch.Tensor:
 <div class="desc"><p>Get the intensity and the position of the hottest pixel for each roi.</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>imax_pos1_pos2</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dt><strong><code>pos1_pos2_imax</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The concatenation of the colum vectors of the argmax and the intensity (shape (n, 3)).
 See <code><a title="laueimproc.improc.spot.basic.compute_rois_max" href="../improc/spot/basic.html#laueimproc.improc.spot.basic.compute_rois_max">compute_rois_max()</a></code> for more details.</dd>
 </dl>
@@ -531,14 +531,14 @@ tensor([[2.5000e+00, 5.5000e+00, 9.2165e-03],
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@auto_cache
-@check_init
 @ij_to_xy_decorator(i=(slice(None), 1), j=(slice(None), 2))
+@check_init
 def compute_rois_max(self, **_kwargs) -&gt; torch.Tensor:
     &#34;&#34;&#34;Get the intensity and the position of the hottest pixel for each roi.
 
     Returns
     -------
-    imax_pos1_pos2 : torch.Tensor
+    pos1_pos2_imax : torch.Tensor
         The concatenation of the colum vectors of the argmax and the intensity (shape (n, 3)).
         See ``laueimproc.improc.spot.basic.compute_rois_max`` for more details.
 
@@ -1103,6 +1103,8 @@ def fit_gaussians_em(
 </code></dt>
 <dd>
 <div class="desc"><p>Link Diagrams together.</p>
+<p>indices : set[int]
+The diagram indices currently reachable in the dataset.</p>
 <p>Initialise the dataset.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -1123,7 +1125,11 @@ and returns the 2 coordinates in the sample plane.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class DiagramsDataset(threading.Thread):
-    &#34;&#34;&#34;Link Diagrams together.&#34;&#34;&#34;
+    &#34;&#34;&#34;Link Diagrams together.
+
+    indices : set[int]
+        The diagram indices currently reachable in the dataset.
+    &#34;&#34;&#34;
 
     def __init__(
         self,
@@ -1878,6 +1884,22 @@ and returns the 2 coordinates in the sample plane.</dd>
         return value
 
     @property
+    def indices(self) -&gt; set[int]:
+        &#34;&#34;&#34;Return the diagram indices currently reachable in the dataset.
+
+        Examples
+        --------
+        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
+        &gt;&gt;&gt; from laueimproc.io import get_samples
+        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
+        &gt;&gt;&gt; sorted(dataset[-10:10:-5].indices)
+        [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        with self._lock:
+            return {i for i, d in self._diagrams.items() if isinstance(d, Diagram)}
+
+    @property
     def state(self) -&gt; str:
         &#34;&#34;&#34;Return a hash of the dataset.
 
@@ -1904,6 +1926,68 @@ and returns the 2 coordinates in the sample plane.</dd>
         hasher.update(cloudpickle.dumps(self._position[0]))
         hasher.update(cloudpickle.dumps(self._operations_chain))
         return hasher.hexdigest()
+
+    def train_spot_classifier(
+        self,
+        *,
+        model=None,
+        shape: typing.Union[numbers.Real, tuple[numbers.Integral, numbers.Integral]] = 0.95,
+        **kwargs,
+    ):
+        &#34;&#34;&#34;Train a variational autoencoder classifier with the spots in the diagrams.
+
+        It is a non supervised neuronal network.
+
+        Parameters
+        ----------
+        model : laueimproc.nn.vae_spot_classifier.VAESpotClassifier, optional
+            If provided, this model will be trained again and returned.
+        shape : float or tuple[int, int], default=0.95
+            The model input spot shape in numpy convention (height, width).
+            If a percentage is given, the shape is founded with ``laueimproc.nn.loader.find_shape``.
+        space : float, default = 3.0
+            The non penalized spreading area half size.
+            Transmitted to ``laueimproc.nn.vae_spot_classifier.VAESpotClassifier``.
+        intensity_sensitive, scale_sensitive : boolean, default=True
+            Transmitted to ``laueimproc.nn.vae_spot_classifier.VAESpotClassifier``.
+        epoch, lr, fig
+            Transmitted to ``laueimproc.nn.train.train_vae_spot_classifier``.
+
+        Returns
+        -------
+        classifier: laueimproc.nn.vae_spot_classifier.VAESpotClassifier
+            The trained model.
+
+        Examples
+        --------
+        &gt;&gt;&gt; from laueimproc.classes.dataset import Diagram, DiagramsDataset
+        &gt;&gt;&gt; from laueimproc.io import get_samples
+        &gt;&gt;&gt; def init(diagram: Diagram):
+        ...     diagram.find_spots()
+        ...     diagram.filter_spots(range(10))  # to reduce the number of spots
+        ...
+        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
+        &gt;&gt;&gt; _ = dataset.apply(init)
+        &gt;&gt;&gt; model = dataset.train_spot_classifier(epoch=1)
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        from laueimproc.nn.loader import find_shape
+        from laueimproc.nn.train import train_vae_spot_classifier
+        from laueimproc.nn.vae_spot_classifier import _test_size, VAESpotClassifier
+
+        if model is None:
+            if isinstance(shape, numbers.Real):
+                shape = find_shape(self, shape)
+            while not _test_size(shape[0]):
+                shape = (shape[0]+1, shape[1])
+            while not _test_size(shape[1]):
+                shape = (shape[0], shape[1]+1)
+            model = VAESpotClassifier(shape, latent_dim=2, **kwargs)
+
+        assert isinstance(model, VAESpotClassifier), model.__class__.__name__
+        train_vae_spot_classifier(model, self, **kwargs)
+
+        return model
 
     def run(self):
         &#34;&#34;&#34;Run asynchronousely in a child thread, called by self.start().&#34;&#34;&#34;
@@ -1944,6 +2028,38 @@ and returns the 2 coordinates in the sample plane.</dd>
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="laueimproc.classes.DiagramsDataset.indices"><code class="name">var <span class="ident">indices</span> : set[int]</code></dt>
+<dd>
+<div class="desc"><p>Return the diagram indices currently reachable in the dataset.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
+&gt;&gt;&gt; from laueimproc.io import get_samples
+&gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
+&gt;&gt;&gt; sorted(dataset[-10:10:-5].indices)
+[15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def indices(self) -&gt; set[int]:
+    &#34;&#34;&#34;Return the diagram indices currently reachable in the dataset.
+
+    Examples
+    --------
+    &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
+    &gt;&gt;&gt; from laueimproc.io import get_samples
+    &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
+    &gt;&gt;&gt; sorted(dataset[-10:10:-5].indices)
+    [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    with self._lock:
+        return {i for i, d in self._diagrams.items() if isinstance(d, Diagram)}</code></pre>
+</details>
+</dd>
 <dt id="laueimproc.classes.DiagramsDataset.state"><code class="name">var <span class="ident">state</span> : str</code></dt>
 <dd>
 <div class="desc"><p>Return a hash of the dataset.</p>
@@ -2605,6 +2721,111 @@ To each diagram index, associate the result.</dd>
         time.sleep(10)</code></pre>
 </details>
 </dd>
+<dt id="laueimproc.classes.DiagramsDataset.train_spot_classifier"><code class="name flex">
+<span>def <span class="ident">train_spot_classifier</span></span>(<span>self, *, model=None, shape: Union[numbers.Real, tuple[numbers.Integral, numbers.Integral]] = 0.95, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Train a variational autoencoder classifier with the spots in the diagrams.</p>
+<p>It is a non supervised neuronal network.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>model</code></strong> :&ensp;<code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifier" href="../nn/vae_spot_classifier.html#laueimproc.nn.vae_spot_classifier.VAESpotClassifier">VAESpotClassifier</a></code>, optional</dt>
+<dd>If provided, this model will be trained again and returned.</dd>
+<dt><strong><code>shape</code></strong> :&ensp;<code>float</code> or <code>tuple[int, int]</code>, default=<code>0.95</code></dt>
+<dd>The model input spot shape in numpy convention (height, width).
+If a percentage is given, the shape is founded with <code><a title="laueimproc.nn.loader.find_shape" href="../nn/loader.html#laueimproc.nn.loader.find_shape">find_shape()</a></code>.</dd>
+<dt><strong><code>space</code></strong> :&ensp;<code>float</code>, default <code>= 3.0</code></dt>
+<dd>The non penalized spreading area half size.
+Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifier" href="../nn/vae_spot_classifier.html#laueimproc.nn.vae_spot_classifier.VAESpotClassifier">VAESpotClassifier</a></code>.</dd>
+<dt><strong><code>intensity_sensitive</code></strong>, <strong><code>scale_sensitive</code></strong> :&ensp;<code>boolean</code>, default=<code>True</code></dt>
+<dd>Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifier" href="../nn/vae_spot_classifier.html#laueimproc.nn.vae_spot_classifier.VAESpotClassifier">VAESpotClassifier</a></code>.</dd>
+<dt><strong><code>epoch</code></strong>, <strong><code>lr</code></strong>, <strong><code>fig</code></strong></dt>
+<dd>Transmitted to <code><a title="laueimproc.nn.train.train_vae_spot_classifier" href="../nn/train.html#laueimproc.nn.train.train_vae_spot_classifier">train_vae_spot_classifier()</a></code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>classifier</code></strong> :&ensp;<code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifier" href="../nn/vae_spot_classifier.html#laueimproc.nn.vae_spot_classifier.VAESpotClassifier">VAESpotClassifier</a></code></dt>
+<dd>The trained model.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.dataset import Diagram, DiagramsDataset
+&gt;&gt;&gt; from laueimproc.io import get_samples
+&gt;&gt;&gt; def init(diagram: Diagram):
+...     diagram.find_spots()
+...     diagram.filter_spots(range(10))  # to reduce the number of spots
+...
+&gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
+&gt;&gt;&gt; _ = dataset.apply(init)
+&gt;&gt;&gt; model = dataset.train_spot_classifier(epoch=1)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def train_spot_classifier(
+    self,
+    *,
+    model=None,
+    shape: typing.Union[numbers.Real, tuple[numbers.Integral, numbers.Integral]] = 0.95,
+    **kwargs,
+):
+    &#34;&#34;&#34;Train a variational autoencoder classifier with the spots in the diagrams.
+
+    It is a non supervised neuronal network.
+
+    Parameters
+    ----------
+    model : laueimproc.nn.vae_spot_classifier.VAESpotClassifier, optional
+        If provided, this model will be trained again and returned.
+    shape : float or tuple[int, int], default=0.95
+        The model input spot shape in numpy convention (height, width).
+        If a percentage is given, the shape is founded with ``laueimproc.nn.loader.find_shape``.
+    space : float, default = 3.0
+        The non penalized spreading area half size.
+        Transmitted to ``laueimproc.nn.vae_spot_classifier.VAESpotClassifier``.
+    intensity_sensitive, scale_sensitive : boolean, default=True
+        Transmitted to ``laueimproc.nn.vae_spot_classifier.VAESpotClassifier``.
+    epoch, lr, fig
+        Transmitted to ``laueimproc.nn.train.train_vae_spot_classifier``.
+
+    Returns
+    -------
+    classifier: laueimproc.nn.vae_spot_classifier.VAESpotClassifier
+        The trained model.
+
+    Examples
+    --------
+    &gt;&gt;&gt; from laueimproc.classes.dataset import Diagram, DiagramsDataset
+    &gt;&gt;&gt; from laueimproc.io import get_samples
+    &gt;&gt;&gt; def init(diagram: Diagram):
+    ...     diagram.find_spots()
+    ...     diagram.filter_spots(range(10))  # to reduce the number of spots
+    ...
+    &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
+    &gt;&gt;&gt; _ = dataset.apply(init)
+    &gt;&gt;&gt; model = dataset.train_spot_classifier(epoch=1)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    from laueimproc.nn.loader import find_shape
+    from laueimproc.nn.train import train_vae_spot_classifier
+    from laueimproc.nn.vae_spot_classifier import _test_size, VAESpotClassifier
+
+    if model is None:
+        if isinstance(shape, numbers.Real):
+            shape = find_shape(self, shape)
+        while not _test_size(shape[0]):
+            shape = (shape[0]+1, shape[1])
+        while not _test_size(shape[1]):
+            shape = (shape[0], shape[1]+1)
+        model = VAESpotClassifier(shape, latent_dim=2, **kwargs)
+
+    assert isinstance(model, VAESpotClassifier), model.__class__.__name__
+    train_vae_spot_classifier(model, self, **kwargs)
+
+    return model</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -2646,15 +2867,17 @@ To each diagram index, associate the result.</dd>
 </li>
 <li>
 <h4><code><a title="laueimproc.classes.DiagramsDataset" href="#laueimproc.classes.DiagramsDataset">DiagramsDataset</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="laueimproc.classes.DiagramsDataset.add_diagram" href="#laueimproc.classes.DiagramsDataset.add_diagram">add_diagram</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.add_diagrams" href="#laueimproc.classes.DiagramsDataset.add_diagrams">add_diagrams</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.add_property" href="#laueimproc.classes.DiagramsDataset.add_property">add_property</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.apply" href="#laueimproc.classes.DiagramsDataset.apply">apply</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.clone" href="#laueimproc.classes.DiagramsDataset.clone">clone</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.get_property" href="#laueimproc.classes.DiagramsDataset.get_property">get_property</a></code></li>
+<li><code><a title="laueimproc.classes.DiagramsDataset.indices" href="#laueimproc.classes.DiagramsDataset.indices">indices</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.run" href="#laueimproc.classes.DiagramsDataset.run">run</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.state" href="#laueimproc.classes.DiagramsDataset.state">state</a></code></li>
+<li><code><a title="laueimproc.classes.DiagramsDataset.train_spot_classifier" href="#laueimproc.classes.DiagramsDataset.train_spot_classifier">train_spot_classifier</a></code></li>
 </ul>
 </li>
 </ul>

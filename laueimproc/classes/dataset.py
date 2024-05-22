@@ -81,7 +81,11 @@ class _ChainThread(threading.Thread):
 
 
 class DiagramsDataset(threading.Thread):
-    """Link Diagrams together."""
+    """Link Diagrams together.
+
+    indices : set[int]
+        The diagram indices currently reachable in the dataset.
+    """
 
     def __init__(
         self,
@@ -836,6 +840,22 @@ class DiagramsDataset(threading.Thread):
         return value
 
     @property
+    def indices(self) -> set[int]:
+        """Return the diagram indices currently reachable in the dataset.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.dataset import DiagramsDataset
+        >>> from laueimproc.io import get_samples
+        >>> dataset = DiagramsDataset(get_samples())
+        >>> sorted(dataset[-10:10:-5].indices)
+        [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
+        >>>
+        """
+        with self._lock:
+            return {i for i, d in self._diagrams.items() if isinstance(d, Diagram)}
+
+    @property
     def state(self) -> str:
         """Return a hash of the dataset.
 
@@ -862,6 +882,68 @@ class DiagramsDataset(threading.Thread):
         hasher.update(cloudpickle.dumps(self._position[0]))
         hasher.update(cloudpickle.dumps(self._operations_chain))
         return hasher.hexdigest()
+
+    def train_spot_classifier(
+        self,
+        *,
+        model=None,
+        shape: typing.Union[numbers.Real, tuple[numbers.Integral, numbers.Integral]] = 0.95,
+        **kwargs,
+    ):
+        """Train a variational autoencoder classifier with the spots in the diagrams.
+
+        It is a non supervised neuronal network.
+
+        Parameters
+        ----------
+        model : laueimproc.nn.vae_spot_classifier.VAESpotClassifier, optional
+            If provided, this model will be trained again and returned.
+        shape : float or tuple[int, int], default=0.95
+            The model input spot shape in numpy convention (height, width).
+            If a percentage is given, the shape is founded with ``laueimproc.nn.loader.find_shape``.
+        space : float, default = 3.0
+            The non penalized spreading area half size.
+            Transmitted to ``laueimproc.nn.vae_spot_classifier.VAESpotClassifier``.
+        intensity_sensitive, scale_sensitive : boolean, default=True
+            Transmitted to ``laueimproc.nn.vae_spot_classifier.VAESpotClassifier``.
+        epoch, lr, fig
+            Transmitted to ``laueimproc.nn.train.train_vae_spot_classifier``.
+
+        Returns
+        -------
+        classifier: laueimproc.nn.vae_spot_classifier.VAESpotClassifier
+            The trained model.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.dataset import Diagram, DiagramsDataset
+        >>> from laueimproc.io import get_samples
+        >>> def init(diagram: Diagram):
+        ...     diagram.find_spots()
+        ...     diagram.filter_spots(range(10))  # to reduce the number of spots
+        ...
+        >>> dataset = DiagramsDataset(get_samples())
+        >>> _ = dataset.apply(init)
+        >>> model = dataset.train_spot_classifier(epoch=2)
+        >>>
+        """
+        from laueimproc.nn.loader import find_shape
+        from laueimproc.nn.train import train_vae_spot_classifier
+        from laueimproc.nn.vae_spot_classifier import _test_size, VAESpotClassifier
+
+        if model is None:
+            if isinstance(shape, numbers.Real):
+                shape = find_shape(self, shape)
+            while not _test_size(shape[0]):
+                shape = (shape[0]+1, shape[1])
+            while not _test_size(shape[1]):
+                shape = (shape[0], shape[1]+1)
+            model = VAESpotClassifier(shape, latent_dim=2, **kwargs)
+
+        assert isinstance(model, VAESpotClassifier), model.__class__.__name__
+        train_vae_spot_classifier(model, self, **kwargs)
+
+        return model
 
     def run(self):
         """Run asynchronousely in a child thread, called by self.start()."""

@@ -11,7 +11,6 @@ dependencies = [
   "click",
   "cloudpickle",
   "fabio",
-  "matplotlib >= 3.6.0",  # for norm="log"
   "numpy",
   "opencv-contrib-python-headless",
   "psutil",
@@ -46,6 +45,7 @@ classifiers = [
 
 [project.optional-dependencies]
 all = [
+  "matplotlib",
   "pdoc3",
   "pydocstyle<=6.1.1",  # 6.1.2 bug on pylama 8.4.1
   "pylama[all]",

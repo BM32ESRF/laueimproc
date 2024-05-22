@@ -48,8 +48,8 @@ class Diagram(BaseDiagram):
     &#34;&#34;&#34;A Laue diagram image.&#34;&#34;&#34;
 
     @auto_cache  # put the result in thread safe cache (no multiprocessing)
+    @ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))  # append conv argument
     @check_init  # throws an exception if the diagram is not initialized
-    @ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))
     def compute_rois_centroid(self, **_kwargs) -&gt; torch.Tensor:
         &#34;&#34;&#34;Compute the barycenter of each spots.
 
@@ -82,14 +82,14 @@ class Diagram(BaseDiagram):
         return compute_rois_centroid(data, bboxes, **_kwargs)
 
     @auto_cache
-    @check_init
     @ij_to_xy_decorator(i=(slice(None), 1), j=(slice(None), 2))
+    @check_init
     def compute_rois_max(self, **_kwargs) -&gt; torch.Tensor:
         &#34;&#34;&#34;Get the intensity and the position of the hottest pixel for each roi.
 
         Returns
         -------
-        imax_pos1_pos2 : torch.Tensor
+        pos1_pos2_imax : torch.Tensor
             The concatenation of the colum vectors of the argmax and the intensity (shape (n, 3)).
             See ``laueimproc.improc.spot.basic.compute_rois_max`` for more details.
 
@@ -424,8 +424,8 @@ For memory management, it is better to provide a pathlike rather than an array.<
     &#34;&#34;&#34;A Laue diagram image.&#34;&#34;&#34;
 
     @auto_cache  # put the result in thread safe cache (no multiprocessing)
+    @ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))  # append conv argument
     @check_init  # throws an exception if the diagram is not initialized
-    @ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))
     def compute_rois_centroid(self, **_kwargs) -&gt; torch.Tensor:
         &#34;&#34;&#34;Compute the barycenter of each spots.
 
@@ -458,14 +458,14 @@ For memory management, it is better to provide a pathlike rather than an array.<
         return compute_rois_centroid(data, bboxes, **_kwargs)
 
     @auto_cache
-    @check_init
     @ij_to_xy_decorator(i=(slice(None), 1), j=(slice(None), 2))
+    @check_init
     def compute_rois_max(self, **_kwargs) -&gt; torch.Tensor:
         &#34;&#34;&#34;Get the intensity and the position of the hottest pixel for each roi.
 
         Returns
         -------
-        imax_pos1_pos2 : torch.Tensor
+        pos1_pos2_imax : torch.Tensor
             The concatenation of the colum vectors of the argmax and the intensity (shape (n, 3)).
             See ``laueimproc.improc.spot.basic.compute_rois_max`` for more details.
 
@@ -807,8 +807,8 @@ tensor([[4.2637e+00, 5.0494e+00],
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@auto_cache  # put the result in thread safe cache (no multiprocessing)
+@ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))  # append conv argument
 @check_init  # throws an exception if the diagram is not initialized
-@ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))
 def compute_rois_centroid(self, **_kwargs) -&gt; torch.Tensor:
     &#34;&#34;&#34;Compute the barycenter of each spots.
 
@@ -848,7 +848,7 @@ def compute_rois_centroid(self, **_kwargs) -&gt; torch.Tensor:
 <div class="desc"><p>Get the intensity and the position of the hottest pixel for each roi.</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>imax_pos1_pos2</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dt><strong><code>pos1_pos2_imax</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The concatenation of the colum vectors of the argmax and the intensity (shape (n, 3)).
 See <code><a title="laueimproc.improc.spot.basic.compute_rois_max" href="../improc/spot/basic.html#laueimproc.improc.spot.basic.compute_rois_max">compute_rois_max()</a></code> for more details.</dd>
 </dl>
@@ -872,14 +872,14 @@ tensor([[2.5000e+00, 5.5000e+00, 9.2165e-03],
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@auto_cache
-@check_init
 @ij_to_xy_decorator(i=(slice(None), 1), j=(slice(None), 2))
+@check_init
 def compute_rois_max(self, **_kwargs) -&gt; torch.Tensor:
     &#34;&#34;&#34;Get the intensity and the position of the hottest pixel for each roi.
 
     Returns
     -------
-    imax_pos1_pos2 : torch.Tensor
+    pos1_pos2_imax : torch.Tensor
         The concatenation of the colum vectors of the argmax and the intensity (shape (n, 3)).
         See ``laueimproc.improc.spot.basic.compute_rois_max`` for more details.
 

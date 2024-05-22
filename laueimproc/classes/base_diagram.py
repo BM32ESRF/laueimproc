@@ -618,6 +618,11 @@ class BaseDiagram:
         show_image: boolean, default=True
             Display the image if True, dont call imshow otherwise.
 
+        Returns
+        -------
+        matplotlib.axes.Axes
+            Filled graphical widget.
+
         Notes
         -----
         It doesn't create the figure and call show.

@@ -18,8 +18,8 @@ class Diagram(BaseDiagram):
     """A Laue diagram image."""
 
     @auto_cache  # put the result in thread safe cache (no multiprocessing)
+    @ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))  # append conv argument
     @check_init  # throws an exception if the diagram is not initialized
-    @ij_to_xy_decorator(i=(slice(None), 0), j=(slice(None), 1))
     def compute_rois_centroid(self, **_kwargs) -> torch.Tensor:
         """Compute the barycenter of each spots.
 
@@ -52,14 +52,14 @@ class Diagram(BaseDiagram):
         return compute_rois_centroid(data, bboxes, **_kwargs)
 
     @auto_cache
-    @check_init
     @ij_to_xy_decorator(i=(slice(None), 1), j=(slice(None), 2))
+    @check_init
     def compute_rois_max(self, **_kwargs) -> torch.Tensor:
         """Get the intensity and the position of the hottest pixel for each roi.
 
         Returns
         -------
-        imax_pos1_pos2 : torch.Tensor
+        pos1_pos2_imax : torch.Tensor
             The concatenation of the colum vectors of the argmax and the intensity (shape (n, 3)).
             See ``laueimproc.improc.spot.basic.compute_rois_max`` for more details.
 

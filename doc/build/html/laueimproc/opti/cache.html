@@ -33,12 +33,136 @@
 &#34;&#34;&#34;Help to manage the cache.&#34;&#34;&#34;
 
 import functools
+import gc
 import hashlib
+import numbers
 import pickle
 import sys
+import threading
+import time
 import typing
 
 import torch
+
+from laueimproc.common import bytes2human
+from laueimproc.opti.memory import free_malloc, get_swappiness, mem_to_free
+from laueimproc.opti.singleton import MetaSingleton
+
+
+class CacheManager(threading.Thread, metaclass=MetaSingleton):
+    &#34;&#34;&#34;Manage a group of diagram asynchronousely.
+
+    Parameters
+    ----------
+    verbose : boolean
+        The chatting status of the experiment (read and write).
+    max_mem_percent : int
+        The maximum amount of memory percent before trying to release some cache (read and write).
+        By default it is based on swapiness.
+    &#34;&#34;&#34;
+
+    def __init__(self):
+        # declaration
+        self._diagrams_dict: dict = {}  # dict for fast acces diagram -&gt; index
+        self._diagrams_list: list = []  # list for order
+        self._lock = threading.Lock()
+        self._max_mem_percent: int = 100-get_swappiness()
+        self._verbose: bool = False
+
+        # start thread
+        super().__init__(daemon=True)  # daemon has to be true to allow to exit python
+        self.start()
+
+    def _squeeze_untracked(self) -&gt; int:
+        &#34;&#34;&#34;Update the indices to remove the None values.&#34;&#34;&#34;
+        new_index = 0
+        diagrams_list = []
+        for diagram in self._diagrams_list:
+            if diagram is None:
+                continue
+            diagrams_list.append(diagram)
+            self._diagrams_dict[diagram] = new_index
+            new_index += 1
+        self._diagrams_list = diagrams_list
+
+    def _untrack(self, diagram):
+        &#34;&#34;&#34;Stop tracking this diagram.&#34;&#34;&#34;
+        if (index := self._diagrams_dict.get(diagram, None)) is not None:
+            del self._diagrams_dict[diagram]
+            self._diagrams_list[index] = None
+
+    def collect(self) -&gt; int:
+        &#34;&#34;&#34;Try to keep only reachable diagrams.&#34;&#34;&#34;
+        from laueimproc.classes.diagram import Diagram
+        with self._lock:
+            self._squeeze_untracked()
+            before = len(self._diagrams_list)
+            diagrams_id = [id(diagram) for diagram in self._diagrams_list]
+            self._diagrams_dict = {}
+            self._diagrams_list = []
+            gc.collect()
+            new_diagrams = {id(o): o for o in gc.get_objects() if isinstance(o, Diagram)}
+            self._diagrams_list = [new_diagrams[id_] for id_ in diagrams_id if id_ in new_diagrams]
+            self._diagrams_dict = {
+                diagram: index for index, diagram in enumerate(self._diagrams_list)
+            }
+            after = len(self._diagrams_list)
+        free_malloc()
+        return before - after
+
+    @property
+    def max_mem_percent(self) -&gt; float:
+        &#34;&#34;&#34;Return the threashold of ram in percent.&#34;&#34;&#34;
+        return self._max_mem_percent
+
+    @max_mem_percent.setter
+    def max_mem_percent(self, new_limit: numbers.Real):
+        assert isinstance(new_limit, numbers.Real)
+        assert 0 &lt;= new_limit &lt;= 100, new_limit
+        self._max_mem_percent = round(new_limit)
+
+    def run(self):
+        &#34;&#34;&#34;Asynchron control loop.&#34;&#34;&#34;
+        while True:
+            # memory free
+            with self._lock:
+                nbr = len(self._diagrams_list)
+                target = mem_to_free(self._max_mem_percent)
+                if nbr and (target := mem_to_free(self._max_mem_percent)):
+                    total = sum(  # remove obsolete cache
+                        d.compress(target//nbr, _levels={0}) for d in self._diagrams_list
+                    )
+                    i = 0
+                    while (total &lt; target and i &lt; len(self._diagrams_list)):  # remove active cache
+                        diagram = self._diagrams_list[i]
+                        total += diagram.compress((target-total)//nbr, _levels={1})
+                        if not diagram._cache[1]:  # pylint: disable=W0212
+                            self._untrack(diagram)
+                        i += 1
+                    self._squeeze_untracked()
+                    if self._verbose:
+                        print(f&#34;{bytes2human(total)} of cache removed&#34;)
+                    free_malloc()
+
+            time.sleep(0.1)
+
+    def track(self, diagram):
+        &#34;&#34;&#34;Track the new diagram if it is not already tracked.&#34;&#34;&#34;
+        with self._lock:
+            if diagram not in self._diagrams_dict:
+                self._diagrams_dict[diagram] = len(self._diagrams_list)
+                self._diagrams_list.append(diagram)
+
+    @property
+    def verbose(self) -&gt; bool:
+        &#34;&#34;&#34;Get the chatting status of the experiment.&#34;&#34;&#34;
+        return self._verbose
+
+    @verbose.setter
+    def verbose(self, verbose: bool):
+        &#34;&#34;&#34;Set the chatting status of the experiment.&#34;&#34;&#34;
+        assert isinstance(verbose, bool), verbose.__class__.__name__
+        self._verbose = verbose
 
 
 def auto_cache(meth: typing.Callable) -&gt; typing.Callable:
@@ -58,6 +182,7 @@ def auto_cache(meth: typing.Callable) -&gt; typing.Callable:
         res = meth(diagram, *args, **kwargs)
         with diagram._cache[0]:  # pylint: disable=W0212
             diagram._cache[1][signature] = res  # pylint: disable=W0212
+        CacheManager().track(diagram)
         return res
 
     return cached_meth
@@ -79,7 +204,18 @@ def getsizeof(obj: object, *, _processed: set = None) -&gt; int:
             getsizeof(k, _processed=_processed) + getsizeof(v, _processed=_processed)
             for k, v in obj.items()
         )
-    return mem</code></pre>
+    return mem
+
+
+def collect():
+    &#34;&#34;&#34;Release all unreachable diagrams.
+
+    Returns
+    -------
+    nbr : int
+        The number of diagrams juste released.
+    &#34;&#34;&#34;
+    return CacheManager().collect()</code></pre>
 </details>
 </section>
 <section>
@@ -115,9 +251,35 @@ def getsizeof(obj: object, *, _processed: set = None) -&gt; int:
         res = meth(diagram, *args, **kwargs)
         with diagram._cache[0]:  # pylint: disable=W0212
             diagram._cache[1][signature] = res  # pylint: disable=W0212
+        CacheManager().track(diagram)
         return res
 
     return cached_meth</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.opti.cache.collect"><code class="name flex">
+<span>def <span class="ident">collect</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Release all unreachable diagrams.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>nbr</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of diagrams juste released.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def collect():
+    &#34;&#34;&#34;Release all unreachable diagrams.
+
+    Returns
+    -------
+    nbr : int
+        The number of diagrams juste released.
+    &#34;&#34;&#34;
+    return CacheManager().collect()</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.opti.cache.getsizeof"><code class="name flex">
@@ -151,6 +313,279 @@ def getsizeof(obj: object, *, _processed: set = None) -&gt; int:
 </dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="laueimproc.opti.cache.CacheManager"><code class="flex name class">
+<span>class <span class="ident">CacheManager</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Manage a group of diagram asynchronousely.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>verbose</code></strong> :&ensp;<code>boolean</code></dt>
+<dd>The chatting status of the experiment (read and write).</dd>
+<dt><strong><code>max_mem_percent</code></strong> :&ensp;<code>int</code></dt>
+<dd>The maximum amount of memory percent before trying to release some cache (read and write).
+By default it is based on swapiness.</dd>
+</dl>
+<p>This constructor should always be called with keyword arguments. Arguments are:</p>
+<p><em>group</em> should be None; reserved for future extension when a ThreadGroup
+class is implemented.</p>
+<p><em>target</em> is the callable object to be invoked by the run()
+method. Defaults to None, meaning nothing is called.</p>
+<p><em>name</em> is the thread name. By default, a unique name is constructed of
+the form "Thread-N" where N is a small decimal number.</p>
+<p><em>args</em> is a list or tuple of arguments for the target invocation. Defaults to ().</p>
+<p><em>kwargs</em> is a dictionary of keyword arguments for the target
+invocation. Defaults to {}.</p>
+<p>If a subclass overrides the constructor, it must make sure to invoke
+the base class constructor (Thread.<strong>init</strong>()) before doing anything
+else to the thread.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CacheManager(threading.Thread, metaclass=MetaSingleton):
+    &#34;&#34;&#34;Manage a group of diagram asynchronousely.
+
+    Parameters
+    ----------
+    verbose : boolean
+        The chatting status of the experiment (read and write).
+    max_mem_percent : int
+        The maximum amount of memory percent before trying to release some cache (read and write).
+        By default it is based on swapiness.
+    &#34;&#34;&#34;
+
+    def __init__(self):
+        # declaration
+        self._diagrams_dict: dict = {}  # dict for fast acces diagram -&gt; index
+        self._diagrams_list: list = []  # list for order
+        self._lock = threading.Lock()
+        self._max_mem_percent: int = 100-get_swappiness()
+        self._verbose: bool = False
+
+        # start thread
+        super().__init__(daemon=True)  # daemon has to be true to allow to exit python
+        self.start()
+
+    def _squeeze_untracked(self) -&gt; int:
+        &#34;&#34;&#34;Update the indices to remove the None values.&#34;&#34;&#34;
+        new_index = 0
+        diagrams_list = []
+        for diagram in self._diagrams_list:
+            if diagram is None:
+                continue
+            diagrams_list.append(diagram)
+            self._diagrams_dict[diagram] = new_index
+            new_index += 1
+        self._diagrams_list = diagrams_list
+
+    def _untrack(self, diagram):
+        &#34;&#34;&#34;Stop tracking this diagram.&#34;&#34;&#34;
+        if (index := self._diagrams_dict.get(diagram, None)) is not None:
+            del self._diagrams_dict[diagram]
+            self._diagrams_list[index] = None
+
+    def collect(self) -&gt; int:
+        &#34;&#34;&#34;Try to keep only reachable diagrams.&#34;&#34;&#34;
+        from laueimproc.classes.diagram import Diagram
+        with self._lock:
+            self._squeeze_untracked()
+            before = len(self._diagrams_list)
+            diagrams_id = [id(diagram) for diagram in self._diagrams_list]
+            self._diagrams_dict = {}
+            self._diagrams_list = []
+            gc.collect()
+            new_diagrams = {id(o): o for o in gc.get_objects() if isinstance(o, Diagram)}
+            self._diagrams_list = [new_diagrams[id_] for id_ in diagrams_id if id_ in new_diagrams]
+            self._diagrams_dict = {
+                diagram: index for index, diagram in enumerate(self._diagrams_list)
+            }
+            after = len(self._diagrams_list)
+        free_malloc()
+        return before - after
+
+    @property
+    def max_mem_percent(self) -&gt; float:
+        &#34;&#34;&#34;Return the threashold of ram in percent.&#34;&#34;&#34;
+        return self._max_mem_percent
+
+    @max_mem_percent.setter
+    def max_mem_percent(self, new_limit: numbers.Real):
+        assert isinstance(new_limit, numbers.Real)
+        assert 0 &lt;= new_limit &lt;= 100, new_limit
+        self._max_mem_percent = round(new_limit)
+
+    def run(self):
+        &#34;&#34;&#34;Asynchron control loop.&#34;&#34;&#34;
+        while True:
+            # memory free
+            with self._lock:
+                nbr = len(self._diagrams_list)
+                target = mem_to_free(self._max_mem_percent)
+                if nbr and (target := mem_to_free(self._max_mem_percent)):
+                    total = sum(  # remove obsolete cache
+                        d.compress(target//nbr, _levels={0}) for d in self._diagrams_list
+                    )
+                    i = 0
+                    while (total &lt; target and i &lt; len(self._diagrams_list)):  # remove active cache
+                        diagram = self._diagrams_list[i]
+                        total += diagram.compress((target-total)//nbr, _levels={1})
+                        if not diagram._cache[1]:  # pylint: disable=W0212
+                            self._untrack(diagram)
+                        i += 1
+                    self._squeeze_untracked()
+                    if self._verbose:
+                        print(f&#34;{bytes2human(total)} of cache removed&#34;)
+                    free_malloc()
+
+            time.sleep(0.1)
+
+    def track(self, diagram):
+        &#34;&#34;&#34;Track the new diagram if it is not already tracked.&#34;&#34;&#34;
+        with self._lock:
+            if diagram not in self._diagrams_dict:
+                self._diagrams_dict[diagram] = len(self._diagrams_list)
+                self._diagrams_list.append(diagram)
+
+    @property
+    def verbose(self) -&gt; bool:
+        &#34;&#34;&#34;Get the chatting status of the experiment.&#34;&#34;&#34;
+        return self._verbose
+
+    @verbose.setter
+    def verbose(self, verbose: bool):
+        &#34;&#34;&#34;Set the chatting status of the experiment.&#34;&#34;&#34;
+        assert isinstance(verbose, bool), verbose.__class__.__name__
+        self._verbose = verbose</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>threading.Thread</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="laueimproc.opti.cache.CacheManager.instances"><code class="name">var <span class="ident">instances</span> : dict[type, object]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="laueimproc.opti.cache.CacheManager.max_mem_percent"><code class="name">var <span class="ident">max_mem_percent</span> : float</code></dt>
+<dd>
+<div class="desc"><p>Return the threashold of ram in percent.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def max_mem_percent(self) -&gt; float:
+    &#34;&#34;&#34;Return the threashold of ram in percent.&#34;&#34;&#34;
+    return self._max_mem_percent</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.opti.cache.CacheManager.verbose"><code class="name">var <span class="ident">verbose</span> : bool</code></dt>
+<dd>
+<div class="desc"><p>Get the chatting status of the experiment.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def verbose(self) -&gt; bool:
+    &#34;&#34;&#34;Get the chatting status of the experiment.&#34;&#34;&#34;
+    return self._verbose</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="laueimproc.opti.cache.CacheManager.collect"><code class="name flex">
+<span>def <span class="ident">collect</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Try to keep only reachable diagrams.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def collect(self) -&gt; int:
+    &#34;&#34;&#34;Try to keep only reachable diagrams.&#34;&#34;&#34;
+    from laueimproc.classes.diagram import Diagram
+    with self._lock:
+        self._squeeze_untracked()
+        before = len(self._diagrams_list)
+        diagrams_id = [id(diagram) for diagram in self._diagrams_list]
+        self._diagrams_dict = {}
+        self._diagrams_list = []
+        gc.collect()
+        new_diagrams = {id(o): o for o in gc.get_objects() if isinstance(o, Diagram)}
+        self._diagrams_list = [new_diagrams[id_] for id_ in diagrams_id if id_ in new_diagrams]
+        self._diagrams_dict = {
+            diagram: index for index, diagram in enumerate(self._diagrams_list)
+        }
+        after = len(self._diagrams_list)
+    free_malloc()
+    return before - after</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.opti.cache.CacheManager.run"><code class="name flex">
+<span>def <span class="ident">run</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Asynchron control loop.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run(self):
+    &#34;&#34;&#34;Asynchron control loop.&#34;&#34;&#34;
+    while True:
+        # memory free
+        with self._lock:
+            nbr = len(self._diagrams_list)
+            target = mem_to_free(self._max_mem_percent)
+            if nbr and (target := mem_to_free(self._max_mem_percent)):
+                total = sum(  # remove obsolete cache
+                    d.compress(target//nbr, _levels={0}) for d in self._diagrams_list
+                )
+                i = 0
+                while (total &lt; target and i &lt; len(self._diagrams_list)):  # remove active cache
+                    diagram = self._diagrams_list[i]
+                    total += diagram.compress((target-total)//nbr, _levels={1})
+                    if not diagram._cache[1]:  # pylint: disable=W0212
+                        self._untrack(diagram)
+                    i += 1
+                self._squeeze_untracked()
+                if self._verbose:
+                    print(f&#34;{bytes2human(total)} of cache removed&#34;)
+                free_malloc()
+
+        time.sleep(0.1)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.opti.cache.CacheManager.track"><code class="name flex">
+<span>def <span class="ident">track</span></span>(<span>self, diagram)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Track the new diagram if it is not already tracked.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def track(self, diagram):
+    &#34;&#34;&#34;Track the new diagram if it is not already tracked.&#34;&#34;&#34;
+    with self._lock:
+        if diagram not in self._diagrams_dict:
+            self._diagrams_dict[diagram] = len(self._diagrams_list)
+            self._diagrams_list.append(diagram)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -167,7 +602,23 @@ def getsizeof(obj: object, *, _processed: set = None) -&gt; int:
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="laueimproc.opti.cache.auto_cache" href="#laueimproc.opti.cache.auto_cache">auto_cache</a></code></li>
+<li><code><a title="laueimproc.opti.cache.collect" href="#laueimproc.opti.cache.collect">collect</a></code></li>
 <li><code><a title="laueimproc.opti.cache.getsizeof" href="#laueimproc.opti.cache.getsizeof">getsizeof</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="laueimproc.opti.cache.CacheManager" href="#laueimproc.opti.cache.CacheManager">CacheManager</a></code></h4>
+<ul class="two-column">
+<li><code><a title="laueimproc.opti.cache.CacheManager.collect" href="#laueimproc.opti.cache.CacheManager.collect">collect</a></code></li>
+<li><code><a title="laueimproc.opti.cache.CacheManager.instances" href="#laueimproc.opti.cache.CacheManager.instances">instances</a></code></li>
+<li><code><a title="laueimproc.opti.cache.CacheManager.max_mem_percent" href="#laueimproc.opti.cache.CacheManager.max_mem_percent">max_mem_percent</a></code></li>
+<li><code><a title="laueimproc.opti.cache.CacheManager.run" href="#laueimproc.opti.cache.CacheManager.run">run</a></code></li>
+<li><code><a title="laueimproc.opti.cache.CacheManager.track" href="#laueimproc.opti.cache.CacheManager.track">track</a></code></li>
+<li><code><a title="laueimproc.opti.cache.CacheManager.verbose" href="#laueimproc.opti.cache.CacheManager.verbose">verbose</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

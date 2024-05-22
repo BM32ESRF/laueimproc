@@ -74,11 +74,11 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
     ...     print(raw.read())
     ...
        peak_X    peak_Y   peak_Itot   peak_Isub peak_fwaxmaj ...ation   Xdev   Ydev peak_bkg Ipixmax
-        5.549     4.764    164733.5    163837.5        7.054 ...-50.9  0.000  0.000    896.0  1121.0
-       26.591     1.228     33794.9     32767.5        5.721 ...-87.9  0.000  0.000   1027.4  1129.0
+        5.549     4.764      1500.0       604.0        7.054 ...-50.9  0.000  0.000    896.0  1121.0
+       26.591     1.228      1116.4        89.0        5.721 ...-87.9  0.000  0.000   1027.4  1129.0
     ...
-     1974.962  1938.139 126975112.9 126974064.0        4.097 ... 28.1  0.000  0.000   1048.9  4999.0
-     1179.912  1976.142 129465501.1 129464392.0        5.356 ...  5.7  0.000  0.000   1109.1 20258.0
+     1974.962  1938.139      4998.9      3950.0        4.097 ... 28.1  0.000  0.000   1048.9  4999.0
+     1179.912  1976.142     20253.1     19144.0        5.356 ...  5.7  0.000  0.000   1109.1 20258.0
     # file created by laueimproc ...
     # Diagram from ge.jp2:
     #     History:
@@ -98,7 +98,7 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
     # positions, _, magnitudes, infodict = diagram.fit_gaussian(eigtheta=True)
     # positions = positions.squeeze(2)
     positions, _, infodict = diagram.fit_gaussian_em(eigtheta=True)
-    magnitudes = diagram.compute_rois_max()[:, 0]
+    magnitudes = diagram.compute_rois_max()[:, 2]
 
     backgrounds = torch.sum(diagram.rawrois - diagram.rois, dim=(1, 2))
     backgrounds /= (diagram.bboxes[:, 2]*diagram.bboxes[:, 3]).to(backgrounds.dtype)

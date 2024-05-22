@@ -50,8 +50,7 @@ import torch
 from laueimproc.common import bytes2human
 from laueimproc.improc.peaks_search import peaks_search
 from laueimproc.io.read import read_image, to_floattensor
-from laueimproc.opti.cache import getsizeof
-from laueimproc.opti.manager import CacheManager
+from laueimproc.opti.cache import CacheManager, getsizeof
 from laueimproc.opti.rois import filter_by_indices
 from laueimproc.opti.rois import imgbboxes2raw
 from laueimproc.opti.rois import rawshapes2rois
@@ -132,9 +131,6 @@ class BaseDiagram:
             warnings.warn(&#34;please provide a path rather than an array&#34;, RuntimeWarning)
             self._file_or_data = to_floattensor(data)
             assert self._file_or_data.ndim == 2, self._file_or_data.shape
-
-        # track
-        CacheManager().add_diagram(self)
 
     def __getstate__(self, cache: bool = False):
         &#34;&#34;&#34;Make the diagram pickleable.&#34;&#34;&#34;
@@ -219,9 +215,9 @@ class BaseDiagram:
             self._properties,
             self._rois,
         ) = state[:4]
-        self._cache = (threading.Lock(), (state[5] if len(state) == 6 else {}))
+        self._cache = (threading.Lock(), (state[4] if len(state) == 5 else {}))
         self._rois_lock = threading.Lock()
-        CacheManager().add_diagram(self)
+        CacheManager().track(self)
 
     def __str__(self) -&gt; str:
         &#34;&#34;&#34;Return a nice sumary of the history of this diagram.
@@ -624,7 +620,9 @@ class BaseDiagram:
                     if isinstance(self._file_or_data, pathlib.Path) else
                     self._file_or_data
                 )
-            return self._cache[1][&#34;image&#34;]
+            image = self._cache[1][&#34;image&#34;]
+        CacheManager().track(self)
+        return image
 
     def plot(
         self,
@@ -649,6 +647,11 @@ class BaseDiagram:
             Draw all the bounding boxes if True.
         show_image: boolean, default=True
             Display the image if True, dont call imshow otherwise.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            Filled graphical widget.
 
         Notes
         -----
@@ -862,7 +865,7 @@ class BaseDiagram:
         if bboxes_l:
             device = {bboxes.device for bboxes in bboxes_l}
             device = device.pop() if len(device) == 1 else &#34;cpu&#34;
-            bboxes = torch.cat([bboxes.to(device) for bboxes in bboxes_l], axis=0)
+            bboxes = torch.cat([bboxes.to(device) for bboxes in bboxes_l])
         else:
             bboxes = torch.empty((0, 4), dtype=torch.int16)
         with self._rois_lock:
@@ -1034,9 +1037,6 @@ For memory management, it is better to provide a pathlike rather than an array.<
             self._file_or_data = to_floattensor(data)
             assert self._file_or_data.ndim == 2, self._file_or_data.shape
 
-        # track
-        CacheManager().add_diagram(self)
-
     def __getstate__(self, cache: bool = False):
         &#34;&#34;&#34;Make the diagram pickleable.&#34;&#34;&#34;
         with self._rois_lock:
@@ -1120,9 +1120,9 @@ For memory management, it is better to provide a pathlike rather than an array.<
             self._properties,
             self._rois,
         ) = state[:4]
-        self._cache = (threading.Lock(), (state[5] if len(state) == 6 else {}))
+        self._cache = (threading.Lock(), (state[4] if len(state) == 5 else {}))
         self._rois_lock = threading.Lock()
-        CacheManager().add_diagram(self)
+        CacheManager().track(self)
 
     def __str__(self) -&gt; str:
         &#34;&#34;&#34;Return a nice sumary of the history of this diagram.
@@ -1525,7 +1525,9 @@ For memory management, it is better to provide a pathlike rather than an array.<
                     if isinstance(self._file_or_data, pathlib.Path) else
                     self._file_or_data
                 )
-            return self._cache[1][&#34;image&#34;]
+            image = self._cache[1][&#34;image&#34;]
+        CacheManager().track(self)
+        return image
 
     def plot(
         self,
@@ -1550,6 +1552,11 @@ For memory management, it is better to provide a pathlike rather than an array.<
             Draw all the bounding boxes if True.
         show_image: boolean, default=True
             Display the image if True, dont call imshow otherwise.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            Filled graphical widget.
 
         Notes
         -----
@@ -1763,7 +1770,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         if bboxes_l:
             device = {bboxes.device for bboxes in bboxes_l}
             device = device.pop() if len(device) == 1 else &#34;cpu&#34;
-            bboxes = torch.cat([bboxes.to(device) for bboxes in bboxes_l], axis=0)
+            bboxes = torch.cat([bboxes.to(device) for bboxes in bboxes_l])
         else:
             bboxes = torch.empty((0, 4), dtype=torch.int16)
         with self._rois_lock:
@@ -1959,7 +1966,9 @@ def image(self) -&gt; torch.Tensor:
                 if isinstance(self._file_or_data, pathlib.Path) else
                 self._file_or_data
             )
-        return self._cache[1][&#34;image&#34;]</code></pre>
+        image = self._cache[1][&#34;image&#34;]
+    CacheManager().track(self)
+    return image</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.classes.base_diagram.BaseDiagram.rawrois"><code class="name">var <span class="ident">rawrois</span> : Optional[None]</code></dt>
@@ -2579,6 +2588,11 @@ True
 <dt><strong><code>show_image</code></strong> :&ensp;<code>boolean</code>, default=<code>True</code></dt>
 <dd>Display the image if True, dont call imshow otherwise.</dd>
 </dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>matplotlib.axes.Axes</code></dt>
+<dd>Filled graphical widget.</dd>
+</dl>
 <h2 id="notes">Notes</h2>
 <p>It doesn't create the figure and call show.
 Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
@@ -2609,6 +2623,11 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
         Draw all the bounding boxes if True.
     show_image: boolean, default=True
         Display the image if True, dont call imshow otherwise.
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+        Filled graphical widget.
 
     Notes
     -----
@@ -2828,7 +2847,7 @@ It can also be a combination of the above elements to unite the spots.</p>
     if bboxes_l:
         device = {bboxes.device for bboxes in bboxes_l}
         device = device.pop() if len(device) == 1 else &#34;cpu&#34;
-        bboxes = torch.cat([bboxes.to(device) for bboxes in bboxes_l], axis=0)
+        bboxes = torch.cat([bboxes.to(device) for bboxes in bboxes_l])
     else:
         bboxes = torch.empty((0, 4), dtype=torch.int16)
     with self._rois_lock:

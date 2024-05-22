@@ -103,7 +103,7 @@ def compute_rois_max(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = Fal
 
     Returns
     -------
-    imax_pos1_pos2 : torch.Tensor
+    pos1_pos2_imax : torch.Tensor
         The concatenation of the colum vectors
         of the argmax along i axis, argmax along j axis and the max intensity.
         The shape is (n, 3).

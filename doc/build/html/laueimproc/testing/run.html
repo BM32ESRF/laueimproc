@@ -72,14 +72,22 @@ def run_tests(
 
     # classical tests
     print(&#34;Runing all the little unit tests...&#34;)
-    path = str(root)
-    if (code := pytest.main(debug_options + [&#34;-m&#34;, &#34;not slow&#34;, &#34;--doctest-modules&#34;, path])):
+    paths = sorted(
+        map(
+            str,
+            (
+                set(root.rglob(&#34;*.py&#34;))
+                - {root / &#34;testing&#34; / &#34;install.py&#34;, root / &#34;testing&#34; / &#34;coding_style.py&#34;}
+            )
+        )
+    )
+    if (code := pytest.main(debug_options + [&#34;-m&#34;, &#34;not slow&#34;, &#34;--doctest-modules&#34;] + paths)):
         return int(code)
 
     # slow tests
     if not skip_slow:
         print(&#34;Runing the slow unit tests...&#34;)
-        if (code := pytest.main(debug_options + [&#34;-m&#34;, &#34;slow&#34;, &#34;--verbose&#34;, path])):
+        if (code := pytest.main(debug_options + [&#34;-m&#34;, &#34;slow&#34;, &#34;--verbose&#34;] + paths)):
             return int(code)
     return 0</code></pre>
 </details>
@@ -132,14 +140,22 @@ def run_tests(
 
     # classical tests
     print(&#34;Runing all the little unit tests...&#34;)
-    path = str(root)
-    if (code := pytest.main(debug_options + [&#34;-m&#34;, &#34;not slow&#34;, &#34;--doctest-modules&#34;, path])):
+    paths = sorted(
+        map(
+            str,
+            (
+                set(root.rglob(&#34;*.py&#34;))
+                - {root / &#34;testing&#34; / &#34;install.py&#34;, root / &#34;testing&#34; / &#34;coding_style.py&#34;}
+            )
+        )
+    )
+    if (code := pytest.main(debug_options + [&#34;-m&#34;, &#34;not slow&#34;, &#34;--doctest-modules&#34;] + paths)):
         return int(code)
 
     # slow tests
     if not skip_slow:
         print(&#34;Runing the slow unit tests...&#34;)
-        if (code := pytest.main(debug_options + [&#34;-m&#34;, &#34;slow&#34;, &#34;--verbose&#34;, path])):
+        if (code := pytest.main(debug_options + [&#34;-m&#34;, &#34;slow&#34;, &#34;--verbose&#34;] + paths)):
             return int(code)
     return 0</code></pre>
 </details>

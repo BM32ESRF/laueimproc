@@ -35,7 +35,7 @@
 __all__ = [&#34;collect&#34;, &#34;CacheManager&#34;]
 
 
-from .manager import collect, CacheManager</code></pre>
+from .cache import collect, CacheManager</code></pre>
 </details>
 </section>
 <section>
@@ -48,10 +48,6 @@ from .manager import collect, CacheManager</code></pre>
 <dt><code class="name"><a title="laueimproc.opti.gpu" href="gpu.html">laueimproc.opti.gpu</a></code></dt>
 <dd>
 <div class="desc"><p>Manage the auto gpu.</p></div>
-</dd>
-<dt><code class="name"><a title="laueimproc.opti.manager" href="manager.html">laueimproc.opti.manager</a></code></dt>
-<dd>
-<div class="desc"><p>Group of diagrams.</p></div>
 </dd>
 <dt><code class="name"><a title="laueimproc.opti.memory" href="memory.html">laueimproc.opti.memory</a></code></dt>
 <dd>
@@ -146,7 +142,7 @@ else to the thread.</p></div>
 
     def __init__(self):
         # declaration
-        self._diagrams_dict: dict = {}  # dict for fast acces
+        self._diagrams_dict: dict = {}  # dict for fast acces diagram -&gt; index
         self._diagrams_list: list = []  # list for order
         self._lock = threading.Lock()
         self._max_mem_percent: int = 100-get_swappiness()
@@ -156,17 +152,29 @@ else to the thread.</p></div>
         super().__init__(daemon=True)  # daemon has to be true to allow to exit python
         self.start()
 
-    def add_diagram(self, diagram):
-        &#34;&#34;&#34;Track the new diagram.&#34;&#34;&#34;
-        with self._lock:
-            if diagram not in self._diagrams_dict:
-                self._diagrams_dict[diagram] = len(self._diagrams_list)
-                self._diagrams_list.append(diagram)
+    def _squeeze_untracked(self) -&gt; int:
+        &#34;&#34;&#34;Update the indices to remove the None values.&#34;&#34;&#34;
+        new_index = 0
+        diagrams_list = []
+        for diagram in self._diagrams_list:
+            if diagram is None:
+                continue
+            diagrams_list.append(diagram)
+            self._diagrams_dict[diagram] = new_index
+            new_index += 1
+        self._diagrams_list = diagrams_list
+
+    def _untrack(self, diagram):
+        &#34;&#34;&#34;Stop tracking this diagram.&#34;&#34;&#34;
+        if (index := self._diagrams_dict.get(diagram, None)) is not None:
+            del self._diagrams_dict[diagram]
+            self._diagrams_list[index] = None
 
     def collect(self) -&gt; int:
         &#34;&#34;&#34;Try to keep only reachable diagrams.&#34;&#34;&#34;
         from laueimproc.classes.diagram import Diagram
         with self._lock:
+            self._squeeze_untracked()
             before = len(self._diagrams_list)
             diagrams_id = [id(diagram) for diagram in self._diagrams_list]
             self._diagrams_dict = {}
@@ -200,18 +208,29 @@ else to the thread.</p></div>
                 nbr = len(self._diagrams_list)
                 target = mem_to_free(self._max_mem_percent)
                 if nbr and (target := mem_to_free(self._max_mem_percent)):
-                    total = 0
-                    for level in (0, 1, 2):
-                        total += sum(
-                            d.compress((target-total)//nbr, _levels={level})
-                            for d in self._diagrams_list
-                        )
-                        if total &gt;= target:
-                            break
+                    total = sum(  # remove obsolete cache
+                        d.compress(target//nbr, _levels={0}) for d in self._diagrams_list
+                    )
+                    i = 0
+                    while (total &lt; target and i &lt; len(self._diagrams_list)):  # remove active cache
+                        diagram = self._diagrams_list[i]
+                        total += diagram.compress((target-total)//nbr, _levels={1})
+                        if not diagram._cache[1]:  # pylint: disable=W0212
+                            self._untrack(diagram)
+                        i += 1
+                    self._squeeze_untracked()
                     if self._verbose:
-                        print(f&#34;{bytes2human(total)} of cache removed (level {level})&#34;)
+                        print(f&#34;{bytes2human(total)} of cache removed&#34;)
                     free_malloc()
+
             time.sleep(0.1)
+
+    def track(self, diagram):
+        &#34;&#34;&#34;Track the new diagram if it is not already tracked.&#34;&#34;&#34;
+        with self._lock:
+            if diagram not in self._diagrams_dict:
+                self._diagrams_dict[diagram] = len(self._diagrams_list)
+                self._diagrams_list.append(diagram)
 
     @property
     def verbose(self) -&gt; bool:
@@ -266,23 +285,6 @@ def verbose(self) -&gt; bool:
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="laueimproc.opti.CacheManager.add_diagram"><code class="name flex">
-<span>def <span class="ident">add_diagram</span></span>(<span>self, diagram)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Track the new diagram.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def add_diagram(self, diagram):
-    &#34;&#34;&#34;Track the new diagram.&#34;&#34;&#34;
-    with self._lock:
-        if diagram not in self._diagrams_dict:
-            self._diagrams_dict[diagram] = len(self._diagrams_list)
-            self._diagrams_list.append(diagram)</code></pre>
-</details>
-</dd>
 <dt id="laueimproc.opti.CacheManager.collect"><code class="name flex">
 <span>def <span class="ident">collect</span></span>(<span>self) ‑> int</span>
 </code></dt>
@@ -296,6 +298,7 @@ def verbose(self) -&gt; bool:
     &#34;&#34;&#34;Try to keep only reachable diagrams.&#34;&#34;&#34;
     from laueimproc.classes.diagram import Diagram
     with self._lock:
+        self._squeeze_untracked()
         before = len(self._diagrams_list)
         diagrams_id = [id(diagram) for diagram in self._diagrams_list]
         self._diagrams_dict = {}
@@ -328,18 +331,39 @@ def verbose(self) -&gt; bool:
             nbr = len(self._diagrams_list)
             target = mem_to_free(self._max_mem_percent)
             if nbr and (target := mem_to_free(self._max_mem_percent)):
-                total = 0
-                for level in (0, 1, 2):
-                    total += sum(
-                        d.compress((target-total)//nbr, _levels={level})
-                        for d in self._diagrams_list
-                    )
-                    if total &gt;= target:
-                        break
+                total = sum(  # remove obsolete cache
+                    d.compress(target//nbr, _levels={0}) for d in self._diagrams_list
+                )
+                i = 0
+                while (total &lt; target and i &lt; len(self._diagrams_list)):  # remove active cache
+                    diagram = self._diagrams_list[i]
+                    total += diagram.compress((target-total)//nbr, _levels={1})
+                    if not diagram._cache[1]:  # pylint: disable=W0212
+                        self._untrack(diagram)
+                    i += 1
+                self._squeeze_untracked()
                 if self._verbose:
-                    print(f&#34;{bytes2human(total)} of cache removed (level {level})&#34;)
+                    print(f&#34;{bytes2human(total)} of cache removed&#34;)
                 free_malloc()
+
         time.sleep(0.1)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.opti.CacheManager.track"><code class="name flex">
+<span>def <span class="ident">track</span></span>(<span>self, diagram)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Track the new diagram if it is not already tracked.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def track(self, diagram):
+    &#34;&#34;&#34;Track the new diagram if it is not already tracked.&#34;&#34;&#34;
+    with self._lock:
+        if diagram not in self._diagrams_dict:
+            self._diagrams_dict[diagram] = len(self._diagrams_list)
+            self._diagrams_list.append(diagram)</code></pre>
 </details>
 </dd>
 </dl>
@@ -362,7 +386,6 @@ def verbose(self) -&gt; bool:
 <ul>
 <li><code><a title="laueimproc.opti.cache" href="cache.html">laueimproc.opti.cache</a></code></li>
 <li><code><a title="laueimproc.opti.gpu" href="gpu.html">laueimproc.opti.gpu</a></code></li>
-<li><code><a title="laueimproc.opti.manager" href="manager.html">laueimproc.opti.manager</a></code></li>
 <li><code><a title="laueimproc.opti.memory" href="memory.html">laueimproc.opti.memory</a></code></li>
 <li><code><a title="laueimproc.opti.rois" href="rois.html">laueimproc.opti.rois</a></code></li>
 <li><code><a title="laueimproc.opti.singleton" href="singleton.html">laueimproc.opti.singleton</a></code></li>
@@ -378,11 +401,11 @@ def verbose(self) -&gt; bool:
 <li>
 <h4><code><a title="laueimproc.opti.CacheManager" href="#laueimproc.opti.CacheManager">CacheManager</a></code></h4>
 <ul class="two-column">
-<li><code><a title="laueimproc.opti.CacheManager.add_diagram" href="#laueimproc.opti.CacheManager.add_diagram">add_diagram</a></code></li>
 <li><code><a title="laueimproc.opti.CacheManager.collect" href="#laueimproc.opti.CacheManager.collect">collect</a></code></li>
 <li><code><a title="laueimproc.opti.CacheManager.instances" href="#laueimproc.opti.CacheManager.instances">instances</a></code></li>
 <li><code><a title="laueimproc.opti.CacheManager.max_mem_percent" href="#laueimproc.opti.CacheManager.max_mem_percent">max_mem_percent</a></code></li>
 <li><code><a title="laueimproc.opti.CacheManager.run" href="#laueimproc.opti.CacheManager.run">run</a></code></li>
+<li><code><a title="laueimproc.opti.CacheManager.track" href="#laueimproc.opti.CacheManager.track">track</a></code></li>
 <li><code><a title="laueimproc.opti.CacheManager.verbose" href="#laueimproc.opti.CacheManager.verbose">verbose</a></code></li>
 </ul>
 </li>

@@ -219,7 +219,8 @@ def rawshapes2rois(
     assert shapes.shape[1] == 2, shapes.shape
     assert shapes.dtype == torch.int16, shapes.dtype
     assert torch.all(shapes &gt;= 1), &#34;some bboxes have area of zero&#34;
-    assert len(data) == torch.float32.itemsize*(shapes[:, 0]*shapes[:, 1]).sum(), \
+    shapes_32 = shapes.to(torch.int32)  # for overflow
+    assert len(data) == torch.float32.itemsize*(shapes_32[:, 0]*shapes_32[:, 1]).sum(), \
         &#34;data length dosen&#39;t match rois area&#34;
 
     if not data:
@@ -596,7 +597,8 @@ torch.Size([1000, 20, 40])
     assert shapes.shape[1] == 2, shapes.shape
     assert shapes.dtype == torch.int16, shapes.dtype
     assert torch.all(shapes &gt;= 1), &#34;some bboxes have area of zero&#34;
-    assert len(data) == torch.float32.itemsize*(shapes[:, 0]*shapes[:, 1]).sum(), \
+    shapes_32 = shapes.to(torch.int32)  # for overflow
+    assert len(data) == torch.float32.itemsize*(shapes_32[:, 0]*shapes_32[:, 1]).sum(), \
         &#34;data length dosen&#39;t match rois area&#34;
 
     if not data:

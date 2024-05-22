@@ -65,9 +65,7 @@ def _density_to_threshold_torch(img: torch.Tensor, density: float) -&gt; float:
     return threshold
 
 
-def estimate_background(
-    brut_image: torch.Tensor, radius_font: numbers.Real = 9, **_kwargs
-) -&gt; torch.Tensor:
+def estimate_background(brut_image: torch.Tensor, radius_font: numbers.Real = 9) -&gt; torch.Tensor:
     &#34;&#34;&#34;Estimate and Return the background of the image.
 
     Parameters
@@ -96,7 +94,7 @@ def estimate_background(
     # from scipy import signal
     # bg_image = signal.medfilt2d(brut_image, 5)  # no limitation but very slow!
     # bg_image = cv2.morphologyEx(brut_image, dst=bg_image, op=cv2.MORPH_OPEN, kernel=kernel_font)
-    bg_image = morpho_open(bg_image, radius=radius_font, **_kwargs)
+    bg_image = morpho_open(bg_image, radius=radius_font)
     # ksize = (3*kernel_font.shape[0], 3*kernel_font.shape[1])
     # bg_image = cv2.GaussianBlur(brut_image, dst=bg_image, ksize=ksize, sigmaX=0)
     bg_image = torch.minimum(bg_image, brut_image, out=bg_image)  # avoid &lt; 0 when sub
@@ -208,7 +206,7 @@ def peaks_search(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="laueimproc.improc.peaks_search.estimate_background"><code class="name flex">
-<span>def <span class="ident">estimate_background</span></span>(<span>brut_image: torch.Tensor, radius_font: numbers.Real = 9, **_kwargs) ‑> torch.Tensor</span>
+<span>def <span class="ident">estimate_background</span></span>(<span>brut_image: torch.Tensor, radius_font: numbers.Real = 9) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Estimate and Return the background of the image.</p>
@@ -231,9 +229,7 @@ but slower the proccess is.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def estimate_background(
-    brut_image: torch.Tensor, radius_font: numbers.Real = 9, **_kwargs
-) -&gt; torch.Tensor:
+<pre><code class="python">def estimate_background(brut_image: torch.Tensor, radius_font: numbers.Real = 9) -&gt; torch.Tensor:
     &#34;&#34;&#34;Estimate and Return the background of the image.
 
     Parameters
@@ -262,7 +258,7 @@ but slower the proccess is.</dd>
     # from scipy import signal
     # bg_image = signal.medfilt2d(brut_image, 5)  # no limitation but very slow!
     # bg_image = cv2.morphologyEx(brut_image, dst=bg_image, op=cv2.MORPH_OPEN, kernel=kernel_font)
-    bg_image = morpho_open(bg_image, radius=radius_font, **_kwargs)
+    bg_image = morpho_open(bg_image, radius=radius_font)
     # ksize = (3*kernel_font.shape[0], 3*kernel_font.shape[1])
     # bg_image = cv2.GaussianBlur(brut_image, dst=bg_image, ksize=ksize, sigmaX=0)
     bg_image = torch.minimum(bg_image, brut_image, out=bg_image)  # avoid &lt; 0 when sub
