@@ -94,7 +94,7 @@ def peaks_search(
         It corresponds to the lowest density such as the pixel is considered as a spot.
         The threshold is appled after having removed the background.
         It evolves between ]0, 1[.
-    radius_aglo : float, default = 9
+    radius_aglo : float, default = 2
         The structurant element radius used for the aglomeration of close grain
         by morhpological dilatation applied on the thresholed image.
         If it is not provided a circle of diameter 5 pixels is taken.

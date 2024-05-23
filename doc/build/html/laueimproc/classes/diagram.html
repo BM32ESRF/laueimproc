@@ -82,6 +82,38 @@ class Diagram(BaseDiagram):
         return compute_rois_centroid(data, bboxes, **_kwargs)
 
     @auto_cache
+    @check_init
+    def compute_rois_inertia(self, **_kwargs) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Compute the inertia of the spot along the center of mass.
+
+        Returns
+        -------
+        inertia : torch.Tensor
+            The order 2 momentum centered along the barycenter (shape (n,)).
+            See ``laueimproc.improc.spot.basic.compute_rois_inertia`` for more details.
+
+        Examples
+        --------
+        &gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
+        &gt;&gt;&gt; from laueimproc.io import get_sample
+        &gt;&gt;&gt; diagram = Diagram(get_sample())
+        &gt;&gt;&gt; diagram.find_spots()
+        &gt;&gt;&gt; print(diagram.compute_rois_inertia())  # doctset: +ELLIPSIS
+        tensor([4.0506e+00, 9.7974e-02, 1.6362e-01, 2.1423e-03, 4.8515e-02, 2.6657e-01,
+                9.9830e-02, 1.7221e-03, 2.8771e-02, 5.3754e-03, 2.4759e-02, 8.7665e-01,
+                5.1118e-02, 9.6223e-02, 3.0648e-01, 1.1362e-01, 2.6335e-01, 1.1388e-01,
+                ...,
+                4.8586e+00, 4.4373e+00, 1.3409e-01, 3.1009e-01, 1.5538e-02, 8.4468e-03,
+                1.5235e+00, 1.0291e+01, 8.1125e+00, 5.4182e-01, 1.4235e+00, 4.4005e+00,
+                7.0188e+00, 2.5770e+00, 1.1837e+01, 7.0610e+00, 3.6725e+00, 2.2335e+01])
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        from laueimproc.improc.spot.basic import compute_rois_inertia
+        with self._rois_lock:
+            data, bboxes = self._rois
+        return compute_rois_inertia(data, bboxes, **_kwargs)
+
+    @auto_cache
     @ij_to_xy_decorator(i=(slice(None), 1), j=(slice(None), 2))
     @check_init
     def compute_rois_max(self, **_kwargs) -&gt; torch.Tensor:
@@ -456,6 +488,38 @@ For memory management, it is better to provide a pathlike rather than an array.<
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_centroid(data, bboxes, **_kwargs)
+
+    @auto_cache
+    @check_init
+    def compute_rois_inertia(self, **_kwargs) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Compute the inertia of the spot along the center of mass.
+
+        Returns
+        -------
+        inertia : torch.Tensor
+            The order 2 momentum centered along the barycenter (shape (n,)).
+            See ``laueimproc.improc.spot.basic.compute_rois_inertia`` for more details.
+
+        Examples
+        --------
+        &gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
+        &gt;&gt;&gt; from laueimproc.io import get_sample
+        &gt;&gt;&gt; diagram = Diagram(get_sample())
+        &gt;&gt;&gt; diagram.find_spots()
+        &gt;&gt;&gt; print(diagram.compute_rois_inertia())  # doctset: +ELLIPSIS
+        tensor([4.0506e+00, 9.7974e-02, 1.6362e-01, 2.1423e-03, 4.8515e-02, 2.6657e-01,
+                9.9830e-02, 1.7221e-03, 2.8771e-02, 5.3754e-03, 2.4759e-02, 8.7665e-01,
+                5.1118e-02, 9.6223e-02, 3.0648e-01, 1.1362e-01, 2.6335e-01, 1.1388e-01,
+                ...,
+                4.8586e+00, 4.4373e+00, 1.3409e-01, 3.1009e-01, 1.5538e-02, 8.4468e-03,
+                1.5235e+00, 1.0291e+01, 8.1125e+00, 5.4182e-01, 1.4235e+00, 4.4005e+00,
+                7.0188e+00, 2.5770e+00, 1.1837e+01, 7.0610e+00, 3.6725e+00, 2.2335e+01])
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        from laueimproc.improc.spot.basic import compute_rois_inertia
+        with self._rois_lock:
+            data, bboxes = self._rois
+        return compute_rois_inertia(data, bboxes, **_kwargs)
 
     @auto_cache
     @ij_to_xy_decorator(i=(slice(None), 1), j=(slice(None), 2))
@@ -839,6 +903,69 @@ def compute_rois_centroid(self, **_kwargs) -&gt; torch.Tensor:
     with self._rois_lock:
         data, bboxes = self._rois
     return compute_rois_centroid(data, bboxes, **_kwargs)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.classes.diagram.Diagram.compute_rois_inertia"><code class="name flex">
+<span>def <span class="ident">compute_rois_inertia</span></span>(<span>self, **_kwargs) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the inertia of the spot along the center of mass.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>inertia</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The order 2 momentum centered along the barycenter (shape (n,)).
+See <code><a title="laueimproc.improc.spot.basic.compute_rois_inertia" href="../improc/spot/basic.html#laueimproc.improc.spot.basic.compute_rois_inertia">compute_rois_inertia()</a></code> for more details.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
+&gt;&gt;&gt; from laueimproc.io import get_sample
+&gt;&gt;&gt; diagram = Diagram(get_sample())
+&gt;&gt;&gt; diagram.find_spots()
+&gt;&gt;&gt; print(diagram.compute_rois_inertia())  # doctset: +ELLIPSIS
+tensor([4.0506e+00, 9.7974e-02, 1.6362e-01, 2.1423e-03, 4.8515e-02, 2.6657e-01,
+        9.9830e-02, 1.7221e-03, 2.8771e-02, 5.3754e-03, 2.4759e-02, 8.7665e-01,
+        5.1118e-02, 9.6223e-02, 3.0648e-01, 1.1362e-01, 2.6335e-01, 1.1388e-01,
+        ...,
+        4.8586e+00, 4.4373e+00, 1.3409e-01, 3.1009e-01, 1.5538e-02, 8.4468e-03,
+        1.5235e+00, 1.0291e+01, 8.1125e+00, 5.4182e-01, 1.4235e+00, 4.4005e+00,
+        7.0188e+00, 2.5770e+00, 1.1837e+01, 7.0610e+00, 3.6725e+00, 2.2335e+01])
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@auto_cache
+@check_init
+def compute_rois_inertia(self, **_kwargs) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Compute the inertia of the spot along the center of mass.
+
+    Returns
+    -------
+    inertia : torch.Tensor
+        The order 2 momentum centered along the barycenter (shape (n,)).
+        See ``laueimproc.improc.spot.basic.compute_rois_inertia`` for more details.
+
+    Examples
+    --------
+    &gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
+    &gt;&gt;&gt; from laueimproc.io import get_sample
+    &gt;&gt;&gt; diagram = Diagram(get_sample())
+    &gt;&gt;&gt; diagram.find_spots()
+    &gt;&gt;&gt; print(diagram.compute_rois_inertia())  # doctset: +ELLIPSIS
+    tensor([4.0506e+00, 9.7974e-02, 1.6362e-01, 2.1423e-03, 4.8515e-02, 2.6657e-01,
+            9.9830e-02, 1.7221e-03, 2.8771e-02, 5.3754e-03, 2.4759e-02, 8.7665e-01,
+            5.1118e-02, 9.6223e-02, 3.0648e-01, 1.1362e-01, 2.6335e-01, 1.1388e-01,
+            ...,
+            4.8586e+00, 4.4373e+00, 1.3409e-01, 3.1009e-01, 1.5538e-02, 8.4468e-03,
+            1.5235e+00, 1.0291e+01, 8.1125e+00, 5.4182e-01, 1.4235e+00, 4.4005e+00,
+            7.0188e+00, 2.5770e+00, 1.1837e+01, 7.0610e+00, 3.6725e+00, 2.2335e+01])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    from laueimproc.improc.spot.basic import compute_rois_inertia
+    with self._rois_lock:
+        data, bboxes = self._rois
+    return compute_rois_inertia(data, bboxes, **_kwargs)</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.classes.diagram.Diagram.compute_rois_max"><code class="name flex">
@@ -1458,6 +1585,7 @@ def fit_gaussians_em(
 <h4><code><a title="laueimproc.classes.diagram.Diagram" href="#laueimproc.classes.diagram.Diagram">Diagram</a></code></h4>
 <ul class="">
 <li><code><a title="laueimproc.classes.diagram.Diagram.compute_rois_centroid" href="#laueimproc.classes.diagram.Diagram.compute_rois_centroid">compute_rois_centroid</a></code></li>
+<li><code><a title="laueimproc.classes.diagram.Diagram.compute_rois_inertia" href="#laueimproc.classes.diagram.Diagram.compute_rois_inertia">compute_rois_inertia</a></code></li>
 <li><code><a title="laueimproc.classes.diagram.Diagram.compute_rois_max" href="#laueimproc.classes.diagram.Diagram.compute_rois_max">compute_rois_max</a></code></li>
 <li><code><a title="laueimproc.classes.diagram.Diagram.compute_rois_nb_peaks" href="#laueimproc.classes.diagram.Diagram.compute_rois_nb_peaks">compute_rois_nb_peaks</a></code></li>
 <li><code><a title="laueimproc.classes.diagram.Diagram.compute_rois_pca" href="#laueimproc.classes.diagram.Diagram.compute_rois_pca">compute_rois_pca</a></code></li>

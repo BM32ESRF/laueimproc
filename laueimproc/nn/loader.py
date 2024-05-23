@@ -73,13 +73,12 @@ def find_shape(dataset, percent: numbers.Real) -> tuple[int, int]:
 
     Examples
     --------
-    >>> from laueimproc.classes.dataset import Diagram, DiagramsDataset
-    >>> from laueimproc.io import get_samples
+    >>> import laueimproc
     >>> from laueimproc.nn.loader import find_shape
-    >>> def init(diagram: Diagram):
+    >>> def init(diagram: laueimproc.Diagram):
     ...     diagram.find_spots()
     ...
-    >>> dataset = DiagramsDataset(get_samples())
+    >>> dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())
     >>> _ = dataset.apply(init)
     >>> find_shape(dataset, 0.95)
     (15, 12)

@@ -103,13 +103,12 @@ def find_shape(dataset, percent: numbers.Real) -&gt; tuple[int, int]:
 
     Examples
     --------
-    &gt;&gt;&gt; from laueimproc.classes.dataset import Diagram, DiagramsDataset
-    &gt;&gt;&gt; from laueimproc.io import get_samples
+    &gt;&gt;&gt; import laueimproc
     &gt;&gt;&gt; from laueimproc.nn.loader import find_shape
-    &gt;&gt;&gt; def init(diagram: Diagram):
+    &gt;&gt;&gt; def init(diagram: laueimproc.Diagram):
     ...     diagram.find_spots()
     ...
-    &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
+    &gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())
     &gt;&gt;&gt; _ = dataset.apply(init)
     &gt;&gt;&gt; find_shape(dataset, 0.95)
     (15, 12)
@@ -183,13 +182,12 @@ def find_shape(dataset, percent: numbers.Real) -&gt; tuple[int, int]:
 <dd>The width shape.</dd>
 </dl>
 <h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.dataset import Diagram, DiagramsDataset
-&gt;&gt;&gt; from laueimproc.io import get_samples
+<pre><code class="language-python-repl">&gt;&gt;&gt; import laueimproc
 &gt;&gt;&gt; from laueimproc.nn.loader import find_shape
-&gt;&gt;&gt; def init(diagram: Diagram):
+&gt;&gt;&gt; def init(diagram: laueimproc.Diagram):
 ...     diagram.find_spots()
 ...
-&gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
+&gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())
 &gt;&gt;&gt; _ = dataset.apply(init)
 &gt;&gt;&gt; find_shape(dataset, 0.95)
 (15, 12)
@@ -220,13 +218,12 @@ def find_shape(dataset, percent: numbers.Real) -&gt; tuple[int, int]:
 
     Examples
     --------
-    &gt;&gt;&gt; from laueimproc.classes.dataset import Diagram, DiagramsDataset
-    &gt;&gt;&gt; from laueimproc.io import get_samples
+    &gt;&gt;&gt; import laueimproc
     &gt;&gt;&gt; from laueimproc.nn.loader import find_shape
-    &gt;&gt;&gt; def init(diagram: Diagram):
+    &gt;&gt;&gt; def init(diagram: laueimproc.Diagram):
     ...     diagram.find_spots()
     ...
-    &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
+    &gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())
     &gt;&gt;&gt; _ = dataset.apply(init)
     &gt;&gt;&gt; find_shape(dataset, 0.95)
     (15, 12)

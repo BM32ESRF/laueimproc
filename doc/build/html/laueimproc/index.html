@@ -37,7 +37,7 @@ from .opti import collect
 
 __all__ = [&#34;collect&#34;, &#34;Diagram&#34;, &#34;DiagramsDataset&#34;]
 __author__ = &#34;J.S. Micha, O. Robach., S. Tardif, R. Richard&#34;
-__version__ = &#34;1.2.3&#34;  # pep 440</code></pre>
+__version__ = &#34;1.2.4&#34;  # pep 440</code></pre>
 </details>
 </section>
 <section>
@@ -173,6 +173,38 @@ For memory management, it is better to provide a pathlike rather than an array.<
         with self._rois_lock:
             data, bboxes = self._rois
         return compute_rois_centroid(data, bboxes, **_kwargs)
+
+    @auto_cache
+    @check_init
+    def compute_rois_inertia(self, **_kwargs) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Compute the inertia of the spot along the center of mass.
+
+        Returns
+        -------
+        inertia : torch.Tensor
+            The order 2 momentum centered along the barycenter (shape (n,)).
+            See ``laueimproc.improc.spot.basic.compute_rois_inertia`` for more details.
+
+        Examples
+        --------
+        &gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
+        &gt;&gt;&gt; from laueimproc.io import get_sample
+        &gt;&gt;&gt; diagram = Diagram(get_sample())
+        &gt;&gt;&gt; diagram.find_spots()
+        &gt;&gt;&gt; print(diagram.compute_rois_inertia())  # doctset: +ELLIPSIS
+        tensor([4.0506e+00, 9.7974e-02, 1.6362e-01, 2.1423e-03, 4.8515e-02, 2.6657e-01,
+                9.9830e-02, 1.7221e-03, 2.8771e-02, 5.3754e-03, 2.4759e-02, 8.7665e-01,
+                5.1118e-02, 9.6223e-02, 3.0648e-01, 1.1362e-01, 2.6335e-01, 1.1388e-01,
+                ...,
+                4.8586e+00, 4.4373e+00, 1.3409e-01, 3.1009e-01, 1.5538e-02, 8.4468e-03,
+                1.5235e+00, 1.0291e+01, 8.1125e+00, 5.4182e-01, 1.4235e+00, 4.4005e+00,
+                7.0188e+00, 2.5770e+00, 1.1837e+01, 7.0610e+00, 3.6725e+00, 2.2335e+01])
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        from laueimproc.improc.spot.basic import compute_rois_inertia
+        with self._rois_lock:
+            data, bboxes = self._rois
+        return compute_rois_inertia(data, bboxes, **_kwargs)
 
     @auto_cache
     @ij_to_xy_decorator(i=(slice(None), 1), j=(slice(None), 2))
@@ -556,6 +588,69 @@ def compute_rois_centroid(self, **_kwargs) -&gt; torch.Tensor:
     with self._rois_lock:
         data, bboxes = self._rois
     return compute_rois_centroid(data, bboxes, **_kwargs)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.Diagram.compute_rois_inertia"><code class="name flex">
+<span>def <span class="ident">compute_rois_inertia</span></span>(<span>self, **_kwargs) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the inertia of the spot along the center of mass.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>inertia</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The order 2 momentum centered along the barycenter (shape (n,)).
+See <code><a title="laueimproc.improc.spot.basic.compute_rois_inertia" href="improc/spot/basic.html#laueimproc.improc.spot.basic.compute_rois_inertia">compute_rois_inertia()</a></code> for more details.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
+&gt;&gt;&gt; from laueimproc.io import get_sample
+&gt;&gt;&gt; diagram = Diagram(get_sample())
+&gt;&gt;&gt; diagram.find_spots()
+&gt;&gt;&gt; print(diagram.compute_rois_inertia())  # doctset: +ELLIPSIS
+tensor([4.0506e+00, 9.7974e-02, 1.6362e-01, 2.1423e-03, 4.8515e-02, 2.6657e-01,
+        9.9830e-02, 1.7221e-03, 2.8771e-02, 5.3754e-03, 2.4759e-02, 8.7665e-01,
+        5.1118e-02, 9.6223e-02, 3.0648e-01, 1.1362e-01, 2.6335e-01, 1.1388e-01,
+        ...,
+        4.8586e+00, 4.4373e+00, 1.3409e-01, 3.1009e-01, 1.5538e-02, 8.4468e-03,
+        1.5235e+00, 1.0291e+01, 8.1125e+00, 5.4182e-01, 1.4235e+00, 4.4005e+00,
+        7.0188e+00, 2.5770e+00, 1.1837e+01, 7.0610e+00, 3.6725e+00, 2.2335e+01])
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@auto_cache
+@check_init
+def compute_rois_inertia(self, **_kwargs) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Compute the inertia of the spot along the center of mass.
+
+    Returns
+    -------
+    inertia : torch.Tensor
+        The order 2 momentum centered along the barycenter (shape (n,)).
+        See ``laueimproc.improc.spot.basic.compute_rois_inertia`` for more details.
+
+    Examples
+    --------
+    &gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
+    &gt;&gt;&gt; from laueimproc.io import get_sample
+    &gt;&gt;&gt; diagram = Diagram(get_sample())
+    &gt;&gt;&gt; diagram.find_spots()
+    &gt;&gt;&gt; print(diagram.compute_rois_inertia())  # doctset: +ELLIPSIS
+    tensor([4.0506e+00, 9.7974e-02, 1.6362e-01, 2.1423e-03, 4.8515e-02, 2.6657e-01,
+            9.9830e-02, 1.7221e-03, 2.8771e-02, 5.3754e-03, 2.4759e-02, 8.7665e-01,
+            5.1118e-02, 9.6223e-02, 3.0648e-01, 1.1362e-01, 2.6335e-01, 1.1388e-01,
+            ...,
+            4.8586e+00, 4.4373e+00, 1.3409e-01, 3.1009e-01, 1.5538e-02, 8.4468e-03,
+            1.5235e+00, 1.0291e+01, 8.1125e+00, 5.4182e-01, 1.4235e+00, 4.4005e+00,
+            7.0188e+00, 2.5770e+00, 1.1837e+01, 7.0610e+00, 3.6725e+00, 2.2335e+01])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    from laueimproc.improc.spot.basic import compute_rois_inertia
+    with self._rois_lock:
+        data, bboxes = self._rois
+    return compute_rois_inertia(data, bboxes, **_kwargs)</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.Diagram.compute_rois_max"><code class="name flex">
@@ -1161,8 +1256,6 @@ def fit_gaussians_em(
 </code></dt>
 <dd>
 <div class="desc"><p>Link Diagrams together.</p>
-<p>indices : set[int]
-The diagram indices currently reachable in the dataset.</p>
 <p>Initialise the dataset.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -1182,808 +1275,12 @@ and returns the 2 coordinates in the sample plane.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DiagramsDataset(threading.Thread):
-    &#34;&#34;&#34;Link Diagrams together.
-
-    indices : set[int]
-        The diagram indices currently reachable in the dataset.
-    &#34;&#34;&#34;
-
-    def __init__(
-        self,
-        *diagram_refs,
-        diag2ind: typing.Optional[typing.Callable[[Diagram], numbers.Integral]] = None,
-        position: typing.Optional[typing.Callable[[int], tuple[numbers.Real, numbers.Real]]] = None,
-    ):
-        &#34;&#34;&#34;Initialise the dataset.
-
-        Parameters
-        ----------
-        *diagram_refs : tuple
-            The diagram references, transmitted to ``add_diagrams``.
-        diag2ind : callable, default=laueimproc.classses.dataset.default_diag2ind
-            The function to associate an index to a diagram.
-            If provided, this function has to be pickleable.
-            It has to take only one positional argument (a simple Diagram instance)
-            and to return a positive integer.
-        position : callable, optional
-            Provides information on the phisical position of the images on the sample.
-            This function takes as input the index of the diagram,
-            and returns the 2 coordinates in the sample plane.
-        &#34;&#34;&#34;
-        if diag2ind is None:
-            self._diag2ind = default_diag2ind
-        else:
-            self._diag2ind = cloudpickle.loads(self._check_diag2ind(diag2ind))
-        if position is not None:
-            position = cloudpickle.loads(self._check_position(position))
-        self._position = [position, {}]  # the dict associate (x, y) to index
-        self._diagrams: dict[int, typing.Union[Diagram, queue.Queue]] = {}  # index to diagram
-        self._lock = threading.Lock()
-        self._to_sniff: dict = {&#34;dirs&#34;: [], &#34;readed&#34;: set()}  # for the async run method
-        self._operations_chain: list[tuple[typing.Callable[[Diagram], object], tuple]] = []
-        self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
-        super().__init__(daemon=True)
-        self.add_diagrams(diagram_refs)
-
-    def __getstate__(self):
-        &#34;&#34;&#34;Make the dataset pickleable.&#34;&#34;&#34;
-        with self._lock:
-            pos_data = self._position[1]
-            return (
-                cloudpickle.dumps(self._diag2ind),
-                [
-                    cloudpickle.dumps(self._position[0]),
-                    (pos_data.copy() if isinstance(pos_data, dict) else pos_data),
-                ],
-                self._diagrams.copy(),
-                cloudpickle.dumps(self._operations_chain),
-                self._properties.copy(),
-            )
-
-    def __getitem__(self, item: numbers.Integral):
-        &#34;&#34;&#34;Get a diagram or a subset of the set.
-
-        Parameters
-        ----------
-        item : int or slice
-            The item of the diagram you want to reach.
-
-        Returns
-        -------
-        Diagram or Dataset
-            If the item is integer, return the corresponding diagram,
-            return a frozen sub dataset view if it is a slice.
-
-        Raises
-        ------
-        IndexError
-            If the diagram of index `item` is not founded yet.
-
-        Examples
-        --------
-        &gt;&gt;&gt; import torch
-        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-        &gt;&gt;&gt;
-        &gt;&gt;&gt; # from integer
-        &gt;&gt;&gt; dataset[0]
-        Diagram(img_00.jp2)
-        &gt;&gt;&gt; dataset[10]
-        Diagram(img_10.jp2)
-        &gt;&gt;&gt; dataset[-10]
-        Diagram(img_90.jp2)
-        &gt;&gt;&gt;
-        &gt;&gt;&gt; # from slice
-        &gt;&gt;&gt; subdataset = dataset[:30:10]
-        &gt;&gt;&gt; sorted(subdataset, key=str)
-        [Diagram(img_00.jp2), Diagram(img_10.jp2), Diagram(img_20.jp2)]
-        &gt;&gt;&gt;
-        &gt;&gt;&gt; # from indices
-        &gt;&gt;&gt; subdataset = dataset[[0, 10, -10]]
-        &gt;&gt;&gt; sorted(subdataset, key=str)
-        [Diagram(img_00.jp2), Diagram(img_10.jp2), Diagram(img_90.jp2)]
-        &gt;&gt;&gt;
-        &gt;&gt;&gt; # from condition
-        &gt;&gt;&gt; prop = torch.full((100,), False, dtype=bool)
-        &gt;&gt;&gt; prop[[0, 10, -10]] = True
-        &gt;&gt;&gt; subdataset = dataset[prop]
-        &gt;&gt;&gt; sorted(subdataset, key=str)
-        [Diagram(img_00.jp2), Diagram(img_10.jp2), Diagram(img_90.jp2)]
-        &gt;&gt;&gt;
-        &#34;&#34;&#34;
-        if isinstance(item, numbers.Integral):
-            return self._get_diagram_from_index(item)
-        if isinstance(item, slice):
-            item = range(*item.indices(max(self._diagrams)+1))
-        if isinstance(item, range):  # faster than torch.asarray
-            item = np.fromiter(item, dtype=np.int64)
-        if isinstance(item, (list, np.ndarray, torch.Tensor)):
-            item = torch.asarray(item).reshape(-1)
-            if item.dtype is torch.bool:
-                item = torch.arange(len(item), dtype=torch.int64, device=item.device)[item]
-            elif item.dtype != torch.int64:
-                item = item.to(torch.int64)
-            return self._get_diagrams_from_indices(item)
-        # if isinstance(item, tuple):  # case grid
-        #     if self._position[0] is None:
-        #         raise AttributeError(
-        #             &#34;you must provide the `position` argument to acces the position&#34;
-        #         )
-        #     assert len(item) == 2, f&#34;only 2d position allow, not {len(item)}d&#34;
-        #     if isinstance(item[0], numbers.Real) and isinstance(item[1], numbers.Real):
-        #         return self._get_diagram_from_coord(*item)
-
-        raise TypeError(f&#34;only int, slices and tuple[float, float] are allowed, not {item}&#34;)
-
-    def __iter__(self) -&gt; Diagram:
-        &#34;&#34;&#34;Yield the diagrams ready.
-
-        * This function is dynamic in the sense that if a new diagram is poping up
-        during iterating, it&#39;s gotta be yield as well.
-        * Diagrams are iterated in an arbitray, non-repeatable order
-
-        Examples
-        --------
-        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-        &gt;&gt;&gt; count = 0
-        &gt;&gt;&gt; for diagram in dataset:
-        ...     count += 1
-        ...
-        &gt;&gt;&gt; count
-        100
-        &gt;&gt;&gt;
-        &#34;&#34;&#34;
-        yielded = set()  # the yielded diagrams
-        while True:
-            with self._lock:
-                if not (toyield := self._diagrams.keys() - yielded):
-                    break
-            for index in toyield:
-                try:
-                    diag = self._get_diagram_from_index(index)
-                except IndexError:
-                    pass
-                yielded.add(index)
-                yield diag
-
-    def __len__(self) -&gt; int:
-        &#34;&#34;&#34;Return the numbers of diagrams currently present in the dataset.
-
-        Examples
-        --------
-        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; len(DiagramsDataset(get_samples()))
-        100
-        &gt;&gt;&gt;
-        &#34;&#34;&#34;
-        return len(self._diagrams)
-
-    def __repr__(self) -&gt; str:
-        &#34;&#34;&#34;Give a very compact representation.
-
-        Examples
-        --------
-        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; DiagramsDataset(get_samples())
-        &lt;DiagramsDataset with 100 diagrams&gt;
-        &gt;&gt;&gt;
-        &#34;&#34;&#34;
-        return f&#34;&lt;{self.__class__.__name__} with {len(self)} diagrams&gt;&#34;
-
-    def __setstate__(self, state: tuple):
-        &#34;&#34;&#34;Fill the internal attributes.
-
-        Usefull for pickle.
-
-        Notes
-        -----
-        * No verification is made because the user is not supposed to call this method.
-
-        Examples
-        --------
-        &gt;&gt;&gt; import pickle
-        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-        &gt;&gt;&gt; dataset_bis = pickle.loads(pickle.dumps(dataset))
-        &gt;&gt;&gt; assert id(dataset) != id(dataset_bis)
-        &gt;&gt;&gt; assert dataset.state == dataset_bis.state
-        &gt;&gt;&gt;
-        &#34;&#34;&#34;
-        # not verification for thread safe
-        # because this method is never meant to be call from a thread.
-        (
-            diag2ind_ser,
-            self._position,
-            self._diagrams,
-            operations_chain_ser,
-            self._properties,
-        ) = state
-        self._diag2ind = cloudpickle.loads(diag2ind_ser)
-        self._position[0] = cloudpickle.loads(self._position[0])
-        self._operations_chain = cloudpickle.loads(operations_chain_ser)
-        self._lock = threading.Lock()
-        self._to_sniff: dict = {&#34;dirs&#34;: [], &#34;readed&#34;: set()}  # for the async run method
-        super().__init__(daemon=True)
-
-    def __str__(self) -&gt; str:
-        &#34;&#34;&#34;Return an exaustive printable string giving informations on the dataset.
-
-        Examples
-        --------
-        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; print(DiagramsDataset(get_samples()))  # doctest: +ELLIPSIS
-        DiagramsDataset from the folder /home/.../.cache/laueimproc/samples:
-            No function has been applied.
-            No Properties
-            Current state:
-                * id, state: ...
-                * nbr diags: 100
-                * 2d indexing: no
-        &gt;&gt;&gt;
-        &#34;&#34;&#34;
-        # title
-        if len(folders := {d.file.parent for d in self if d.file is not None}) == 1:
-            text = f&#34;DiagramsDataset from the folder {folders.pop()}:&#34;
-        else:
-            text = &#34;DiagramsDataset:&#34;
-
-        with self._lock:
-            # history
-            if self._operations_chain:
-                text += &#34;\n    Function chain:&#34;
-                for i, (func, args) in enumerate(self._operations_chain):
-                    args = &#34;, &#34;.join((&#34;diag&#34;,) + tuple(repr(a) for a in args))
-                    text += f&#34;\n        {i+1}: [{func.__name__}({args}) for diag in self]&#34;
-            else:
-                text += &#34;\n    No function has been applied.&#34;
-
-            # properties
-            if self._properties:
-                text += &#34;\n    Properties:&#34;
-                for name, (_, value) in self._properties.items():
-                    if len(value_str := str(value).replace(&#34;\n&#34;, &#34;\\n&#34;)) &gt;= 80:
-                        value_str = f&#34;&lt;{value.__class__.__name__} object&gt;&#34;
-                    text += f&#34;\n        * {name}: {value_str}&#34;
-            else:
-                text += &#34;\n    No Properties&#34;
-
-            # stats
-            text += &#34;\n    Current state:&#34;
-            text += f&#34;\n        * id, state: {id(self)}, {self.state}&#34;
-            text += f&#34;\n        * nbr diags: {len(self)}&#34;
-            if self._position[0] is None:
-                text += &#34;\n        * 2d indexing: no&#34;
-            else:
-                text += f&#34;\n        * 2d indexing: {self._position[0]}&#34;
-
-        return text
-
-    @staticmethod
-    def _check_apply(func: typing.Callable[[Diagram], object]) -&gt; bytes:
-        &#34;&#34;&#34;Ensure that the function has right input / output.&#34;&#34;&#34;
-        assert callable(func), f&#34;`func` has to be callable, not {func.__class__.__name__}&#34;
-        try:
-            serfunc = cloudpickle.dumps(func)
-        except TypeError as err:
-            raise AssertionError(f&#34;the function `func` {func} is not pickleable&#34;) from err
-        signature = inspect.signature(func)
-        assert len(signature.parameters) &gt;= 1, \
-            &#34;the function `func` has to take at least 1 parameter&#34;
-        parameter = next(iter(signature.parameters.values()))
-        assert parameter.kind in {parameter.POSITIONAL_ONLY, parameter.POSITIONAL_OR_KEYWORD}
-        if parameter.annotation is parameter.empty:
-            warnings.warn(&#34;please specify the input type of `func`&#34;, SyntaxWarning)
-        elif parameter.annotation is not Diagram:
-            raise AssertionError(
-                f&#34;the function `func` has to get a Diagram, not {parameter.annotation}&#34;
-            )
-        return serfunc
-
-    @staticmethod
-    def _check_diag2ind(diag2ind: typing.Callable[[Diagram], numbers.Integral]) -&gt; bytes:
-        &#34;&#34;&#34;Ensure that the indexing function has right input / output.&#34;&#34;&#34;
-        assert callable(diag2ind), \
-            f&#34;`diag2ind` has to be callable, not {diag2ind.__class__.__name__}&#34;
-        try:
-            serfunc = cloudpickle.dumps(diag2ind)
-        except TypeError as err:
-            raise AssertionError(f&#34;the function `diag2ind` {diag2ind} is not picklable&#34;) from err
-        signature = inspect.signature(diag2ind)
-        assert len(signature.parameters) == 1, &#34;the function `diag2ind` has to take 1 parameter&#34;
-        parameter = next(iter(signature.parameters.values()))
-        assert parameter.kind in {parameter.POSITIONAL_ONLY, parameter.POSITIONAL_OR_KEYWORD}
-        if parameter.annotation is parameter.empty:
-            warnings.warn(&#34;please specify the input type of `diag2ind`&#34;, SyntaxWarning)
-        elif parameter.annotation is not Diagram:
-            raise AssertionError(
-                f&#34;the function `diag2ind` has to get a Diagram, not {parameter.annotation}&#34;
-            )
-        if signature.return_annotation is parameter.empty:
-            warnings.warn(&#34;please specify the return type of `diag2ind`&#34;, SyntaxWarning)
-        elif not issubclass(signature.return_annotation, numbers.Integral):
-            raise AssertionError(
-                f&#34;the function `diag2ind` has to return int, not {signature.return_annotation}&#34;
-            )
-        return serfunc
-
-    @staticmethod
-    def _check_position(
-        position: typing.Callable[[int], tuple[numbers.Real, numbers.Real]]
-    ) -&gt; bytes:
-        &#34;&#34;&#34;Ensure that the position function has the right input / outputs.&#34;&#34;&#34;
-        assert callable(position), \
-            f&#34;`position` has to be callable, not {position.__class__.__name__}&#34;
-        try:
-            serfunc = cloudpickle.dumps(position)
-        except TypeError as err:
-            raise AssertionError(f&#34;the function `position` {position} is not picklable&#34;) from err
-        signature = inspect.signature(position)
-        assert len(signature.parameters) == 1, &#34;the function `position` has to take 1 parameter&#34;
-        parameter = next(iter(signature.parameters.values()))
-        if parameter.annotation is parameter.empty:
-            warnings.warn(&#34;please specify the input type of `position`&#34;, SyntaxWarning)
-        elif parameter.annotation is not int:
-            raise AssertionError(
-                f&#34;the function `position` has to get a int, not {parameter.annotation}&#34;
-            )
-        if signature.return_annotation is parameter.empty:
-            warnings.warn(&#34;please specify the return type of `position`&#34;, SyntaxWarning)
-        elif (
-            signature.return_annotation is not tuple
-            and typing.get_origin(signature.return_annotation) is not tuple
-        ):
-            raise AssertionError(
-                f&#34;the function `position` has to return tuple, not {signature.return_annotation}&#34;
-            )
-        return_args = typing.get_args(signature.return_annotation)
-        assert len(return_args) == 2, \
-            f&#34;the function `position` has to return 2 elements, not {len(return_args)}&#34;
-        assert issubclass(return_args[0], numbers.Real), \
-            f&#34;first output element of `position` has to be a real number, not a {return_args[0]}&#34;
-        assert issubclass(return_args[1], numbers.Real), \
-            f&#34;second output element of `position` has to be a real number, not a {return_args[1]}&#34;
-        return serfunc
-
-    def _get_diagram_from_coord(self, first_idx: numbers.Real, second_idx: numbers.Real) -&gt; Diagram:
-        &#34;&#34;&#34;Return the closest diagram of the given position.&#34;&#34;&#34;
-        assert isinstance(first_idx, numbers.Real), first_idx.__class__.__name__
-        assert isinstance(second_idx, numbers.Real), second_idx.__class__.__name__
-        with self._lock:
-            if isinstance(self._position[1], dict):  # dict to tensor
-                coords, indices = zip(*self._position[1].items())
-                self._position[1] = (
-                    torch.tensor(coords, dtype=torch.float32),
-                    torch.tensor(indices, dtype=torch.int64),
-                )
-            coord = torch.tensor(
-                [[first_idx, second_idx]],
-                dtype=self._position[1][0].dtype,
-                device=self._position[1][0].device,
-            )
-            dist = torch.sum((self._position[1][0].unsqueeze(0) - coord.unsqueeze(1))**2, dim=2)
-            pos = torch.argmin(dist, dim=1).item()
-            index = self._position[1][1][pos].item()
-        return self._get_diagram_from_index(index)
-
-    def _get_diagram_from_index(self, index: numbers.Integral) -&gt; Diagram:
-        &#34;&#34;&#34;Return the diagram of index `index`.&#34;&#34;&#34;
-        assert isinstance(index, numbers.Integral), index.__class__.__name__
-        if index &lt; 0:
-            index += len(self)
-            assert index &gt;= 0, &#34;the provided index is to negative&#34;
-        index = int(index)
-        with self._lock:
-            try:
-                diagram = self._diagrams[index]
-            except KeyError as err:
-                raise IndexError(f&#34;The diagram of index {index} is not in the dataset&#34;) from err
-            if isinstance(diagram, queue.Queue):
-                diagram, nb_ops = diagram.get()  # passive waiting
-                for func, args in self._operations_chain[nb_ops:]:  # simple precaution
-                    func(diagram, *args)
-                self._diagrams[index] = diagram
-        return diagram
-
-    def _get_diagrams_from_indices(self, indices: torch.Tensor):
-        &#34;&#34;&#34;Return a frozen sub dataset view.&#34;&#34;&#34;
-        if (isneg := indices &lt; 0).any():
-            with self._lock:
-                corrected_indices = indices[isneg] + len(self)
-            assert (corrected_indices &gt;= 0).all(), &#34;some provided indices are to negative&#34;
-            indices[isneg] = corrected_indices
-        diagrams = {i: self._get_diagram_from_index(i) for i in indices.tolist()}
-        new_dataset = self.__class__.__new__(self.__class__)
-        new_dataset.__setstate__(self.__getstate__())
-        new_dataset._diagrams = diagrams  # pylint: disable=W0212
-        return new_dataset
-
-    def add_property(self, name: str, value: object, *, erasable: bool = True):
-        &#34;&#34;&#34;Add a property to the dataset.
-
-        Parameters
-        ----------
-        name : str
-            The identifiant of the property for the requests.
-            If the property is already defined with the same name, the new one erase the older one.
-        value
-            The property value. If a number is provided, it will be faster.
-        erasable : boolean, default=True
-            If set to False, the property will be set in stone,
-            overwise, the property will desappear as soon as the dataset state changed.
-        &#34;&#34;&#34;
-        assert isinstance(name, str), name.__class__.__name__
-        assert isinstance(erasable, bool), erasable.__class__.__name__
-        with self._lock:
-            self._properties[name] = ((self.state if erasable else None), value)
-
-    def add_diagram(self, new_diagram: Diagram):
-        &#34;&#34;&#34;Append a new diagram into the dataset.
-
-        Parameters
-        ----------
-        new_diagram : laueimproc.classes.diagram.Diagram
-            The new instanciated diagram not already present in the dataset.
-
-        Raises
-        ------
-        LookupError
-            If the diagram is already present in the dataset.
-        &#34;&#34;&#34;
-        assert isinstance(new_diagram, Diagram), new_diagram.__class__.__name__
-
-        # get and check index
-        index = self._diag2ind(new_diagram)
-        assert isinstance(index, numbers.Integral), (
-            f&#34;the function {self._diag2ind} must return an integer, &#34;
-            f&#34;not a {index.__class__.__name__}&#34;
-        )
-        assert index &gt;= 0, \
-            f&#34;the function {self._diag2ind} must return a positive number, not {index}&#34;
-        index = int(index)
-
-        # get an check sample position
-        if self._position[0] is not None:
-            coord = self._position[0](index)
-            assert isinstance(coord, tuple), \
-                f&#34;the function {self._position[0]} must return a tuple, not {coord}&#34;
-            assert len(coord) == 2, \
-                f&#34;the function {self._position[0]} must return 2 elements, not {len(coord)}&#34;
-            assert isinstance(coord[0], numbers.Real), \
-                f&#34;the first element returned by {self._position[0]} must be a number not {coord[0]}&#34;
-            assert isinstance(coord[1], numbers.Real), \
-                f&#34;the first element returned by {self._position[1]} must be a number not {coord[1]}&#34;
-            coord = (float(coord[0]), float(coord[1]))
-        else:
-            coord = None
-
-        # add diagram and check unicity
-        with self._lock:
-            if index in self._diagrams:
-                raise LookupError(f&#34;the diagram of index {index} is already present in the dataset&#34;)
-            if coord is not None:
-                if isinstance(self._position[1], tuple):  # tensor to dict
-                    self._position[1] = {
-                        (x, y): i for (x, y), i in
-                        zip(self._position[1][0].tolist(), self._position[1][1].tolist())
-                    }
-                self._position[1][coord] = index
-            if new_diagram.file is not None:
-                self._to_sniff[&#34;readed&#34;].add(new_diagram.file)
-            if self._operations_chain:
-                self._diagrams[index] = queue.Queue()
-                thread = _ChainThread(new_diagram, self._operations_chain, self._diagrams[index])
-            else:
-                self._diagrams[index] = new_diagram
-                thread = None
-        if thread is not None:
-            if len([None for t in threading.enumerate() if isinstance(t, _ChainThread)]) &lt; 3*NCPU:
-                thread.start()  # asnyc
-                if not self._started.is_set():
-                    self.start()
-            else:
-                thread.run()  # blocking
-
-    def add_diagrams(
-        self, new_diagrams: typing.Union[typing.Iterable, Diagram, str, pathlib.Path]
-    ):
-        &#34;&#34;&#34;Append the new diagrams into the datset.
-
-        Parameters
-        ----------
-        new_diagrams
-            The diagram references, they can be of this natures:
-
-                * laueimproc.classes.diagram.Diagram : Could be a simple Diagram instance.
-                * iterable : An iterable of any of the types specified above.
-
-        Examples
-        --------
-        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; file = min(get_samples().iterdir())
-        &gt;&gt;&gt;
-        &gt;&gt;&gt; dataset = DiagramsDataset()
-        &gt;&gt;&gt; dataset.add_diagrams(Diagram(file))  # from Diagram instance
-        &gt;&gt;&gt; dataset
-        &lt;DiagramsDataset with 1 diagrams&gt;
-        &gt;&gt;&gt;
-        &gt;&gt;&gt; dataset = DiagramsDataset()
-        &gt;&gt;&gt; dataset.add_diagrams(file)  # from filename (pathlib)
-        &gt;&gt;&gt; dataset
-        &lt;DiagramsDataset with 1 diagrams&gt;
-        &gt;&gt;&gt; dataset = DiagramsDataset()
-        &gt;&gt;&gt; dataset.add_diagrams(str(file))  # from filename (str)
-        &gt;&gt;&gt; dataset
-        &lt;DiagramsDataset with 1 diagrams&gt;
-        &gt;&gt;&gt;
-        &gt;&gt;&gt; dataset = DiagramsDataset()
-        &gt;&gt;&gt; dataset.add_diagrams(get_samples())  # from folder (pathlib)
-        &gt;&gt;&gt; dataset
-        &lt;DiagramsDataset with 100 diagrams&gt;
-        &gt;&gt;&gt; dataset = DiagramsDataset()
-        &gt;&gt;&gt; dataset.add_diagrams(str(get_samples()))  # from folder (str)
-        &gt;&gt;&gt; dataset
-        &lt;DiagramsDataset with 100 diagrams&gt;
-        &gt;&gt;&gt;
-        &gt;&gt;&gt; # from iterable (DiagramDataset, list, tuple, ...)
-        &gt;&gt;&gt; # ok with nested iterables
-        &gt;&gt;&gt; dataset = DiagramsDataset()
-        &gt;&gt;&gt; dataset.add_diagrams([Diagram(f) for f in get_samples().iterdir()])
-        &gt;&gt;&gt; dataset
-        &lt;DiagramsDataset with 100 diagrams&gt;
-        &gt;&gt;&gt;
-        &#34;&#34;&#34;
-        if isinstance(new_diagrams, Diagram):
-            self.add_diagram(new_diagrams)
-        elif isinstance(new_diagrams, pathlib.Path):
-            new_diagrams.expanduser().resolve()
-            assert new_diagrams.exists(), f&#34;{new_diagrams} if not an existing path&#34;
-            if new_diagrams.is_dir():
-                self.add_diagrams(  # optional, no procrastination
-                    f for f in new_diagrams.iterdir()
-                    if f.suffix.lower() in {&#34;.jp2&#34;, &#34;.mccd&#34;, &#34;.tif&#34;, &#34;.tiff&#34;}
-                )
-                self._to_sniff[&#34;dirs&#34;].append([new_diagrams, 0.0])
-                if not self._started.is_set():
-                    self.start()
-            else:
-                self.add_diagram(Diagram(new_diagrams))  # case file
-        elif isinstance(new_diagrams, (str, bytes)):
-            self.add_diagrams(pathlib.Path(new_diagrams))
-        elif isinstance(
-            new_diagrams, (tuple, list, set, frozenset, typing.Generator, self.__class__)
-        ):
-            for new_diagram in new_diagrams:
-                self.add_diagrams(new_diagram)
-        else:
-            raise ValueError(f&#34;the `new_diagrams` {new_diagrams} are not recognised&#34;)
-
-    def apply(
-        self,
-        func: typing.Callable[[Diagram], object],
-        args: typing.Optional[tuple] = None,
-    ) -&gt; dict[int, object]:
-        &#34;&#34;&#34;Apply an operation in all the diagrams of the dataset.
-
-        Parameters
-        ----------
-        func : callable
-            A function that take a diagram and optionaly other parameters, and return anything.
-            The function can modify the diagram inplace. It has to be pickaleable.
-        args : tuple, optional
-            Positional arguments to forward to the provided func.
-
-        Returns
-        -------
-        res : dict
-            The result of the function for each diagrams.
-            To each diagram index, associate the result.
-
-        Notes
-        -----
-        This function will be automaticaly applided on the new diagrams, but the result is throw.
-
-        Examples
-        --------
-        &gt;&gt;&gt; from pprint import pprint
-        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())[::10]  # subset to go faster
-        &gt;&gt;&gt; def peak_search(diagram: Diagram, density: float) -&gt; int:
-        ...     &#39;&#39;&#39;Return the number of spots.&#39;&#39;&#39;
-        ...     diagram.find_spots(density=density)
-        ...     return len(diagram)
-        ...
-        &gt;&gt;&gt; res = dataset.apply(peak_search, args=(0.5,))
-        &gt;&gt;&gt; pprint(res)
-        {0: 204,
-         10: 547,
-         20: 551,
-         30: 477,
-         40: 404,
-         50: 537,
-         60: 2121,
-         70: 274,
-         80: 271,
-         90: 481}
-        &gt;&gt;&gt;
-        &#34;&#34;&#34;
-        # verifications
-        func = cloudpickle.loads(self._check_apply(func))
-        if args is None:
-            args = ()
-        else:
-            assert isinstance(args, tuple), args.__class__.__name__
-            try:
-                cloudpickle.dumps(args)
-            except TypeError as err:
-                raise AssertionError(
-                    f&#34;the arguments `args` {args} are not pickleable&#34;
-                ) from err
-
-        # apply
-        with self._lock:
-            idxs = list(self._diagrams)
-        idxs_diags = [(i, self._get_diagram_from_index(i)) for i in idxs]
-        with self._lock, multiprocessing.pool.ThreadPool(NCPU) as pool:
-            res = dict(
-                tqdm.tqdm(
-                    pool.imap_unordered(
-                        lambda idx_diag: (idx_diag[0], func(idx_diag[1], *args)), idxs_diags
-                    ),
-                    desc=func.__name__,
-                    unit=&#34;diag&#34;,
-                    total=len(idxs_diags)
-                )
-            )
-            self._operations_chain.append((func, args))
-
-        return res
-
-    def clone(self, **kwargs):
-        &#34;&#34;&#34;Instanciate a new identical dataset.
-
-        Parameters
-        ----------
-        **kwargs : dict
-            Transmitted to ``laueimproc.classes.base_diagram.BaseDiagram.clone``.
-
-        Returns
-        -------
-        DiagramsDataset
-            The new copy of self.
-
-        Examples
-        --------
-        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-        &gt;&gt;&gt; dataset_bis = dataset.clone()
-        &gt;&gt;&gt; assert id(dataset) != id(dataset_bis)
-        &gt;&gt;&gt; assert dataset.state == dataset_bis.state
-        &gt;&gt;&gt;
-        &#34;&#34;&#34;
-        new_dataset = self.__class__.__new__(self.__class__)
-        new_dataset.__setstate__(self.__getstate__())
-        new_dataset._diagrams = {  # pylint: disable=W0212
-            i: d.clone(**kwargs) for i, d in new_dataset._diagrams.items()  # pylint: disable=W0212
-        }
-        return new_dataset
-
-    def get_property(self, name: str) -&gt; object:
-        &#34;&#34;&#34;Return the property associated to the given id.
-
-        Parameters
-        ----------
-        name : str
-            The name of the property to get.
-
-        Returns
-        -------
-        property : object
-            The property value set with ``add_property``.
-
-        Raises
-        ------
-        KeyError
-            Is the property has never been defined or if the state changed.
-
-        Examples
-        --------
-        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-        &gt;&gt;&gt; dataset.add_property(&#34;prop1&#34;, value=&#34;any python object 1&#34;, erasable=False)
-        &gt;&gt;&gt; dataset.add_property(&#34;prop2&#34;, value=&#34;any python object 2&#34;)
-        &gt;&gt;&gt; dataset.get_property(&#34;prop1&#34;)
-        &#39;any python object 1&#39;
-        &gt;&gt;&gt; dataset.get_property(&#34;prop2&#34;)
-        &#39;any python object 2&#39;
-        &gt;&gt;&gt; dataset = dataset[:1]  # change state
-        &gt;&gt;&gt; dataset.get_property(&#34;prop1&#34;)
-        &#39;any python object 1&#39;
-        &gt;&gt;&gt; try:
-        ...     dataset.get_property(&#34;prop2&#34;)
-        ... except KeyError as err:
-        ...     print(err)
-        ...
-        &#34;the property &#39;prop2&#39; is no longer valid because the state of the dataset has changed&#34;
-        &gt;&gt;&gt; try:
-        ...     dataset.get_property(&#34;prop3&#34;)
-        ... except KeyError as err:
-        ...     print(err)
-        ...
-        &#34;the property &#39;prop3&#39; does no exist&#34;
-        &gt;&gt;&gt;
-        &#34;&#34;&#34;
-        assert isinstance(name, str), name.__class__.__name__
-        with self._lock:
-            try:
-                state, value = self._properties[name]
-            except KeyError as err:
-                raise KeyError(f&#34;the property {repr(name)} does no exist&#34;) from err
-        if state is not None and state != self.state:
-            # with self._lock:
-            #     self._properties[name] = (state, None)
-            raise KeyError(
-                f&#34;the property {repr(name)} is no longer valid &#34;
-                &#34;because the state of the dataset has changed&#34;
-            )
-        return value
-
-    @property
-    def indices(self) -&gt; set[int]:
-        &#34;&#34;&#34;Return the diagram indices currently reachable in the dataset.
-
-        Examples
-        --------
-        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-        &gt;&gt;&gt; sorted(dataset[-10:10:-5].indices)
-        [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
-        &gt;&gt;&gt;
-        &#34;&#34;&#34;
-        with self._lock:
-            return {i for i, d in self._diagrams.items() if isinstance(d, Diagram)}
-
-    @property
-    def state(self) -&gt; str:
-        &#34;&#34;&#34;Return a hash of the dataset.
-
-        If two datasets gots the same state, it means they are the same.
-        The hash take in consideration the indices of the diagrams and the functions applyed.
-        The retruned value is a hexadecimal string of length 32.
-
-        Examples
-        --------
-        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-        &gt;&gt;&gt; dataset.state
-        &#39;a25b4674e8dbda3caa20b033d02bb1af&#39;
-        &gt;&gt;&gt; dataset[:].state
-        &#39;a25b4674e8dbda3caa20b033d02bb1af&#39;
-        &gt;&gt;&gt; dataset[:1].state
-        &#39;e3a17156c95f980f709cea805ac6193d&#39;
-        &gt;&gt;&gt;
-        &#34;&#34;&#34;
-        hasher = hashlib.md5(usedforsecurity=False)
-        hasher.update(str(sorted(self._diagrams)).encode())
-        hasher.update(cloudpickle.dumps(self._diag2ind))
-        hasher.update(cloudpickle.dumps(self._position[0]))
-        hasher.update(cloudpickle.dumps(self._operations_chain))
-        return hasher.hexdigest()
+<pre><code class="python">class DiagramsDataset(BaseDiagramsDataset):
+    &#34;&#34;&#34;Link Diagrams together.&#34;&#34;&#34;
+
+    def track_spots(self):
+        &#34;&#34;&#34;Find the apparition of the same spots in differents diagrams.&#34;&#34;&#34;
+        raise NotImplementedError
 
     def train_spot_classifier(
         self,
@@ -2018,15 +1315,14 @@ and returns the 2 coordinates in the sample plane.</dd>
 
         Examples
         --------
-        &gt;&gt;&gt; from laueimproc.classes.dataset import Diagram, DiagramsDataset
-        &gt;&gt;&gt; from laueimproc.io import get_samples
-        &gt;&gt;&gt; def init(diagram: Diagram):
+        &gt;&gt;&gt; import laueimproc
+        &gt;&gt;&gt; def init(diagram: laueimproc.Diagram):
         ...     diagram.find_spots()
         ...     diagram.filter_spots(range(10))  # to reduce the number of spots
         ...
-        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
+        &gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())
         &gt;&gt;&gt; _ = dataset.apply(init)
-        &gt;&gt;&gt; model = dataset.train_spot_classifier(epoch=1)
+        &gt;&gt;&gt; model = dataset.train_spot_classifier(epoch=2)
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         from laueimproc.nn.loader import find_shape
@@ -2045,738 +1341,27 @@ and returns the 2 coordinates in the sample plane.</dd>
         assert isinstance(model, VAESpotClassifier), model.__class__.__name__
         train_vae_spot_classifier(model, self, **kwargs)
 
-        return model
-
-    def run(self):
-        &#34;&#34;&#34;Run asynchronousely in a child thread, called by self.start().&#34;&#34;&#34;
-        while True:
-            # scan if a new diagram has arrived in the folder
-            for directory_time in self._to_sniff[&#34;dirs&#34;]:
-                if directory_time[0].stat().st_mtime == directory_time[1]:
-                    continue
-                directory_time[1] = directory_time[0].stat().st_mtime
-                for file in directory_time[0].iterdir():
-                    if (
-                        file in self._to_sniff[&#34;readed&#34;]
-                        or file.suffix.lower() not in {&#34;.jp2&#34;, &#34;.mccd&#34;, &#34;.tif&#34;, &#34;.tiff&#34;}
-                    ):
-                        continue
-                    diagram = Diagram(file)
-                    self.add_diagram(diagram)  # update self._to_sniff[&#34;readed&#34;]
-
-            # # make accessible the just borned diagrams
-            # with self._lock:
-            #     for idx in list(self._diagrams):  # copy for allowing modification
-            #         if not isinstance(self._diagrams[idx], queue.Queue):
-            #             continue
-            #         try:
-            #             diagram, nb_ops = self._diagrams[idx].get_nowait()
-            #         except queue.Empty:
-            #             continue
-            #         if nb_ops != len(self._operations_chain):  # if apply called during thread run
-            #             for func, args in self._operations_chain[nb_ops:]:
-            #                 func(diagram, *args)
-            #         self._diagrams[idx] = diagram
-
-            time.sleep(10)</code></pre>
+        return model</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset">BaseDiagramsDataset</a></li>
 <li>threading.Thread</li>
 </ul>
-<h3>Instance variables</h3>
-<dl>
-<dt id="laueimproc.DiagramsDataset.indices"><code class="name">var <span class="ident">indices</span> : set[int]</code></dt>
-<dd>
-<div class="desc"><p>Return the diagram indices currently reachable in the dataset.</p>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-&gt;&gt;&gt; from laueimproc.io import get_samples
-&gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-&gt;&gt;&gt; sorted(dataset[-10:10:-5].indices)
-[15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
-&gt;&gt;&gt;
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def indices(self) -&gt; set[int]:
-    &#34;&#34;&#34;Return the diagram indices currently reachable in the dataset.
-
-    Examples
-    --------
-    &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-    &gt;&gt;&gt; from laueimproc.io import get_samples
-    &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-    &gt;&gt;&gt; sorted(dataset[-10:10:-5].indices)
-    [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
-    &gt;&gt;&gt;
-    &#34;&#34;&#34;
-    with self._lock:
-        return {i for i, d in self._diagrams.items() if isinstance(d, Diagram)}</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.DiagramsDataset.state"><code class="name">var <span class="ident">state</span> : str</code></dt>
-<dd>
-<div class="desc"><p>Return a hash of the dataset.</p>
-<p>If two datasets gots the same state, it means they are the same.
-The hash take in consideration the indices of the diagrams and the functions applyed.
-The retruned value is a hexadecimal string of length 32.</p>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-&gt;&gt;&gt; from laueimproc.io import get_samples
-&gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-&gt;&gt;&gt; dataset.state
-'a25b4674e8dbda3caa20b033d02bb1af'
-&gt;&gt;&gt; dataset[:].state
-'a25b4674e8dbda3caa20b033d02bb1af'
-&gt;&gt;&gt; dataset[:1].state
-'e3a17156c95f980f709cea805ac6193d'
-&gt;&gt;&gt;
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def state(self) -&gt; str:
-    &#34;&#34;&#34;Return a hash of the dataset.
-
-    If two datasets gots the same state, it means they are the same.
-    The hash take in consideration the indices of the diagrams and the functions applyed.
-    The retruned value is a hexadecimal string of length 32.
-
-    Examples
-    --------
-    &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-    &gt;&gt;&gt; from laueimproc.io import get_samples
-    &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-    &gt;&gt;&gt; dataset.state
-    &#39;a25b4674e8dbda3caa20b033d02bb1af&#39;
-    &gt;&gt;&gt; dataset[:].state
-    &#39;a25b4674e8dbda3caa20b033d02bb1af&#39;
-    &gt;&gt;&gt; dataset[:1].state
-    &#39;e3a17156c95f980f709cea805ac6193d&#39;
-    &gt;&gt;&gt;
-    &#34;&#34;&#34;
-    hasher = hashlib.md5(usedforsecurity=False)
-    hasher.update(str(sorted(self._diagrams)).encode())
-    hasher.update(cloudpickle.dumps(self._diag2ind))
-    hasher.update(cloudpickle.dumps(self._position[0]))
-    hasher.update(cloudpickle.dumps(self._operations_chain))
-    return hasher.hexdigest()</code></pre>
-</details>
-</dd>
-</dl>
 <h3>Methods</h3>
 <dl>
-<dt id="laueimproc.DiagramsDataset.add_diagram"><code class="name flex">
-<span>def <span class="ident">add_diagram</span></span>(<span>self, new_diagram: <a title="laueimproc.classes.diagram.Diagram" href="classes/diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>)</span>
+<dt id="laueimproc.DiagramsDataset.track_spots"><code class="name flex">
+<span>def <span class="ident">track_spots</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Append a new diagram into the dataset.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>new_diagram</code></strong> :&ensp;<code><a title="laueimproc.classes.diagram.Diagram" href="classes/diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a></code></dt>
-<dd>The new instanciated diagram not already present in the dataset.</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>LookupError</code></dt>
-<dd>If the diagram is already present in the dataset.</dd>
-</dl></div>
+<div class="desc"><p>Find the apparition of the same spots in differents diagrams.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add_diagram(self, new_diagram: Diagram):
-    &#34;&#34;&#34;Append a new diagram into the dataset.
-
-    Parameters
-    ----------
-    new_diagram : laueimproc.classes.diagram.Diagram
-        The new instanciated diagram not already present in the dataset.
-
-    Raises
-    ------
-    LookupError
-        If the diagram is already present in the dataset.
-    &#34;&#34;&#34;
-    assert isinstance(new_diagram, Diagram), new_diagram.__class__.__name__
-
-    # get and check index
-    index = self._diag2ind(new_diagram)
-    assert isinstance(index, numbers.Integral), (
-        f&#34;the function {self._diag2ind} must return an integer, &#34;
-        f&#34;not a {index.__class__.__name__}&#34;
-    )
-    assert index &gt;= 0, \
-        f&#34;the function {self._diag2ind} must return a positive number, not {index}&#34;
-    index = int(index)
-
-    # get an check sample position
-    if self._position[0] is not None:
-        coord = self._position[0](index)
-        assert isinstance(coord, tuple), \
-            f&#34;the function {self._position[0]} must return a tuple, not {coord}&#34;
-        assert len(coord) == 2, \
-            f&#34;the function {self._position[0]} must return 2 elements, not {len(coord)}&#34;
-        assert isinstance(coord[0], numbers.Real), \
-            f&#34;the first element returned by {self._position[0]} must be a number not {coord[0]}&#34;
-        assert isinstance(coord[1], numbers.Real), \
-            f&#34;the first element returned by {self._position[1]} must be a number not {coord[1]}&#34;
-        coord = (float(coord[0]), float(coord[1]))
-    else:
-        coord = None
-
-    # add diagram and check unicity
-    with self._lock:
-        if index in self._diagrams:
-            raise LookupError(f&#34;the diagram of index {index} is already present in the dataset&#34;)
-        if coord is not None:
-            if isinstance(self._position[1], tuple):  # tensor to dict
-                self._position[1] = {
-                    (x, y): i for (x, y), i in
-                    zip(self._position[1][0].tolist(), self._position[1][1].tolist())
-                }
-            self._position[1][coord] = index
-        if new_diagram.file is not None:
-            self._to_sniff[&#34;readed&#34;].add(new_diagram.file)
-        if self._operations_chain:
-            self._diagrams[index] = queue.Queue()
-            thread = _ChainThread(new_diagram, self._operations_chain, self._diagrams[index])
-        else:
-            self._diagrams[index] = new_diagram
-            thread = None
-    if thread is not None:
-        if len([None for t in threading.enumerate() if isinstance(t, _ChainThread)]) &lt; 3*NCPU:
-            thread.start()  # asnyc
-            if not self._started.is_set():
-                self.start()
-        else:
-            thread.run()  # blocking</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.DiagramsDataset.add_diagrams"><code class="name flex">
-<span>def <span class="ident">add_diagrams</span></span>(<span>self, new_diagrams: Union[Iterable, <a title="laueimproc.classes.diagram.Diagram" href="classes/diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>, str, pathlib.Path])</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Append the new diagrams into the datset.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>new_diagrams</code></strong></dt>
-<dd>The diagram references, they can be of this natures:<pre><code>* laueimproc.classes.diagram.Diagram : Could be a simple Diagram instance.
-* iterable : An iterable of any of the types specified above.
-</code></pre>
-</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-&gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
-&gt;&gt;&gt; from laueimproc.io import get_samples
-&gt;&gt;&gt; file = min(get_samples().iterdir())
-&gt;&gt;&gt;
-&gt;&gt;&gt; dataset = DiagramsDataset()
-&gt;&gt;&gt; dataset.add_diagrams(Diagram(file))  # from Diagram instance
-&gt;&gt;&gt; dataset
-&lt;DiagramsDataset with 1 diagrams&gt;
-&gt;&gt;&gt;
-&gt;&gt;&gt; dataset = DiagramsDataset()
-&gt;&gt;&gt; dataset.add_diagrams(file)  # from filename (pathlib)
-&gt;&gt;&gt; dataset
-&lt;DiagramsDataset with 1 diagrams&gt;
-&gt;&gt;&gt; dataset = DiagramsDataset()
-&gt;&gt;&gt; dataset.add_diagrams(str(file))  # from filename (str)
-&gt;&gt;&gt; dataset
-&lt;DiagramsDataset with 1 diagrams&gt;
-&gt;&gt;&gt;
-&gt;&gt;&gt; dataset = DiagramsDataset()
-&gt;&gt;&gt; dataset.add_diagrams(get_samples())  # from folder (pathlib)
-&gt;&gt;&gt; dataset
-&lt;DiagramsDataset with 100 diagrams&gt;
-&gt;&gt;&gt; dataset = DiagramsDataset()
-&gt;&gt;&gt; dataset.add_diagrams(str(get_samples()))  # from folder (str)
-&gt;&gt;&gt; dataset
-&lt;DiagramsDataset with 100 diagrams&gt;
-&gt;&gt;&gt;
-&gt;&gt;&gt; # from iterable (DiagramDataset, list, tuple, ...)
-&gt;&gt;&gt; # ok with nested iterables
-&gt;&gt;&gt; dataset = DiagramsDataset()
-&gt;&gt;&gt; dataset.add_diagrams([Diagram(f) for f in get_samples().iterdir()])
-&gt;&gt;&gt; dataset
-&lt;DiagramsDataset with 100 diagrams&gt;
-&gt;&gt;&gt;
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def add_diagrams(
-    self, new_diagrams: typing.Union[typing.Iterable, Diagram, str, pathlib.Path]
-):
-    &#34;&#34;&#34;Append the new diagrams into the datset.
-
-    Parameters
-    ----------
-    new_diagrams
-        The diagram references, they can be of this natures:
-
-            * laueimproc.classes.diagram.Diagram : Could be a simple Diagram instance.
-            * iterable : An iterable of any of the types specified above.
-
-    Examples
-    --------
-    &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-    &gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
-    &gt;&gt;&gt; from laueimproc.io import get_samples
-    &gt;&gt;&gt; file = min(get_samples().iterdir())
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; dataset = DiagramsDataset()
-    &gt;&gt;&gt; dataset.add_diagrams(Diagram(file))  # from Diagram instance
-    &gt;&gt;&gt; dataset
-    &lt;DiagramsDataset with 1 diagrams&gt;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; dataset = DiagramsDataset()
-    &gt;&gt;&gt; dataset.add_diagrams(file)  # from filename (pathlib)
-    &gt;&gt;&gt; dataset
-    &lt;DiagramsDataset with 1 diagrams&gt;
-    &gt;&gt;&gt; dataset = DiagramsDataset()
-    &gt;&gt;&gt; dataset.add_diagrams(str(file))  # from filename (str)
-    &gt;&gt;&gt; dataset
-    &lt;DiagramsDataset with 1 diagrams&gt;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; dataset = DiagramsDataset()
-    &gt;&gt;&gt; dataset.add_diagrams(get_samples())  # from folder (pathlib)
-    &gt;&gt;&gt; dataset
-    &lt;DiagramsDataset with 100 diagrams&gt;
-    &gt;&gt;&gt; dataset = DiagramsDataset()
-    &gt;&gt;&gt; dataset.add_diagrams(str(get_samples()))  # from folder (str)
-    &gt;&gt;&gt; dataset
-    &lt;DiagramsDataset with 100 diagrams&gt;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; # from iterable (DiagramDataset, list, tuple, ...)
-    &gt;&gt;&gt; # ok with nested iterables
-    &gt;&gt;&gt; dataset = DiagramsDataset()
-    &gt;&gt;&gt; dataset.add_diagrams([Diagram(f) for f in get_samples().iterdir()])
-    &gt;&gt;&gt; dataset
-    &lt;DiagramsDataset with 100 diagrams&gt;
-    &gt;&gt;&gt;
-    &#34;&#34;&#34;
-    if isinstance(new_diagrams, Diagram):
-        self.add_diagram(new_diagrams)
-    elif isinstance(new_diagrams, pathlib.Path):
-        new_diagrams.expanduser().resolve()
-        assert new_diagrams.exists(), f&#34;{new_diagrams} if not an existing path&#34;
-        if new_diagrams.is_dir():
-            self.add_diagrams(  # optional, no procrastination
-                f for f in new_diagrams.iterdir()
-                if f.suffix.lower() in {&#34;.jp2&#34;, &#34;.mccd&#34;, &#34;.tif&#34;, &#34;.tiff&#34;}
-            )
-            self._to_sniff[&#34;dirs&#34;].append([new_diagrams, 0.0])
-            if not self._started.is_set():
-                self.start()
-        else:
-            self.add_diagram(Diagram(new_diagrams))  # case file
-    elif isinstance(new_diagrams, (str, bytes)):
-        self.add_diagrams(pathlib.Path(new_diagrams))
-    elif isinstance(
-        new_diagrams, (tuple, list, set, frozenset, typing.Generator, self.__class__)
-    ):
-        for new_diagram in new_diagrams:
-            self.add_diagrams(new_diagram)
-    else:
-        raise ValueError(f&#34;the `new_diagrams` {new_diagrams} are not recognised&#34;)</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.DiagramsDataset.add_property"><code class="name flex">
-<span>def <span class="ident">add_property</span></span>(<span>self, name: str, value: object, *, erasable: bool = True)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Add a property to the dataset.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
-<dd>The identifiant of the property for the requests.
-If the property is already defined with the same name, the new one erase the older one.</dd>
-<dt><strong><code>value</code></strong></dt>
-<dd>The property value. If a number is provided, it will be faster.</dd>
-<dt><strong><code>erasable</code></strong> :&ensp;<code>boolean</code>, default=<code>True</code></dt>
-<dd>If set to False, the property will be set in stone,
-overwise, the property will desappear as soon as the dataset state changed.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def add_property(self, name: str, value: object, *, erasable: bool = True):
-    &#34;&#34;&#34;Add a property to the dataset.
-
-    Parameters
-    ----------
-    name : str
-        The identifiant of the property for the requests.
-        If the property is already defined with the same name, the new one erase the older one.
-    value
-        The property value. If a number is provided, it will be faster.
-    erasable : boolean, default=True
-        If set to False, the property will be set in stone,
-        overwise, the property will desappear as soon as the dataset state changed.
-    &#34;&#34;&#34;
-    assert isinstance(name, str), name.__class__.__name__
-    assert isinstance(erasable, bool), erasable.__class__.__name__
-    with self._lock:
-        self._properties[name] = ((self.state if erasable else None), value)</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.DiagramsDataset.apply"><code class="name flex">
-<span>def <span class="ident">apply</span></span>(<span>self, func: Callable[[<a title="laueimproc.classes.diagram.Diagram" href="classes/diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], object], args: Optional[tuple] = None) ‑> dict[int, object]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Apply an operation in all the diagrams of the dataset.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>func</code></strong> :&ensp;<code>callable</code></dt>
-<dd>A function that take a diagram and optionaly other parameters, and return anything.
-The function can modify the diagram inplace. It has to be pickaleable.</dd>
-<dt><strong><code>args</code></strong> :&ensp;<code>tuple</code>, optional</dt>
-<dd>Positional arguments to forward to the provided func.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>res</code></strong> :&ensp;<code>dict</code></dt>
-<dd>The result of the function for each diagrams.
-To each diagram index, associate the result.</dd>
-</dl>
-<h2 id="notes">Notes</h2>
-<p>This function will be automaticaly applided on the new diagrams, but the result is throw.</p>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; from pprint import pprint
-&gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-&gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
-&gt;&gt;&gt; from laueimproc.io import get_samples
-&gt;&gt;&gt; dataset = DiagramsDataset(get_samples())[::10]  # subset to go faster
-&gt;&gt;&gt; def peak_search(diagram: Diagram, density: float) -&gt; int:
-...     '''Return the number of spots.'''
-...     diagram.find_spots(density=density)
-...     return len(diagram)
-...
-&gt;&gt;&gt; res = dataset.apply(peak_search, args=(0.5,))
-&gt;&gt;&gt; pprint(res)
-{0: 204,
- 10: 547,
- 20: 551,
- 30: 477,
- 40: 404,
- 50: 537,
- 60: 2121,
- 70: 274,
- 80: 271,
- 90: 481}
-&gt;&gt;&gt;
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def apply(
-    self,
-    func: typing.Callable[[Diagram], object],
-    args: typing.Optional[tuple] = None,
-) -&gt; dict[int, object]:
-    &#34;&#34;&#34;Apply an operation in all the diagrams of the dataset.
-
-    Parameters
-    ----------
-    func : callable
-        A function that take a diagram and optionaly other parameters, and return anything.
-        The function can modify the diagram inplace. It has to be pickaleable.
-    args : tuple, optional
-        Positional arguments to forward to the provided func.
-
-    Returns
-    -------
-    res : dict
-        The result of the function for each diagrams.
-        To each diagram index, associate the result.
-
-    Notes
-    -----
-    This function will be automaticaly applided on the new diagrams, but the result is throw.
-
-    Examples
-    --------
-    &gt;&gt;&gt; from pprint import pprint
-    &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-    &gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
-    &gt;&gt;&gt; from laueimproc.io import get_samples
-    &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())[::10]  # subset to go faster
-    &gt;&gt;&gt; def peak_search(diagram: Diagram, density: float) -&gt; int:
-    ...     &#39;&#39;&#39;Return the number of spots.&#39;&#39;&#39;
-    ...     diagram.find_spots(density=density)
-    ...     return len(diagram)
-    ...
-    &gt;&gt;&gt; res = dataset.apply(peak_search, args=(0.5,))
-    &gt;&gt;&gt; pprint(res)
-    {0: 204,
-     10: 547,
-     20: 551,
-     30: 477,
-     40: 404,
-     50: 537,
-     60: 2121,
-     70: 274,
-     80: 271,
-     90: 481}
-    &gt;&gt;&gt;
-    &#34;&#34;&#34;
-    # verifications
-    func = cloudpickle.loads(self._check_apply(func))
-    if args is None:
-        args = ()
-    else:
-        assert isinstance(args, tuple), args.__class__.__name__
-        try:
-            cloudpickle.dumps(args)
-        except TypeError as err:
-            raise AssertionError(
-                f&#34;the arguments `args` {args} are not pickleable&#34;
-            ) from err
-
-    # apply
-    with self._lock:
-        idxs = list(self._diagrams)
-    idxs_diags = [(i, self._get_diagram_from_index(i)) for i in idxs]
-    with self._lock, multiprocessing.pool.ThreadPool(NCPU) as pool:
-        res = dict(
-            tqdm.tqdm(
-                pool.imap_unordered(
-                    lambda idx_diag: (idx_diag[0], func(idx_diag[1], *args)), idxs_diags
-                ),
-                desc=func.__name__,
-                unit=&#34;diag&#34;,
-                total=len(idxs_diags)
-            )
-        )
-        self._operations_chain.append((func, args))
-
-    return res</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.DiagramsDataset.clone"><code class="name flex">
-<span>def <span class="ident">clone</span></span>(<span>self, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Instanciate a new identical dataset.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Transmitted to <code><a title="laueimproc.classes.base_diagram.BaseDiagram.clone" href="classes/base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.clone">BaseDiagram.clone()</a></code>.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code><a title="laueimproc.DiagramsDataset" href="#laueimproc.DiagramsDataset">DiagramsDataset</a></code></dt>
-<dd>The new copy of self.</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-&gt;&gt;&gt; from laueimproc.io import get_samples
-&gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-&gt;&gt;&gt; dataset_bis = dataset.clone()
-&gt;&gt;&gt; assert id(dataset) != id(dataset_bis)
-&gt;&gt;&gt; assert dataset.state == dataset_bis.state
-&gt;&gt;&gt;
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def clone(self, **kwargs):
-    &#34;&#34;&#34;Instanciate a new identical dataset.
-
-    Parameters
-    ----------
-    **kwargs : dict
-        Transmitted to ``laueimproc.classes.base_diagram.BaseDiagram.clone``.
-
-    Returns
-    -------
-    DiagramsDataset
-        The new copy of self.
-
-    Examples
-    --------
-    &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-    &gt;&gt;&gt; from laueimproc.io import get_samples
-    &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-    &gt;&gt;&gt; dataset_bis = dataset.clone()
-    &gt;&gt;&gt; assert id(dataset) != id(dataset_bis)
-    &gt;&gt;&gt; assert dataset.state == dataset_bis.state
-    &gt;&gt;&gt;
-    &#34;&#34;&#34;
-    new_dataset = self.__class__.__new__(self.__class__)
-    new_dataset.__setstate__(self.__getstate__())
-    new_dataset._diagrams = {  # pylint: disable=W0212
-        i: d.clone(**kwargs) for i, d in new_dataset._diagrams.items()  # pylint: disable=W0212
-    }
-    return new_dataset</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.DiagramsDataset.get_property"><code class="name flex">
-<span>def <span class="ident">get_property</span></span>(<span>self, name: str) ‑> object</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Return the property associated to the given id.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
-<dd>The name of the property to get.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>property</code></strong> :&ensp;<code>object</code></dt>
-<dd>The property value set with <code>add_property</code>.</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>KeyError</code></dt>
-<dd>Is the property has never been defined or if the state changed.</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-&gt;&gt;&gt; from laueimproc.io import get_samples
-&gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-&gt;&gt;&gt; dataset.add_property(&quot;prop1&quot;, value=&quot;any python object 1&quot;, erasable=False)
-&gt;&gt;&gt; dataset.add_property(&quot;prop2&quot;, value=&quot;any python object 2&quot;)
-&gt;&gt;&gt; dataset.get_property(&quot;prop1&quot;)
-'any python object 1'
-&gt;&gt;&gt; dataset.get_property(&quot;prop2&quot;)
-'any python object 2'
-&gt;&gt;&gt; dataset = dataset[:1]  # change state
-&gt;&gt;&gt; dataset.get_property(&quot;prop1&quot;)
-'any python object 1'
-&gt;&gt;&gt; try:
-...     dataset.get_property(&quot;prop2&quot;)
-... except KeyError as err:
-...     print(err)
-...
-&quot;the property 'prop2' is no longer valid because the state of the dataset has changed&quot;
-&gt;&gt;&gt; try:
-...     dataset.get_property(&quot;prop3&quot;)
-... except KeyError as err:
-...     print(err)
-...
-&quot;the property 'prop3' does no exist&quot;
-&gt;&gt;&gt;
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_property(self, name: str) -&gt; object:
-    &#34;&#34;&#34;Return the property associated to the given id.
-
-    Parameters
-    ----------
-    name : str
-        The name of the property to get.
-
-    Returns
-    -------
-    property : object
-        The property value set with ``add_property``.
-
-    Raises
-    ------
-    KeyError
-        Is the property has never been defined or if the state changed.
-
-    Examples
-    --------
-    &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
-    &gt;&gt;&gt; from laueimproc.io import get_samples
-    &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
-    &gt;&gt;&gt; dataset.add_property(&#34;prop1&#34;, value=&#34;any python object 1&#34;, erasable=False)
-    &gt;&gt;&gt; dataset.add_property(&#34;prop2&#34;, value=&#34;any python object 2&#34;)
-    &gt;&gt;&gt; dataset.get_property(&#34;prop1&#34;)
-    &#39;any python object 1&#39;
-    &gt;&gt;&gt; dataset.get_property(&#34;prop2&#34;)
-    &#39;any python object 2&#39;
-    &gt;&gt;&gt; dataset = dataset[:1]  # change state
-    &gt;&gt;&gt; dataset.get_property(&#34;prop1&#34;)
-    &#39;any python object 1&#39;
-    &gt;&gt;&gt; try:
-    ...     dataset.get_property(&#34;prop2&#34;)
-    ... except KeyError as err:
-    ...     print(err)
-    ...
-    &#34;the property &#39;prop2&#39; is no longer valid because the state of the dataset has changed&#34;
-    &gt;&gt;&gt; try:
-    ...     dataset.get_property(&#34;prop3&#34;)
-    ... except KeyError as err:
-    ...     print(err)
-    ...
-    &#34;the property &#39;prop3&#39; does no exist&#34;
-    &gt;&gt;&gt;
-    &#34;&#34;&#34;
-    assert isinstance(name, str), name.__class__.__name__
-    with self._lock:
-        try:
-            state, value = self._properties[name]
-        except KeyError as err:
-            raise KeyError(f&#34;the property {repr(name)} does no exist&#34;) from err
-    if state is not None and state != self.state:
-        # with self._lock:
-        #     self._properties[name] = (state, None)
-        raise KeyError(
-            f&#34;the property {repr(name)} is no longer valid &#34;
-            &#34;because the state of the dataset has changed&#34;
-        )
-    return value</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.DiagramsDataset.run"><code class="name flex">
-<span>def <span class="ident">run</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Run asynchronousely in a child thread, called by self.start().</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def run(self):
-    &#34;&#34;&#34;Run asynchronousely in a child thread, called by self.start().&#34;&#34;&#34;
-    while True:
-        # scan if a new diagram has arrived in the folder
-        for directory_time in self._to_sniff[&#34;dirs&#34;]:
-            if directory_time[0].stat().st_mtime == directory_time[1]:
-                continue
-            directory_time[1] = directory_time[0].stat().st_mtime
-            for file in directory_time[0].iterdir():
-                if (
-                    file in self._to_sniff[&#34;readed&#34;]
-                    or file.suffix.lower() not in {&#34;.jp2&#34;, &#34;.mccd&#34;, &#34;.tif&#34;, &#34;.tiff&#34;}
-                ):
-                    continue
-                diagram = Diagram(file)
-                self.add_diagram(diagram)  # update self._to_sniff[&#34;readed&#34;]
-
-        # # make accessible the just borned diagrams
-        # with self._lock:
-        #     for idx in list(self._diagrams):  # copy for allowing modification
-        #         if not isinstance(self._diagrams[idx], queue.Queue):
-        #             continue
-        #         try:
-        #             diagram, nb_ops = self._diagrams[idx].get_nowait()
-        #         except queue.Empty:
-        #             continue
-        #         if nb_ops != len(self._operations_chain):  # if apply called during thread run
-        #             for func, args in self._operations_chain[nb_ops:]:
-        #                 func(diagram, *args)
-        #         self._diagrams[idx] = diagram
-
-        time.sleep(10)</code></pre>
+<pre><code class="python">def track_spots(self):
+    &#34;&#34;&#34;Find the apparition of the same spots in differents diagrams.&#34;&#34;&#34;
+    raise NotImplementedError</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.DiagramsDataset.train_spot_classifier"><code class="name flex">
@@ -2806,15 +1391,14 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
 <dd>The trained model.</dd>
 </dl>
 <h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.dataset import Diagram, DiagramsDataset
-&gt;&gt;&gt; from laueimproc.io import get_samples
-&gt;&gt;&gt; def init(diagram: Diagram):
+<pre><code class="language-python-repl">&gt;&gt;&gt; import laueimproc
+&gt;&gt;&gt; def init(diagram: laueimproc.Diagram):
 ...     diagram.find_spots()
 ...     diagram.filter_spots(range(10))  # to reduce the number of spots
 ...
-&gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
+&gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())
 &gt;&gt;&gt; _ = dataset.apply(init)
-&gt;&gt;&gt; model = dataset.train_spot_classifier(epoch=1)
+&gt;&gt;&gt; model = dataset.train_spot_classifier(epoch=2)
 &gt;&gt;&gt;
 </code></pre></div>
 <details class="source">
@@ -2854,15 +1438,14 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
 
     Examples
     --------
-    &gt;&gt;&gt; from laueimproc.classes.dataset import Diagram, DiagramsDataset
-    &gt;&gt;&gt; from laueimproc.io import get_samples
-    &gt;&gt;&gt; def init(diagram: Diagram):
+    &gt;&gt;&gt; import laueimproc
+    &gt;&gt;&gt; def init(diagram: laueimproc.Diagram):
     ...     diagram.find_spots()
     ...     diagram.filter_spots(range(10))  # to reduce the number of spots
     ...
-    &gt;&gt;&gt; dataset = DiagramsDataset(get_samples())
+    &gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())
     &gt;&gt;&gt; _ = dataset.apply(init)
-    &gt;&gt;&gt; model = dataset.train_spot_classifier(epoch=1)
+    &gt;&gt;&gt; model = dataset.train_spot_classifier(epoch=2)
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     from laueimproc.nn.loader import find_shape
@@ -2885,6 +1468,23 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
 </details>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset">BaseDiagramsDataset</a></b></code>:
+<ul class="hlist">
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.add_diagram" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.add_diagram">add_diagram</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.add_diagrams" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.add_diagrams">add_diagrams</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.add_property" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.add_property">add_property</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.apply" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.apply">apply</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.clone" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.clone">clone</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.flush" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.flush">flush</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.get_property" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.get_property">get_property</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.indices" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.indices">indices</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.run" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.run">run</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.state" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.state">state</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 </dl>
 </section>
@@ -2920,6 +1520,7 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
 <h4><code><a title="laueimproc.Diagram" href="#laueimproc.Diagram">Diagram</a></code></h4>
 <ul class="">
 <li><code><a title="laueimproc.Diagram.compute_rois_centroid" href="#laueimproc.Diagram.compute_rois_centroid">compute_rois_centroid</a></code></li>
+<li><code><a title="laueimproc.Diagram.compute_rois_inertia" href="#laueimproc.Diagram.compute_rois_inertia">compute_rois_inertia</a></code></li>
 <li><code><a title="laueimproc.Diagram.compute_rois_max" href="#laueimproc.Diagram.compute_rois_max">compute_rois_max</a></code></li>
 <li><code><a title="laueimproc.Diagram.compute_rois_nb_peaks" href="#laueimproc.Diagram.compute_rois_nb_peaks">compute_rois_nb_peaks</a></code></li>
 <li><code><a title="laueimproc.Diagram.compute_rois_pca" href="#laueimproc.Diagram.compute_rois_pca">compute_rois_pca</a></code></li>
@@ -2933,15 +1534,7 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
 <li>
 <h4><code><a title="laueimproc.DiagramsDataset" href="#laueimproc.DiagramsDataset">DiagramsDataset</a></code></h4>
 <ul class="">
-<li><code><a title="laueimproc.DiagramsDataset.add_diagram" href="#laueimproc.DiagramsDataset.add_diagram">add_diagram</a></code></li>
-<li><code><a title="laueimproc.DiagramsDataset.add_diagrams" href="#laueimproc.DiagramsDataset.add_diagrams">add_diagrams</a></code></li>
-<li><code><a title="laueimproc.DiagramsDataset.add_property" href="#laueimproc.DiagramsDataset.add_property">add_property</a></code></li>
-<li><code><a title="laueimproc.DiagramsDataset.apply" href="#laueimproc.DiagramsDataset.apply">apply</a></code></li>
-<li><code><a title="laueimproc.DiagramsDataset.clone" href="#laueimproc.DiagramsDataset.clone">clone</a></code></li>
-<li><code><a title="laueimproc.DiagramsDataset.get_property" href="#laueimproc.DiagramsDataset.get_property">get_property</a></code></li>
-<li><code><a title="laueimproc.DiagramsDataset.indices" href="#laueimproc.DiagramsDataset.indices">indices</a></code></li>
-<li><code><a title="laueimproc.DiagramsDataset.run" href="#laueimproc.DiagramsDataset.run">run</a></code></li>
-<li><code><a title="laueimproc.DiagramsDataset.state" href="#laueimproc.DiagramsDataset.state">state</a></code></li>
+<li><code><a title="laueimproc.DiagramsDataset.track_spots" href="#laueimproc.DiagramsDataset.track_spots">track_spots</a></code></li>
 <li><code><a title="laueimproc.DiagramsDataset.train_spot_classifier" href="#laueimproc.DiagramsDataset.train_spot_classifier">train_spot_classifier</a></code></li>
 </ul>
 </li>

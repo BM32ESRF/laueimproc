@@ -128,6 +128,7 @@ class BaseDiagramsDataset(threading.Thread):
 
     def __getstate__(self):
         """Make the dataset pickleable."""
+        self.flush()
         with self._lock:
             pos_data = self._position[1]
             return (
@@ -136,7 +137,7 @@ class BaseDiagramsDataset(threading.Thread):
                     cloudpickle.dumps(self._position[0]),
                     (pos_data.copy() if isinstance(pos_data, dict) else pos_data),
                 ],
-                self._diagrams.copy(),
+                {i: d for i, d in self._diagrams.items() if isinstance(d, Diagram)},
                 cloudpickle.dumps(self._operations_chain),
                 self._properties.copy(),
             )
@@ -206,16 +207,7 @@ class BaseDiagramsDataset(threading.Thread):
             elif item.dtype != torch.int64:
                 item = item.to(torch.int64)
             return self._get_diagrams_from_indices(item)
-        # if isinstance(item, tuple):  # case grid
-        #     if self._position[0] is None:
-        #         raise AttributeError(
-        #             "you must provide the `position` argument to acces the position"
-        #         )
-        #     assert len(item) == 2, f"only 2d position allow, not {len(item)}d"
-        #     if isinstance(item[0], numbers.Real) and isinstance(item[1], numbers.Real):
-        #         return self._get_diagram_from_coord(*item)
-
-        raise TypeError(f"only int, slices and tuple[float, float] are allowed, not {item}")
+        raise TypeError(f"only int and slices are allowed, not {item}")
 
     def __iter__(self) -> Diagram:
         """Yield the diagrams ready.
@@ -237,7 +229,7 @@ class BaseDiagramsDataset(threading.Thread):
         100
         >>>
         """
-        yielded = set()  # the yielded diagrams
+        yielded: set[int] = set()  # the yielded diagram indices
         while True:
             with self._lock:
                 if not (toyield := self._diagrams.keys() - yielded):
@@ -478,7 +470,7 @@ class BaseDiagramsDataset(threading.Thread):
         assert isinstance(index, numbers.Integral), index.__class__.__name__
         if index < 0:
             index += len(self)
-            assert index >= 0, "the provided index is to negative"
+            assert index >= 0, "the provided index is too negative"
         index = int(index)
         with self._lock:
             try:
@@ -495,9 +487,10 @@ class BaseDiagramsDataset(threading.Thread):
     def _get_diagrams_from_indices(self, indices: torch.Tensor):
         """Return a frozen sub dataset view."""
         if (isneg := indices < 0).any():
+            indices = indices.clone()
             with self._lock:
                 corrected_indices = indices[isneg] + len(self)
-            assert (corrected_indices >= 0).all(), "some provided indices are to negative"
+            assert (corrected_indices >= 0).all(), "some provided indices are too negative"
             indices[isneg] = corrected_indices
         diagrams = {i: self._get_diagram_from_index(i) for i in indices.tolist()}
         new_dataset = self.__class__.__new__(self.__class__)
@@ -567,8 +560,10 @@ class BaseDiagramsDataset(threading.Thread):
         # add diagram and check unicity
         with self._lock:
             if index in self._diagrams:
-                raise LookupError(f"the diagram of index {index} is already present in the dataset")
-            if coord is not None:
+                raise LookupError(
+                    f"the index {index} of the diagram {new_diagram} is already in the dataset"
+                )
+            if coord is not None:  # add diagram position
                 if isinstance(self._position[1], tuple):  # tensor to dict
                     self._position[1] = {
                         (x, y): i for (x, y), i in
@@ -583,7 +578,7 @@ class BaseDiagramsDataset(threading.Thread):
             else:
                 self._diagrams[index] = new_diagram
                 thread = None
-        if thread is not None:
+        if thread is not None:  # starts the thread (apply the function chain to the new diagram)
             if len([None for t in threading.enumerate() if isinstance(t, _ChainThread)]) < 3*NCPU:
                 thread.start()  # asnyc
                 if not self._started.is_set():
@@ -671,6 +666,7 @@ class BaseDiagramsDataset(threading.Thread):
         self,
         func: typing.Callable[[Diagram], object],
         args: typing.Optional[tuple] = None,
+        kwargs: typing.Optional[dict] = None,
     ) -> dict[int, object]:
         """Apply an operation in all the diagrams of the dataset.
 
@@ -680,7 +676,9 @@ class BaseDiagramsDataset(threading.Thread):
             A function that take a diagram and optionaly other parameters, and return anything.
             The function can modify the diagram inplace. It has to be pickaleable.
         args : tuple, optional
-            Positional arguments to forward to the provided func.
+            Positional arguments transmitted to the provided func.
+        kwargs : dict, optional
+            Keyword arguments transmitted to the provided func.
 
         Returns
         -------
@@ -728,7 +726,18 @@ class BaseDiagramsDataset(threading.Thread):
                 cloudpickle.dumps(args)
             except TypeError as err:
                 raise AssertionError(
-                    f"the arguments `args` {args} are not pickleable"
+                    f"the argument `args` {args} is not serializable"
+                ) from err
+        if kwargs is None:
+            kwargs = {}
+        else:
+            assert isinstance(kwargs, dict), kwargs.__class__.__name__
+            assert all(isinstance(k, str) for k in kwargs), kwargs
+            try:
+                cloudpickle.dumps(kwargs)
+            except TypeError as err:
+                raise AssertionError(
+                    f"the argument `kwargs` {kwargs} is not serializable"
                 ) from err
 
         # apply
@@ -739,7 +748,8 @@ class BaseDiagramsDataset(threading.Thread):
             res = dict(
                 tqdm.tqdm(
                     pool.imap_unordered(
-                        lambda idx_diag: (idx_diag[0], func(idx_diag[1], *args)), idxs_diags
+                        lambda idx_diag: (idx_diag[0], func(idx_diag[1], *args, **kwargs)),
+                        idxs_diags,
                     ),
                     desc=func.__name__,
                     unit="diag",
@@ -779,6 +789,19 @@ class BaseDiagramsDataset(threading.Thread):
             i: d.clone(**kwargs) for i, d in new_dataset._diagrams.items()  # pylint: disable=W0212
         }
         return new_dataset
+
+    def flush(self):
+        """Extract finished thread diagrams."""
+        with self._lock:
+            for index, diag_queue in self._diagrams.items():
+                if isinstance(diag_queue, queue.Queue):
+                    try:
+                        diagram, nb_ops = diag_queue.get_nowait()
+                    except queue.Empty:
+                        continue
+                    for func, args in self._operations_chain[nb_ops:]:  # simple precaution
+                        func(diagram, *args)
+                    self._diagrams[index] = diagram
 
     def get_property(self, name: str) -> object:
         """Return the property associated to the given id.
@@ -854,6 +877,7 @@ class BaseDiagramsDataset(threading.Thread):
         [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
         >>>
         """
+        self.flush()
         with self._lock:
             return {i for i, d in self._diagrams.items() if isinstance(d, Diagram)}
 
