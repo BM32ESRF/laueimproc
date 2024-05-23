@@ -35,6 +35,8 @@
 import functools
 import numbers
 import pathlib
+import re
+import typing
 
 
 def bytes2human(size: numbers.Real) -&gt; str:
@@ -78,7 +80,73 @@ def get_project_root() -&gt; pathlib.Path:
     &#39;laueimproc&#39;
     &gt;&gt;&gt;
     &#34;&#34;&#34;
-    return pathlib.Path(__file__).resolve().parent</code></pre>
+    return pathlib.Path(__file__).resolve().parent
+
+
+def time2sec(time: typing.Union[numbers.Real, str], /) -&gt; float:
+    &#34;&#34;&#34;Parse a time duration expression and return it in seconds.
+
+    Raises
+    ------
+    ValueError
+        If the provided time dosen&#39;t match a parsable correct time format.
+
+    Examples
+    --------
+    &gt;&gt;&gt; from laueimproc.common import time2sec
+    &gt;&gt;&gt; time2sec(12.34)
+    12.34
+    &gt;&gt;&gt; time2sec(&#34;12.34&#34;)
+    12.34
+    &gt;&gt;&gt; time2sec(&#34;.34&#34;)
+    0.34
+    &gt;&gt;&gt; time2sec(&#34;12.&#34;)
+    12.0
+    &gt;&gt;&gt; time2sec(&#34;12&#34;)
+    12.0
+    &gt;&gt;&gt; time2sec(&#34;12.34s&#34;)
+    12.34
+    &gt;&gt;&gt; time2sec(&#34;12.34 sec&#34;)
+    12.34
+    &gt;&gt;&gt; time2sec(&#34;2 m&#34;)
+    120.0
+    &gt;&gt;&gt; time2sec(&#34;2min 2&#34;)
+    122.0
+    &gt;&gt;&gt; time2sec(&#34;  2.5  h  &#34;)
+    9000.0
+    &gt;&gt;&gt; time2sec(&#34;2hour02&#34;)
+    7320.0
+    &gt;&gt;&gt; time2sec(&#34;2h 2s&#34;)
+    7202.0
+    &gt;&gt;&gt; time2sec(&#34;2.5 hours 2.0 minutes 12.34 seconds&#34;)
+    9132.34
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if isinstance(time, numbers.Real):
+        if time &lt; 0:
+            raise ValueError(f&#34;the time has to be positive, noe {time}&#34;)
+        return float(time)
+    assert isinstance(time, str), time.__class__.__name__
+
+    pat_float = r&#34;(?:\d++\.?+\d*+)|(?:\.\d++)&#34;
+    if (match := re.match(rf&#34;^\s*(?P&lt;seconds&gt;{pat_float})\s*$&#34;, time)) is not None:
+        return float(match[&#34;seconds&#34;])
+    pat_hms = re.compile(
+        (
+            r&#34;^\s*&#34;
+            rf&#34;(?:(?P&lt;hours&gt;{pat_float})\s*(?:hours|hour|h))?\s*&#34;
+            rf&#34;(?:(?P&lt;minutes&gt;{pat_float})\s*(?:minutes|minute|min|m)?)?\s*&#34;
+            rf&#34;(?:(?P&lt;seconds&gt;{pat_float})\s*(?:seconds|second|sec|s)?)?&#34;
+            r&#34;\s*$&#34;
+        ),
+        re.IGNORECASE,
+    )
+    if (match := re.match(pat_hms, time)) is not None:
+        hours = float(match[&#34;hours&#34;] or &#34;0&#34;)
+        minutes = float(match[&#34;minutes&#34;] or &#34;0&#34;)
+        seconds = float(match[&#34;seconds&#34;] or &#34;0&#34;)
+        return 3600*hours + 60*minutes + seconds
+    raise ValueError(f&#34;failed to parse the time duration {repr(time)}&#34;)</code></pre>
 </details>
 </section>
 <section>
@@ -171,6 +239,116 @@ def get_project_root() -&gt; pathlib.Path:
     return pathlib.Path(__file__).resolve().parent</code></pre>
 </details>
 </dd>
+<dt id="laueimproc.common.time2sec"><code class="name flex">
+<span>def <span class="ident">time2sec</span></span>(<span>time: Union[numbers.Real, str], /) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse a time duration expression and return it in seconds.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If the provided time dosen't match a parsable correct time format.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.common import time2sec
+&gt;&gt;&gt; time2sec(12.34)
+12.34
+&gt;&gt;&gt; time2sec(&quot;12.34&quot;)
+12.34
+&gt;&gt;&gt; time2sec(&quot;.34&quot;)
+0.34
+&gt;&gt;&gt; time2sec(&quot;12.&quot;)
+12.0
+&gt;&gt;&gt; time2sec(&quot;12&quot;)
+12.0
+&gt;&gt;&gt; time2sec(&quot;12.34s&quot;)
+12.34
+&gt;&gt;&gt; time2sec(&quot;12.34 sec&quot;)
+12.34
+&gt;&gt;&gt; time2sec(&quot;2 m&quot;)
+120.0
+&gt;&gt;&gt; time2sec(&quot;2min 2&quot;)
+122.0
+&gt;&gt;&gt; time2sec(&quot;  2.5  h  &quot;)
+9000.0
+&gt;&gt;&gt; time2sec(&quot;2hour02&quot;)
+7320.0
+&gt;&gt;&gt; time2sec(&quot;2h 2s&quot;)
+7202.0
+&gt;&gt;&gt; time2sec(&quot;2.5 hours 2.0 minutes 12.34 seconds&quot;)
+9132.34
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def time2sec(time: typing.Union[numbers.Real, str], /) -&gt; float:
+    &#34;&#34;&#34;Parse a time duration expression and return it in seconds.
+
+    Raises
+    ------
+    ValueError
+        If the provided time dosen&#39;t match a parsable correct time format.
+
+    Examples
+    --------
+    &gt;&gt;&gt; from laueimproc.common import time2sec
+    &gt;&gt;&gt; time2sec(12.34)
+    12.34
+    &gt;&gt;&gt; time2sec(&#34;12.34&#34;)
+    12.34
+    &gt;&gt;&gt; time2sec(&#34;.34&#34;)
+    0.34
+    &gt;&gt;&gt; time2sec(&#34;12.&#34;)
+    12.0
+    &gt;&gt;&gt; time2sec(&#34;12&#34;)
+    12.0
+    &gt;&gt;&gt; time2sec(&#34;12.34s&#34;)
+    12.34
+    &gt;&gt;&gt; time2sec(&#34;12.34 sec&#34;)
+    12.34
+    &gt;&gt;&gt; time2sec(&#34;2 m&#34;)
+    120.0
+    &gt;&gt;&gt; time2sec(&#34;2min 2&#34;)
+    122.0
+    &gt;&gt;&gt; time2sec(&#34;  2.5  h  &#34;)
+    9000.0
+    &gt;&gt;&gt; time2sec(&#34;2hour02&#34;)
+    7320.0
+    &gt;&gt;&gt; time2sec(&#34;2h 2s&#34;)
+    7202.0
+    &gt;&gt;&gt; time2sec(&#34;2.5 hours 2.0 minutes 12.34 seconds&#34;)
+    9132.34
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if isinstance(time, numbers.Real):
+        if time &lt; 0:
+            raise ValueError(f&#34;the time has to be positive, noe {time}&#34;)
+        return float(time)
+    assert isinstance(time, str), time.__class__.__name__
+
+    pat_float = r&#34;(?:\d++\.?+\d*+)|(?:\.\d++)&#34;
+    if (match := re.match(rf&#34;^\s*(?P&lt;seconds&gt;{pat_float})\s*$&#34;, time)) is not None:
+        return float(match[&#34;seconds&#34;])
+    pat_hms = re.compile(
+        (
+            r&#34;^\s*&#34;
+            rf&#34;(?:(?P&lt;hours&gt;{pat_float})\s*(?:hours|hour|h))?\s*&#34;
+            rf&#34;(?:(?P&lt;minutes&gt;{pat_float})\s*(?:minutes|minute|min|m)?)?\s*&#34;
+            rf&#34;(?:(?P&lt;seconds&gt;{pat_float})\s*(?:seconds|second|sec|s)?)?&#34;
+            r&#34;\s*$&#34;
+        ),
+        re.IGNORECASE,
+    )
+    if (match := re.match(pat_hms, time)) is not None:
+        hours = float(match[&#34;hours&#34;] or &#34;0&#34;)
+        minutes = float(match[&#34;minutes&#34;] or &#34;0&#34;)
+        seconds = float(match[&#34;seconds&#34;] or &#34;0&#34;)
+        return 3600*hours + 60*minutes + seconds
+    raise ValueError(f&#34;failed to parse the time duration {repr(time)}&#34;)</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -191,6 +369,7 @@ def get_project_root() -&gt; pathlib.Path:
 <ul class="">
 <li><code><a title="laueimproc.common.bytes2human" href="#laueimproc.common.bytes2human">bytes2human</a></code></li>
 <li><code><a title="laueimproc.common.get_project_root" href="#laueimproc.common.get_project_root">get_project_root</a></code></li>
+<li><code><a title="laueimproc.common.time2sec" href="#laueimproc.common.time2sec">time2sec</a></code></li>
 </ul>
 </li>
 </ul>

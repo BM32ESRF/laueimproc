@@ -21,6 +21,7 @@ import psutil
 import torch
 import tqdm
 
+from laueimproc.common import time2sec
 from .diagram import Diagram
 
 
@@ -120,14 +121,20 @@ class BaseDiagramsDataset(threading.Thread):
         self._position = [position, {}]  # the dict associate (x, y) to index
         self._diagrams: dict[int, typing.Union[Diagram, queue.Queue]] = {}  # index to diagram
         self._lock = threading.Lock()
-        self._to_sniff: dict = {"dirs": [], "readed": set()}  # for the async run method
+        self._async_job: dict = {"dirs": [], "readed": set()}  # for the async run method
         self._operations_chain: list[tuple[typing.Callable[[Diagram], object], tuple]] = []
         self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
         super().__init__(daemon=True)
         self.add_diagrams(diagram_refs)
 
     def __getstate__(self):
-        """Make the dataset pickleable."""
+        """Make the dataset pickleable.
+
+        Notes
+        -----
+        Only copy the ready diagrams.
+        No queue left in _diagrams dictionary.
+        """
         self.flush()
         with self._lock:
             pos_data = self._position[1]
@@ -301,7 +308,7 @@ class BaseDiagramsDataset(threading.Thread):
         self._position[0] = cloudpickle.loads(self._position[0])
         self._operations_chain = cloudpickle.loads(operations_chain_ser)
         self._lock = threading.Lock()
-        self._to_sniff: dict = {"dirs": [], "readed": set()}  # for the async run method
+        self._async_job: dict = {"dirs": [], "readed": set()}  # for the async run method
         super().__init__(daemon=True)
 
     def __str__(self) -> str:
@@ -571,7 +578,7 @@ class BaseDiagramsDataset(threading.Thread):
                     }
                 self._position[1][coord] = index
             if new_diagram.file is not None:
-                self._to_sniff["readed"].add(new_diagram.file)
+                self._async_job["readed"].add(new_diagram.file)
             if self._operations_chain:
                 self._diagrams[index] = queue.Queue()
                 thread = _ChainThread(new_diagram, self._operations_chain, self._diagrams[index])
@@ -647,7 +654,7 @@ class BaseDiagramsDataset(threading.Thread):
                     f for f in new_diagrams.iterdir()
                     if f.suffix.lower() in {".jp2", ".mccd", ".tif", ".tiff"}
                 )
-                self._to_sniff["dirs"].append([new_diagrams, 0.0])
+                self._async_job["dirs"].append([new_diagrams, 0.0])
                 if not self._started.is_set():
                     self.start()
             else:
@@ -741,9 +748,7 @@ class BaseDiagramsDataset(threading.Thread):
                 ) from err
 
         # apply
-        with self._lock:
-            idxs = list(self._diagrams)
-        idxs_diags = [(i, self._get_diagram_from_index(i)) for i in idxs]
+        idxs_diags = [(i, self._get_diagram_from_index(i)) for i in sorted(self.indices)]  # frozen
         with self._lock, multiprocessing.pool.ThreadPool(NCPU) as pool:
             res = dict(
                 tqdm.tqdm(
@@ -753,12 +758,62 @@ class BaseDiagramsDataset(threading.Thread):
                     ),
                     desc=func.__name__,
                     unit="diag",
-                    total=len(idxs_diags)
+                    total=len(idxs_diags),
                 )
             )
             self._operations_chain.append((func, args))
 
         return res
+
+    def autosave(
+        self,
+        filename: typing.Union[str, pathlib.Path],
+        restore: bool = True,
+        delay: typing.Union[numbers.Real, str] = None,
+    ) -> pathlib.Path:
+        """Manage the dataset recovery.
+
+        This allows the dataset to be backuped at regular time intervals,
+        making it possible to restore where the diagram has been left up.
+
+        Parameters
+        ----------
+        filename : pathlike
+            The name of the persistant file,
+            transmitted to ``laueimproc.io.save_dataset.write_dataset``.
+        restore : boolean, default=True
+            If True and the file exists, it update the dataset with the recorded state.
+            If set to False, the file is never readed, written only.
+        delay : float or str, optional
+            If provided and > 0, automatic checkpoint will be performed.
+            it corresponds to the time interval between two check points.
+            The supported formats are defined in ``laueimproc.common.time2sec``.
+
+        Returns
+        -------
+        filename : pathlib.Path
+            The real absolute path.
+        """
+        from laueimproc.io.save_dataset import restore_dataset, write_dataset
+
+        assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+        filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".pickle")
+        assert isinstance(restore, bool), restore.__class__.__name__
+
+        if restore and filename.exists():
+            restore_dataset(filename, self)
+        else:
+            filename = write_dataset(filename, self)
+        if not delay:
+            if "autosave" in self._async_job:
+                del self._async_job["autosave"]
+        else:
+            delay = time2sec(delay)
+            self._async_job["autosave"] = [delay, time.time(), filename]
+            if not self._started.is_set():
+                self.start()
+
+        return filename
 
     def clone(self, **kwargs):
         """Instanciate a new identical dataset.
@@ -913,31 +968,25 @@ class BaseDiagramsDataset(threading.Thread):
         """Run asynchronousely in a child thread, called by self.start()."""
         while True:
             # scan if a new diagram has arrived in the folder
-            for directory_time in self._to_sniff["dirs"]:
+            for directory_time in self._async_job["dirs"]:
                 if directory_time[0].stat().st_mtime == directory_time[1]:
                     continue
                 directory_time[1] = directory_time[0].stat().st_mtime
                 for file in directory_time[0].iterdir():
                     if (
-                        file in self._to_sniff["readed"]
+                        file in self._async_job["readed"]
                         or file.suffix.lower() not in {".jp2", ".mccd", ".tif", ".tiff"}
                     ):
                         continue
                     diagram = Diagram(file)
-                    self.add_diagram(diagram)  # update self._to_sniff["readed"]
+                    self.add_diagram(diagram)  # update self._async_job["readed"]
 
-            # # make accessible the just borned diagrams
-            # with self._lock:
-            #     for idx in list(self._diagrams):  # copy for allowing modification
-            #         if not isinstance(self._diagrams[idx], queue.Queue):
-            #             continue
-            #         try:
-            #             diagram, nb_ops = self._diagrams[idx].get_nowait()
-            #         except queue.Empty:
-            #             continue
-            #         if nb_ops != len(self._operations_chain):  # if apply called during thread run
-            #             for func, args in self._operations_chain[nb_ops:]:
-            #                 func(diagram, *args)
-            #         self._diagrams[idx] = diagram
+            # autosave
+            if "autosave" in self._async_job:
+                delay, last_backup, file = self._async_job["autosave"]
+                if time.time() > last_backup + delay:
+                    from laueimproc.io.save_dataset import write_dataset
+                    write_dataset(file, self)
+                    self._async_job["autosave"] = [delay, time.time(), file]
 
             time.sleep(10)
