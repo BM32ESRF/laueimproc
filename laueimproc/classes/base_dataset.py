@@ -568,7 +568,7 @@ class BaseDiagramsDataset(threading.Thread):
         with self._lock:
             if index in self._diagrams:
                 raise LookupError(
-                    f"the index {index} of the diagram {new_diagram} is already in the dataset"
+                    f"the index {index} of the diagram {repr(new_diagram)} is already in the dataset"
                 )
             if coord is not None:  # add diagram position
                 if isinstance(self._position[1], tuple):  # tensor to dict
@@ -647,7 +647,7 @@ class BaseDiagramsDataset(threading.Thread):
         if isinstance(new_diagrams, Diagram):
             self.add_diagram(new_diagrams)
         elif isinstance(new_diagrams, pathlib.Path):
-            new_diagrams.expanduser().resolve()
+            new_diagrams = new_diagrams.expanduser().resolve()
             assert new_diagrams.exists(), f"{new_diagrams} if not an existing path"
             if new_diagrams.is_dir():
                 self.add_diagrams(  # optional, no procrastination
