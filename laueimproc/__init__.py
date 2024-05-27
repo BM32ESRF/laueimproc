@@ -7,4 +7,4 @@ from .opti import collect
 
 __all__ = ["collect", "Diagram", "DiagramsDataset"]
 __author__ = "J.S. Micha, O. Robach., S. Tardif, R. Richard"
-__version__ = "1.2.4"  # pep 440
+__version__ = "1.3.0"  # pep 440

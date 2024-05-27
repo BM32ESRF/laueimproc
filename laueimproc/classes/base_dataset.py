@@ -22,6 +22,10 @@ import torch
 import tqdm
 
 from laueimproc.common import time2sec
+from laueimproc.ml.dataset_dist import (
+    POS_TYPE, _add_pos, _copy_pos, _filter_pos, _to_torch, call_pos_func, check_pos_func_typing,
+    select_closest,
+)
 from .diagram import Diagram
 
 
@@ -94,9 +98,9 @@ class BaseDiagramsDataset(threading.Thread):
         self,
         *diagram_refs,
         diag2ind: typing.Optional[typing.Callable[[Diagram], numbers.Integral]] = None,
-        position: typing.Optional[typing.Callable[[int], tuple[numbers.Real, numbers.Real]]] = None,
+        position: typing.Optional[POS_TYPE] = None,
     ):
-        """Initialise the dataset.
+        r"""Initialise the dataset.
 
         Parameters
         ----------
@@ -108,24 +112,62 @@ class BaseDiagramsDataset(threading.Thread):
             It has to take only one positional argument (a simple Diagram instance)
             and to return a positive integer.
         position : callable, optional
-            Provides information on the phisical position of the images on the sample.
-            This function takes as input the index of the diagram,
-            and returns the 2 coordinates in the sample plane.
+            If provided, it allows you to select diagram from physical parameters.
+            \(f:I\to\mathbb{R}^n\), an injective application.
+            \(I\subset\mathbb{N}\) is the set of the indices of the diagrams in the dataset.
+            \(n\) corresponds to the number of physical parameters.
+            For example the beam positon on the sample or, more generally, a vector of scalar
+            parameters like time, voltage, temperature, pressure...
+            The function must match ``laueimproc.ml.dataset_dist.check_pos_func_typing``.
         """
         if diag2ind is None:
             self._diag2ind = default_diag2ind
         else:
             self._diag2ind = cloudpickle.loads(self._check_diag2ind(diag2ind))
         if position is not None:
-            position = cloudpickle.loads(self._check_position(position))
-        self._position = [position, {}]  # the dict associate (x, y) to index
+            check_pos_func_typing(position)
+            position = cloudpickle.loads(cloudpickle.dumps(position))  # protection for notebook ref
+        self._async_job: dict = {"dirs": [], "readed": set()}  # for the async run method
         self._diagrams: dict[int, typing.Union[Diagram, queue.Queue]] = {}  # index to diagram
         self._lock = threading.Lock()
-        self._async_job: dict = {"dirs": [], "readed": set()}  # for the async run method
         self._operations_chain: list[tuple[typing.Callable[[Diagram], object], tuple]] = []
+        self._position = [position, {}]  # store the diagrams position
         self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
         super().__init__(daemon=True)
         self.add_diagrams(diagram_refs)
+
+    def __call__(self, *args, **kwargs) -> Diagram:
+        """Select the closest diagram.
+
+        Parameters
+        ----------
+        point, tol, scale
+            Transmitted to ``laueimproc.ml.dataset_dist.select_closest``.
+
+        Returns
+        -------
+        closet_diag : ``laueimproc.classes.diagram.Diagram``
+            The closet diagram.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.base_dataset import BaseDiagramsDataset
+        >>> from laueimproc.io import get_samples
+        >>> def position(index: int) -> tuple[int, int]:
+        ...     return divmod(index, 10)
+        ...
+        >>> dataset = BaseDiagramsDataset(get_samples(), position=position)
+        >>> dataset((4.5, 4.5), tol=(0.6, 0.6))
+        Diagram(img_44.jp2)
+        >>>
+        """
+        assert self._position[0] is not None, \
+            "you have to give the `position` function when you initialise the dataset"
+        with self._lock:
+            self._position[1] = _to_torch(self._position[1])
+            indices, coords = self._position[1]
+        index = select_closest(coords, *args, **kwargs)
+        return self._get_diagram_from_index(int(indices[index]))
 
     def __getstate__(self):
         """Make the dataset pickleable.
@@ -137,15 +179,15 @@ class BaseDiagramsDataset(threading.Thread):
         """
         self.flush()
         with self._lock:
-            pos_data = self._position[1]
+            if self._position[0] is not None:
+                position = [cloudpickle.dumps(self._position[0]), _copy_pos(self._position[1])]
+            else:
+                position = None
             return (
                 cloudpickle.dumps(self._diag2ind),
-                [
-                    cloudpickle.dumps(self._position[0]),
-                    (pos_data.copy() if isinstance(pos_data, dict) else pos_data),
-                ],
                 {i: d for i, d in self._diagrams.items() if isinstance(d, Diagram)},
                 cloudpickle.dumps(self._operations_chain),
+                position,
                 self._properties.copy(),
             )
 
@@ -295,20 +337,23 @@ class BaseDiagramsDataset(threading.Thread):
         >>> assert dataset.state == dataset_bis.state
         >>>
         """
-        # not verification for thread safe
-        # because this method is never meant to be call from a thread.
-        (
-            diag2ind_ser,
-            self._position,
-            self._diagrams,
-            operations_chain_ser,
-            self._properties,
-        ) = state
-        self._diag2ind = cloudpickle.loads(diag2ind_ser)
-        self._position[0] = cloudpickle.loads(self._position[0])
-        self._operations_chain = cloudpickle.loads(operations_chain_ser)
+        # create attribute
+        self._diag2ind = cloudpickle.loads(state[0])
+        self._async_job: dict = {"dirs": [], "readed": set()}
+        self._diagrams = state[1]
         self._lock = threading.Lock()
-        self._async_job: dict = {"dirs": [], "readed": set()}  # for the async run method
+        self._operations_chain = cloudpickle.loads(state[2])
+        if (position := state[3]) is None:
+            self._position = [None, {}]
+        else:
+            self._position = [cloudpickle.loads(position[0]), position[1]]
+        self._properties = state[4]
+
+        # update attributes
+        self._async_job["readed"] = {
+            d.file for d in self._diagrams.values() if d.file is not None
+        }
+
         super().__init__(daemon=True)
 
     def __str__(self) -> str:
@@ -325,7 +370,7 @@ class BaseDiagramsDataset(threading.Thread):
             Current state:
                 * id, state: ...
                 * nbr diags: 100
-                * 2d indexing: no
+                * position : no
         >>>
         """
         # title
@@ -359,9 +404,9 @@ class BaseDiagramsDataset(threading.Thread):
             text += f"\n        * id, state: {id(self)}, {self.state}"
             text += f"\n        * nbr diags: {len(self)}"
             if self._position[0] is None:
-                text += "\n        * 2d indexing: no"
+                text += "\n        * position : no"
             else:
-                text += f"\n        * 2d indexing: {self._position[0]}"
+                text += f"\n        * position : {self._position[0]}"
 
         return text
 
@@ -413,65 +458,6 @@ class BaseDiagramsDataset(threading.Thread):
             )
         return serfunc
 
-    @staticmethod
-    def _check_position(
-        position: typing.Callable[[int], tuple[numbers.Real, numbers.Real]]
-    ) -> bytes:
-        """Ensure that the position function has the right input / outputs."""
-        assert callable(position), \
-            f"`position` has to be callable, not {position.__class__.__name__}"
-        try:
-            serfunc = cloudpickle.dumps(position)
-        except TypeError as err:
-            raise AssertionError(f"the function `position` {position} is not picklable") from err
-        signature = inspect.signature(position)
-        assert len(signature.parameters) == 1, "the function `position` has to take 1 parameter"
-        parameter = next(iter(signature.parameters.values()))
-        if parameter.annotation is parameter.empty:
-            warnings.warn("please specify the input type of `position`", SyntaxWarning)
-        elif parameter.annotation is not int:
-            raise AssertionError(
-                f"the function `position` has to get a int, not {parameter.annotation}"
-            )
-        if signature.return_annotation is parameter.empty:
-            warnings.warn("please specify the return type of `position`", SyntaxWarning)
-        elif (
-            signature.return_annotation is not tuple
-            and typing.get_origin(signature.return_annotation) is not tuple
-        ):
-            raise AssertionError(
-                f"the function `position` has to return tuple, not {signature.return_annotation}"
-            )
-        return_args = typing.get_args(signature.return_annotation)
-        assert len(return_args) == 2, \
-            f"the function `position` has to return 2 elements, not {len(return_args)}"
-        assert issubclass(return_args[0], numbers.Real), \
-            f"first output element of `position` has to be a real number, not a {return_args[0]}"
-        assert issubclass(return_args[1], numbers.Real), \
-            f"second output element of `position` has to be a real number, not a {return_args[1]}"
-        return serfunc
-
-    def _get_diagram_from_coord(self, first_idx: numbers.Real, second_idx: numbers.Real) -> Diagram:
-        """Return the closest diagram of the given position."""
-        assert isinstance(first_idx, numbers.Real), first_idx.__class__.__name__
-        assert isinstance(second_idx, numbers.Real), second_idx.__class__.__name__
-        with self._lock:
-            if isinstance(self._position[1], dict):  # dict to tensor
-                coords, indices = zip(*self._position[1].items())
-                self._position[1] = (
-                    torch.tensor(coords, dtype=torch.float32),
-                    torch.tensor(indices, dtype=torch.int64),
-                )
-            coord = torch.tensor(
-                [[first_idx, second_idx]],
-                dtype=self._position[1][0].dtype,
-                device=self._position[1][0].device,
-            )
-            dist = torch.sum((self._position[1][0].unsqueeze(0) - coord.unsqueeze(1))**2, dim=2)
-            pos = torch.argmin(dist, dim=1).item()
-            index = self._position[1][1][pos].item()
-        return self._get_diagram_from_index(index)
-
     def _get_diagram_from_index(self, index: numbers.Integral) -> Diagram:
         """Return the diagram of index `index`."""
         assert isinstance(index, numbers.Integral), index.__class__.__name__
@@ -503,6 +489,9 @@ class BaseDiagramsDataset(threading.Thread):
         new_dataset = self.__class__.__new__(self.__class__)
         new_dataset.__setstate__(self.__getstate__())
         new_dataset._diagrams = diagrams  # pylint: disable=W0212
+        new_dataset._position[1] = _filter_pos(  # pylint: disable=W0212
+            new_dataset._position[1], diagrams  # pylint: disable=W0212
+        )
         return new_dataset
 
     def add_property(self, name: str, value: object, *, erasable: bool = True):
@@ -549,34 +538,16 @@ class BaseDiagramsDataset(threading.Thread):
             f"the function {self._diag2ind} must return a positive number, not {index}"
         index = int(index)
 
-        # get an check sample position
-        if self._position[0] is not None:
-            coord = self._position[0](index)
-            assert isinstance(coord, tuple), \
-                f"the function {self._position[0]} must return a tuple, not {coord}"
-            assert len(coord) == 2, \
-                f"the function {self._position[0]} must return 2 elements, not {len(coord)}"
-            assert isinstance(coord[0], numbers.Real), \
-                f"the first element returned by {self._position[0]} must be a number not {coord[0]}"
-            assert isinstance(coord[1], numbers.Real), \
-                f"the first element returned by {self._position[1]} must be a number not {coord[1]}"
-            coord = (float(coord[0]), float(coord[1]))
-        else:
-            coord = None
-
         # add diagram and check unicity
         with self._lock:
             if index in self._diagrams:
                 raise LookupError(
-                    f"the index {index} of the diagram {repr(new_diagram)} is already in the dataset"
+                    f"the diagram {repr(new_diagram)} of index {index} is already in the dataset"
                 )
-            if coord is not None:  # add diagram position
-                if isinstance(self._position[1], tuple):  # tensor to dict
-                    self._position[1] = {
-                        (x, y): i for (x, y), i in
-                        zip(self._position[1][0].tolist(), self._position[1][1].tolist())
-                    }
-                self._position[1][coord] = index
+            if self._position[0] is not None:  # get an check sample position
+                self._position[1] = _add_pos(
+                    self._position[1], index, call_pos_func(self._position[0], index)
+                )
             if new_diagram.file is not None:
                 self._async_job["readed"].add(new_diagram.file)
             if self._operations_chain:

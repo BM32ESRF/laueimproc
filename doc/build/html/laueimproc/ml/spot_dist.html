@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>laueimproc.clustering.spot_dist API documentation</title>
+<title>laueimproc.ml.spot_dist API documentation</title>
 <meta name="description" content="Find the close spots in two diagrams." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -20,7 +20,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>laueimproc.clustering.spot_dist</code></h1>
+<h1 class="title">Module <code>laueimproc.ml.spot_dist</code></h1>
 </header>
 <section id="section-intro">
 <p>Find the close spots in two diagrams.</p>
@@ -65,7 +65,7 @@ def associate_spots(
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.clustering.spot_dist import associate_spots
+    &gt;&gt;&gt; from laueimproc.ml.spot_dist import associate_spots
     &gt;&gt;&gt; pos1 = torch.rand((1500, 2), dtype=torch.float32)
     &gt;&gt;&gt; pos2 = torch.rand((2500, 2), dtype=torch.float32)
     &gt;&gt;&gt; eps = 1e-3
@@ -117,7 +117,7 @@ def associate_spots(
 #     Examples
 #     --------
 #     &gt;&gt;&gt; from pprint import pprint
-#     &gt;&gt;&gt; from laueimproc.clustering.spot_dist import group_spots
+#     &gt;&gt;&gt; from laueimproc.ml.spot_dist import group_spots
 #     &gt;&gt;&gt; spot_to_diag = {
 #     ...     0: {0, 1, 4},
 #     ...     1: {0, 1, 4},
@@ -181,7 +181,7 @@ def spotslabel_to_diag(labels: dict[int, torch.Tensor]) -&gt; dict[int, set[int]
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.clustering.spot_dist import (associate_spots, track_spots,
+    &gt;&gt;&gt; from laueimproc.ml.spot_dist import (associate_spots, track_spots,
     ...     spotslabel_to_diag)
     &gt;&gt;&gt; h, w = 5, 10
     &gt;&gt;&gt; diags = torch.tensor(
@@ -230,7 +230,7 @@ def track_spots(
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.clustering.spot_dist import associate_spots, track_spots
+    &gt;&gt;&gt; from laueimproc.ml.spot_dist import associate_spots, track_spots
     &gt;&gt;&gt; h, w = 5, 10
     &gt;&gt;&gt; diags = torch.tensor(
     ...     sum(([[j, j+1] for j in range(i*w, (i+1)*w-1)] for i in range(h)), start=[])
@@ -298,7 +298,7 @@ def track_spots(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="laueimproc.clustering.spot_dist.associate_spots"><code class="name flex">
+<dt id="laueimproc.ml.spot_dist.associate_spots"><code class="name flex">
 <span>def <span class="ident">associate_spots</span></span>(<span>pos1: torch.Tensor, pos2: torch.Tensor, eps: numbers.Real) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
@@ -321,7 +321,7 @@ Is is a tensor of shape (n, 2) containg real elements.</dd>
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.clustering.spot_dist import associate_spots
+&gt;&gt;&gt; from laueimproc.ml.spot_dist import associate_spots
 &gt;&gt;&gt; pos1 = torch.rand((1500, 2), dtype=torch.float32)
 &gt;&gt;&gt; pos2 = torch.rand((2500, 2), dtype=torch.float32)
 &gt;&gt;&gt; eps = 1e-3
@@ -360,7 +360,7 @@ tensor(True)
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.clustering.spot_dist import associate_spots
+    &gt;&gt;&gt; from laueimproc.ml.spot_dist import associate_spots
     &gt;&gt;&gt; pos1 = torch.rand((1500, 2), dtype=torch.float32)
     &gt;&gt;&gt; pos2 = torch.rand((2500, 2), dtype=torch.float32)
     &gt;&gt;&gt; eps = 1e-3
@@ -388,7 +388,7 @@ tensor(True)
     return pair</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.clustering.spot_dist.spotslabel_to_diag"><code class="name flex">
+<dt id="laueimproc.ml.spot_dist.spotslabel_to_diag"><code class="name flex">
 <span>def <span class="ident">spotslabel_to_diag</span></span>(<span>labels: dict[int, torch.Tensor]) ‑> dict[int, set[int]]</span>
 </code></dt>
 <dd>
@@ -407,7 +407,7 @@ then second column corresponds to the label.</dd>
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.clustering.spot_dist import (associate_spots, track_spots,
+&gt;&gt;&gt; from laueimproc.ml.spot_dist import (associate_spots, track_spots,
 ...     spotslabel_to_diag)
 &gt;&gt;&gt; h, w = 5, 10
 &gt;&gt;&gt; diags = torch.tensor(
@@ -442,7 +442,7 @@ then second column corresponds to the label.</dd>
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.clustering.spot_dist import (associate_spots, track_spots,
+    &gt;&gt;&gt; from laueimproc.ml.spot_dist import (associate_spots, track_spots,
     ...     spotslabel_to_diag)
     &gt;&gt;&gt; h, w = 5, 10
     &gt;&gt;&gt; diags = torch.tensor(
@@ -467,7 +467,7 @@ then second column corresponds to the label.</dd>
     return diagrams</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.clustering.spot_dist.track_spots"><code class="name flex">
+<dt id="laueimproc.ml.spot_dist.track_spots"><code class="name flex">
 <span>def <span class="ident">track_spots</span></span>(<span>pairs: list[torch.Tensor], diags: torch.Tensor) ‑> dict[int, torch.Tensor]</span>
 </code></dt>
 <dd>
@@ -488,7 +488,7 @@ then second column corresponds to the label.</dd>
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.clustering.spot_dist import associate_spots, track_spots
+&gt;&gt;&gt; from laueimproc.ml.spot_dist import associate_spots, track_spots
 &gt;&gt;&gt; h, w = 5, 10
 &gt;&gt;&gt; diags = torch.tensor(
 ...     sum(([[j, j+1] for j in range(i*w, (i+1)*w-1)] for i in range(h)), start=[])
@@ -527,7 +527,7 @@ then second column corresponds to the label.</dd>
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.clustering.spot_dist import associate_spots, track_spots
+    &gt;&gt;&gt; from laueimproc.ml.spot_dist import associate_spots, track_spots
     &gt;&gt;&gt; h, w = 5, 10
     &gt;&gt;&gt; diags = torch.tensor(
     ...     sum(([[j, j+1] for j in range(i*w, (i+1)*w-1)] for i in range(h)), start=[])
@@ -601,14 +601,14 @@ then second column corresponds to the label.</dd>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="laueimproc.clustering" href="index.html">laueimproc.clustering</a></code></li>
+<li><code><a title="laueimproc.ml" href="index.html">laueimproc.ml</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.clustering.spot_dist.associate_spots" href="#laueimproc.clustering.spot_dist.associate_spots">associate_spots</a></code></li>
-<li><code><a title="laueimproc.clustering.spot_dist.spotslabel_to_diag" href="#laueimproc.clustering.spot_dist.spotslabel_to_diag">spotslabel_to_diag</a></code></li>
-<li><code><a title="laueimproc.clustering.spot_dist.track_spots" href="#laueimproc.clustering.spot_dist.track_spots">track_spots</a></code></li>
+<li><code><a title="laueimproc.ml.spot_dist.associate_spots" href="#laueimproc.ml.spot_dist.associate_spots">associate_spots</a></code></li>
+<li><code><a title="laueimproc.ml.spot_dist.spotslabel_to_diag" href="#laueimproc.ml.spot_dist.spotslabel_to_diag">spotslabel_to_diag</a></code></li>
+<li><code><a title="laueimproc.ml.spot_dist.track_spots" href="#laueimproc.ml.spot_dist.track_spots">track_spots</a></code></li>
 </ul>
 </li>
 </ul>

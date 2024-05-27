@@ -121,6 +121,7 @@ extension-pkg-allow-list = [
   "laueimproc.improc.spot.c_basic",
   "laueimproc.improc.spot.c_extrema",
   "laueimproc.improc.spot.c_pca",
+  "laueimproc.ml.c_dist",
   "laueimproc.opti.c_rois",
 ]
 # enable = "all"

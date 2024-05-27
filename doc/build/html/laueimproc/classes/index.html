@@ -1198,7 +1198,7 @@ def fit_gaussians_em(
 </dd>
 <dt id="laueimproc.classes.DiagramsDataset"><code class="flex name class">
 <span>class <span class="ident">DiagramsDataset</span></span>
-<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, position: Optional[Callable[[int], tuple[numbers.Real, numbers.Real]]] = None)</span>
+<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, position: Union[dict[int, tuple[float, ...]], tuple[torch.Tensor, torch.Tensor], ForwardRef(None)] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Link Diagrams together.</p>
@@ -1213,9 +1213,13 @@ If provided, this function has to be pickleable.
 It has to take only one positional argument (a simple Diagram instance)
 and to return a positive integer.</dd>
 <dt><strong><code>position</code></strong> :&ensp;<code>callable</code>, optional</dt>
-<dd>Provides information on the phisical position of the images on the sample.
-This function takes as input the index of the diagram,
-and returns the 2 coordinates in the sample plane.</dd>
+<dd>If provided, it allows you to select diagram from physical parameters.
+<span><span class="MathJax_Preview">f:I\to\mathbb{R}^n</span><script type="math/tex">f:I\to\mathbb{R}^n</script></span>, an injective application.
+<span><span class="MathJax_Preview">I\subset\mathbb{N}</span><script type="math/tex">I\subset\mathbb{N}</script></span> is the set of the indices of the diagrams in the dataset.
+<span><span class="MathJax_Preview">n</span><script type="math/tex">n</script></span> corresponds to the number of physical parameters.
+For example the beam positon on the sample or, more generally, a vector of scalar
+parameters like time, voltage, temperature, pressure&hellip;
+The function must match <code><a title="laueimproc.ml.dataset_dist.check_pos_func_typing" href="../ml/dataset_dist.html#laueimproc.ml.dataset_dist.check_pos_func_typing">check_pos_func_typing()</a></code>.</dd>
 </dl></div>
 <details class="source">
 <summary>

@@ -35,7 +35,7 @@ def associate_spots(
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.clustering.spot_dist import associate_spots
+    >>> from laueimproc.ml.spot_dist import associate_spots
     >>> pos1 = torch.rand((1500, 2), dtype=torch.float32)
     >>> pos2 = torch.rand((2500, 2), dtype=torch.float32)
     >>> eps = 1e-3
@@ -87,7 +87,7 @@ def associate_spots(
 #     Examples
 #     --------
 #     >>> from pprint import pprint
-#     >>> from laueimproc.clustering.spot_dist import group_spots
+#     >>> from laueimproc.ml.spot_dist import group_spots
 #     >>> spot_to_diag = {
 #     ...     0: {0, 1, 4},
 #     ...     1: {0, 1, 4},
@@ -151,7 +151,7 @@ def spotslabel_to_diag(labels: dict[int, torch.Tensor]) -> dict[int, set[int]]:
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.clustering.spot_dist import (associate_spots, track_spots,
+    >>> from laueimproc.ml.spot_dist import (associate_spots, track_spots,
     ...     spotslabel_to_diag)
     >>> h, w = 5, 10
     >>> diags = torch.tensor(
@@ -200,7 +200,7 @@ def track_spots(
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.clustering.spot_dist import associate_spots, track_spots
+    >>> from laueimproc.ml.spot_dist import associate_spots, track_spots
     >>> h, w = 5, 10
     >>> diags = torch.tensor(
     ...     sum(([[j, j+1] for j in range(i*w, (i+1)*w-1)] for i in range(h)), start=[])
