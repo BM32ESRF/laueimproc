@@ -259,6 +259,8 @@ def roisshapes2raw(
     assert torch.all(shapes >= 1), "some bboxes have area of zero"
     assert len(rois) == len(shapes), (rois.shape, shapes.shape)
 
+    if len(shapes) == 0:  # torch.cat dosen't support empty list
+        return bytearray(b"")
     flat_rois = torch.cat(  # rois is float32
         [rois[i, :h, :w].ravel() for i, (h, w) in enumerate(shapes.tolist())]
     )

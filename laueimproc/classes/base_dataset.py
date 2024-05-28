@@ -15,11 +15,11 @@ import traceback
 import typing
 import warnings
 
+from tqdm.autonotebook import tqdm
 import cloudpickle
 import numpy as np
 import psutil
 import torch
-import tqdm
 
 from laueimproc.common import time2sec
 from laueimproc.ml.dataset_dist import (
@@ -722,7 +722,7 @@ class BaseDiagramsDataset(threading.Thread):
         idxs_diags = [(i, self._get_diagram_from_index(i)) for i in sorted(self.indices)]  # frozen
         with self._lock, multiprocessing.pool.ThreadPool(NCPU) as pool:
             res = dict(
-                tqdm.tqdm(
+                tqdm(
                     pool.imap_unordered(
                         lambda idx_diag: (idx_diag[0], func(idx_diag[1], *args, **kwargs)),
                         idxs_diags,

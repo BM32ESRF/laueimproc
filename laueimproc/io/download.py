@@ -9,7 +9,7 @@ import typing
 import urllib.parse
 import urllib.request
 
-import tqdm
+from tqdm.autonotebook import tqdm
 
 
 DEFAULT_FOLDER = pathlib.Path("~/.cache/laueimproc/").expanduser()
@@ -22,7 +22,7 @@ def _download(url: str):
     with urllib.request.urlopen(url) as response:
         if not filename:
             yield (filename := response.headers.get_filename())
-        with tqdm.tqdm(
+        with tqdm(
             desc=f"Downloading {filename}",
             total=response.length,
             unit="B",
@@ -91,7 +91,7 @@ def download(
             with tarfile.open(file_path) as tarball:
                 tarball.extractall(
                     folder,
-                    members=tqdm.tqdm(
+                    members=tqdm(
                         tarball,
                         total=len(tarball.getmembers()),
                         desc=f"Extract {file_path.name}",

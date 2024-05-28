@@ -147,7 +147,7 @@ def auto_cache(meth: typing.Callable) -> typing.Callable:
         param_sig = hashlib.md5(pickle.dumps((args, kwargs)), usedforsecurity=False).hexdigest()
         signature = f"cache: {diagram.state}.{meth.__name__}({param_sig})"
         with diagram._cache[0]:  # pylint: disable=W0212
-            if signature in diagram._cache:  # pylint: disable=W0212
+            if signature in diagram._cache[1]:  # pylint: disable=W0212
                 return diagram._cache[1][signature]  # pylint: disable=W0212
         res = meth(diagram, *args, **kwargs)
         with diagram._cache[0]:  # pylint: disable=W0212

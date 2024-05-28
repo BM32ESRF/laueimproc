@@ -445,7 +445,8 @@ class BaseDiagram:
         assert isinstance(msg, str), msg.__class__.__name__
         assert isinstance(inplace, bool), inplace.__class__.__name__
         criteria = torch.squeeze(torch.asarray(criteria))
-        assert criteria.ndim == 1, f"only a 1d vector is accepted, shape is {criteria.shape}"
+        assert criteria.ndim <= 1, f"only a 1d vector is accepted, shape is {criteria.shape}"
+        criteria = criteria.reshape(-1)  # for empty tensor
         if criteria.dtype is torch.bool:  # case mask -> convert into index list
             assert criteria.shape[0] == len(self), (
                 "the mask has to have the same length as the number of spots, "

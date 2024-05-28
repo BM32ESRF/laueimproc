@@ -2,21 +2,20 @@
 
 """Training pipeline for the models."""
 
-import psutil
 from torch.utils.data import DataLoader
+from tqdm.autonotebook import tqdm
 import torch
-import tqdm
 
 from laueimproc.classes.dataset import DiagramsDataset
-from laueimproc.nn.loader import SpotDataset
+from laueimproc.nn.loader import SpotDataloader
 from laueimproc.nn.vae_spot_classifier import VAESpotClassifier
-
-
-NCPU = len(psutil.Process().cpu_affinity())
 
 
 def _plot_training(fig, model: VAESpotClassifier, loader: DataLoader, history: list[list[float]]):
     """Display the training statistics."""
+    from matplotlib.figure import Figure
+    assert isinstance(fig, Figure), fig.__class__.__name__
+
     # plot loss
     axe_loss = fig.add_subplot(1, 3, 1)
     axe_loss.set_title("loss evolution")
@@ -39,7 +38,7 @@ def _plot_training(fig, model: VAESpotClassifier, loader: DataLoader, history: l
     axe_input = fig.add_subplot(2, 3, 2)
     axe_output = fig.add_subplot(2, 3, 3)
     spots = torch.cat([
-        loader.dataset[i].unsqueeze(0)
+        loader[i].unsqueeze(0)
         for i in range(0, len(loader.dataset), max(1, len(loader.dataset)//100-1))
     ])[:100]
     model.plot_autoencode(axe_input, axe_output, spots)
@@ -54,7 +53,11 @@ def train_vae_spot_classifier(model: VAESpotClassifier, dataset: DiagramsDataset
         The initialised but not already trained model.
     dataset : laueimproc.classes.dataset.DiagramsDataset
         Contains all the initialised diagrams.
-    epoch : int, default=100
+    batch : int, optional
+        The number of pictures in each batch.
+        By default, the batch size is equal to the dataset size,
+        so that there is exactely one complete batch per epoch.
+    epoch : int, default=10
         The number of epoch.
     lr : float, optional
         The learning rate.
@@ -68,19 +71,15 @@ def train_vae_spot_classifier(model: VAESpotClassifier, dataset: DiagramsDataset
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
 
-    spots_dataset = SpotDataset(dataset, model)
+    spots_loader = SpotDataloader(dataset, model)
     batch_size = max(  # batch memory <= 10Mio
-        1, 10 * 2**20 // (spots_dataset[0].dtype.itemsize * model.shape[0] * model.shape[1])
+        1, 10 * 2**20 // (torch.float32.itemsize * model.shape[0] * model.shape[1])
     )
-    spots_loader = DataLoader(
-        spots_dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=NCPU,
-        **({"pin_memory": True, "pin_memory_device": str(device)} if device.type != "cpu" else {}),
-    )
-    if batch_size >= len(spots_dataset):
-        spots_loader = (next(iter(spots_loader)),)
+    batch_size = min(batch_size, kwargs.get("batch", len(spots_loader)))
+    spots_loader.batch_size = batch_size
+
+    # make stat about data repartition
+    model.scan_data(spots_loader)
 
     # train
     model.train()
@@ -88,24 +87,33 @@ def train_vae_spot_classifier(model: VAESpotClassifier, dataset: DiagramsDataset
         model.parameters(),
         **{p: kwargs[p] for p in ("lr",) if p in kwargs},
     )
-    epoch_log = tqdm.tqdm(total=0, position=1, bar_format="{desc}")
+    epoch_log = tqdm(total=0, position=1, bar_format="{desc}")
     history = []
-    for _ in tqdm.tqdm(range(kwargs.get("epoch", 100)), unit="epoch", desc="train"):
-        optimizer.zero_grad()
+    batch_size = kwargs.get("batch", len(spots_loader))
+    cum_batch = 0
+    optimizer.zero_grad()
+    for _ in tqdm(range(kwargs.get("epoch", 10)), unit="epoch", desc="train"):
         history.append([0, 0])
         for spots in spots_loader:
+            if cum_batch + len(spots) >= batch_size:
+                spots_last, spots = spots[:batch_size-cum_batch], spots[batch_size-cum_batch:]
+                mse, kld = model.loss(spots_last.to(model.device))
+                ((0.9 * mse + 0.1 * kld) / len(spots_loader)).backward()  # add grad to leaves
+                history[-1][0] += float(mse) / len(spots_loader)
+                history[-1][1] += float(kld) / len(spots_loader)
+                optimizer.step()
+                optimizer.zero_grad()
+            if len(spots) == 0:
+                continue
             mse, kld = model.loss(spots.to(model.device))
-            ((0.98 * mse + 0.02 * kld) / len(spots_dataset)).backward()  # add grad to leaves
-            history[-1][0] += float(mse) / len(spots_dataset)
-            history[-1][1] += float(kld) / len(spots_dataset)
+            ((0.9 * mse + 0.1 * kld) / len(spots_loader)).backward()  # add grad to leaves
+            history[-1][0] += float(mse) / len(spots_loader)
+            history[-1][1] += float(kld) / len(spots_loader)
         epoch_log.set_description_str(f"Loss: mse={history[-1][0]:.4e}, kld={history[-1][1]:.4e}")
-        optimizer.step()
 
     model = model.to("cpu")
 
     # previsualisation
     if "fig" in kwargs:
-        from matplotlib.figure import Figure
-        assert isinstance(kwargs["fig"], Figure)
         model.eval()
         _plot_training(kwargs["fig"], model, spots_loader, history)

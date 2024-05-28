@@ -5,400 +5,20 @@
 import math
 import numbers
 import typing
+import warnings
 
+# from tqdm.autonotebook import tqdm
 import torch
 
 
 def _test_size(size: int) -> bool:
     """Return True if the size is ok."""
-    if 3 <= size <= 24:
+    if 3 <= size <= 32:
         return True
     size, rest = divmod(size, 2)
     if rest:
         return False
     return _test_size(size)
-
-
-class Decoder(torch.nn.Module):
-    """Decode the latent sample into a new image.
-
-    Attributes
-    ----------
-    latent_dim : int
-        The number of dimension in the latent space.
-    shape : tuple[int, int]
-        The shape of the images.
-    space : float
-        The non penalized spreading area half size.
-    """
-
-    def __init__(self, latent_dim: int, shape: tuple[int, int], space: float):
-        """Initialise the decoder.
-
-        Parameters
-        ----------
-        latent_dim : int
-            The dimension of the points drawn in the latent space.
-        shape : tuple[int, int]
-            The dimension in pixels of the gray scale generated images
-            in numpy convention (height, width).
-        space : float
-            The non penalized spreading area half size.
-        """
-        assert isinstance(latent_dim, int), latent_dim.__class__.__name__
-        assert latent_dim >= 1, latent_dim
-        assert isinstance(shape, tuple), shape.__class__.__name__
-        assert len(shape) == 2, shape
-        assert isinstance(shape[0], int) and isinstance(shape[1], int), shape
-        assert isinstance(space, float), space.__class__.__name__
-        assert space > 0, space
-
-        self._latent_dim = latent_dim
-        self._shape = shape
-        self._space = space
-        super().__init__()
-
-        # size augmentation layers
-        self.augmentation_layers = torch.nn.ModuleList()
-        while min(shape) > 24:
-            self.augmentation_layers.append(
-                torch.nn.Sequential(
-                    torch.nn.ConvTranspose2d(12, 12, kernel_size=4, stride=2, padding=1),
-                    torch.nn.Dropout(0.1),
-                    torch.nn.LeakyReLU(inplace=True),
-                    # torch.nn.MaxUnpool2d(2, stride=2),
-                )
-            )
-            shape = (shape[0]//2, shape[1]//2)
-
-        area = shape[0] * shape[1]
-        self.dense_layers = torch.nn.Sequential(
-            torch.nn.Linear(latent_dim, 1000),
-            # torch.nn.BatchNorm1d(1000),
-            torch.nn.LeakyReLU(inplace=True),
-            torch.nn.Dropout(0.2),
-
-            # torch.nn.Linear(500, 1000),
-            # # torch.nn.BatchNorm1d(1000),
-            # torch.nn.LeakyReLU(inplace=True),
-            # torch.nn.Dropout(0.2),
-
-            torch.nn.Linear(1000, 12*area),
-            # torch.nn.BatchNorm1d(12*area),
-            torch.nn.LeakyReLU(inplace=True),
-            torch.nn.Dropout(0.2),
-        )
-        self.convolutive_layers = torch.nn.Sequential(
-            torch.nn.Conv2d(12, 1, kernel_size=3, stride=1, padding=1),
-            torch.nn.Sigmoid(),
-        )
-
-    def forward(self, sample: torch.Tensor) -> torch.Tensor:
-        """Generate a new image from the samples.
-
-        Parameters
-        ----------
-        sample : torch.Tensor
-            The batch of the n samples, output of the ``Decoder.parametrize`` function.
-            The size is (n, latent_dim)
-
-        Returns
-        -------
-        image : torch.Tensor
-            The generated image batch, of shape (n, 1, height, width)
-
-        Notes
-        -----
-        No verifications are performed for performance reason.
-        """
-        out = self.dense_layers(sample)
-        shape = 2**len(self.augmentation_layers)
-        shape = (self.shape[0]//shape, self.shape[1]//shape)
-        out = torch.reshape(out, (len(out), -1, *shape))
-        for augment in self.augmentation_layers:
-            out = augment(out)
-        out = self.convolutive_layers(out)
-        return out
-
-    @staticmethod
-    def parametrize(mean: torch.Tensor, std: torch.Tensor) -> torch.Tensor:
-        """Perform a random draw according to the normal law N(mean, std**2).
-
-        Parameters
-        ----------
-        mean : torch.Tensor
-            The batch of the mean vectors, shape (n, latent_dim).
-        std : torch.Tensor
-            The batch of the diagonal sqrt(covariance) matrix, shape (n, latent_dim).
-
-        Returns
-        -------
-        draw : torch.Tensor
-            The batch of the random draw.
-
-        Notes
-        -----
-        No verifications are performed for performance reason.
-        """
-        sample = torch.randn_like(mean)  # torch.zeros_like(mean) for non variational
-        sample = torch.mul(sample, std, out=(None if std.requires_grad else sample))
-        sample = torch.add(
-            sample, mean, out=(None if sample.requires_grad or mean.requires_grad else sample)
-        )
-        return sample
-
-    def plot_map(
-        self,
-        axe,
-        grid: typing.Union[numbers.Integral, tuple[numbers.Integral, numbers.Integral]] = 10,
-    ):
-        """Generate and display spots from a regular sampling of latent space.
-
-        Parameters
-        ----------
-        axe : matplotlib.axes.Axes
-            The 2d empty axe ready to be filled.
-        grid : int or tuple[int, int]
-            Grid dimension in latent space. If only one number is supplied,
-            the grid will have this dimension on all axes.
-            The 2 coordinates corresponds respectively to the number of lines and columns.
-        """
-        from matplotlib.axes import Axes
-
-        assert self.latent_dim == 2, f"can only plot in a 2d space, not {self.latent_dim}"
-        assert isinstance(axe, Axes), axe.__class__.__name__
-        if isinstance(grid, numbers.Integral):
-            grid = (grid, grid)
-        assert isinstance(grid, tuple), grid.__class__.__name__
-        assert len(grid) == 2, len(grid)
-        assert isinstance(grid[0], numbers.Integral) and isinstance(grid[1], numbers.Integral), grid
-        assert grid >= (1, 1), grid
-
-        # fill figure metadata
-        axe.set_title(f"generated spots from latent regular grid of {grid[0]}x{grid[1]}")
-
-        # generated data
-        device = next(self.parameters()).device
-        points = torch.meshgrid(
-            torch.linspace(-self.space, self.space, grid[0], dtype=torch.float32, device=device),
-            torch.linspace(-self.space, self.space, grid[1], dtype=torch.float32, device=device),
-            indexing="ij",
-        )
-        points = (points[0].ravel(), points[1].ravel())
-        points = torch.cat([points[0].unsqueeze(1), points[1].unsqueeze(1)], dim=1)
-        predicted = self.forward(points)
-
-        # draw data
-        mosaic = torch.empty(
-            (grid[0]*self.shape[0], grid[1]*self.shape[1]),
-            dtype=torch.float32,
-            device=device,
-        )
-        for i in range(grid[0]):
-            for j in range(grid[1]):
-                mosaic[i*self.shape[0]:(i+1)*self.shape[0], j*self.shape[1]:(j+1)*self.shape[1]] = (
-                    predicted[i*grid[1]+j]
-                )
-        axe.imshow(
-            mosaic.numpy(force=True).transpose(),
-            aspect=mosaic.shape[0]/mosaic.shape[1],
-            interpolation=None,  # antialiasing is True
-            cmap="gray",
-            origin="lower",
-            extent=[-self.space, self.space, -self.space, self.space],
-        )
-
-    @property
-    def latent_dim(self) -> int:
-        """Return the number of dimension in the latent space."""
-        return self._latent_dim
-
-    @property
-    def shape(self) -> tuple[int, int]:
-        """Return the shape of the images."""
-        return self._shape
-
-    @property
-    def space(self) -> float:
-        """Return the non penalized spreading area half size."""
-        return self._space
-
-
-class Encoder(torch.nn.Module):
-    """Encode an image into a gausian probality density.
-
-    Attributes
-    ----------
-    latent_dim : int
-        The number of dimension in the latent space.
-    shape : tuple[int, int]
-        The shape of the images.
-    space : float
-        The non penalized spreading area half size.
-    """
-
-    def __init__(self, latent_dim: int, shape: tuple[int, int], space: float):
-        """Initialise the encoder.
-
-        Parameters
-        ----------
-        latent_dim : int
-            The dimension of the points drawn in the latent space.
-            Only the diagonal elements of the covariance matrix are != 0.
-        shape : tuple[int, int]
-            The dimension in pixels of the gray scale generated images
-            in numpy convention (height, width).
-        space : float
-            The non penalized spreading area half size.
-        """
-        assert isinstance(latent_dim, int), latent_dim.__class__.__name__
-        assert latent_dim >= 1, latent_dim
-        assert isinstance(shape, tuple), shape.__class__.__name__
-        assert len(shape) == 2, shape
-        assert isinstance(shape[0], int) and isinstance(shape[1], int), shape
-        assert isinstance(space, float), space.__class__.__name__
-        assert space > 0, space
-
-        self._latent_dim = latent_dim
-        self._shape = shape
-        self._space = space
-        super().__init__()
-
-        # size reduction layers
-        self.reduction_layers = torch.nn.ModuleList()
-        while min(shape) > 24:
-            self.reduction_layers.append(
-                torch.nn.Sequential(
-                    torch.nn.Conv2d(12, 12, kernel_size=3, stride=1, padding=1),
-                    torch.nn.Dropout(0.1),
-                    torch.nn.MaxPool2d(2, stride=2),
-                    torch.nn.LeakyReLU(inplace=True),
-                )
-            )
-            shape = (shape[0]//2, shape[1]//2)
-
-        # little fitures extraction layer
-        self.convolutive_layers = torch.nn.Sequential(
-            # torch.nn.AvgPool2d((2, 2), stride=(2, 2)),  # resize
-            torch.nn.Conv2d(1, 12, kernel_size=3, stride=1, padding=1),
-            # torch.nn.BatchNorm2d(3),
-            torch.nn.LeakyReLU(inplace=True),
-            torch.nn.Dropout(0.1),
-        )
-
-        # final dense layers
-        area = shape[0] * shape[1]
-        self.dense_layers = torch.nn.Sequential(
-            torch.nn.Flatten(),
-
-            torch.nn.Linear(12*area, 1000),
-            # torch.nn.BatchNorm1d(1000),
-            torch.nn.LeakyReLU(inplace=True),
-            torch.nn.Dropout(0.2),
-
-            # torch.nn.Linear(1000, 500),
-            # # torch.nn.BatchNorm1d(500),
-            # torch.nn.LeakyReLU(inplace=True),
-            # torch.nn.Dropout(0.2),
-
-        )
-        self.prob_layers = torch.nn.ModuleList([
-            torch.nn.Sequential(  # mean layer
-                torch.nn.Linear(1000, latent_dim),
-                # torch.nn.Tanhshrink(),
-            ),
-            torch.nn.Sequential(  # log var layer
-                torch.nn.Linear(1000, latent_dim),
-                # torch.nn.LogSigmoid(),
-            ),
-        ])
-
-    def forward(self, batch: torch.Tensor) -> tuple[torch.Tensor, typing.Union[None, torch.Tensor]]:
-        """Extract the mean and the std for each images.
-
-        Parameters
-        ----------
-        batch : torch.Tensor
-            The stack of the n images, of shape (n, 1, height, width).
-
-        Returns
-        -------
-        mean : torch.Tensor
-            The mean (center of gaussians) for each image, shape (n, latent_dims).
-        std : torch.Tensor
-            The standard deviation (shape of gaussian) for each image, shape (n, latent_dims).
-
-        Notes
-        -----
-        No verifications are performed for performance reason.
-        If the model is in eval mode, it computes only the mean and gives the value None to the std.
-        """
-        # prefitures extraction
-        inter_value = self.convolutive_layers(batch)
-
-        # reduction
-        for reducer in self.reduction_layers:
-            inter_value = reducer(inter_value)
-
-        # final layer
-        inter_value = self.dense_layers(inter_value)
-        mean = self.prob_layers[0](inter_value)
-        if not self.training:
-            return (mean, None)
-        std = self.prob_layers[1](inter_value)  # not std but log(std**2)
-        std = torch.mul(std, 0.5, out=(None if std.requires_grad else std))  # not std but log(std)
-        std = torch.exp(std, out=(None if std.requires_grad else std))
-        return (mean, std)
-
-    @property
-    def latent_dim(self) -> int:
-        """Return the number of dimension in the latent space."""
-        return self._latent_dim
-
-    def plot_latent(self, axe, spots_generator):
-        """Plot the 2d pca of the spots projected in the latent space.
-
-        Parameters
-        ----------
-        axe : matplotlib.axes.Axes
-            The 2d empty axe ready to be filled.
-        spots_generator : iterable
-            A generator of spot batch, each item has to be of shape (:, h, w).
-        """
-        from matplotlib.axes import Axes
-        assert isinstance(axe, Axes), axe.__class__.__name__
-        assert hasattr(spots_generator, "__iter__"), spots_generator.__class__.__name__
-
-        # eval model to get all points
-        points = []
-        for batch in spots_generator:
-            assert isinstance(batch, torch.Tensor), batch.__class__.__name__
-            assert batch.ndim == 3 and batch.shape[-2:] == self.shape, batch.shape
-            points.append(self.forward(batch.unsqueeze(1))[0])
-        points = torch.cat(points)
-
-        # projection with PCA
-        points = points[:, :2]
-
-        # plot
-        axe.set_title("latent space projections")
-        axe.axis("equal")
-        axe.plot(
-            [-self.space, self.space, self.space, -self.space, -self.space],
-            [-self.space, -self.space, self.space, self.space, -self.space],
-            color="black",
-        )
-        axe.scatter(*points.numpy(force=True).transpose())
-
-    @property
-    def shape(self) -> tuple[int, int]:
-        """Return the shape of the images."""
-        return self._shape
-
-    @property
-    def space(self) -> float:
-        """Return the non penalized spreading area half size."""
-        return self._space
 
 
 class VAESpotClassifier(torch.nn.Module):
@@ -457,19 +77,25 @@ class VAESpotClassifier(torch.nn.Module):
             shape
         shape = (int(shape[0]), int(shape[1]))
         assert isinstance(latent_dim, numbers.Integral), latent_dim.__class__.__name__
-        latent_dim = int(latent_dim)  # the test >= 1 is performed by the sub modules
+        assert latent_dim >= 1, latent_dim
+        latent_dim = int(latent_dim)
         assert isinstance(space, numbers.Real), space.__class__.__name__
         assert space > 0, space
         space = float(space)
+        self._latent_dim = latent_dim
+        self._shape = shape
+        self._space = space
         self._sensitivity = {}
         self._sensitivity["intensity"] = kwargs.get("intensity_sensitive", True)
         assert isinstance(self._sensitivity["intensity"], bool), self._sensitivity["intensity"]
         self._sensitivity["scale"] = kwargs.get("scale_sensitive", True)
         assert isinstance(self._sensitivity["scale"], bool), self._sensitivity["scale"]
 
+        self._normalization = None
+
         super().__init__()
-        self.encoder = Encoder(latent_dim=latent_dim, shape=shape, space=space)
-        self.decoder = Decoder(latent_dim=latent_dim, shape=shape, space=space)
+        self.encoder = Encoder(self)
+        self.decoder = Decoder(self)
 
     def dataaug(self, image: torch.Tensor) -> torch.Tensor:
         """Apply all the data augmentations on the image.
@@ -547,10 +173,7 @@ class VAESpotClassifier(torch.nn.Module):
     @property
     def latent_dim(self) -> int:
         """Return the dimension of the latent space."""
-        latent_dim_1 = self.encoder.latent_dim_
-        latent_dim_2 = self.decoder.latent_dim_
-        assert latent_dim_1 == latent_dim_2, (latent_dim_1, latent_dim_2)
-        return latent_dim_1
+        return self._latent_dim
 
     def loss(self, batch: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Forward the data and compute the loss values.
@@ -585,15 +208,24 @@ class VAESpotClassifier(torch.nn.Module):
             # real kld = sum(var - 1 - torch.log(var) + mean**2) / 2
             kld = torch.sum(
                 var - 1 - torch.log(var)
-                + torch.nn.functional.relu(torch.abs(mean)-self.space)
+                # + torch.nn.functional.relu(torch.abs(mean)-self.space)  # 0 because tanh(mean)
             )
             sample = self.decoder.parametrize(mean, std)
         else:
             kld = None
             sample = mean
         generated_batch = self.decoder(sample).squeeze(1)
-        mse = torch.sum(torch.mean((batch - generated_batch)**2, dim=(1, 2)))
+        _, norm_std = self.normalization
+        mse = torch.sum(torch.mean(((batch - generated_batch)/norm_std)**2, dim=(1, 2)))
         return (mse, kld)
+
+    @property
+    def normalization(self) -> tuple[float, float]:
+        """Return the mean and the std of all the training data."""
+        if self._normalization is None:
+            warnings.warn("call `scan_data` for allowing data normalization", RuntimeWarning)
+            return 0.0, 1.0
+        return self._normalization
 
     def plot_autoencode(self, axe_input, axe_output, spots: torch.Tensor):
         """Encode and decode the images, plot the initial and regenerated images.
@@ -617,7 +249,11 @@ class VAESpotClassifier(torch.nn.Module):
         height = round(math.sqrt(len(spots)*self.shape[1]/self.shape[0]))
         width = round(math.sqrt(len(spots)*self.shape[0]/self.shape[1]))
         while height * width < len(spots):
-            if height < width:
+            if (height + 1) * width == len(spots):
+                height += 1
+            elif height * (width + 1) == len(spots):
+                width += 1
+            elif height < width:  # in favor of square rather than rectangle
                 height += 1
             else:
                 width += 1
@@ -630,7 +266,7 @@ class VAESpotClassifier(torch.nn.Module):
         )
         for i in range(height):
             for j in range(width):
-                idx = j + i*self.shape[1]
+                idx = j + i*width
                 pict = spots[idx] if idx < len(spots) else 0
                 mosaic_in[
                     i*self.shape[0]:(i+1)*self.shape[0], j*self.shape[1]:(j+1)*self.shape[1]
@@ -645,7 +281,7 @@ class VAESpotClassifier(torch.nn.Module):
         )
         for i in range(height):
             for j in range(width):
-                idx = j + i*self.shape[1]
+                idx = j + i*width
                 pict = spots[idx] if idx < len(spots) else 0
                 mosaic_out[
                     i*self.shape[0]:(i+1)*self.shape[0], j*self.shape[1]:(j+1)*self.shape[1]
@@ -675,18 +311,372 @@ class VAESpotClassifier(torch.nn.Module):
             vmax=vmax,
         )
 
+    def scan_data(self, spots_generator: torch.Tensor):
+        """Complete the data histogram to standardise data (centered and reduction).
+
+        Parameters
+        ----------
+        spots_generator : iterable
+            A generator of spot batch, each item has to be of shape (:, h, w).
+        """
+        assert hasattr(spots_generator, "__iter__"), spots_generator.__class__.__name__
+
+        bins = 10000
+        tot_hist = torch.zeros(bins, dtype=torch.float64)
+        # for batch in tqdm(spots_generator, desc="scan data repartition"):
+        for batch in spots_generator:
+            assert isinstance(batch, torch.Tensor), batch.__class__.__name__
+            assert batch.ndim == 3 and batch.shape[-2:] == self.shape, batch.shape
+            hist, _ = torch.histogram(batch.to(torch.float64), bins=bins, range=(0.0, 1.0))
+            tot_hist = tot_hist.to(hist.device)
+            tot_hist += hist
+
+        values = torch.linspace(1.0/(2*bins), 1.0 - 1.0/(2*bins), bins)
+        mean = float((tot_hist * values).sum() / tot_hist.sum())
+        std = float(torch.sqrt((tot_hist * (values - mean)**2).sum() / tot_hist.sum()))
+        self._normalization = (mean, std)
+
     @property
     def shape(self) -> tuple[int, int]:
         """Return the shape of the images."""
-        shape_1 = self.encoder.shape
-        shape_2 = self.decoder.shape
-        assert shape_1 == shape_2, (shape_1, shape_2)
-        return shape_1
+        return self._shape
 
     @property
     def space(self) -> float:
         """Return the non penalized spreading area half size."""
-        space_1 = self.encoder.space
-        space_2 = self.decoder.space
-        assert space_1 == space_2, (space_1, space_2)
-        return space_1
+        return self._space
+
+
+class Decoder(torch.nn.Module):
+    """Decode the latent sample into a new image.
+
+    Attributes
+    ----------
+    parent : laueimproc.nn.vae_spot_classifier.VAESposClassifier
+        The main full auto encoder, containing this module.
+    """
+
+    def __init__(self, parent: VAESpotClassifier):
+        """Initialise the decoder.
+
+        Parameters
+        ----------
+        parent : laueimproc.nn.vae_spot_classifier.VAESpotClassifier
+            The main module.
+        """
+        assert isinstance(parent, VAESpotClassifier), parent.__class__.__name__
+        self._parent = (parent,)  # pack into tuple solve `cannot assign module before...`
+        super().__init__()
+
+        # size augmentation layers
+        self.augmentation_layers = torch.nn.ModuleList()
+        shape = parent.shape
+        while min(shape) > 32:
+            self.augmentation_layers.append(
+                torch.nn.Sequential(
+                    torch.nn.ConvTranspose2d(12, 12, kernel_size=4, stride=2, padding=1),
+                    torch.nn.Dropout(0.1),
+                    torch.nn.LeakyReLU(inplace=True),
+                    # torch.nn.MaxUnpool2d(2, stride=2),
+                )
+            )
+            shape = (shape[0]//2, shape[1]//2)
+
+        area = shape[0] * shape[1]
+        self.dense_layers = torch.nn.Sequential(
+            torch.nn.Linear(parent.latent_dim, 1000),
+            # torch.nn.BatchNorm1d(1000),
+            torch.nn.LeakyReLU(inplace=True),
+            torch.nn.Dropout(0.2),
+
+            # torch.nn.Linear(500, 1000),
+            # # torch.nn.BatchNorm1d(1000),
+            # torch.nn.LeakyReLU(inplace=True),
+            # torch.nn.Dropout(0.2),
+
+            torch.nn.Linear(1000, 12*area),
+            torch.nn.BatchNorm1d(12*area),
+            torch.nn.LeakyReLU(inplace=True),
+            torch.nn.Dropout(0.2),
+        )
+        self.convolutive_layers = torch.nn.Sequential(
+            torch.nn.Conv2d(12, 1, kernel_size=3, stride=1, padding=1),
+            # torch.nn.Tanh(),
+        )
+
+    def forward(self, sample: torch.Tensor) -> torch.Tensor:
+        """Generate a new image from the samples.
+
+        Parameters
+        ----------
+        sample : torch.Tensor
+            The batch of the n samples, output of the ``Decoder.parametrize`` function.
+            The size is (n, latent_dim)
+
+        Returns
+        -------
+        image : torch.Tensor
+            The generated image batch, of shape (n, 1, height, width)
+
+        Notes
+        -----
+        No verifications are performed for performance reason.
+        """
+        out = sample / self.parent.space  # to have reduced data in first layer
+        out = self.dense_layers(out)
+        shape = 2**len(self.augmentation_layers)
+        shape = (self.parent.shape[0]//shape, self.parent.shape[1]//shape)
+        out = torch.reshape(out, (len(out), 12, *shape))  # not -1 for empty tensors
+        for augment in self.augmentation_layers:
+            out = augment(out)
+        out = self.convolutive_layers(out)
+        norm_mean, norm_std = self.parent.normalization
+        out = out * norm_std + norm_mean  # bijection operation of normalizatiion
+        return out
+
+    @staticmethod
+    def parametrize(mean: torch.Tensor, std: torch.Tensor) -> torch.Tensor:
+        """Perform a random draw according to the normal law N(mean, std**2).
+
+        Parameters
+        ----------
+        mean : torch.Tensor
+            The batch of the mean vectors, shape (n, latent_dim).
+        std : torch.Tensor
+            The batch of the diagonal sqrt(covariance) matrix, shape (n, latent_dim).
+
+        Returns
+        -------
+        draw : torch.Tensor
+            The batch of the random draw.
+
+        Notes
+        -----
+        No verifications are performed for performance reason.
+        """
+        sample = torch.randn_like(mean)  # torch.zeros_like(mean) for non variational
+        sample = torch.mul(sample, std, out=(None if std.requires_grad else sample))
+        sample = torch.add(
+            sample, mean, out=(None if sample.requires_grad or mean.requires_grad else sample)
+        )
+        return sample
+
+    @property
+    def parent(self) -> VAESpotClassifier:
+        """Return the parent module."""
+        return self._parent[0]
+
+    def plot_map(
+        self,
+        axe,
+        grid: typing.Union[numbers.Integral, tuple[numbers.Integral, numbers.Integral]] = 10,
+    ):
+        """Generate and display spots from a regular sampling of latent space.
+
+        Parameters
+        ----------
+        axe : matplotlib.axes.Axes
+            The 2d empty axe ready to be filled.
+        grid : int or tuple[int, int]
+            Grid dimension in latent space. If only one number is supplied,
+            the grid will have this dimension on all axes.
+            The 2 coordinates corresponds respectively to the number of lines and columns.
+        """
+        from matplotlib.axes import Axes
+
+        assert self.parent.latent_dim == 2, "can only plot in a 2d space"
+        assert isinstance(axe, Axes), axe.__class__.__name__
+        if isinstance(grid, numbers.Integral):
+            grid = (grid, grid)
+        assert isinstance(grid, tuple), grid.__class__.__name__
+        assert len(grid) == 2, len(grid)
+        assert isinstance(grid[0], numbers.Integral) and isinstance(grid[1], numbers.Integral), grid
+        assert grid >= (1, 1), grid
+
+        # fill figure metadata
+        axe.set_title(f"generated spots from latent regular grid of {grid[0]}x{grid[1]}")
+
+        # generated data
+        device = next(self.parameters()).device
+        space = self.parent.space
+        points = torch.meshgrid(
+            torch.linspace(-space, space, grid[0], dtype=torch.float32, device=device),
+            torch.linspace(-space, space, grid[1], dtype=torch.float32, device=device),
+            indexing="ij",
+        )
+        points = (points[0].ravel(), points[1].ravel())
+        points = torch.cat([points[0].unsqueeze(1), points[1].unsqueeze(1)], dim=1)
+        predicted = self.forward(points)
+
+        # draw data
+        shape = self.parent.shape
+        mosaic = torch.empty(
+            (grid[0]*shape[0], grid[1]*shape[1]),
+            dtype=torch.float32,
+            device=device,
+        )
+        for i in range(grid[0]):
+            for j in range(grid[1]):
+                mosaic[i*shape[0]:(i+1)*shape[0], j*shape[1]:(j+1)*shape[1]] = (
+                    predicted[i*grid[1]+j]
+                )
+        axe.imshow(
+            mosaic.numpy(force=True).transpose(),
+            aspect=mosaic.shape[0]/mosaic.shape[1],
+            interpolation=None,  # antialiasing is True
+            cmap="gray",
+            origin="lower",
+            extent=[-space, space, -space, space],
+        )
+
+
+class Encoder(torch.nn.Module):
+    """Encode an image into a gausian probality density.
+
+    Attributes
+    ----------
+    parent : laueimproc.nn.vae_spot_classifier.VAESposClassifier
+        The main full auto encoder, containing this module.
+    """
+
+    def __init__(self, parent: VAESpotClassifier):
+        """Initialise the encoder.
+
+        Parameters
+        ----------
+        parent : laueimproc.nn.vae_spot_classifier.VAESpotClassifier
+            The main module.
+        """
+        assert isinstance(parent, VAESpotClassifier), parent.__class__.__name__
+        self._parent = (parent,)  # pack into tuple solve `cannot assign module before...`
+        super().__init__()
+
+        # size reduction layers
+        self.reduction_layers = torch.nn.ModuleList()
+        shape = parent.shape
+        while min(shape) > 32:
+            self.reduction_layers.append(
+                torch.nn.Sequential(
+                    torch.nn.Conv2d(12, 12, kernel_size=3, stride=1, padding=1),
+                    torch.nn.Dropout(0.1),
+                    torch.nn.MaxPool2d(2, stride=2),
+                    torch.nn.LeakyReLU(inplace=True),
+                )
+            )
+            shape = (shape[0]//2, shape[1]//2)
+
+        # little fitures extraction layer
+        self.convolutive_layers = torch.nn.Sequential(
+            torch.nn.Conv2d(1, 12, kernel_size=3, stride=1, padding=1),
+            # torch.nn.BatchNorm2d(12),
+            torch.nn.LeakyReLU(inplace=True),
+            torch.nn.Dropout(0.1),
+        )
+
+        # final dense layers
+        area = shape[0] * shape[1]
+        self.dense_layers = torch.nn.Sequential(
+            torch.nn.Flatten(),
+
+            torch.nn.Linear(12*area, 1000),
+            torch.nn.BatchNorm1d(1000),
+            torch.nn.LeakyReLU(inplace=True),
+            torch.nn.Dropout(0.2),
+
+            # torch.nn.Linear(1000, 500),
+            # # torch.nn.BatchNorm1d(500),
+            # torch.nn.LeakyReLU(inplace=True),
+            # torch.nn.Dropout(0.2),
+
+        )
+        self.prob_layers = torch.nn.ModuleList([
+            torch.nn.Sequential(  # mean layer
+                torch.nn.Linear(1000, parent.latent_dim),
+                torch.nn.Tanh(),
+            ),
+            torch.nn.Sequential(  # log var layer
+                torch.nn.Linear(1000, parent.latent_dim),
+                torch.nn.LogSigmoid(),
+            ),
+        ])
+
+    def forward(self, batch: torch.Tensor) -> tuple[torch.Tensor, typing.Union[None, torch.Tensor]]:
+        """Extract the mean and the std for each images.
+
+        Parameters
+        ----------
+        batch : torch.Tensor
+            The stack of the n images, of shape (n, 1, height, width).
+
+        Returns
+        -------
+        mean : torch.Tensor
+            The mean (center of gaussians) for each image, shape (n, latent_dims).
+        std : torch.Tensor
+            The standard deviation (shape of gaussian) for each image, shape (n, latent_dims).
+
+        Notes
+        -----
+        No verifications are performed for performance reason.
+        If the model is in eval mode, it computes only the mean and gives the value None to the std.
+        """
+        norm_mean, norm_std = self.parent.normalization
+        batch = (batch - norm_mean) / norm_std  # centered and reduced
+
+        # prefitures extraction
+        inter_value = self.convolutive_layers(batch)
+
+        # reduction
+        for reducer in self.reduction_layers:
+            inter_value = reducer(inter_value)
+
+        # final layer
+        inter_value = self.dense_layers(inter_value)
+        mean = self.prob_layers[0](inter_value)
+        mean = mean * self.parent.space  # to have reduced data in last layer
+        if not self.training:
+            return (mean, None)
+        std = self.prob_layers[1](inter_value)  # not std but log(std**2)
+        std = torch.exp(0.5 * std)  # not std but log(std)
+        return (mean, std)
+
+    @property
+    def parent(self) -> VAESpotClassifier:
+        """Return the parent module."""
+        return self._parent[0]
+
+    def plot_latent(self, axe, spots_generator):
+        """Plot the 2d pca of the spots projected in the latent space.
+
+        Parameters
+        ----------
+        axe : matplotlib.axes.Axes
+            The 2d empty axe ready to be filled.
+        spots_generator : iterable
+            A generator of spot batch, each item has to be of shape (:, h, w).
+        """
+        from matplotlib.axes import Axes
+        assert isinstance(axe, Axes), axe.__class__.__name__
+        assert hasattr(spots_generator, "__iter__"), spots_generator.__class__.__name__
+
+        # eval model to get all points
+        points = []
+        for batch in spots_generator:
+            assert isinstance(batch, torch.Tensor), batch.__class__.__name__
+            assert batch.ndim == 3 and batch.shape[-2:] == self.parent.shape, batch.shape
+            points.append(self.forward(batch.unsqueeze(1))[0])
+        points = torch.cat(points)
+
+        # projection with PCA
+        points = points[:, :2]
+
+        # plot
+        axe.set_title("latent space projections")
+        axe.axis("equal")
+        space = self.parent.space
+        axe.plot(
+            [-space, space, space, -space, -space],
+            [-space, -space, space, space, -space],
+            color="black",
+        )
+        axe.scatter(*points.numpy(force=True).transpose())

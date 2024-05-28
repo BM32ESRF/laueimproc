@@ -7,9 +7,9 @@ import pathlib
 import pickle
 import typing
 
+from tqdm.autonotebook import tqdm
 import numpy as np
 import torch
-import tqdm
 
 from laueimproc.classes.diagram import Diagram
 
@@ -402,7 +402,7 @@ class LMCodec(torch.nn.Module):
 
         for epoch in range(100):
             tot_loss_val = 0
-            for i, diagram in enumerate(tqdm.tqdm(diagrams, unit="img", desc=f"epoch {epoch+1}")):
+            for i, diagram in enumerate(tqdm(diagrams, unit="img", desc=f"epoch {epoch+1}")):
                 if i % 8 == 0:
                     optim.zero_grad(set_to_none=True)
                 img = diagram.image.clone().to("cuda")
@@ -421,7 +421,7 @@ class LMCodec(torch.nn.Module):
         comp = 0
         self.eval()
         self.to("cpu")
-        for diagram in tqdm.tqdm(diagrams):
+        for diagram in tqdm(diagrams):
             img = (diagram.image*65535 + 0.5).numpy(force=True).astype(np.uint16)
             no_comp += len(img.tobytes())
             comp += len(self.encode(img))
