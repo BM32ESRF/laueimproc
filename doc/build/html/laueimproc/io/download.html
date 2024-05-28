@@ -52,7 +52,7 @@ def _download(url: str):
     with urllib.request.urlopen(url) as response:
         if not filename:
             yield (filename := response.headers.get_filename())
-        with tqdm.tqdm(
+        with tqdm(
             desc=f&#34;Downloading {filename}&#34;,
             total=response.length,
             unit=&#34;B&#34;,
@@ -121,7 +121,7 @@ def download(
             with tarfile.open(file_path) as tarball:
                 tarball.extractall(
                     folder,
-                    members=tqdm.tqdm(
+                    members=tqdm(
                         tarball,
                         total=len(tarball.getmembers()),
                         desc=f&#34;Extract {file_path.name}&#34;,
@@ -231,7 +231,7 @@ def get_samples(**kwargs) -&gt; pathlib.Path:
             with tarfile.open(file_path) as tarball:
                 tarball.extractall(
                     folder,
-                    members=tqdm.tqdm(
+                    members=tqdm(
                         tarball,
                         total=len(tarball.getmembers()),
                         desc=f&#34;Extract {file_path.name}&#34;,

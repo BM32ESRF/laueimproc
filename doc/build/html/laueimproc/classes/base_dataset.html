@@ -752,7 +752,7 @@ class BaseDiagramsDataset(threading.Thread):
         idxs_diags = [(i, self._get_diagram_from_index(i)) for i in sorted(self.indices)]  # frozen
         with self._lock, multiprocessing.pool.ThreadPool(NCPU) as pool:
             res = dict(
-                tqdm.tqdm(
+                tqdm(
                     pool.imap_unordered(
                         lambda idx_diag: (idx_diag[0], func(idx_diag[1], *args, **kwargs)),
                         idxs_diags,
@@ -1722,7 +1722,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_pos_fun
         idxs_diags = [(i, self._get_diagram_from_index(i)) for i in sorted(self.indices)]  # frozen
         with self._lock, multiprocessing.pool.ThreadPool(NCPU) as pool:
             res = dict(
-                tqdm.tqdm(
+                tqdm(
                     pool.imap_unordered(
                         lambda idx_diag: (idx_diag[0], func(idx_diag[1], *args, **kwargs)),
                         idxs_diags,
@@ -2435,7 +2435,7 @@ To each diagram index, associate the result.</dd>
     idxs_diags = [(i, self._get_diagram_from_index(i)) for i in sorted(self.indices)]  # frozen
     with self._lock, multiprocessing.pool.ThreadPool(NCPU) as pool:
         res = dict(
-            tqdm.tqdm(
+            tqdm(
                 pool.imap_unordered(
                     lambda idx_diag: (idx_diag[0], func(idx_diag[1], *args, **kwargs)),
                     idxs_diags,

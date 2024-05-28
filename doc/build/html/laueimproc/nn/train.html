@@ -118,9 +118,9 @@ def train_vae_spot_classifier(model: VAESpotClassifier, dataset: DiagramsDataset
         model.parameters(),
         **{p: kwargs[p] for p in (&#34;lr&#34;,) if p in kwargs},
     )
-    epoch_log = tqdm.tqdm(total=0, position=1, bar_format=&#34;{desc}&#34;)
+    epoch_log = tqdm(total=0, position=1, bar_format=&#34;{desc}&#34;)
     history = []
-    for _ in tqdm.tqdm(range(kwargs.get(&#34;epoch&#34;, 100)), unit=&#34;epoch&#34;, desc=&#34;train&#34;):
+    for _ in tqdm(range(kwargs.get(&#34;epoch&#34;, 100)), unit=&#34;epoch&#34;, desc=&#34;train&#34;):
         optimizer.zero_grad()
         history.append([0, 0])
         for spots in spots_loader:
@@ -213,9 +213,9 @@ def train_vae_spot_classifier(model: VAESpotClassifier, dataset: DiagramsDataset
         model.parameters(),
         **{p: kwargs[p] for p in (&#34;lr&#34;,) if p in kwargs},
     )
-    epoch_log = tqdm.tqdm(total=0, position=1, bar_format=&#34;{desc}&#34;)
+    epoch_log = tqdm(total=0, position=1, bar_format=&#34;{desc}&#34;)
     history = []
-    for _ in tqdm.tqdm(range(kwargs.get(&#34;epoch&#34;, 100)), unit=&#34;epoch&#34;, desc=&#34;train&#34;):
+    for _ in tqdm(range(kwargs.get(&#34;epoch&#34;, 100)), unit=&#34;epoch&#34;, desc=&#34;train&#34;):
         optimizer.zero_grad()
         history.append([0, 0])
         for spots in spots_loader:

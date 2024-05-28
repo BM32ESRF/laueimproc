@@ -432,7 +432,7 @@ class LMCodec(torch.nn.Module):
 
         for epoch in range(100):
             tot_loss_val = 0
-            for i, diagram in enumerate(tqdm.tqdm(diagrams, unit=&#34;img&#34;, desc=f&#34;epoch {epoch+1}&#34;)):
+            for i, diagram in enumerate(tqdm(diagrams, unit=&#34;img&#34;, desc=f&#34;epoch {epoch+1}&#34;)):
                 if i % 8 == 0:
                     optim.zero_grad(set_to_none=True)
                 img = diagram.image.clone().to(&#34;cuda&#34;)
@@ -451,7 +451,7 @@ class LMCodec(torch.nn.Module):
         comp = 0
         self.eval()
         self.to(&#34;cpu&#34;)
-        for diagram in tqdm.tqdm(diagrams):
+        for diagram in tqdm(diagrams):
             img = (diagram.image*65535 + 0.5).numpy(force=True).astype(np.uint16)
             no_comp += len(img.tobytes())
             comp += len(self.encode(img))
@@ -837,7 +837,7 @@ torch.Size([5, 1, 160, 224])
 
         for epoch in range(100):
             tot_loss_val = 0
-            for i, diagram in enumerate(tqdm.tqdm(diagrams, unit=&#34;img&#34;, desc=f&#34;epoch {epoch+1}&#34;)):
+            for i, diagram in enumerate(tqdm(diagrams, unit=&#34;img&#34;, desc=f&#34;epoch {epoch+1}&#34;)):
                 if i % 8 == 0:
                     optim.zero_grad(set_to_none=True)
                 img = diagram.image.clone().to(&#34;cuda&#34;)
@@ -856,7 +856,7 @@ torch.Size([5, 1, 160, 224])
         comp = 0
         self.eval()
         self.to(&#34;cpu&#34;)
-        for diagram in tqdm.tqdm(diagrams):
+        for diagram in tqdm(diagrams):
             img = (diagram.image*65535 + 0.5).numpy(force=True).astype(np.uint16)
             no_comp += len(img.tobytes())
             comp += len(self.encode(img))
@@ -1105,7 +1105,7 @@ torch.Size([1000, 1000])
 
     for epoch in range(100):
         tot_loss_val = 0
-        for i, diagram in enumerate(tqdm.tqdm(diagrams, unit=&#34;img&#34;, desc=f&#34;epoch {epoch+1}&#34;)):
+        for i, diagram in enumerate(tqdm(diagrams, unit=&#34;img&#34;, desc=f&#34;epoch {epoch+1}&#34;)):
             if i % 8 == 0:
                 optim.zero_grad(set_to_none=True)
             img = diagram.image.clone().to(&#34;cuda&#34;)
@@ -1124,7 +1124,7 @@ torch.Size([1000, 1000])
     comp = 0
     self.eval()
     self.to(&#34;cpu&#34;)
-    for diagram in tqdm.tqdm(diagrams):
+    for diagram in tqdm(diagrams):
         img = (diagram.image*65535 + 0.5).numpy(force=True).astype(np.uint16)
         no_comp += len(img.tobytes())
         comp += len(self.encode(img))
