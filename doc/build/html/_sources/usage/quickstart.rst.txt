@@ -1,12 +1,4 @@
-Houla ca commence vite dis!
----------------------------
+What a super Quick Start!
+-------------------------
 
-houpi, il y a du text la aussi!
-
-sfdgsdfgsd
-##########
-
-.. code: bash
-    chmod ple s
-
-sdfsdf
+Well not... In fact it's stupid!

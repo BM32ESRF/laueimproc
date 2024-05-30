@@ -26,7 +26,7 @@ You have a Laue data to analyse? You are at the right place! You can also contac
 Overview
 ========
 
-* `core module api <laueimproc/index.html>`_
+* `documentation <laueimproc/index.html>`_
 
 .. toctree::
     :maxdepth: 2

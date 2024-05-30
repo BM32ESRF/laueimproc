@@ -289,6 +289,8 @@ def roisshapes2raw(
     assert torch.all(shapes &gt;= 1), &#34;some bboxes have area of zero&#34;
     assert len(rois) == len(shapes), (rois.shape, shapes.shape)
 
+    if len(shapes) == 0:  # torch.cat dosen&#39;t support empty list
+        return bytearray(b&#34;&#34;)
     flat_rois = torch.cat(  # rois is float32
         [rois[i, :h, :w].ravel() for i, (h, w) in enumerate(shapes.tolist())]
     )
@@ -705,6 +707,8 @@ It doesn't have to be c contiguous.</dd>
     assert torch.all(shapes &gt;= 1), &#34;some bboxes have area of zero&#34;
     assert len(rois) == len(shapes), (rois.shape, shapes.shape)
 
+    if len(shapes) == 0:  # torch.cat dosen&#39;t support empty list
+        return bytearray(b&#34;&#34;)
     flat_rois = torch.cat(  # rois is float32
         [rois[i, :h, :w].ravel() for i, (h, w) in enumerate(shapes.tolist())]
     )

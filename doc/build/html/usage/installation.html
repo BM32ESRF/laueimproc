@@ -15,7 +15,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; laueimproc 1.3.0 documentation</title>
+  <title>Installation &mdash; laueimproc 1.3.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -28,7 +28,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=1f29e9d3"></script>
+        <script src="../_static/documentation_options.js?v=bb516dca"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -37,7 +37,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Houla ca commence vite dis!" href="quickstart.html" />
+    <link rel="next" title="What a super Quick Start!" href="quickstart.html" />
     <link rel="prev" title="Welcome to LaueImProc’s DOCUMENTATION!" href="../index.html" /> 
 </head>
 
@@ -53,7 +53,7 @@
             laueimproc
           </a>
               <div class="version">
-                1.3.0
+                1.3.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -81,7 +81,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#platform-support">Platform Support</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Houla ca commence vite dis!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">What a super Quick Start!</a></li>
 </ul>
 
         </div>
@@ -170,40 +170,40 @@ Good luck with the <a class="reference external" href="https://docs.nvidia.com/c
 <p>It is installed by default on many linux systems.</p>
 <div class="tab-set docutils container">
 <input checked="True" class="tab-input" id="tab-set--1-input--1" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--1">Debian Ubuntu Mint System</label><div class="tab-content docutils container">
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span> <span class="n">update</span>
-<span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="n">build</span><span class="o">-</span><span class="n">essential</span>
-<span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">manpages</span><span class="o">-</span><span class="n">dev</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>build-essential
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>manpages-dev
 </pre></div>
 </div>
 </div>
 <input class="tab-input" id="tab-set--1-input--2" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--2">RHEL CentOS Fedora System</label><div class="tab-content docutils container">
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">yum</span> <span class="n">group</span> <span class="n">install</span> <span class="s2">&quot;Development Tools&quot;</span>
-<span class="n">sudo</span> <span class="n">yum</span> <span class="n">install</span> <span class="n">man</span><span class="o">-</span><span class="n">pages</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>yum<span class="w"> </span>group<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;Development Tools&quot;</span>
+sudo<span class="w"> </span>yum<span class="w"> </span>install<span class="w"> </span>man-pages
 </pre></div>
 </div>
 </div>
 <input class="tab-input" id="tab-set--1-input--3" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--3">Arch Manjaro System</label><div class="tab-content docutils container">
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pacman</span> <span class="o">-</span><span class="n">Syu</span>
-<span class="n">sudo</span> <span class="n">pacman</span> <span class="o">-</span><span class="n">S</span> <span class="n">base</span><span class="o">-</span><span class="n">devel</span>
-<span class="n">sudo</span> <span class="n">pacman</span> <span class="o">-</span><span class="n">S</span> <span class="n">gcc</span><span class="o">-</span><span class="n">multilib</span> <span class="n">lib32</span><span class="o">-</span><span class="n">gcc</span><span class="o">-</span><span class="n">libs</span>
-<span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">ftp</span><span class="o">.</span><span class="n">gnu</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">gnu</span><span class="o">/</span><span class="n">gcc</span><span class="o">/</span><span class="n">gcc</span><span class="o">-</span><span class="mf">13.2.0</span><span class="o">/</span><span class="n">gcc</span><span class="o">-</span><span class="mf">13.2.0</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
-<span class="n">tar</span> <span class="o">-</span><span class="n">xzvf</span> <span class="n">gcc</span><span class="o">-</span><span class="mf">13.2.0</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
-<span class="n">cd</span> <span class="n">gcc</span><span class="o">-</span><span class="mf">13.2.0</span>
-<span class="n">mkdir</span> <span class="n">build</span>
-<span class="n">cd</span> <span class="n">build</span>
-\<span class="o">../</span><span class="n">configure</span>
-<span class="n">make</span> <span class="o">-</span><span class="n">j4</span>
-<span class="n">sudo</span> <span class="n">make</span> <span class="n">install</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>pacman<span class="w"> </span>-Syu
+sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>base-devel
+sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>gcc-multilib<span class="w"> </span>lib32-gcc-libs
+wget<span class="w"> </span>https://ftp.gnu.org/gnu/gcc/gcc-13.2.0/gcc-13.2.0.tar.gz
+tar<span class="w"> </span>-xzvf<span class="w"> </span>gcc-13.2.0.tar.gz
+<span class="nb">cd</span><span class="w"> </span>gcc-13.2.0
+mkdir<span class="w"> </span>build
+<span class="nb">cd</span><span class="w"> </span>build
+<span class="se">\.</span>./configure
+make<span class="w"> </span>-j4
+sudo<span class="w"> </span>make<span class="w"> </span>install
 </pre></div>
 </div>
 </div>
 <input class="tab-input" id="tab-set--1-input--4" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--4">OpenSUSE System</label><div class="tab-content docutils container">
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">zypper</span> <span class="n">refresh</span>
-<span class="n">sudo</span> <span class="n">zypper</span> <span class="n">update</span>
-<span class="n">sudo</span> <span class="n">zypper</span> <span class="n">addrepo</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">download</span><span class="o">.</span><span class="n">opensuse</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">distribution</span><span class="o">/</span><span class="n">leap</span><span class="o">/</span><span class="mf">15.6</span><span class="o">/</span><span class="n">repo</span><span class="o">/</span><span class="n">oss</span><span class="o">/</span> <span class="n">oss</span>
-<span class="n">zypper</span> <span class="n">search</span> <span class="n">gcc</span>
-<span class="n">sudo</span> <span class="n">zypper</span> <span class="n">install</span> <span class="n">gcc</span>
-<span class="n">sudo</span> <span class="n">zypper</span> <span class="n">install</span> <span class="n">gcc</span><span class="o">-</span><span class="n">c</span><span class="o">++</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>zypper<span class="w"> </span>refresh
+sudo<span class="w"> </span>zypper<span class="w"> </span>update
+sudo<span class="w"> </span>zypper<span class="w"> </span>addrepo<span class="w"> </span>http://download.opensuse.org/distribution/leap/15.6/repo/oss/<span class="w"> </span>oss
+zypper<span class="w"> </span>search<span class="w"> </span>gcc
+sudo<span class="w"> </span>zypper<span class="w"> </span>install<span class="w"> </span>gcc
+sudo<span class="w"> </span>zypper<span class="w"> </span>install<span class="w"> </span>gcc-c++
 </pre></div>
 </div>
 </div>
@@ -214,7 +214,7 @@ Good luck with the <a class="reference external" href="https://docs.nvidia.com/c
 </div>
 <input class="tab-input" id="tab-set--2-input--3" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--3">macOS</label><div class="tab-content docutils container">
 <p>You could install gcc by using <a class="reference external" href="https://brew.sh/">Homebrew</a>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">brew</span> <span class="n">install</span> <span class="n">gcc</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>gcc
 </pre></div>
 </div>
 </div>
@@ -237,39 +237,39 @@ Good luck with the <a class="reference external" href="https://docs.nvidia.com/c
 <input checked="True" class="tab-input" id="tab-set--4-input--1" name="tab-set--4" type="radio"><label class="tab-label" for="tab-set--4-input--1">Linux</label><div class="tab-content docutils container">
 <div class="tab-set docutils container">
 <input checked="True" class="tab-input" id="tab-set--3-input--1" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--1">Debian Ubuntu Mint System</label><div class="tab-content docutils container">
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span> <span class="n">update</span>
-<span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="n">libedit</span><span class="o">-</span><span class="n">dev</span> <span class="n">libncurses5</span><span class="o">-</span><span class="n">dev</span>
-<span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="n">build</span><span class="o">-</span><span class="n">essential</span> <span class="n">libssl</span><span class="o">-</span><span class="n">dev</span> <span class="n">zlib1g</span><span class="o">-</span><span class="n">dev</span> \
-<span class="n">libbz2</span><span class="o">-</span><span class="n">dev</span> <span class="n">libreadline</span><span class="o">-</span><span class="n">dev</span> <span class="n">libsqlite3</span><span class="o">-</span><span class="n">dev</span> <span class="n">curl</span> <span class="n">git</span> \
-<span class="n">libncursesw5</span><span class="o">-</span><span class="n">dev</span> <span class="n">xz</span><span class="o">-</span><span class="n">utils</span> <span class="n">tk</span><span class="o">-</span><span class="n">dev</span> <span class="n">libxml2</span><span class="o">-</span><span class="n">dev</span> <span class="n">libxmlsec1</span><span class="o">-</span><span class="n">dev</span> <span class="n">libffi</span><span class="o">-</span><span class="n">dev</span> <span class="n">liblzma</span><span class="o">-</span><span class="n">dev</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>libedit-dev<span class="w"> </span>libncurses5-dev
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>build-essential<span class="w"> </span>libssl-dev<span class="w"> </span>zlib1g-dev<span class="w"> </span><span class="se">\</span>
+libbz2-dev<span class="w"> </span>libreadline-dev<span class="w"> </span>libsqlite3-dev<span class="w"> </span>curl<span class="w"> </span>git<span class="w"> </span><span class="se">\</span>
+libncursesw5-dev<span class="w"> </span>xz-utils<span class="w"> </span>tk-dev<span class="w"> </span>libxml2-dev<span class="w"> </span>libxmlsec1-dev<span class="w"> </span>libffi-dev<span class="w"> </span>liblzma-dev
 </pre></div>
 </div>
 </div>
 <input class="tab-input" id="tab-set--3-input--2" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--2">RHEL CentOS Fedora System</label><div class="tab-content docutils container">
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">yum</span> <span class="n">install</span> <span class="n">openssl11</span><span class="o">-</span><span class="n">devel</span> <span class="o">--</span><span class="n">allowerasing</span>
-<span class="n">yum</span> <span class="n">install</span> <span class="n">gcc</span> <span class="n">make</span> <span class="n">patch</span> <span class="n">zlib</span><span class="o">-</span><span class="n">devel</span> <span class="n">bzip2</span> <span class="n">bzip2</span><span class="o">-</span><span class="n">devel</span> <span class="n">readline</span><span class="o">-</span><span class="n">devel</span> <span class="n">sqlite</span> <span class="n">sqlite</span><span class="o">-</span><span class="n">devel</span> <span class="n">openssl</span><span class="o">-</span><span class="n">devel</span> <span class="n">tk</span><span class="o">-</span><span class="n">devel</span> <span class="n">libffi</span><span class="o">-</span><span class="n">devel</span> <span class="n">xz</span><span class="o">-</span><span class="n">devel</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>yum<span class="w"> </span>install<span class="w"> </span>openssl11-devel<span class="w"> </span>--allowerasing
+yum<span class="w"> </span>install<span class="w"> </span>gcc<span class="w"> </span>make<span class="w"> </span>patch<span class="w"> </span>zlib-devel<span class="w"> </span>bzip2<span class="w"> </span>bzip2-devel<span class="w"> </span>readline-devel<span class="w"> </span>sqlite<span class="w"> </span>sqlite-devel<span class="w"> </span>openssl-devel<span class="w"> </span>tk-devel<span class="w"> </span>libffi-devel<span class="w"> </span>xz-devel
 </pre></div>
 </div>
 </div>
 <input class="tab-input" id="tab-set--3-input--3" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--3">Arch Manjaro System</label><div class="tab-content docutils container">
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">yay</span> <span class="o">-</span><span class="n">S</span> <span class="n">ncurses5</span><span class="o">-</span><span class="n">compat</span><span class="o">-</span><span class="n">libs</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>yay<span class="w"> </span>-S<span class="w"> </span>ncurses5-compat-libs
 </pre></div>
 </div>
 </div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">curl</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">pyenv</span><span class="o">.</span><span class="n">run</span> <span class="o">|</span> <span class="n">bash</span>
-<span class="n">echo</span> <span class="s1">&#39;export PYENV_ROOT=&quot;$HOME/.pyenv&quot;&#39;</span> <span class="o">&gt;&gt;</span> <span class="o">~/.</span><span class="n">bashrc</span>
-<span class="n">echo</span> <span class="s1">&#39;command -v pyenv &gt;/dev/null || export PATH=&quot;$PYENV_ROOT/bin:$PATH&quot;&#39;</span> <span class="o">&gt;&gt;</span> <span class="o">~/.</span><span class="n">bashrc</span>
-<span class="n">echo</span> <span class="s1">&#39;eval &quot;$(pyenv init -)&quot;&#39;</span> <span class="o">&gt;&gt;</span> <span class="o">~/.</span><span class="n">bashrc</span>
-<span class="n">source</span> <span class="o">~/.</span><span class="n">bashrc</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>https://pyenv.run<span class="w"> </span><span class="p">|</span><span class="w"> </span>bash
+<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;export PYENV_ROOT=&quot;$HOME/.pyenv&quot;&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.bashrc
+<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;command -v pyenv &gt;/dev/null || export PATH=&quot;$PYENV_ROOT/bin:$PATH&quot;&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.bashrc
+<span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;eval &quot;$(pyenv init -)&quot;&#39;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.bashrc
+<span class="nb">source</span><span class="w"> </span>~/.bashrc
 </pre></div>
 </div>
 </div>
 <input class="tab-input" id="tab-set--4-input--2" name="tab-set--4" type="radio"><label class="tab-label" for="tab-set--4-input--2">macOS</label><div class="tab-content docutils container">
 <p>You could install dependencies by using <a class="reference external" href="https://brew.sh/">Homebrew</a>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">brew</span> <span class="n">install</span> <span class="n">ncurses</span>
-<span class="n">brew</span> <span class="n">install</span> <span class="n">openssl</span> <span class="n">readline</span> <span class="n">sqlite3</span> <span class="n">xz</span> <span class="n">zlib</span> <span class="n">tcl</span><span class="o">-</span><span class="n">tk</span>
-<span class="n">brew</span> <span class="n">install</span> <span class="n">pyenv</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>ncurses
+brew<span class="w"> </span>install<span class="w"> </span>openssl<span class="w"> </span>readline<span class="w"> </span>sqlite3<span class="w"> </span>xz<span class="w"> </span>zlib<span class="w"> </span>tcl-tk
+brew<span class="w"> </span>install<span class="w"> </span>pyenv
 </pre></div>
 </div>
 </div>
@@ -279,15 +279,15 @@ Good luck with the <a class="reference external" href="https://docs.nvidia.com/c
 <section id="configure-pyenv">
 <h3>Configure pyenv<a class="headerlink" href="#configure-pyenv" title="Link to this heading"></a></h3>
 <p>Create the virtual environement.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pyenv</span> <span class="n">update</span>
-<span class="n">pyenv</span> <span class="n">install</span> <span class="o">-</span><span class="n">v</span> <span class="mf">3.12</span>
-<span class="n">pyenv</span> <span class="n">virtualenv</span> <span class="mf">3.12</span> <span class="n">laueenv</span>
-<span class="n">pyenv</span> <span class="n">activate</span> <span class="n">laueenv</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pyenv<span class="w"> </span>update
+pyenv<span class="w"> </span>install<span class="w"> </span>-v<span class="w"> </span><span class="m">3</span>.12
+pyenv<span class="w"> </span>virtualenv<span class="w"> </span><span class="m">3</span>.12<span class="w"> </span>laueenv
+pyenv<span class="w"> </span>activate<span class="w"> </span>laueenv
 </pre></div>
 </div>
 <p>Install jupyter notebook</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">ipython</span> <span class="n">jupyter</span> <span class="n">notebook</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">ipympl</span>  <span class="c1"># for matplotlib</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>ipython<span class="w"> </span>jupyter<span class="w"> </span>notebook
+pip<span class="w"> </span>install<span class="w"> </span>ipympl<span class="w">  </span><span class="c1"># for matplotlib</span>
 <span class="c1"># jupyter-notebook</span>
 </pre></div>
 </div>
@@ -298,19 +298,33 @@ Good luck with the <a class="reference external" href="https://docs.nvidia.com/c
 <section id="building-from-source">
 <h3>Building From Source<a class="headerlink" href="#building-from-source" title="Link to this heading"></a></h3>
 <p>To install the lastest development version from <a class="reference external" href="https://github.com/BM32ESRF/laueimproc">GitHub</a> source, clone laueimproc using <code class="docutils literal notranslate"><span class="pre">git</span></code> and install it using <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">BM32ESRF</span><span class="o">/</span><span class="n">laueimproc</span><span class="o">.</span><span class="n">git</span>
-<span class="n">cd</span> <span class="n">laueimproc</span><span class="o">/</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="n">setuptools</span> <span class="n">wheel</span>
-<span class="n">pip</span> <span class="o">-</span><span class="n">v</span> <span class="n">install</span> <span class="o">--</span><span class="n">editable</span> <span class="o">.</span><span class="p">[</span><span class="nb">all</span><span class="p">]</span>
-<span class="n">source</span> <span class="o">~/.</span><span class="n">bashrc</span>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Make shure you are in a virtual environement <code class="docutils literal notranslate"><span class="pre">pyenv</span> <span class="pre">activate</span> <span class="pre">laueenv</span></code> before excecuting the next lines!</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It works for updating an already installed version as well.</p>
+</div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span>!<span class="w"> </span><span class="o">[</span><span class="w"> </span>-d<span class="w"> </span>~/laueimproc_git<span class="w"> </span><span class="o">]</span>
+<span class="k">then</span><span class="w">  </span><span class="c1"># download source code</span>
+<span class="w">    </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/BM32ESRF/laueimproc.git<span class="w"> </span>~/laueimproc_git
+<span class="w">    </span><span class="nb">cd</span><span class="w"> </span>~/laueimproc_git/
+<span class="k">else</span><span class="w">  </span><span class="c1"># update source code</span>
+<span class="w">    </span><span class="nb">cd</span><span class="w"> </span>~/laueimproc_git/
+<span class="w">    </span>git<span class="w"> </span>pull
+<span class="k">fi</span>
+<span class="c1"># pyenv activate laueenv  # be sure to be in a virtual env</span>
+pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip<span class="w"> </span>setuptools<span class="w"> </span>wheel
+pip<span class="w"> </span>-v<span class="w"> </span>install<span class="w"> </span>--editable<span class="w"> </span>.<span class="o">[</span>all<span class="o">]</span><span class="w">  </span><span class="c1"># compilation and linkage</span>
 </pre></div>
 </div>
 </section>
 <section id="building-documentation">
 <h3>Building Documentation<a class="headerlink" href="#building-documentation" title="Link to this heading"></a></h3>
 <p>You can also compile documentation locally (after the previous step).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">doc</span><span class="o">/</span> <span class="o">&amp;&amp;</span> <span class="n">make</span> <span class="n">clean</span> <span class="o">&amp;&amp;</span> <span class="n">make</span> <span class="n">html</span> <span class="o">&amp;&amp;</span> <span class="n">cd</span> <span class="o">-</span>
-<span class="n">firefox</span> <span class="n">doc</span><span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="n">html</span><span class="o">/</span><span class="n">index</span><span class="o">.</span><span class="n">html</span> <span class="o">&amp;</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/laueimproc_git/doc/<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>clean<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>html<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>-
+firefox<span class="w"> </span>~/laueimproc_git/doc/build/html/index.html<span class="w"> </span><span class="p">&amp;</span>
 </pre></div>
 </div>
 </section>
@@ -319,7 +333,7 @@ Good luck with the <a class="reference external" href="https://docs.nvidia.com/c
 <h2>Verification<a class="headerlink" href="#verification" title="Link to this heading"></a></h2>
 <p>To check that everything is in order, you can run the test bench.
 For running tests, some dependencies are requiered, you can install it passing the option <code class="docutils literal notranslate"><span class="pre">[all]</span></code> to <code class="docutils literal notranslate"><span class="pre">pip</span></code>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">laueimproc</span> <span class="n">test</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>laueimproc<span class="w"> </span><span class="nb">test</span><span class="w">  </span><span class="c1"># `laueimproc test --help` to see how to skip some tests</span>
 </pre></div>
 </div>
 <p>If it segfault, maybe the problem comes from c-files, you can delete it with <code class="docutils literal notranslate"><span class="pre">find</span> <span class="pre">laueimproc/</span> <span class="pre">-name</span> <span class="pre">*.so</span> <span class="pre">-exec</span> <span class="pre">rm</span> <span class="pre">{}</span> <span class="pre">\;</span></code>.</p>
@@ -357,7 +371,7 @@ For running tests, some dependencies are requiered, you can install it passing t
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to LaueImProc’s DOCUMENTATION!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="quickstart.html" class="btn btn-neutral float-right" title="Houla ca commence vite dis!" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="quickstart.html" class="btn btn-neutral float-right" title="What a super Quick Start!" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

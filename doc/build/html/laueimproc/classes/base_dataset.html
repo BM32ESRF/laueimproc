@@ -45,11 +45,11 @@ import traceback
 import typing
 import warnings
 
+from tqdm.autonotebook import tqdm
 import cloudpickle
 import numpy as np
 import psutil
 import torch
-import tqdm
 
 from laueimproc.common import time2sec
 from laueimproc.ml.dataset_dist import (

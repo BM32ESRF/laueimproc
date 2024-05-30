@@ -164,7 +164,7 @@ class VAESpotClassifier(torch.nn.Module):
             return generated_image.squeeze(1)
 
         # case diagram
-        batch = torch.empty((len(data, *self.shape)), dtype=torch.float32, device=self.device)
+        batch = torch.empty((len(data), *self.shape), dtype=torch.float32, device=self.device)
         for i, (roi, (height, width)) in enumerate(zip(data.rois, data.bboxes[:, 2:].tolist())):
             batch[i] = self.dataaug(roi[:height, :width])
         mean, _ = self.encoder(batch.unsqueeze(1))

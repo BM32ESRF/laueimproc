@@ -5,6 +5,44 @@
 import torch
 
 
+def batched_matmul(mat1: torch.Tensor, mat2: torch.Tensor) -> torch.Tensor:
+    """Perform a matrix product on the last 2 dimensions.
+
+    Parameters
+    ----------
+    mat1 : torch.Tensor
+        Matrix of shape (..., n, m).
+    mat2 : torch.Tensor
+        Matrix of shape (..., m, p).
+
+    Returns
+    -------
+    prod : torch.Tensor
+        The matrix of shape (..., n, p).
+
+    Examples
+    --------
+    >>> import torch
+    >>> from laueimproc.gmm.linalg import batched_matmul
+    >>> mat1 = torch.randn((9, 1, 7, 6, 3, 4))
+    >>> mat2 = torch.randn((8, 1, 6, 4, 5))
+    >>> batched_matmul(mat1, mat2).shape
+    torch.Size([9, 8, 7, 6, 3, 5])
+    >>>
+    """
+    assert isinstance(mat1, torch.Tensor), mat1.__class__.__name__
+    assert isinstance(mat2, torch.Tensor), mat2.__class__.__name__
+    assert mat1.ndim >= 2 and mat2.ndim >= 2, (mat1.shape, mat2.shape)
+    *batch1, n_dim, m_dim = mat1.shape
+    *batch2, m_dim, p_dim = mat2.shape
+    batch = torch.broadcast_shapes(batch1, batch2)
+    batched_mat1 = mat1.expand(*batch, n_dim, m_dim).reshape(-1, n_dim, m_dim)
+    batched_mat2 = mat2.expand(*batch, m_dim, p_dim).reshape(-1, m_dim, p_dim)
+    batched_out = torch.bmm(batched_mat1, batched_mat2)
+    out = batched_out.reshape(*batch, n_dim, p_dim)
+    return out
+
+
 def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool = True, theta: bool = True) -> torch.Tensor:
     r"""Rotate the covariance matrix into canonical base, like a PCA.
 

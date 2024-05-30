@@ -33,10 +33,10 @@ Refer to the ``installation`` tab in the documentation.
 
 To access a pre-built documentation, clone the repository then open the ``index.html`` file with a local browser:
 
-.. code::
+.. code-block:: shell
 
-    git clone https://github.com/BM32ESRF/laueimproc.git
-    firefox laueimproc/doc/build/html/index.html
+    if ! [ -d ~/laueimproc_git ]; then git clone https://github.com/BM32ESRF/laueimproc.git ~/laueimproc_git; fi
+    firefox ~/laueimproc_git/doc/build/html/index.html
 
 
 Example
@@ -44,7 +44,7 @@ Example
 
 There are a lot of jupyter-notebook examples in the folder ``notebooks`` and a lot of atomic example are directly written in the docstrings.
 
-.. code:: python
+.. code-block:: python
 
     import matplotlib.pyplot as plt
     from laueimproc import Diagram, DiagramsDataset

@@ -292,52 +292,15 @@ For memory management, it is better to provide a pathlike rather than an array.<
             data, bboxes = self._rois
         return compute_rois_sum(data, bboxes, **_kwargs)
 
-    def fit_gaussian_em(self, *args, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dict]:
-        r&#34;&#34;&#34;Fit each roi by one gaussian using the EM algorithm in one shot, very fast.
-
-        Same as ``flaueimproc.classes.diagram.fit_gaussians_em`` but squeeze the \(K = 1\) dim.
-
-        Parameters
-        ----------
-        *args : tuple
-            Transmitted to ``laueimproc.classes.diagram.fit_gaussians_em``.
-        **kwargs : dict
-            Transmitted to ``laueimproc.classes.diagram.fit_gaussians_em``.
-
-        Returns
-        -------
-        mean : torch.Tensor
-            The vectors \(\mathbf{\mu}\). Shape (n, 2). In the absolute diagram base.
-        cov : torch.Tensor
-            The matrices \(\mathbf{\Sigma}\). Shape (n, 2, 2).
-        infodict : dict[str]
-            Comes from ``laueimproc.improc.spot.fit.fit_gaussian_em``.
-        &#34;&#34;&#34;
-        assert &#34;nbr_clusters&#34; not in kwargs, &#34;use fit_gaussianSSS_em instead&#34;
-        mean, cov, _, infodict = self.fit_gaussians_em(*args, **kwargs, nbr_clusters=1)
-        mean, cov = mean.squeeze(1), cov.squeeze(1)
-        if &#34;eigtheta&#34; in infodict:
-            infodict[&#34;eigtheta&#34;] = infodict[&#34;eigtheta&#34;].squeeze(1)
-        return mean, cov, infodict
-
     @auto_cache
     @check_init
-    def fit_gaussians_em(
-        self,
-        photon_density: typing.Union[torch.Tensor, np.ndarray, numbers.Real] = 1.0,
-        indexing: str = &#34;ij&#34;,
-        **kwargs,
-    ) -&gt; tuple[torch.Tensor, torch.Tensor, dict]:
+    def fit_gaussians_em(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dict]:
         r&#34;&#34;&#34;Fit each roi by \(K\) gaussians using the EM algorithm.
 
         See ``laueimproc.gmm`` for terminology and ``laueimproc.gmm.em`` for the algo description.
 
         Parameters
         ----------
-        photon_density : arraylike, optional
-            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
-        indexing : str, default=&#34;ij&#34;
-            The convention used for the returned positions values. Can be &#34;ij&#34; or &#34;xy&#34;.
         **kwargs : dict
             Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
 
@@ -350,38 +313,23 @@ For memory management, it is better to provide a pathlike rather than an array.<
         eta : torch.Tensor
             The relative mass \(\eta\). Shape (n, \(K\)).
         infodict : dict[str]
-            Comes from ``laueimproc.improc.spot.fit.fit_gaussians_em``.
+            A dictionary of optional outputs.
+
+        Examples
+        --------
+        &gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
+        &gt;&gt;&gt; from laueimproc.io import get_sample
+        &gt;&gt;&gt; diagram = Diagram(get_sample())
+        &gt;&gt;&gt; diagram.find_spots()
+        &gt;&gt;&gt; mean, cov, eta, _ = diagram.fit_gaussians_em(nbr_clusters=3, nbr_tries=4)
+        &gt;&gt;&gt; mean.shape, cov.shape, eta.shape
+        (torch.Size([240, 3, 2]), torch.Size([240, 3, 2, 2]), torch.Size([240, 3]))
+        &gt;&gt;&gt;
         &#34;&#34;&#34;
-        # preparation
-        if not self.is_init():
-            raise RuntimeWarning(
-                &#34;you must to initialize the spots (`self.find_spots()`)&#34;
-            )
-        photon_density = (
-            float(photon_density)
-            if isinstance(photon_density, numbers.Real)
-            else torch.asarray(photon_density, dtype=torch.float32)
-        )
-        rois = self.rois
-        shift = self.bboxes[:, :2]
-
-        # main fit
-        mean, cov, eta, infodict = fit_gaussians_em(rois, photon_density, **kwargs)
-
-        # spot base to diagram base
-        if mean.requires_grad:
-            mean = mean + shift.unsqueeze(1)
-        else:
-            mean += shift.unsqueeze(1)
-
-        assert isinstance(indexing, str), indexing.__class__.__name__
-        assert indexing in {&#34;ij&#34;, &#34;xy&#34;}, indexing
-        if indexing == &#34;xy&#34;:
-            mean = torch.flip(mean, 2)
-            mean += 0.5
-
-        # cast
-        return mean, cov, eta, infodict
+        from laueimproc.improc.spot.fit import fit_gaussians_em
+        with self._rois_lock:
+            data, bboxes = self._rois
+        return fit_gaussians_em(data, bboxes, **kwargs)
 
     def fit_gaussian(
         self, *args, **kwargs
@@ -897,61 +845,6 @@ def compute_rois_sum(self, **_kwargs) -&gt; torch.Tensor:
     return mean, cov, magnitude, infodict</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.classes.Diagram.fit_gaussian_em"><code class="name flex">
-<span>def <span class="ident">fit_gaussian_em</span></span>(<span>self, *args, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, dict]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Fit each roi by one gaussian using the EM algorithm in one shot, very fast.</p>
-<p>Same as <code>flaueimproc.classes.diagram.fit_gaussians_em</code> but squeeze the <span><span class="MathJax_Preview">K = 1</span><script type="math/tex">K = 1</script></span> dim.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>*args</code></strong> :&ensp;<code>tuple</code></dt>
-<dd>Transmitted to <code>laueimproc.classes.diagram.fit_gaussians_em</code>.</dd>
-<dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Transmitted to <code>laueimproc.classes.diagram.fit_gaussians_em</code>.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The vectors <span><span class="MathJax_Preview">\mathbf{\mu}</span><script type="math/tex">\mathbf{\mu}</script></span>. Shape (n, 2). In the absolute diagram base.</dd>
-<dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The matrices <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span>. Shape (n, 2, 2).</dd>
-<dt><strong><code>infodict</code></strong> :&ensp;<code>dict[str]</code></dt>
-<dd>Comes from <code>laueimproc.improc.spot.fit.fit_gaussian_em</code>.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def fit_gaussian_em(self, *args, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dict]:
-    r&#34;&#34;&#34;Fit each roi by one gaussian using the EM algorithm in one shot, very fast.
-
-    Same as ``flaueimproc.classes.diagram.fit_gaussians_em`` but squeeze the \(K = 1\) dim.
-
-    Parameters
-    ----------
-    *args : tuple
-        Transmitted to ``laueimproc.classes.diagram.fit_gaussians_em``.
-    **kwargs : dict
-        Transmitted to ``laueimproc.classes.diagram.fit_gaussians_em``.
-
-    Returns
-    -------
-    mean : torch.Tensor
-        The vectors \(\mathbf{\mu}\). Shape (n, 2). In the absolute diagram base.
-    cov : torch.Tensor
-        The matrices \(\mathbf{\Sigma}\). Shape (n, 2, 2).
-    infodict : dict[str]
-        Comes from ``laueimproc.improc.spot.fit.fit_gaussian_em``.
-    &#34;&#34;&#34;
-    assert &#34;nbr_clusters&#34; not in kwargs, &#34;use fit_gaussianSSS_em instead&#34;
-    mean, cov, _, infodict = self.fit_gaussians_em(*args, **kwargs, nbr_clusters=1)
-    mean, cov = mean.squeeze(1), cov.squeeze(1)
-    if &#34;eigtheta&#34; in infodict:
-        infodict[&#34;eigtheta&#34;] = infodict[&#34;eigtheta&#34;].squeeze(1)
-    return mean, cov, infodict</code></pre>
-</details>
-</dd>
 <dt id="laueimproc.classes.Diagram.fit_gaussians"><code class="name flex">
 <span>def <span class="ident">fit_gaussians</span></span>(<span>self, loss: str = 'mse', indexing: str = 'ij', **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]</span>
 </code></dt>
@@ -1078,17 +971,13 @@ def fit_gaussians(
 </details>
 </dd>
 <dt id="laueimproc.classes.Diagram.fit_gaussians_em"><code class="name flex">
-<span>def <span class="ident">fit_gaussians_em</span></span>(<span>self, photon_density: Union[torch.Tensor, numpy.ndarray, numbers.Real] = 1.0, indexing: str = 'ij', **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, dict]</span>
+<span>def <span class="ident">fit_gaussians_em</span></span>(<span>self, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, dict]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Fit each roi by <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span> gaussians using the EM algorithm.</p>
 <p>See <code><a title="laueimproc.gmm" href="../gmm/index.html">laueimproc.gmm</a></code> for terminology and <code><a title="laueimproc.gmm.em" href="../gmm/em.html">laueimproc.gmm.em</a></code> for the algo description.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>photon_density</code></strong> :&ensp;<code>arraylike</code>, optional</dt>
-<dd>Transmitted to <code><a title="laueimproc.improc.spot.fit.fit_gaussians_em" href="../improc/spot/fit.html#laueimproc.improc.spot.fit.fit_gaussians_em">fit_gaussians_em()</a></code>.</dd>
-<dt><strong><code>indexing</code></strong> :&ensp;<code>str</code>, default=<code>"ij"</code></dt>
-<dd>The convention used for the returned positions values. Can be "ij" or "xy".</dd>
 <dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>
 <dd>Transmitted to <code><a title="laueimproc.improc.spot.fit.fit_gaussians_em" href="../improc/spot/fit.html#laueimproc.improc.spot.fit.fit_gaussians_em">fit_gaussians_em()</a></code>.</dd>
 </dl>
@@ -1101,30 +990,31 @@ def fit_gaussians(
 <dt><strong><code>eta</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The relative mass <span><span class="MathJax_Preview">\eta</span><script type="math/tex">\eta</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
 <dt><strong><code>infodict</code></strong> :&ensp;<code>dict[str]</code></dt>
-<dd>Comes from <code><a title="laueimproc.improc.spot.fit.fit_gaussians_em" href="../improc/spot/fit.html#laueimproc.improc.spot.fit.fit_gaussians_em">fit_gaussians_em()</a></code>.</dd>
-</dl></div>
+<dd>A dictionary of optional outputs.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
+&gt;&gt;&gt; from laueimproc.io import get_sample
+&gt;&gt;&gt; diagram = Diagram(get_sample())
+&gt;&gt;&gt; diagram.find_spots()
+&gt;&gt;&gt; mean, cov, eta, _ = diagram.fit_gaussians_em(nbr_clusters=3, nbr_tries=4)
+&gt;&gt;&gt; mean.shape, cov.shape, eta.shape
+(torch.Size([240, 3, 2]), torch.Size([240, 3, 2, 2]), torch.Size([240, 3]))
+&gt;&gt;&gt;
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@auto_cache
 @check_init
-def fit_gaussians_em(
-    self,
-    photon_density: typing.Union[torch.Tensor, np.ndarray, numbers.Real] = 1.0,
-    indexing: str = &#34;ij&#34;,
-    **kwargs,
-) -&gt; tuple[torch.Tensor, torch.Tensor, dict]:
+def fit_gaussians_em(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dict]:
     r&#34;&#34;&#34;Fit each roi by \(K\) gaussians using the EM algorithm.
 
     See ``laueimproc.gmm`` for terminology and ``laueimproc.gmm.em`` for the algo description.
 
     Parameters
     ----------
-    photon_density : arraylike, optional
-        Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
-    indexing : str, default=&#34;ij&#34;
-        The convention used for the returned positions values. Can be &#34;ij&#34; or &#34;xy&#34;.
     **kwargs : dict
         Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
 
@@ -1137,38 +1027,23 @@ def fit_gaussians_em(
     eta : torch.Tensor
         The relative mass \(\eta\). Shape (n, \(K\)).
     infodict : dict[str]
-        Comes from ``laueimproc.improc.spot.fit.fit_gaussians_em``.
+        A dictionary of optional outputs.
+
+    Examples
+    --------
+    &gt;&gt;&gt; from laueimproc.classes.diagram import Diagram
+    &gt;&gt;&gt; from laueimproc.io import get_sample
+    &gt;&gt;&gt; diagram = Diagram(get_sample())
+    &gt;&gt;&gt; diagram.find_spots()
+    &gt;&gt;&gt; mean, cov, eta, _ = diagram.fit_gaussians_em(nbr_clusters=3, nbr_tries=4)
+    &gt;&gt;&gt; mean.shape, cov.shape, eta.shape
+    (torch.Size([240, 3, 2]), torch.Size([240, 3, 2, 2]), torch.Size([240, 3]))
+    &gt;&gt;&gt;
     &#34;&#34;&#34;
-    # preparation
-    if not self.is_init():
-        raise RuntimeWarning(
-            &#34;you must to initialize the spots (`self.find_spots()`)&#34;
-        )
-    photon_density = (
-        float(photon_density)
-        if isinstance(photon_density, numbers.Real)
-        else torch.asarray(photon_density, dtype=torch.float32)
-    )
-    rois = self.rois
-    shift = self.bboxes[:, :2]
-
-    # main fit
-    mean, cov, eta, infodict = fit_gaussians_em(rois, photon_density, **kwargs)
-
-    # spot base to diagram base
-    if mean.requires_grad:
-        mean = mean + shift.unsqueeze(1)
-    else:
-        mean += shift.unsqueeze(1)
-
-    assert isinstance(indexing, str), indexing.__class__.__name__
-    assert indexing in {&#34;ij&#34;, &#34;xy&#34;}, indexing
-    if indexing == &#34;xy&#34;:
-        mean = torch.flip(mean, 2)
-        mean += 0.5
-
-    # cast
-    return mean, cov, eta, infodict</code></pre>
+    from laueimproc.improc.spot.fit import fit_gaussians_em
+    with self._rois_lock:
+        data, bboxes = self._rois
+    return fit_gaussians_em(data, bboxes, **kwargs)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1471,7 +1346,6 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
 <li><code><a title="laueimproc.classes.Diagram.compute_rois_pca" href="#laueimproc.classes.Diagram.compute_rois_pca">compute_rois_pca</a></code></li>
 <li><code><a title="laueimproc.classes.Diagram.compute_rois_sum" href="#laueimproc.classes.Diagram.compute_rois_sum">compute_rois_sum</a></code></li>
 <li><code><a title="laueimproc.classes.Diagram.fit_gaussian" href="#laueimproc.classes.Diagram.fit_gaussian">fit_gaussian</a></code></li>
-<li><code><a title="laueimproc.classes.Diagram.fit_gaussian_em" href="#laueimproc.classes.Diagram.fit_gaussian_em">fit_gaussian_em</a></code></li>
 <li><code><a title="laueimproc.classes.Diagram.fit_gaussians" href="#laueimproc.classes.Diagram.fit_gaussians">fit_gaussians</a></code></li>
 <li><code><a title="laueimproc.classes.Diagram.fit_gaussians_em" href="#laueimproc.classes.Diagram.fit_gaussians_em">fit_gaussians_em</a></code></li>
 </ul>

@@ -98,6 +98,7 @@ def train_vae_spot_classifier(model: VAESpotClassifier, dataset: DiagramsDataset
             if cum_batch + len(spots) >= batch_size:
                 spots_last, spots = spots[:batch_size-cum_batch], spots[batch_size-cum_batch:]
                 mse, kld = model.loss(spots_last.to(model.device))
+                spots_last.to("cpu")  # because it can be cached, leading to cuda leak
                 ((0.9 * mse + 0.1 * kld) / len(spots_loader)).backward()  # add grad to leaves
                 history[-1][0] += float(mse) / len(spots_loader)
                 history[-1][1] += float(kld) / len(spots_loader)

@@ -475,7 +475,8 @@ class BaseDiagram:
         assert isinstance(msg, str), msg.__class__.__name__
         assert isinstance(inplace, bool), inplace.__class__.__name__
         criteria = torch.squeeze(torch.asarray(criteria))
-        assert criteria.ndim == 1, f&#34;only a 1d vector is accepted, shape is {criteria.shape}&#34;
+        assert criteria.ndim &lt;= 1, f&#34;only a 1d vector is accepted, shape is {criteria.shape}&#34;
+        criteria = criteria.reshape(-1)  # for empty tensor
         if criteria.dtype is torch.bool:  # case mask -&gt; convert into index list
             assert criteria.shape[0] == len(self), (
                 &#34;the mask has to have the same length as the number of spots, &#34;
@@ -664,10 +665,10 @@ class BaseDiagram:
         assert disp is None or isinstance(disp, (Figure, Axes))
         image = self.image
         if vmin is None:
-            vmin = torch.min(image).item()
+            vmin = torch.mean(image).item()
         assert vmin is None or isinstance(vmin, numbers.Real), vmin.__class__.__name__
         if vmax is None:
-            vmax = torch.mean(image).item() + 5.0*torch.std(image).item()
+            vmax = vmin + 5.0*torch.std(image).item()
         assert isinstance(vmax, numbers.Real), vmax.__class__.__name__
         assert isinstance(kwargs.get(&#34;show_axis&#34;, True), bool), kwargs[&#34;show_axis&#34;]
         assert isinstance(kwargs.get(&#34;show_bboxes&#34;, True), bool), kwargs[&#34;show_bboxes&#34;]
@@ -1380,7 +1381,8 @@ For memory management, it is better to provide a pathlike rather than an array.<
         assert isinstance(msg, str), msg.__class__.__name__
         assert isinstance(inplace, bool), inplace.__class__.__name__
         criteria = torch.squeeze(torch.asarray(criteria))
-        assert criteria.ndim == 1, f&#34;only a 1d vector is accepted, shape is {criteria.shape}&#34;
+        assert criteria.ndim &lt;= 1, f&#34;only a 1d vector is accepted, shape is {criteria.shape}&#34;
+        criteria = criteria.reshape(-1)  # for empty tensor
         if criteria.dtype is torch.bool:  # case mask -&gt; convert into index list
             assert criteria.shape[0] == len(self), (
                 &#34;the mask has to have the same length as the number of spots, &#34;
@@ -1569,10 +1571,10 @@ For memory management, it is better to provide a pathlike rather than an array.<
         assert disp is None or isinstance(disp, (Figure, Axes))
         image = self.image
         if vmin is None:
-            vmin = torch.min(image).item()
+            vmin = torch.mean(image).item()
         assert vmin is None or isinstance(vmin, numbers.Real), vmin.__class__.__name__
         if vmax is None:
-            vmax = torch.mean(image).item() + 5.0*torch.std(image).item()
+            vmax = vmin + 5.0*torch.std(image).item()
         assert isinstance(vmax, numbers.Real), vmax.__class__.__name__
         assert isinstance(kwargs.get(&#34;show_axis&#34;, True), bool), kwargs[&#34;show_axis&#34;]
         assert isinstance(kwargs.get(&#34;show_bboxes&#34;, True), bool), kwargs[&#34;show_bboxes&#34;]
@@ -1894,19 +1896,15 @@ PosixPath('/.../laueimproc/io/ge.jp2')
         raise TypeError(msg) from None
     val = cache.get(self.attrname, _NOT_FOUND)
     if val is _NOT_FOUND:
-        with self.lock:
-            # check if another thread filled cache while we awaited lock
-            val = cache.get(self.attrname, _NOT_FOUND)
-            if val is _NOT_FOUND:
-                val = self.func(instance)
-                try:
-                    cache[self.attrname] = val
-                except TypeError:
-                    msg = (
-                        f&#34;The &#39;__dict__&#39; attribute on {type(instance).__name__!r} instance &#34;
-                        f&#34;does not support item assignment for caching {self.attrname!r} property.&#34;
-                    )
-                    raise TypeError(msg) from None
+        val = self.func(instance)
+        try:
+            cache[self.attrname] = val
+        except TypeError:
+            msg = (
+                f&#34;The &#39;__dict__&#39; attribute on {type(instance).__name__!r} instance &#34;
+                f&#34;does not support item assignment for caching {self.attrname!r} property.&#34;
+            )
+            raise TypeError(msg) from None
     return val</code></pre>
 </details>
 </dd>
@@ -2363,7 +2361,8 @@ def filter_spots(
     assert isinstance(msg, str), msg.__class__.__name__
     assert isinstance(inplace, bool), inplace.__class__.__name__
     criteria = torch.squeeze(torch.asarray(criteria))
-    assert criteria.ndim == 1, f&#34;only a 1d vector is accepted, shape is {criteria.shape}&#34;
+    assert criteria.ndim &lt;= 1, f&#34;only a 1d vector is accepted, shape is {criteria.shape}&#34;
+    criteria = criteria.reshape(-1)  # for empty tensor
     if criteria.dtype is torch.bool:  # case mask -&gt; convert into index list
         assert criteria.shape[0] == len(self), (
             &#34;the mask has to have the same length as the number of spots, &#34;
@@ -2640,10 +2639,10 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
     assert disp is None or isinstance(disp, (Figure, Axes))
     image = self.image
     if vmin is None:
-        vmin = torch.min(image).item()
+        vmin = torch.mean(image).item()
     assert vmin is None or isinstance(vmin, numbers.Real), vmin.__class__.__name__
     if vmax is None:
-        vmax = torch.mean(image).item() + 5.0*torch.std(image).item()
+        vmax = vmin + 5.0*torch.std(image).item()
     assert isinstance(vmax, numbers.Real), vmax.__class__.__name__
     assert isinstance(kwargs.get(&#34;show_axis&#34;, True), bool), kwargs[&#34;show_axis&#34;]
     assert isinstance(kwargs.get(&#34;show_bboxes&#34;, True), bool), kwargs[&#34;show_bboxes&#34;]

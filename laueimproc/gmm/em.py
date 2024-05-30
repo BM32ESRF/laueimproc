@@ -44,9 +44,9 @@ import typing
 
 import torch
 
-from .check import check_infit
-from .gmm import gmm2d
-from .metric import aic_bic, log_likelihood
+from .gauss import gauss2d
+from .linalg import batched_matmul
+from .metric import log_likelihood
 
 
 def _fit_one_cluster(
@@ -81,7 +81,7 @@ def _fit_one_cluster(
     mean = mean.squeeze(-2).unsqueeze(-1)  # (..., n_var, 1)
     if weights is None:
         cov = torch.mean(  # (..., n_var, n_var)
-            cent_obs @ cent_obs.transpose(-1, -2),
+            cent_obs @ cent_obs.mT,
             dim=-3, keepdim=False  # (..., n_obs, n_var, n_var) -> (..., n_var, n_var)
         )
     else:
@@ -131,7 +131,7 @@ def _fit_n_clusters_one_step(
     eps = torch.finfo(obs.dtype).eps
 
     # posterior probability that observation j belongs to cluster i
-    post = gmm2d(obs, mean, cov, eta, _check=False)  # (..., n_clu, n_obs)
+    post = gauss2d(obs, mean, cov, _check=False)  # (..., n_clu, n_obs)
     post += eps  # prevention again division by 0
     post /= torch.sum(post, dim=-2, keepdim=True)  # (..., n_clu, n_obs)
 
@@ -160,7 +160,7 @@ def _fit_n_clusters_one_step(
     # cov
     cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
     cov = torch.sum(
-        weighted_post * cent_obs @ cent_obs.transpose(-1, -2),  # (..., n_clu, n_obs, n_var, n_var)
+        weighted_post * cent_obs @ cent_obs.mT,  # (..., n_clu, n_obs, n_var, n_var)
         dim=-3, keepdim=False, out=cov  # (..., n_clu, n_var, n_var)
     )
     cov /= eta.unsqueeze(-1).unsqueeze(-1)
@@ -211,6 +211,7 @@ def _fit_n_clusters_serveral_steps(
     """
     mean, cov, eta = gmm
     llh = log_likelihood(obs, weights, gmm, _check=False)  # (...,)
+
     ongoing = torch.ones_like(llh, dtype=bool)  # mask for clusters converging
 
     for _ in range(1000):  # not while True for security
@@ -241,7 +242,7 @@ def _fit_n_clusters_serveral_steps_serveral_tries(
     obs: torch.Tensor,
     weights: typing.Optional[torch.Tensor],
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
-) -> tuple[tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     r"""N steps and serveral tries of the EM algo.
 
     Keep only the best result for each run.
@@ -265,15 +266,12 @@ def _fit_n_clusters_serveral_steps_serveral_tries(
 
     Returns
     -------
-    gmm : tuple of torch.Tensor
-        mean : torch.Tensor
-            A reference to the input parameter `mean`.
-        cov : torch.Tensor
-            A reference to the input parameter `cov`.
-        eta : torch.Tensor
-            A reference to the input parameter `eta`.
-    log_likelihood : torch.Tensor
-        The log likelihood of the last result of shape (...,).
+    mean : torch.Tensor
+        A reference to the input parameter `mean`.
+    cov : torch.Tensor
+        A reference to the input parameter `cov`.
+    eta : torch.Tensor
+        A reference to the input parameter `eta`.
 
     Notes
     -----
@@ -285,22 +283,26 @@ def _fit_n_clusters_serveral_steps_serveral_tries(
 
     # draw random initial conditions
     mean = (  # (n_tries, ..., n_clu, n_var, 1)
-        mean.unsqueeze(-3).unsqueeze(0)
-        + (
+        mean.unsqueeze(0).squeeze(-1)  # (1, ..., n_clu, n_var)
+        + batched_matmul(  # (n_tries, ..., n_clu, n_var)
             torch.randn(
-                (nbr_tries, *batch, nbr_clusters, n_var),
+                (nbr_tries, *batch, nbr_clusters, 1, n_var),
                 dtype=obs.dtype, device=obs.device
-            ) @ cov
-        ).unsqueeze(-1)
-    )
+            ),
+            cov,  # (..., n_clu, n_var, n_var)
+        ).squeeze(-2)
+    ).unsqueeze(-1)
     cov = (  # (n_tries, ..., n_clu, n_var, n_var)
         cov
-        .unsqueeze(-3).unsqueeze(0)
+        .unsqueeze(0)
         .expand(nbr_tries, *batch, nbr_clusters, n_var, n_var)
         .clone()
     )
     eta = (  # (n_tries, ..., n_clu)
-        eta.unsqueeze(0).expand(nbr_tries, *batch, nbr_clusters).clone()
+        eta
+        .unsqueeze(0)
+        .expand(nbr_tries, *batch, nbr_clusters)
+        .clone()
     )
 
     # prepare data for several draw
@@ -319,100 +321,66 @@ def _fit_n_clusters_serveral_steps_serveral_tries(
         mean = mean[best, range(mean.shape[1])]
         cov = cov[best, range(cov.shape[1])]
         eta = eta[best, range(eta.shape[1])]
-    return (mean, cov, eta), llh
+    return mean, cov, eta
 
 
 def em(
-    obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor] = None,
-    *,
+    roi: torch.Tensor,
     nbr_clusters: numbers.Integral = 1,
     nbr_tries: numbers.Integral = 2,
-    **metrics,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-    r"""Implement a weighted version of the EM algorithm.
+    **_,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    r"""Implement a weighted version of the EM algorithm for one roi.
 
     Parameters
     ----------
-    obs : arraylike
-        The observations \(\mathbf{x}\). Shape (..., \(N\), \(D\)).
-    weights : arraylike, optional
-        The weights \(\alpha\) has the relative number of time the individual has been drawn.
-        Shape (..., \(N\)).
+    roi : torch.Tensor
+        The picture of the roi, of shape (h, w).
     nbr_clusters : int, default=1
         The number \(K\) of gaussians.
     nbr_tries : int, default=2
         The number of times that the algorithm converges
         in order to have the best possible solution.
         It is ignored in the case `nbr_clusters` = 1.
-    aic, bic, log_likelihood : boolean, default=False
-        If set to True, the metric is happend into `infodict`.
-
-        * aic: Akaike Information Criterion of shape (...,). \(aic = 2p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
-        * bic: Bayesian Information Criterion of shape (...,).
-        \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
-        * log_likelihood of shape (...,): \(
-            L_{\alpha,\omega} = \log\left(
-                \prod\limits_{i=1}^N \sum\limits_{j=1}^K
-                \eta_j \left(
-                    \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
-                \right)^{\alpha_i}
-            \right)
-        \)
-        * log_likelihood of shape (...,): See ``laueimproc.gmm.metric.log_likelihood``.
 
     Returns
     -------
     mean : torch.Tensor
-        The vectors \(\mathbf{\mu}\). Shape (..., \(K\), \(D\), 1).
+        The vectors \(\mathbf{\mu}\). Shape (..., \(K\), \(D\)).
     cov : torch.Tensor
         The matrices \(\mathbf{\Sigma}\). Shape (..., \(K\), \(D\), \(D\)).
     eta : torch.Tensor
         The relative mass \(\eta\). Shape (..., \(K\)).
-    infodict : dict[str]
-        A dictionary of optional outputs.
     """
-    m_name = {"aic", "bic", "log_likelihood"}
-
-    # verifications
-    check_infit(obs, weights)
+    assert isinstance(roi, torch.Tensor), roi.__class__.__name__
+    assert roi.ndim == 2, roi.shape
     assert isinstance(nbr_clusters, numbers.Integral), nbr_clusters.__class__.__name__
     assert nbr_clusters > 0, nbr_clusters
     nbr_clusters = int(nbr_clusters)
     assert isinstance(nbr_tries, numbers.Integral), nbr_tries.__class__.__name__
     assert nbr_tries > 0, nbr_tries
     nbr_tries = int(nbr_tries)
-    assert all(isinstance(metrics.get(k, False), bool) for k in metrics), metrics
-    assert set(metrics).issubset(m_name), f"unrecognise parameters {set(metrics)-m_name}"
 
-    # main gmm
-    *batch, _, _ = obs.shape
-    mean, cov = _fit_one_cluster(obs, weights)  # (..., n_var, 1) and (..., n_var, n_var)
-    eta = torch.full((*batch, nbr_clusters), 1.0/nbr_clusters, dtype=obs.dtype, device=obs.device)
-    llh = None
+    # preparation
+    points_i, points_j = torch.meshgrid(
+        torch.arange(0.5, roi.shape[0]+0.5, dtype=roi.dtype, device=roi.device),
+        torch.arange(0.5, roi.shape[1]+0.5, dtype=roi.dtype, device=roi.device),
+        indexing="ij",
+    )
+    points_i, points_j = points_i.ravel(), points_j.ravel()
+    obs = torch.cat([points_i.unsqueeze(1), points_j.unsqueeze(1)], dim=1)  # (n_obs, n_var)
+    weights = roi.ravel()
+
+    # initialization
+    mean, cov = _fit_one_cluster(obs, weights)  # (n_var, 1) and (n_var, n_var)
+    mean = mean.expand(nbr_clusters, -1, -1)  # (n_clu, n_var, 1)
+    cov = cov.expand(nbr_clusters, -1, -1)  # (n_clu, n_var, m_var)
+    eta = torch.full((nbr_clusters,), 1.0/nbr_clusters, dtype=roi.dtype, device=roi.device)
+
+    # fit
     if nbr_clusters != 1:
-        (mean, cov, eta), llh = _fit_n_clusters_serveral_steps_serveral_tries(
+        mean, cov, eta = _fit_n_clusters_serveral_steps_serveral_tries(
             nbr_tries, obs, weights, (mean, cov, eta)
         )
-    else:  # case one cluster
-        mean = mean.unsqueeze(-3)  # (..., 1, n_var, 1)
-        cov = cov.unsqueeze(-3)  # (..., 1, n_var, n_var)
-        if any(metrics.get(n, False) for n in ("log_likelihood", "aic", "bic")):
-            llh = log_likelihood(obs, weights, (mean, cov, eta), _check=False)
 
-    # finalization
-    infodict = {}
-
-    if any(metrics.get(n, False) for n in ("aic", "bic")):
-        aic_bic_ = aic_bic(obs, weights, (mean, cov, eta), _llh=llh, _check=False)
-        if metrics.get("aic", False):
-            infodict["aic"] = aic_bic_[0]
-        if metrics.get("bic", False):
-            infodict["bic"] = aic_bic_[1]
-    if metrics.get("log_likelihood", False):
-        infodict["log_likelihood"] = llh
-
-    # cast
-    return mean, cov, eta, infodict
+    return mean.squeeze(-1), cov, eta

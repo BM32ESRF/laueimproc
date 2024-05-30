@@ -67,7 +67,7 @@ def gauss(
 
     cov_inv = torch.linalg.inv(cov).unsqueeze(-3)  # (..., n_clu, n_obs, n_var, n_var)
     cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
-    prob = cent_obs.transpose(-1, -2) @ cov_inv @ cent_obs  # (..., n_clu, n_obs, 1, 1)
+    prob = cent_obs.mT @ cov_inv @ cent_obs  # (..., n_clu, n_obs, 1, 1)
     prob = prob.squeeze(-1).squeeze(-1)  # (..., n_clu, n_obs)
     prob *= -.5
     prob = torch.exp(prob, out=None if prob.requires_grad else prob)
@@ -133,12 +133,13 @@ def gauss2d(
     inv = inv.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, n_var)
 
     cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
-    prob = cent_obs.transpose(-1, -2) @ inv @ cent_obs  # (..., n_clu, n_obs, 1, 1)
+    prob = cent_obs.mT @ inv @ cent_obs  # (..., n_clu, n_obs, 1, 1)
     prob = prob.squeeze(-1).squeeze(-1)  # (..., n_clu, n_obs)
     prob *= -.5
     prob = torch.exp(prob)  # no "out=None if prob.requires_grad else prob" for jacobian
 
     prob = norm * prob  # no "out=None if prob.requires_grad else prob" for jacobian
+
     return prob
 
 

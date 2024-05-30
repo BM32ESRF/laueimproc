@@ -35,6 +35,44 @@
 import torch
 
 
+def batched_matmul(mat1: torch.Tensor, mat2: torch.Tensor) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Perform a matrix product on the last 2 dimensions.
+
+    Parameters
+    ----------
+    mat1 : torch.Tensor
+        Matrix of shape (..., n, m).
+    mat2 : torch.Tensor
+        Matrix of shape (..., m, p).
+
+    Returns
+    -------
+    prod : torch.Tensor
+        The matrix of shape (..., n, p).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.gmm.linalg import batched_matmul
+    &gt;&gt;&gt; mat1 = torch.randn((9, 1, 7, 6, 3, 4))
+    &gt;&gt;&gt; mat2 = torch.randn((8, 1, 6, 4, 5))
+    &gt;&gt;&gt; batched_matmul(mat1, mat2).shape
+    torch.Size([9, 8, 7, 6, 3, 5])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(mat1, torch.Tensor), mat1.__class__.__name__
+    assert isinstance(mat2, torch.Tensor), mat2.__class__.__name__
+    assert mat1.ndim &gt;= 2 and mat2.ndim &gt;= 2, (mat1.shape, mat2.shape)
+    *batch1, n_dim, m_dim = mat1.shape
+    *batch2, m_dim, p_dim = mat2.shape
+    batch = torch.broadcast_shapes(batch1, batch2)
+    batched_mat1 = mat1.expand(*batch, n_dim, m_dim).reshape(-1, n_dim, m_dim)
+    batched_mat2 = mat2.expand(*batch, m_dim, p_dim).reshape(-1, m_dim, p_dim)
+    batched_out = torch.bmm(batched_mat1, batched_mat2)
+    out = batched_out.reshape(*batch, n_dim, p_dim)
+    return out
+
+
 def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool = True, theta: bool = True) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Rotate the covariance matrix into canonical base, like a PCA.
 
@@ -234,6 +272,74 @@ def inv_cov2d(cov: torch.Tensor, inv: bool = True) -&gt; tuple[torch.Tensor, tor
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="laueimproc.gmm.linalg.batched_matmul"><code class="name flex">
+<span>def <span class="ident">batched_matmul</span></span>(<span>mat1: torch.Tensor, mat2: torch.Tensor) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Perform a matrix product on the last 2 dimensions.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>mat1</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Matrix of shape (&hellip;, n, m).</dd>
+<dt><strong><code>mat2</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Matrix of shape (&hellip;, m, p).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>prod</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The matrix of shape (&hellip;, n, p).</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.gmm.linalg import batched_matmul
+&gt;&gt;&gt; mat1 = torch.randn((9, 1, 7, 6, 3, 4))
+&gt;&gt;&gt; mat2 = torch.randn((8, 1, 6, 4, 5))
+&gt;&gt;&gt; batched_matmul(mat1, mat2).shape
+torch.Size([9, 8, 7, 6, 3, 5])
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def batched_matmul(mat1: torch.Tensor, mat2: torch.Tensor) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Perform a matrix product on the last 2 dimensions.
+
+    Parameters
+    ----------
+    mat1 : torch.Tensor
+        Matrix of shape (..., n, m).
+    mat2 : torch.Tensor
+        Matrix of shape (..., m, p).
+
+    Returns
+    -------
+    prod : torch.Tensor
+        The matrix of shape (..., n, p).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.gmm.linalg import batched_matmul
+    &gt;&gt;&gt; mat1 = torch.randn((9, 1, 7, 6, 3, 4))
+    &gt;&gt;&gt; mat2 = torch.randn((8, 1, 6, 4, 5))
+    &gt;&gt;&gt; batched_matmul(mat1, mat2).shape
+    torch.Size([9, 8, 7, 6, 3, 5])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(mat1, torch.Tensor), mat1.__class__.__name__
+    assert isinstance(mat2, torch.Tensor), mat2.__class__.__name__
+    assert mat1.ndim &gt;= 2 and mat2.ndim &gt;= 2, (mat1.shape, mat2.shape)
+    *batch1, n_dim, m_dim = mat1.shape
+    *batch2, m_dim, p_dim = mat2.shape
+    batch = torch.broadcast_shapes(batch1, batch2)
+    batched_mat1 = mat1.expand(*batch, n_dim, m_dim).reshape(-1, n_dim, m_dim)
+    batched_mat2 = mat2.expand(*batch, m_dim, p_dim).reshape(-1, m_dim, p_dim)
+    batched_out = torch.bmm(batched_mat1, batched_mat2)
+    out = batched_out.reshape(*batch, n_dim, p_dim)
+    return out</code></pre>
+</details>
+</dd>
 <dt id="laueimproc.gmm.linalg.cov2d_to_eigtheta"><code class="name flex">
 <span>def <span class="ident">cov2d_to_eigtheta</span></span>(<span>cov: torch.Tensor, eig: bool = True, theta: bool = True) ‑> torch.Tensor</span>
 </code></dt>
@@ -604,6 +710,7 @@ True
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="laueimproc.gmm.linalg.batched_matmul" href="#laueimproc.gmm.linalg.batched_matmul">batched_matmul</a></code></li>
 <li><code><a title="laueimproc.gmm.linalg.cov2d_to_eigtheta" href="#laueimproc.gmm.linalg.cov2d_to_eigtheta">cov2d_to_eigtheta</a></code></li>
 <li><code><a title="laueimproc.gmm.linalg.inv_cov2d" href="#laueimproc.gmm.linalg.inv_cov2d">inv_cov2d</a></code></li>
 </ul>

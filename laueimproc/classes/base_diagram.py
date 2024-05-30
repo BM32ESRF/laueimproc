@@ -635,10 +635,10 @@ class BaseDiagram:
         assert disp is None or isinstance(disp, (Figure, Axes))
         image = self.image
         if vmin is None:
-            vmin = torch.min(image).item()
+            vmin = torch.mean(image).item()
         assert vmin is None or isinstance(vmin, numbers.Real), vmin.__class__.__name__
         if vmax is None:
-            vmax = torch.mean(image).item() + 5.0*torch.std(image).item()
+            vmax = vmin + 5.0*torch.std(image).item()
         assert isinstance(vmax, numbers.Real), vmax.__class__.__name__
         assert isinstance(kwargs.get("show_axis", True), bool), kwargs["show_axis"]
         assert isinstance(kwargs.get("show_bboxes", True), bool), kwargs["show_bboxes"]

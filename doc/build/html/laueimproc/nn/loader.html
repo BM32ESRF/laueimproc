@@ -36,7 +36,98 @@
 import logging
 import numbers
 
+import psutil
 import torch
+
+from laueimproc.classes.base_diagram import BaseDiagram
+from laueimproc.opti.cache import auto_cache
+
+
+NCPU = len(psutil.Process().cpu_affinity())
+
+
+class SpotDataloader:
+    &#34;&#34;&#34;Get spots picture, apply dataaug and set in batch.
+
+    Attributes
+    ----------
+    batch_size : int
+        The batch dimension, read and write.
+    &#34;&#34;&#34;
+
+    def __init__(self, dataset, model):
+        &#34;&#34;&#34;Initialise the data loader.
+
+        Parameters
+        ----------
+        dataset : laueimproc.classes.dataset.DiagramsDataset
+            Contains all the initialised diagrams.
+        model : laueimproc.nn.vae_spot_classifier.VAESpotClassifier
+            The model, for the dataaug.
+        &#34;&#34;&#34;
+        from laueimproc.classes.dataset import DiagramsDataset
+        from laueimproc.nn.vae_spot_classifier import VAESpotClassifier
+        assert isinstance(dataset, DiagramsDataset), dataset.__class__.__name__
+        assert isinstance(model, VAESpotClassifier), model.__class__.__name__
+        self.dataset = dataset
+        self.model = model
+        self._bath_size = None
+
+        # find len
+        self._diagram_indices = sorted(dataset.indices)
+        self._nb_spots = sum(len(dataset[i]) for i in self._diagram_indices)
+        if not self._nb_spots:
+            raise ValueError(f&#34;the dataset {dataset} does not contain any spots&#34;)
+
+    def __getitem__(self, idx: int) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Return the spot of this index.&#34;&#34;&#34;
+        i = 0
+        for batch in self:
+            if idx &lt; i + len(batch):
+                return batch[idx - i]
+            i += len(batch)
+        raise IndexError(f&#34;no spot at index {idx}, len is {len(self)}&#34;)
+
+    def __len__(self) -&gt; int:
+        &#34;&#34;&#34;Return the total number of spots.&#34;&#34;&#34;
+        return self._nb_spots
+
+    def __iter__(self) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Yield the batch of spots.&#34;&#34;&#34;
+
+        @auto_cache
+        def batch_diag_spots(diagram: BaseDiagram) -&gt; torch.Tensor:
+            &#34;&#34;&#34;Apply the dataaug on each spots and concatenate them.&#34;&#34;&#34;
+            if len(diagram) == 0:
+                return torch.empty((0, *self.model.shape), dtype=torch.float32)
+            return torch.cat([
+                self.model.dataaug(roi[:height, :width]).unsqueeze(0)
+                for roi, (height, width) in zip(diagram.rois, diagram.bboxes[:, 2:].tolist())
+            ])
+
+        batch = torch.empty((0, *self.model.shape), dtype=torch.float32)
+        for idx in self._diagram_indices:
+            sub_batch = batch_diag_spots(self.dataset[idx])
+            batch = torch.cat([batch, sub_batch])
+            if len(batch) &gt;= self.batch_size:
+                yield batch[:self.batch_size]
+                batch = batch[self.batch_size:]
+        if len(batch):
+            yield batch
+
+    @property
+    def batch_size(self) -&gt; int:
+        &#34;&#34;&#34;Return the batch size.&#34;&#34;&#34;
+        if self._bath_size is None:
+            raise RuntimeError(&#34;please set `batch_size`&#34;)
+        return self._bath_size
+
+    @batch_size.setter
+    def batch_size(self, new_batch_size: numbers.Integral):
+        &#34;&#34;&#34;Set the batch size.&#34;&#34;&#34;
+        assert isinstance(new_batch_size, numbers.Integral), new_batch_size.__class__.__name__
+        assert new_batch_size &gt;= 1, new_batch_size
+        self._bath_size = int(new_batch_size)
 
 
 class SpotDataset(torch.utils.data.Dataset):
@@ -275,6 +366,131 @@ def find_shape(dataset, percent: numbers.Real) -&gt; tuple[int, int]:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="laueimproc.nn.loader.SpotDataloader"><code class="flex name class">
+<span>class <span class="ident">SpotDataloader</span></span>
+<span>(</span><span>dataset, model)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get spots picture, apply dataaug and set in batch.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>batch_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>The batch dimension, read and write.</dd>
+</dl>
+<p>Initialise the data loader.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>dataset</code></strong> :&ensp;<code><a title="laueimproc.classes.dataset.DiagramsDataset" href="../classes/dataset.html#laueimproc.classes.dataset.DiagramsDataset">DiagramsDataset</a></code></dt>
+<dd>Contains all the initialised diagrams.</dd>
+<dt><strong><code>model</code></strong> :&ensp;<code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifier" href="vae_spot_classifier.html#laueimproc.nn.vae_spot_classifier.VAESpotClassifier">VAESpotClassifier</a></code></dt>
+<dd>The model, for the dataaug.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SpotDataloader:
+    &#34;&#34;&#34;Get spots picture, apply dataaug and set in batch.
+
+    Attributes
+    ----------
+    batch_size : int
+        The batch dimension, read and write.
+    &#34;&#34;&#34;
+
+    def __init__(self, dataset, model):
+        &#34;&#34;&#34;Initialise the data loader.
+
+        Parameters
+        ----------
+        dataset : laueimproc.classes.dataset.DiagramsDataset
+            Contains all the initialised diagrams.
+        model : laueimproc.nn.vae_spot_classifier.VAESpotClassifier
+            The model, for the dataaug.
+        &#34;&#34;&#34;
+        from laueimproc.classes.dataset import DiagramsDataset
+        from laueimproc.nn.vae_spot_classifier import VAESpotClassifier
+        assert isinstance(dataset, DiagramsDataset), dataset.__class__.__name__
+        assert isinstance(model, VAESpotClassifier), model.__class__.__name__
+        self.dataset = dataset
+        self.model = model
+        self._bath_size = None
+
+        # find len
+        self._diagram_indices = sorted(dataset.indices)
+        self._nb_spots = sum(len(dataset[i]) for i in self._diagram_indices)
+        if not self._nb_spots:
+            raise ValueError(f&#34;the dataset {dataset} does not contain any spots&#34;)
+
+    def __getitem__(self, idx: int) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Return the spot of this index.&#34;&#34;&#34;
+        i = 0
+        for batch in self:
+            if idx &lt; i + len(batch):
+                return batch[idx - i]
+            i += len(batch)
+        raise IndexError(f&#34;no spot at index {idx}, len is {len(self)}&#34;)
+
+    def __len__(self) -&gt; int:
+        &#34;&#34;&#34;Return the total number of spots.&#34;&#34;&#34;
+        return self._nb_spots
+
+    def __iter__(self) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Yield the batch of spots.&#34;&#34;&#34;
+
+        @auto_cache
+        def batch_diag_spots(diagram: BaseDiagram) -&gt; torch.Tensor:
+            &#34;&#34;&#34;Apply the dataaug on each spots and concatenate them.&#34;&#34;&#34;
+            if len(diagram) == 0:
+                return torch.empty((0, *self.model.shape), dtype=torch.float32)
+            return torch.cat([
+                self.model.dataaug(roi[:height, :width]).unsqueeze(0)
+                for roi, (height, width) in zip(diagram.rois, diagram.bboxes[:, 2:].tolist())
+            ])
+
+        batch = torch.empty((0, *self.model.shape), dtype=torch.float32)
+        for idx in self._diagram_indices:
+            sub_batch = batch_diag_spots(self.dataset[idx])
+            batch = torch.cat([batch, sub_batch])
+            if len(batch) &gt;= self.batch_size:
+                yield batch[:self.batch_size]
+                batch = batch[self.batch_size:]
+        if len(batch):
+            yield batch
+
+    @property
+    def batch_size(self) -&gt; int:
+        &#34;&#34;&#34;Return the batch size.&#34;&#34;&#34;
+        if self._bath_size is None:
+            raise RuntimeError(&#34;please set `batch_size`&#34;)
+        return self._bath_size
+
+    @batch_size.setter
+    def batch_size(self, new_batch_size: numbers.Integral):
+        &#34;&#34;&#34;Set the batch size.&#34;&#34;&#34;
+        assert isinstance(new_batch_size, numbers.Integral), new_batch_size.__class__.__name__
+        assert new_batch_size &gt;= 1, new_batch_size
+        self._bath_size = int(new_batch_size)</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="laueimproc.nn.loader.SpotDataloader.batch_size"><code class="name">var <span class="ident">batch_size</span> : int</code></dt>
+<dd>
+<div class="desc"><p>Return the batch size.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def batch_size(self) -&gt; int:
+    &#34;&#34;&#34;Return the batch size.&#34;&#34;&#34;
+    if self._bath_size is None:
+        raise RuntimeError(&#34;please set `batch_size`&#34;)
+    return self._bath_size</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="laueimproc.nn.loader.SpotDataset"><code class="flex name class">
 <span>class <span class="ident">SpotDataset</span></span>
 <span>(</span><span>dataset, model)</span>
@@ -364,6 +580,12 @@ def find_shape(dataset, percent: numbers.Real) -&gt; tuple[int, int]:
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
+<li>
+<h4><code><a title="laueimproc.nn.loader.SpotDataloader" href="#laueimproc.nn.loader.SpotDataloader">SpotDataloader</a></code></h4>
+<ul class="">
+<li><code><a title="laueimproc.nn.loader.SpotDataloader.batch_size" href="#laueimproc.nn.loader.SpotDataloader.batch_size">batch_size</a></code></li>
+</ul>
+</li>
 <li>
 <h4><code><a title="laueimproc.nn.loader.SpotDataset" href="#laueimproc.nn.loader.SpotDataset">SpotDataset</a></code></h4>
 </li>

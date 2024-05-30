@@ -2,14 +2,10 @@
 
 """Define the data sructure of a single Laue diagram image."""
 
-import numbers
-import typing
-
-import numpy as np
 import torch
 
 from laueimproc.convention import ij_to_xy_decorator
-from laueimproc.improc.spot.fit import fit_gaussians_em, fit_gaussians
+from laueimproc.improc.spot.fit import fit_gaussians
 from laueimproc.opti.cache import auto_cache
 from .base_diagram import check_init, BaseDiagram
 
@@ -223,52 +219,15 @@ class Diagram(BaseDiagram):
             data, bboxes = self._rois
         return compute_rois_sum(data, bboxes, **_kwargs)
 
-    def fit_gaussian_em(self, *args, **kwargs) -> tuple[torch.Tensor, torch.Tensor, dict]:
-        r"""Fit each roi by one gaussian using the EM algorithm in one shot, very fast.
-
-        Same as ``flaueimproc.classes.diagram.fit_gaussians_em`` but squeeze the \(K = 1\) dim.
-
-        Parameters
-        ----------
-        *args : tuple
-            Transmitted to ``laueimproc.classes.diagram.fit_gaussians_em``.
-        **kwargs : dict
-            Transmitted to ``laueimproc.classes.diagram.fit_gaussians_em``.
-
-        Returns
-        -------
-        mean : torch.Tensor
-            The vectors \(\mathbf{\mu}\). Shape (n, 2). In the absolute diagram base.
-        cov : torch.Tensor
-            The matrices \(\mathbf{\Sigma}\). Shape (n, 2, 2).
-        infodict : dict[str]
-            Comes from ``laueimproc.improc.spot.fit.fit_gaussian_em``.
-        """
-        assert "nbr_clusters" not in kwargs, "use fit_gaussianSSS_em instead"
-        mean, cov, _, infodict = self.fit_gaussians_em(*args, **kwargs, nbr_clusters=1)
-        mean, cov = mean.squeeze(1), cov.squeeze(1)
-        if "eigtheta" in infodict:
-            infodict["eigtheta"] = infodict["eigtheta"].squeeze(1)
-        return mean, cov, infodict
-
     @auto_cache
     @check_init
-    def fit_gaussians_em(
-        self,
-        photon_density: typing.Union[torch.Tensor, np.ndarray, numbers.Real] = 1.0,
-        indexing: str = "ij",
-        **kwargs,
-    ) -> tuple[torch.Tensor, torch.Tensor, dict]:
+    def fit_gaussians_em(self, **kwargs) -> tuple[torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by \(K\) gaussians using the EM algorithm.
 
         See ``laueimproc.gmm`` for terminology and ``laueimproc.gmm.em`` for the algo description.
 
         Parameters
         ----------
-        photon_density : arraylike, optional
-            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
-        indexing : str, default="ij"
-            The convention used for the returned positions values. Can be "ij" or "xy".
         **kwargs : dict
             Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
 
@@ -281,38 +240,23 @@ class Diagram(BaseDiagram):
         eta : torch.Tensor
             The relative mass \(\eta\). Shape (n, \(K\)).
         infodict : dict[str]
-            Comes from ``laueimproc.improc.spot.fit.fit_gaussians_em``.
+            A dictionary of optional outputs.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.diagram import Diagram
+        >>> from laueimproc.io import get_sample
+        >>> diagram = Diagram(get_sample())
+        >>> diagram.find_spots()
+        >>> mean, cov, eta, _ = diagram.fit_gaussians_em(nbr_clusters=3, nbr_tries=4)
+        >>> mean.shape, cov.shape, eta.shape
+        (torch.Size([240, 3, 2]), torch.Size([240, 3, 2, 2]), torch.Size([240, 3]))
+        >>>
         """
-        # preparation
-        if not self.is_init():
-            raise RuntimeWarning(
-                "you must to initialize the spots (`self.find_spots()`)"
-            )
-        photon_density = (
-            float(photon_density)
-            if isinstance(photon_density, numbers.Real)
-            else torch.asarray(photon_density, dtype=torch.float32)
-        )
-        rois = self.rois
-        shift = self.bboxes[:, :2]
-
-        # main fit
-        mean, cov, eta, infodict = fit_gaussians_em(rois, photon_density, **kwargs)
-
-        # spot base to diagram base
-        if mean.requires_grad:
-            mean = mean + shift.unsqueeze(1)
-        else:
-            mean += shift.unsqueeze(1)
-
-        assert isinstance(indexing, str), indexing.__class__.__name__
-        assert indexing in {"ij", "xy"}, indexing
-        if indexing == "xy":
-            mean = torch.flip(mean, 2)
-            mean += 0.5
-
-        # cast
-        return mean, cov, eta, infodict
+        from laueimproc.improc.spot.fit import fit_gaussians_em
+        with self._rois_lock:
+            data, bboxes = self._rois
+        return fit_gaussians_em(data, bboxes, **kwargs)
 
     def fit_gaussian(
         self, *args, **kwargs

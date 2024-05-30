@@ -52,7 +52,7 @@ As part of laueimproc is written in C, **gcc** must be installed. You can test t
 
     .. tab:: Debian Ubuntu Mint System
 
-        .. code::
+        .. code-block:: shell
 
             sudo apt update
             sudo apt install build-essential
@@ -60,14 +60,14 @@ As part of laueimproc is written in C, **gcc** must be installed. You can test t
 
     .. tab:: RHEL CentOS Fedora System
 
-        .. code::
+        .. code-block:: shell
 
             sudo yum group install "Development Tools"
             sudo yum install man-pages
 
     .. tab:: Arch Manjaro System
 
-        .. code::
+        .. code-block:: shell
 
             sudo pacman -Syu
             sudo pacman -S base-devel
@@ -83,7 +83,7 @@ As part of laueimproc is written in C, **gcc** must be installed. You can test t
 
     .. tab:: OpenSUSE System
 
-        .. code::
+        .. code-block:: shell
 
             sudo zypper refresh
             sudo zypper update
@@ -100,7 +100,7 @@ As part of laueimproc is written in C, **gcc** must be installed. You can test t
 
     You could install gcc by using `Homebrew <https://brew.sh/>`_.
 
-    .. code::
+    .. code-block:: shell
 
         brew install gcc
 
@@ -125,7 +125,7 @@ First install the `python dependencies <https://github.com/pyenv/pyenv/wiki#sugg
 
     .. tab:: Debian Ubuntu Mint System
 
-        .. code::
+        .. code-block:: shell
 
             sudo apt update
             sudo apt install libedit-dev libncurses5-dev
@@ -135,18 +135,18 @@ First install the `python dependencies <https://github.com/pyenv/pyenv/wiki#sugg
 
     .. tab:: RHEL CentOS Fedora System
 
-        .. code::
+        .. code-block:: shell
 
             sudo yum install openssl11-devel --allowerasing
             yum install gcc make patch zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel tk-devel libffi-devel xz-devel
 
     .. tab:: Arch Manjaro System
 
-        .. code::
+        .. code-block:: shell
 
             yay -S ncurses5-compat-libs
 
-    .. code::
+    .. code-block:: shell
 
         curl https://pyenv.run | bash
         echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
@@ -158,7 +158,7 @@ First install the `python dependencies <https://github.com/pyenv/pyenv/wiki#sugg
 
     You could install dependencies by using `Homebrew <https://brew.sh/>`_.
 
-    .. code::
+    .. code-block:: shell
 
         brew install ncurses
         brew install openssl readline sqlite3 xz zlib tcl-tk
@@ -171,7 +171,7 @@ Configure pyenv
 
 Create the virtual environement.
 
-.. code::
+.. code-block:: shell
 
     pyenv update
     pyenv install -v 3.12
@@ -180,7 +180,7 @@ Create the virtual environement.
 
 Install jupyter notebook
 
-.. code::
+.. code-block:: shell
 
     pip install ipython jupyter notebook
     pip install ipympl  # for matplotlib
@@ -195,23 +195,35 @@ Building From Source
 
 To install the lastest development version from `GitHub <https://github.com/BM32ESRF/laueimproc>`_ source, clone laueimproc using ``git`` and install it using ``pip``:
 
-.. code::
+.. warning::
+    Make shure you are in a virtual environement ``pyenv activate laueenv`` before excecuting the next lines!
 
-    git clone https://github.com/BM32ESRF/laueimproc.git
-    cd laueimproc/
+.. note::
+    It works for updating an already installed version as well.
+
+.. code-block:: shell
+
+    if ! [ -d ~/laueimproc_git ]
+    then  # download source code
+        git clone https://github.com/BM32ESRF/laueimproc.git ~/laueimproc_git
+        cd ~/laueimproc_git/
+    else  # update source code
+        cd ~/laueimproc_git/
+        git pull
+    fi
+    # pyenv activate laueenv  # be sure to be in a virtual env
     pip install --upgrade pip setuptools wheel
-    pip -v install --editable .[all]
-    source ~/.bashrc
+    pip -v install --editable .[all]  # compilation and linkage
 
 Building Documentation
 ^^^^^^^^^^^^^^^^^^^^^^
 
 You can also compile documentation locally (after the previous step).
 
-.. code::
+.. code-block:: shell
 
-    cd doc/ && make clean && make html && cd -
-    firefox doc/build/html/index.html &
+    cd ~/laueimproc_git/doc/ && make clean && make html && cd -
+    firefox ~/laueimproc_git/doc/build/html/index.html &
 
 
 Verification
@@ -220,9 +232,9 @@ Verification
 To check that everything is in order, you can run the test bench.
 For running tests, some dependencies are requiered, you can install it passing the option ``[all]`` to ``pip``.
 
-.. code::
+.. code-block:: shell
 
-    laueimproc test
+    laueimproc test  # `laueimproc test --help` to see how to skip some tests
 
 If it segfault, maybe the problem comes from c-files, you can delete it with ``find laueimproc/ -name *.so -exec rm {} \;``.
 
