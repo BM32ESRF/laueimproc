@@ -1,5 +1,3 @@
-/* Performs basic checks on input python types and values. */
-
 #define PY_SSIZE_T_CLEAN
 #include <numpy/arrayobject.h>
 #include <Python.h>
@@ -10,7 +8,7 @@ int ApplyToRois(
     PyArrayObject* out,
     PyByteArrayObject* data,
     PyArrayObject* bboxes,
-    int (*func)(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4])
+    int (*func)(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const npy_int16 bbox[4])
 ) {
     /* Apply the function on each roi.
 
@@ -28,7 +26,7 @@ int ApplyToRois(
     func : callable
         The function pointer to apply to each roi.
     */
-    npy_float* rawdata;
+    npy_float32* rawdata;
     npy_intp datalen = (npy_intp)PyByteArray_Size((PyObject *)data), shift = 0, area;
     const npy_intp n = PyArray_DIM(bboxes, 0);
     npy_int16 bbox[4];
@@ -38,7 +36,7 @@ int ApplyToRois(
         return 1;
     }
     datalen /= sizeof(npy_float);
-    rawdata = (npy_float *)PyByteArray_AsString((PyObject *)data);
+    rawdata = (npy_float32 *)PyByteArray_AsString((PyObject *)data);
     if (rawdata == NULL){
         fprintf(stderr, "data is empty\n");
         return 1;

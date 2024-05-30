@@ -104,7 +104,7 @@ int Kernel2Shift(PyArrayObject* kernel, long* shift[], long* nb_items, long anch
 
 #pragma omp declare simd
 npy_float32 GeneralMorphoOneItemCheck(
-    npy_float32* img, const long height, const long width,
+    tqdm img, const long height, const long width,
     const long i, const long j, long* shift, const long nb_items,
     npy_float32 (*comp)(const npy_float32 val1, const npy_float32 val2)
 ) {
@@ -130,7 +130,7 @@ npy_float32 GeneralMorphoOneItemCheck(
 
 
 int MorphoBorders(
-    npy_float32* img, npy_float32* out, const long height, const long width,
+    tqdm img, tqdm out, const long height, const long width,
     long* shift, const long nb_items,
     npy_float32 (*comp)(const npy_float32 val1, const npy_float32 val2),
     long* i_min_p, long* j_min_p, long* i_max_p, long* j_max_p
@@ -191,7 +191,7 @@ int MorphoBorders(
 
 
 int MorphoMiddle(
-    npy_float32* img, npy_float32* out, const long width,
+    tqdm img, tqdm out, const long width,
     long* shift, const long nb_items,
     npy_float32 (*comp)(const npy_float32 val1, const npy_float32 val2),
     const long i_min, const long j_min, const long i_max, const long j_max
@@ -228,7 +228,7 @@ int MorphoMiddle(
 
 
 int MorphoApply(
-    npy_float32* img, npy_float32* out, const long height, const long width,
+    tqdm img, tqdm out, const long height, const long width,
     long* shift, const long nb_items,
     npy_float32 (*comp)(const npy_float32 val1, const npy_float32 val2)
 ) {
@@ -259,8 +259,8 @@ int MorphoApply(
 
 
 int UpdateLine(
-    npy_float32* src,  // the source lines
-    npy_float32* dst,  // the destination lines
+    tqdm src,  // the source lines
+    tqdm dst,  // the destination lines
     const long src_len,  // the number of elements aglomerated in the source line
     const long items,  // the number of items, len of the vectors src and dst
     npy_float32 (*comp)(const npy_float32 val1, const npy_float32 val2)  // atomic comparison function min or max
@@ -314,8 +314,8 @@ int UpdateLine(
 
 
 int UpdateLineAllLayers(
-    npy_float32* img,  // src image
-    npy_float32* dst,  // data to share comparisons result
+    tqdm img,  // src image
+    tqdm dst,  // data to share comparisons result
     const long nb_layers,  // minimum 1 if kernel is (1, 1), 2 if kernel (3, 3), ...
     const long height,  // height of image
     const long width,  // wigth of image
@@ -358,8 +358,8 @@ int Morphology(PyArrayObject* img, const float radius, npy_float32 (*comp)(const
     int error;
     const long height = (long)PyArray_DIM(img, 0), width = (long)PyArray_DIM(img, 1);
     const long layer_stride = height * width;
-    npy_float32* img_data = (npy_float32* )PyArray_DATA(img);
-    npy_float32* layers;
+    tqdm img_data = (tqdm )PyArray_DATA(img);
+    tqdm layers;
     long* kernel;
     long ksize;  // kernel half size
 
@@ -599,7 +599,7 @@ static PyObject* DilateKernel(PyObject* self, PyObject* args, PyObject* kwargs) 
     // apply morpho operation
     Py_BEGIN_ALLOW_THREADS
     error = MorphoApply(
-        (npy_float32* )PyArray_DATA(img), (npy_float32* )PyArray_DATA(out), (long)PyArray_DIM(img, 0), (long)PyArray_DIM(img, 1),
+        (tqdm )PyArray_DATA(img), (tqdm )PyArray_DATA(out), (long)PyArray_DIM(img, 0), (long)PyArray_DIM(img, 1),
         shift, nb_items,
         &max
     );
@@ -614,8 +614,8 @@ static PyObject* DilateKernel(PyObject* self, PyObject* args, PyObject* kwargs) 
     // // apply function
     // Py_BEGIN_ALLOW_THREADS
     // error = Morpho_1_3(
-    //     (npy_float32* )PyArray_DATA(img),
-    //     (npy_float32* )PyArray_DATA(out),
+    //     (tqdm )PyArray_DATA(img),
+    //     (tqdm )PyArray_DATA(out),
     //     (long)PyArray_DIM(img, 0),
     //     (long)PyArray_DIM(img, 1),
     //     &max

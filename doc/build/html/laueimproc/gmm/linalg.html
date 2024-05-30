@@ -105,13 +105,13 @@ def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool = True, theta: bool = True) -
                 sin(\theta) &amp; cos(\theta) \\
             \end{pmatrix} \\
             \mathbf{D} = \begin{pmatrix} \lambda_1 &amp; 0 \\ 0 &amp; \lambda_2 \\ \end{pmatrix} \\
-            \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} = \mathbf{D} \\
+            \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} = \mathbf{D} \\
         \end{cases}\)
 
         \(\begin{cases}
-            tr( \mathbf{\Sigma} ) = tr( \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} )
+            tr( \mathbf{\Sigma} ) = tr( \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} )
             = tr(\mathbf{D}) \\
-            det( \mathbf{\Sigma} ) = det( \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} )
+            det( \mathbf{\Sigma} ) = det( \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} )
             = det(\mathbf{D}) \\
             \mathbf{\Sigma} \begin{pmatrix} cos(\theta) \\ sin(\theta) \\ \end{pmatrix}
             = \lambda_1 \begin{pmatrix} cos(\theta) \\ sin(\theta) \\ \end{pmatrix} \\
@@ -377,7 +377,7 @@ cos(\theta) &amp; -sin(\theta) \\
 sin(\theta) &amp; cos(\theta) \\
 \end{pmatrix} \\
 \mathbf{D} = \begin{pmatrix} \lambda_1 &amp; 0 \\ 0 &amp; \lambda_2 \\ \end{pmatrix} \\
-\mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} = \mathbf{D} \\
+\mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} = \mathbf{D} \\
 \end{cases}</span><script type="math/tex">\begin{cases}
 \lambda_1 >= \lambda_2 > 0 \\
 \theta \in \left]-\frac{\pi}{2}, \frac{\pi}{2}\right] \\
@@ -386,19 +386,19 @@ cos(\theta) & -sin(\theta) \\
 sin(\theta) & cos(\theta) \\
 \end{pmatrix} \\
 \mathbf{D} = \begin{pmatrix} \lambda_1 & 0 \\ 0 & \lambda_2 \\ \end{pmatrix} \\
-\mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} = \mathbf{D} \\
+\mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} = \mathbf{D} \\
 \end{cases}</script></span></p>
 <p><span><span class="MathJax_Preview">\begin{cases}
-tr( \mathbf{\Sigma} ) = tr( \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} )
+tr( \mathbf{\Sigma} ) = tr( \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} )
 = tr(\mathbf{D}) \\
-det( \mathbf{\Sigma} ) = det( \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} )
+det( \mathbf{\Sigma} ) = det( \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} )
 = det(\mathbf{D}) \\
 \mathbf{\Sigma} \begin{pmatrix} cos(\theta) \\ sin(\theta) \\ \end{pmatrix}
 = \lambda_1 \begin{pmatrix} cos(\theta) \\ sin(\theta) \\ \end{pmatrix} \\
 \end{cases}</span><script type="math/tex">\begin{cases}
-tr( \mathbf{\Sigma} ) = tr( \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} )
+tr( \mathbf{\Sigma} ) = tr( \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} )
 = tr(\mathbf{D}) \\
-det( \mathbf{\Sigma} ) = det( \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} )
+det( \mathbf{\Sigma} ) = det( \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} )
 = det(\mathbf{D}) \\
 \mathbf{\Sigma} \begin{pmatrix} cos(\theta) \\ sin(\theta) \\ \end{pmatrix}
 = \lambda_1 \begin{pmatrix} cos(\theta) \\ sin(\theta) \\ \end{pmatrix} \\
@@ -510,13 +510,13 @@ torch is 3.87 times slowler
                 sin(\theta) &amp; cos(\theta) \\
             \end{pmatrix} \\
             \mathbf{D} = \begin{pmatrix} \lambda_1 &amp; 0 \\ 0 &amp; \lambda_2 \\ \end{pmatrix} \\
-            \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} = \mathbf{D} \\
+            \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} = \mathbf{D} \\
         \end{cases}\)
 
         \(\begin{cases}
-            tr( \mathbf{\Sigma} ) = tr( \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} )
+            tr( \mathbf{\Sigma} ) = tr( \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} )
             = tr(\mathbf{D}) \\
-            det( \mathbf{\Sigma} ) = det( \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} )
+            det( \mathbf{\Sigma} ) = det( \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} )
             = det(\mathbf{D}) \\
             \mathbf{\Sigma} \begin{pmatrix} cos(\theta) \\ sin(\theta) \\ \end{pmatrix}
             = \lambda_1 \begin{pmatrix} cos(\theta) \\ sin(\theta) \\ \end{pmatrix} \\

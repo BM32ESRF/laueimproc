@@ -63,16 +63,36 @@ def compute_rois_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = Fal
     Returns
     -------
     pca : torch.Tensor
-        The concatenation of the colum vectors of the two std in pixel and the angle in radian
+        The concatenation of the colum vectors of the std in pixel and the angle in radian
         \( \left[ \sqrt{\lambda_1}, \sqrt{\lambda_2}, \theta \right] \) of shape (n, 3).
-        The diagonalization of \(mathbf{\Sigma}\)
+        The diagonalization of \(\mathbf{\Sigma}\)
         is performed with ``laueimproc.gmm.linalg.cov2d_to_eigtheta``.
 
     Examples
     --------
-    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from math import cos, sin
     &gt;&gt;&gt; import numpy as np
+    &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.improc.spot.pca import compute_rois_pca
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; lambda1, lambda2, theta = 100**2, 50**2, 0.3
+    &gt;&gt;&gt; rot = torch.asarray([[cos(theta), -sin(theta)], [sin(theta), cos(theta)]])
+    &gt;&gt;&gt; diag = torch.asarray([[lambda1, 0.0], [0.0, lambda2]])
+    &gt;&gt;&gt; cov = rot @ diag @ rot.mT
+    &gt;&gt;&gt; np.random.seed(0)
+    &gt;&gt;&gt; points = torch.from_numpy(np.random.multivariate_normal([0, 0], cov, 1_000_000)).to(int)
+    &gt;&gt;&gt; points -= points.amin(dim=0).unsqueeze(0)
+    &gt;&gt;&gt; height, width = int(points[:, 0].max() + 1), int(points[:, 1].max() + 1)
+    &gt;&gt;&gt; rois = points[:, 0]*width + points[:, 1]
+    &gt;&gt;&gt; rois = torch.bincount(rois, minlength=height*width).to(torch.float32)
+    &gt;&gt;&gt; rois /= rois.max()  # in [0, 1]
+    &gt;&gt;&gt; rois = rois.reshape(1, height, width)
+    &gt;&gt;&gt; compute_rois_pca(
+    ...     bytearray(rois.numpy().tobytes()),
+    ...     torch.asarray([[0, 0, height, width]], dtype=torch.int16)
+    ... )
+    tensor([[99.4423, 49.6588,  0.2973]])
+    &gt;&gt;&gt;
     &gt;&gt;&gt; rois = np.zeros((4, 5, 5), np.float32)
     &gt;&gt;&gt; rois[0, :, 2] = 1
     &gt;&gt;&gt; rois[1, range(5), range(5)] = 1
@@ -103,20 +123,15 @@ def compute_rois_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = Fal
             [0., 1., 1., 1., 0.],
             [0., 0., 1., 0., 0.],
             [0., 0., 1., 0., 0.]]], dtype=float32)
-    &gt;&gt;&gt; compute_rois_pca(
-    ...     bytearray(rois.tobytes()), torch.tensor([[0, 0, 5, 5]]*4, dtype=torch.int16)
-    ... )
-    tensor([[0.6325, 0.0000, 0.0000],
-            [0.8944, 0.0000, 0.7854],
-            [0.6325, 0.0000, 1.5708],
-            [0.4518, 0.2020, 0.0000]])
-    &gt;&gt;&gt; bboxes = torch.zeros((1000, 4), dtype=torch.int16)
-    &gt;&gt;&gt; bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
-    &gt;&gt;&gt; data = bytearray(
-    ...     np.linspace(0, 1, (bboxes[:, 2]*bboxes[:, 3]).sum(), dtype=np.float32).tobytes()
-    ... )
-    &gt;&gt;&gt; std1_std2_theta = compute_rois_pca(data, bboxes)
-    &gt;&gt;&gt; torch.allclose(std1_std2_theta[:, :2], compute_rois_pca(data, bboxes, _no_c=True)[:, :2])
+    &gt;&gt;&gt; data = bytearray(rois.tobytes())
+    &gt;&gt;&gt; bboxes = torch.asarray([[0, 0, 5, 5]]*4, dtype=torch.int16)
+    &gt;&gt;&gt; compute_rois_pca(data, bboxes)
+    tensor([[1.4142, 0.0000, 0.0000],
+            [2.0000, 0.0000, 0.7854],
+            [1.4142, 0.0000, 1.5708],
+            [1.1952, 0.5345, 0.0000]])
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; torch.allclose(_, compute_rois_pca(data, bboxes, _no_c=True))
     True
     &gt;&gt;&gt;
     &#34;&#34;&#34;
@@ -145,9 +160,11 @@ def compute_rois_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = Fal
     # compute pca
     mass = torch.sum(dup_w, dim=1, keepdim=True)  # (batch, 1, 1)
     mean = torch.sum(dup_w*obs, dim=1, keepdim=True) / mass  # (batch, 1, 2)
-    obs = dup_w * (obs - mean)  # centered and weighted
-    cov = obs.mT @ obs  # (batch, 2, 2)
-    mass *= mass
+    obs = (obs - mean).unsqueeze(-1)  # (batch, n_spots, 2, 1)
+    cov = torch.sum(  # (..., 2, 2)
+        dup_w.unsqueeze(3) * obs @ obs.mT,
+        dim=1, keepdim=False  # (..., n_spots, 2, 2) -&gt; (..., 2, 2)
+    )
     cov /= mass
     eig1, eig2, theta = cov2d_to_eigtheta(cov).mT  # diagonalization
     std1, std2 = torch.sqrt(eig1), torch.sqrt(eig2)  # var to std
@@ -178,15 +195,35 @@ for each spots, of shape (n, 4). It doesn't have to be c contiguous.</dd>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>pca</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The concatenation of the colum vectors of the two std in pixel and the angle in radian
+<dd>The concatenation of the colum vectors of the std in pixel and the angle in radian
 <span><span class="MathJax_Preview"> \left[ \sqrt{\lambda_1}, \sqrt{\lambda_2}, \theta \right] </span><script type="math/tex"> \left[ \sqrt{\lambda_1}, \sqrt{\lambda_2}, \theta \right] </script></span> of shape (n, 3).
-The diagonalization of <span><span class="MathJax_Preview">mathbf{\Sigma}</span><script type="math/tex">mathbf{\Sigma}</script></span>
+The diagonalization of <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span>
 is performed with <code><a title="laueimproc.gmm.linalg.cov2d_to_eigtheta" href="../../gmm/linalg.html#laueimproc.gmm.linalg.cov2d_to_eigtheta">cov2d_to_eigtheta()</a></code>.</dd>
 </dl>
 <h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+<pre><code class="language-python-repl">&gt;&gt;&gt; from math import cos, sin
 &gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.improc.spot.pca import compute_rois_pca
+&gt;&gt;&gt;
+&gt;&gt;&gt; lambda1, lambda2, theta = 100**2, 50**2, 0.3
+&gt;&gt;&gt; rot = torch.asarray([[cos(theta), -sin(theta)], [sin(theta), cos(theta)]])
+&gt;&gt;&gt; diag = torch.asarray([[lambda1, 0.0], [0.0, lambda2]])
+&gt;&gt;&gt; cov = rot @ diag @ rot.mT
+&gt;&gt;&gt; np.random.seed(0)
+&gt;&gt;&gt; points = torch.from_numpy(np.random.multivariate_normal([0, 0], cov, 1_000_000)).to(int)
+&gt;&gt;&gt; points -= points.amin(dim=0).unsqueeze(0)
+&gt;&gt;&gt; height, width = int(points[:, 0].max() + 1), int(points[:, 1].max() + 1)
+&gt;&gt;&gt; rois = points[:, 0]*width + points[:, 1]
+&gt;&gt;&gt; rois = torch.bincount(rois, minlength=height*width).to(torch.float32)
+&gt;&gt;&gt; rois /= rois.max()  # in [0, 1]
+&gt;&gt;&gt; rois = rois.reshape(1, height, width)
+&gt;&gt;&gt; compute_rois_pca(
+...     bytearray(rois.numpy().tobytes()),
+...     torch.asarray([[0, 0, height, width]], dtype=torch.int16)
+... )
+tensor([[99.4423, 49.6588,  0.2973]])
+&gt;&gt;&gt;
 &gt;&gt;&gt; rois = np.zeros((4, 5, 5), np.float32)
 &gt;&gt;&gt; rois[0, :, 2] = 1
 &gt;&gt;&gt; rois[1, range(5), range(5)] = 1
@@ -217,20 +254,15 @@ array([[[0., 0., 1., 0., 0.],
         [0., 1., 1., 1., 0.],
         [0., 0., 1., 0., 0.],
         [0., 0., 1., 0., 0.]]], dtype=float32)
-&gt;&gt;&gt; compute_rois_pca(
-...     bytearray(rois.tobytes()), torch.tensor([[0, 0, 5, 5]]*4, dtype=torch.int16)
-... )
-tensor([[0.6325, 0.0000, 0.0000],
-        [0.8944, 0.0000, 0.7854],
-        [0.6325, 0.0000, 1.5708],
-        [0.4518, 0.2020, 0.0000]])
-&gt;&gt;&gt; bboxes = torch.zeros((1000, 4), dtype=torch.int16)
-&gt;&gt;&gt; bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
-&gt;&gt;&gt; data = bytearray(
-...     np.linspace(0, 1, (bboxes[:, 2]*bboxes[:, 3]).sum(), dtype=np.float32).tobytes()
-... )
-&gt;&gt;&gt; std1_std2_theta = compute_rois_pca(data, bboxes)
-&gt;&gt;&gt; torch.allclose(std1_std2_theta[:, :2], compute_rois_pca(data, bboxes, _no_c=True)[:, :2])
+&gt;&gt;&gt; data = bytearray(rois.tobytes())
+&gt;&gt;&gt; bboxes = torch.asarray([[0, 0, 5, 5]]*4, dtype=torch.int16)
+&gt;&gt;&gt; compute_rois_pca(data, bboxes)
+tensor([[1.4142, 0.0000, 0.0000],
+        [2.0000, 0.0000, 0.7854],
+        [1.4142, 0.0000, 1.5708],
+        [1.1952, 0.5345, 0.0000]])
+&gt;&gt;&gt;
+&gt;&gt;&gt; torch.allclose(_, compute_rois_pca(data, bboxes, _no_c=True))
 True
 &gt;&gt;&gt;
 </code></pre></div>
@@ -254,16 +286,36 @@ True
     Returns
     -------
     pca : torch.Tensor
-        The concatenation of the colum vectors of the two std in pixel and the angle in radian
+        The concatenation of the colum vectors of the std in pixel and the angle in radian
         \( \left[ \sqrt{\lambda_1}, \sqrt{\lambda_2}, \theta \right] \) of shape (n, 3).
-        The diagonalization of \(mathbf{\Sigma}\)
+        The diagonalization of \(\mathbf{\Sigma}\)
         is performed with ``laueimproc.gmm.linalg.cov2d_to_eigtheta``.
 
     Examples
     --------
-    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from math import cos, sin
     &gt;&gt;&gt; import numpy as np
+    &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.improc.spot.pca import compute_rois_pca
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; lambda1, lambda2, theta = 100**2, 50**2, 0.3
+    &gt;&gt;&gt; rot = torch.asarray([[cos(theta), -sin(theta)], [sin(theta), cos(theta)]])
+    &gt;&gt;&gt; diag = torch.asarray([[lambda1, 0.0], [0.0, lambda2]])
+    &gt;&gt;&gt; cov = rot @ diag @ rot.mT
+    &gt;&gt;&gt; np.random.seed(0)
+    &gt;&gt;&gt; points = torch.from_numpy(np.random.multivariate_normal([0, 0], cov, 1_000_000)).to(int)
+    &gt;&gt;&gt; points -= points.amin(dim=0).unsqueeze(0)
+    &gt;&gt;&gt; height, width = int(points[:, 0].max() + 1), int(points[:, 1].max() + 1)
+    &gt;&gt;&gt; rois = points[:, 0]*width + points[:, 1]
+    &gt;&gt;&gt; rois = torch.bincount(rois, minlength=height*width).to(torch.float32)
+    &gt;&gt;&gt; rois /= rois.max()  # in [0, 1]
+    &gt;&gt;&gt; rois = rois.reshape(1, height, width)
+    &gt;&gt;&gt; compute_rois_pca(
+    ...     bytearray(rois.numpy().tobytes()),
+    ...     torch.asarray([[0, 0, height, width]], dtype=torch.int16)
+    ... )
+    tensor([[99.4423, 49.6588,  0.2973]])
+    &gt;&gt;&gt;
     &gt;&gt;&gt; rois = np.zeros((4, 5, 5), np.float32)
     &gt;&gt;&gt; rois[0, :, 2] = 1
     &gt;&gt;&gt; rois[1, range(5), range(5)] = 1
@@ -294,20 +346,15 @@ True
             [0., 1., 1., 1., 0.],
             [0., 0., 1., 0., 0.],
             [0., 0., 1., 0., 0.]]], dtype=float32)
-    &gt;&gt;&gt; compute_rois_pca(
-    ...     bytearray(rois.tobytes()), torch.tensor([[0, 0, 5, 5]]*4, dtype=torch.int16)
-    ... )
-    tensor([[0.6325, 0.0000, 0.0000],
-            [0.8944, 0.0000, 0.7854],
-            [0.6325, 0.0000, 1.5708],
-            [0.4518, 0.2020, 0.0000]])
-    &gt;&gt;&gt; bboxes = torch.zeros((1000, 4), dtype=torch.int16)
-    &gt;&gt;&gt; bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
-    &gt;&gt;&gt; data = bytearray(
-    ...     np.linspace(0, 1, (bboxes[:, 2]*bboxes[:, 3]).sum(), dtype=np.float32).tobytes()
-    ... )
-    &gt;&gt;&gt; std1_std2_theta = compute_rois_pca(data, bboxes)
-    &gt;&gt;&gt; torch.allclose(std1_std2_theta[:, :2], compute_rois_pca(data, bboxes, _no_c=True)[:, :2])
+    &gt;&gt;&gt; data = bytearray(rois.tobytes())
+    &gt;&gt;&gt; bboxes = torch.asarray([[0, 0, 5, 5]]*4, dtype=torch.int16)
+    &gt;&gt;&gt; compute_rois_pca(data, bboxes)
+    tensor([[1.4142, 0.0000, 0.0000],
+            [2.0000, 0.0000, 0.7854],
+            [1.4142, 0.0000, 1.5708],
+            [1.1952, 0.5345, 0.0000]])
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; torch.allclose(_, compute_rois_pca(data, bboxes, _no_c=True))
     True
     &gt;&gt;&gt;
     &#34;&#34;&#34;
@@ -336,9 +383,11 @@ True
     # compute pca
     mass = torch.sum(dup_w, dim=1, keepdim=True)  # (batch, 1, 1)
     mean = torch.sum(dup_w*obs, dim=1, keepdim=True) / mass  # (batch, 1, 2)
-    obs = dup_w * (obs - mean)  # centered and weighted
-    cov = obs.mT @ obs  # (batch, 2, 2)
-    mass *= mass
+    obs = (obs - mean).unsqueeze(-1)  # (batch, n_spots, 2, 1)
+    cov = torch.sum(  # (..., 2, 2)
+        dup_w.unsqueeze(3) * obs @ obs.mT,
+        dim=1, keepdim=False  # (..., n_spots, 2, 2) -&gt; (..., 2, 2)
+    )
     cov /= mass
     eig1, eig2, theta = cov2d_to_eigtheta(cov).mT  # diagonalization
     std1, std2 = torch.sqrt(eig1), torch.sqrt(eig2)  # var to std

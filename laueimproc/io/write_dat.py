@@ -3,6 +3,7 @@
 """Write a dat file."""
 
 import datetime
+import math
 import pathlib
 import typing
 
@@ -95,13 +96,8 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".dat")
     assert isinstance(diagram, Diagram), diagram.__class__.__name__
 
-    # positions, _, magnitudes, infodict = diagram.fit_gaussian(eigtheta=True)
-    # positions = positions.squeeze(2)
-    positions, _, infodict = diagram.fit_gaussian_em(eigtheta=True)
-    magnitudes = diagram.compute_rois_max()[:, 2]
-
     backgrounds = torch.sum(diagram.rawrois - diagram.rois, dim=(1, 2))
-    backgrounds /= (diagram.bboxes[:, 2]*diagram.bboxes[:, 3]).to(backgrounds.dtype)
+    backgrounds /= diagram.area.to(backgrounds.dtype)
 
     # header
     file_content = (
@@ -113,19 +109,19 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
     )
 
     # content
-    for pos, mag, bkg, two_std, theta, bary, pixmax in zip(
-        positions.tolist(),
-        (65535*magnitudes).tolist(), (65535*backgrounds).tolist(),
-        (2*torch.sqrt(infodict["eigtheta"][:, :2])).tolist(),
-        torch.rad2deg(infodict["eigtheta"][:, 2]).tolist(),
-        diagram.compute_rois_centroid().tolist(),
+    for pos, mag, bkg, std1_std2_theta, pixmax in zip(
+        diagram.compute_rois_centroid(conv="xy").tolist(),
+        (65535*diagram.compute_rois_max()[:, 2]).tolist(),
+        (65535*backgrounds).tolist(),
+        diagram.compute_rois_pca().tolist(),
         (65535*torch.amax(diagram.rawrois, dim=(1, 2))).tolist(),
     ):
         file_content += (
-            f"{pos[1]+0.5:9.3f} {pos[0]+0.5:9.3f} "  # ij to xy
+            f"{pos[0]:9.3f} {pos[1]:9.3f} "
             f"{mag+bkg:11.1f} {mag:11.1f} "
-            f"{two_std[0]:12.3f} {two_std[1]:12.3f} {theta:16.1f} "
-            f"{pos[1]-bary[1]:6.3f} {pos[0]-bary[0]:6.3f} "  # ij to xy
+            f"{2*std1_std2_theta[0]:12.3f} {2*std1_std2_theta[1]:12.3f} "
+            f"{math.degrees(std1_std2_theta[2]):16.1f} "
+            f"{0.0:6.3f} {0.0:6.3f} "
             f"{bkg:8.1f} {pixmax:7.1f}\n"
         )
 

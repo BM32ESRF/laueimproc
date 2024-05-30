@@ -9,9 +9,9 @@
 #include <stdio.h>
 
 
-int RoiNbPeaks(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
+int RoiNbPeaks(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const npy_int16 bbox[4]) {
     npy_int16 nbpeaks = 0;
-    npy_float weight;
+    npy_float32 weight;
     long area = (long)bbox[2] * (long)bbox[3];
     long im1_s, i_s, ip1_s;
     long jm1, j, jp1;

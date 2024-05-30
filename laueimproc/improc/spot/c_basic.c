@@ -9,10 +9,10 @@
 #include <stdio.h>
 
 
-int RoiCentroid(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
-    npy_float weight, total_weight = 0;
+int RoiCentroid(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const npy_int16 bbox[4]) {
+    npy_float32 weight, total_weight = 0;
     long shift;
-    npy_float pos[2], bary[2] = {0, 0};
+    npy_float32 pos[2], bary[2] = {0, 0};
     for (long i = 0; i < bbox[2]; ++i) {
         shift = (long)bbox[3] * i;
         pos[0] = (npy_float)i;
@@ -27,16 +27,16 @@ int RoiCentroid(PyArrayObject* out, const npy_intp i, const npy_float* roi, cons
     bary[0] *= total_weight; bary[1] *= total_weight;
     bary[0] += 0.5; bary[1] += 0.5;
     bary[0] += (npy_float)bbox[0]; bary[1] += (npy_float)bbox[1];  // relative to absolute base
-    *(npy_float *)PyArray_GETPTR2(out, i, 0) = bary[0];
-    *(npy_float *)PyArray_GETPTR2(out, i, 1) = bary[1];
+    *(npy_float32 *)PyArray_GETPTR2(out, i, 0) = bary[0];
+    *(npy_float32 *)PyArray_GETPTR2(out, i, 1) = bary[1];
     return 0;
 }
 
 
-int RoiInertia(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
-    npy_float weight, inertia = 0;
+int RoiInertia(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const npy_int16 bbox[4]) {
+    npy_float32 weight, inertia = 0;
     long shift;
-    npy_float pos[2], bary[2] = {0, 0};
+    npy_float32 pos[2], bary[2] = {0, 0};
 
     // barycenter
     for (long i = 0; i < bbox[2]; ++i) {
@@ -65,13 +65,13 @@ int RoiInertia(PyArrayObject* out, const npy_intp i, const npy_float* roi, const
             inertia += weight * (pos[0] + pos[1]);  // m * r**2
         }
     }
-    *(npy_float *)PyArray_GETPTR1(out, i) = inertia;
+    *(npy_float32 *)PyArray_GETPTR1(out, i) = inertia;
     return 0;
 }
 
 
-int RoiMax(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
-    npy_float max = roi[0];
+int RoiMax(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const npy_int16 bbox[4]) {
+    npy_float32 max = roi[0];
     long argmax = 0;
     for (long k = 1; k < bbox[2]*bbox[3]; ++k) {
         if (roi[k] > max) {
@@ -79,19 +79,19 @@ int RoiMax(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy
             max = roi[k];
         }
     }
-    *(npy_float *)PyArray_GETPTR2(out, i, 0) = (npy_float)bbox[0] + 0.5 + (npy_float)(argmax / bbox[3]);
-    *(npy_float *)PyArray_GETPTR2(out, i, 1) = (npy_float)bbox[1] + 0.5 + (npy_float)(argmax % bbox[3]);
-    *(npy_float *)PyArray_GETPTR2(out, i, 2) = max;
+    *(npy_float32 *)PyArray_GETPTR2(out, i, 0) = (npy_float)bbox[0] + 0.5 + (npy_float)(argmax / bbox[3]);
+    *(npy_float32 *)PyArray_GETPTR2(out, i, 1) = (npy_float)bbox[1] + 0.5 + (npy_float)(argmax % bbox[3]);
+    *(npy_float32 *)PyArray_GETPTR2(out, i, 2) = max;
     return 0;
 }
 
 
-int RoiSum(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
-    npy_float sum = roi[0];
+int RoiSum(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const npy_int16 bbox[4]) {
+    npy_float32 sum = roi[0];
     for (long k = 1; k < bbox[2]*bbox[3]; ++k) {
         sum += roi[k];
     }
-    *(npy_float *)PyArray_GETPTR1(out, i) = sum;
+    *(npy_float32 *)PyArray_GETPTR1(out, i) = sum;
     return 0;
 }
 

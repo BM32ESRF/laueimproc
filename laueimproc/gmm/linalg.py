@@ -75,13 +75,13 @@ def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool = True, theta: bool = True) -
                 sin(\theta) & cos(\theta) \\
             \end{pmatrix} \\
             \mathbf{D} = \begin{pmatrix} \lambda_1 & 0 \\ 0 & \lambda_2 \\ \end{pmatrix} \\
-            \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} = \mathbf{D} \\
+            \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} = \mathbf{D} \\
         \end{cases}\)
 
         \(\begin{cases}
-            tr( \mathbf{\Sigma} ) = tr( \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} )
+            tr( \mathbf{\Sigma} ) = tr( \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} )
             = tr(\mathbf{D}) \\
-            det( \mathbf{\Sigma} ) = det( \mathbf{R} \mathbf{\Sigma} \mathbf{R}^{-1} )
+            det( \mathbf{\Sigma} ) = det( \mathbf{R}^{-1} \mathbf{\Sigma} \mathbf{R} )
             = det(\mathbf{D}) \\
             \mathbf{\Sigma} \begin{pmatrix} cos(\theta) \\ sin(\theta) \\ \end{pmatrix}
             = \lambda_1 \begin{pmatrix} cos(\theta) \\ sin(\theta) \\ \end{pmatrix} \\

@@ -47,6 +47,9 @@ class BaseDiagram:
 
     Attributes
     ----------
+    area : torch.Tensor
+        The int32 area of each bboxes.
+        Return None until spots are initialized.
     bboxes : torch.Tensor or None
         The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
         for each spots, of shape (n, 4) (readonly).
@@ -266,6 +269,33 @@ class BaseDiagram:
             self._properties[name] = ((self.state if erasable else None), value)
 
     @property
+    def area(self) -> typing.Union[None, torch.Tensor]:
+        """Return the int32 area of each bboxes.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.base_diagram import BaseDiagram
+        >>> from laueimproc.io import get_sample
+        >>> diagram = BaseDiagram(get_sample())
+        >>> print(diagram.area)
+        None
+        >>> diagram.find_spots()
+        >>> print(diagram.area)  # doctest: +ELLIPSIS
+        tensor([289,  36,  33,  20,  40,  81,  49,  15,  36,  25,  36, 110,  49,  56,
+                 64,  56,  72,  56,  90, 143,  64,  42,  36,  25, 169, 110,  81,  64,
+                100,  49,  36,  42, 121,  36,  36, 121,  81,  56,  72,  80, 110,  56,
+                ...,
+                100,  25, 225, 182,  72, 156,  90,  25, 320, 288, 144, 143, 240, 208,
+                 64,  81,  25,  25, 144, 323, 300,  90, 144, 240, 270, 168, 352, 270,
+                210, 456], dtype=torch.int32)
+        >>>
+        """
+        if not self.is_init():
+            return None
+        shapes = self.bboxes[:, 2:].to(torch.int32)
+        return shapes[:, 0] * shapes[:, 1]
+
+    @property
     def bboxes(self) -> typing.Union[None, torch.Tensor]:
         """Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width).
 
@@ -281,7 +311,7 @@ class BaseDiagram:
         tensor([[   0,    0,   17,   17],
                 [   0,   20,    3,   12],
                 [   0, 1949,    3,   11],
-                ...
+                ...,
                 [1903,  180,   18,   15],
                 [1930, 1967,   15,   14],
                 [1963, 1170,   24,   19]], dtype=torch.int16)

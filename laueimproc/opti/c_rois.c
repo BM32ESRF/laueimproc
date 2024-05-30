@@ -30,13 +30,13 @@ int FindDataBoundaries(npy_int64* data_indices_p[], PyArrayObject* bboxes) {
 }
 
 
-int FillRawfromBBoxesImg(npy_float* rawdata, PyArrayObject* bboxes, PyArrayObject* img_cont) {
+int FillRawfromBBoxesImg(npy_float32* rawdata, PyArrayObject* bboxes, PyArrayObject* img_cont) {
     // copy the patches into the flatten rois.
     const npy_intp n = PyArray_DIM(bboxes, 0);
     const npy_intp img_shape[2] = {PyArray_DIM(img_cont, 0), PyArray_DIM(img_cont, 1)};
     npy_intp h, anchor_h, anchor_w, height, width;
     npy_intp shift = 0;
-    npy_float* imgdata;
+    npy_float32* imgdata;
 
     imgdata = PyArray_DATA(img_cont);
 
@@ -58,7 +58,7 @@ int FillRawfromBBoxesImg(npy_float* rawdata, PyArrayObject* bboxes, PyArrayObjec
 }
 
 
-int FillRawfromShapesRois(npy_float* rawdata, PyArrayObject* shapes, PyArrayObject* rois) {
+int FillRawfromShapesRois(npy_float32* rawdata, PyArrayObject* shapes, PyArrayObject* rois) {
     // copy the rois into the flatten rois.
     const npy_intp n = PyArray_DIM(shapes, 0);
     npy_int16 height, width;
@@ -68,7 +68,7 @@ int FillRawfromShapesRois(npy_float* rawdata, PyArrayObject* shapes, PyArrayObje
         width = *(npy_int16 *)PyArray_GETPTR2(shapes, i, 1);
         for (npy_int16 h = 0; h < height; ++h) {
             for (npy_int16 w = 0; w < width; ++w) {
-                rawdata[shift] = *(npy_float *)PyArray_GETPTR3(rois, i, h, w);
+                rawdata[shift] = *(npy_float32 *)PyArray_GETPTR3(rois, i, h, w);
                 ++shift;
             }
         }
@@ -77,13 +77,13 @@ int FillRawfromShapesRois(npy_float* rawdata, PyArrayObject* shapes, PyArrayObje
 }
 
 
-int FillRois(PyArrayObject* rois, npy_float* data, const Py_ssize_t datalen, PyArrayObject* shapes) {
+int FillRois(PyArrayObject* rois, npy_float32* data, const Py_ssize_t datalen, PyArrayObject* shapes) {
     // fill and pad the rois
     npy_intp stride;
     const npy_intp rois_shape[3] = {PyArray_DIM(rois, 0), PyArray_DIM(rois, 1), PyArray_DIM(rois, 2)};
     npy_intp height, width;
     npy_intp shift = 0;
-    npy_float *roisdata = PyArray_DATA(rois);  // ok because it is c contiguous
+    npy_float32 *roisdata = PyArray_DATA(rois);  // ok because it is c contiguous
     for (npy_intp i = 0; i < rois_shape[0]; ++i) {
         height = (npy_intp)(*(npy_int16 *)PyArray_GETPTR2(shapes, i, 0));
         width = (npy_intp)(*(npy_int16 *)PyArray_GETPTR2(shapes, i, 1));
@@ -203,11 +203,11 @@ int ReorderBBoxes(PyArrayObject* newbboxes, Py_ssize_t* newdatalen, PyArrayObjec
 
 int ReorderData(PyObject* newdata, PyObject* data, PyArrayObject* indices, npy_int64* data_indices) {
     const npy_intp len_indices = PyArray_DIM(indices, 0);
-    npy_float *rawnewdata, *rawdata;
+    npy_float32 *rawnewdata, *rawdata;
     npy_int64 index, shift_in, shift_out, size;
 
-    rawdata = (npy_float *)PyByteArray_AsString(data);
-    rawnewdata = (npy_float *)PyByteArray_AsString(newdata);
+    rawdata = (npy_float32 *)PyByteArray_AsString(data);
+    rawnewdata = (npy_float32 *)PyByteArray_AsString(newdata);
     if (rawnewdata == NULL) {
         fprintf(stderr, "no content in 'newdata'\n");
         return 1;
@@ -306,7 +306,7 @@ static PyObject* FilterByIndices(PyObject* self, PyObject* args) {
 
 static PyObject* ImgBBoxes2Raw(PyObject* self, PyObject* args) {
     PyObject* data = NULL;
-    npy_float* rawdata = NULL;
+    npy_float32* rawdata = NULL;
     PyArrayObject *img, *img_cont, *bboxes;
     Py_ssize_t datalen;
     int error;
@@ -337,7 +337,7 @@ static PyObject* ImgBBoxes2Raw(PyObject* self, PyObject* args) {
     if (data == NULL) {
         return NULL;
     }
-    rawdata = (npy_float *)PyByteArray_AsString(data);
+    rawdata = (npy_float32 *)PyByteArray_AsString(data);
     if (rawdata == NULL) {
         Py_DECREF(data);
         return NULL;
@@ -364,14 +364,14 @@ static PyObject* RawShapes2Rois(PyObject* self, PyObject* args) {
     PyArrayObject *rois, *shapes;
     npy_intp shape[3];
     PyByteArrayObject* data;
-    npy_float* rawdata;
+    npy_float32* rawdata;
     Py_ssize_t datalen;
     int error;
 
     if (!PyArg_ParseTuple(args, "YO!", &data, &PyArray_Type, &shapes)) {
         return NULL;
     }
-    rawdata = (npy_float *)PyByteArray_AsString((PyObject *)data);
+    rawdata = (npy_float32 *)PyByteArray_AsString((PyObject *)data);
 
     // verifications
     if (PyByteArray_Size((PyObject *)data) % sizeof(npy_float)) {
@@ -417,7 +417,7 @@ static PyObject* RawShapes2Rois(PyObject* self, PyObject* args) {
 
 static PyObject* RoisShapes2Raw(PyObject* self, PyObject* args) {
     PyObject* data = NULL;
-    npy_float* rawdata = NULL;
+    npy_float32* rawdata = NULL;
     PyArrayObject *rois, *shapes;
     Py_ssize_t datalen;
     int error;
@@ -452,7 +452,7 @@ static PyObject* RoisShapes2Raw(PyObject* self, PyObject* args) {
     if (data == NULL) {
         return NULL;
     }
-    rawdata = (npy_float *)PyByteArray_AsString(data);
+    rawdata = (npy_float32 *)PyByteArray_AsString(data);
     if (rawdata == NULL) {
         Py_DECREF(data);
         return NULL;

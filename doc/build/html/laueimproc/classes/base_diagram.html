@@ -77,6 +77,9 @@ class BaseDiagram:
 
     Attributes
     ----------
+    area : torch.Tensor
+        The int32 area of each bboxes.
+        Return None until spots are initialized.
     bboxes : torch.Tensor or None
         The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
         for each spots, of shape (n, 4) (readonly).
@@ -296,6 +299,33 @@ class BaseDiagram:
             self._properties[name] = ((self.state if erasable else None), value)
 
     @property
+    def area(self) -&gt; typing.Union[None, torch.Tensor]:
+        &#34;&#34;&#34;Return the int32 area of each bboxes.
+
+        Examples
+        --------
+        &gt;&gt;&gt; from laueimproc.classes.base_diagram import BaseDiagram
+        &gt;&gt;&gt; from laueimproc.io import get_sample
+        &gt;&gt;&gt; diagram = BaseDiagram(get_sample())
+        &gt;&gt;&gt; print(diagram.area)
+        None
+        &gt;&gt;&gt; diagram.find_spots()
+        &gt;&gt;&gt; print(diagram.area)  # doctest: +ELLIPSIS
+        tensor([289,  36,  33,  20,  40,  81,  49,  15,  36,  25,  36, 110,  49,  56,
+                 64,  56,  72,  56,  90, 143,  64,  42,  36,  25, 169, 110,  81,  64,
+                100,  49,  36,  42, 121,  36,  36, 121,  81,  56,  72,  80, 110,  56,
+                ...,
+                100,  25, 225, 182,  72, 156,  90,  25, 320, 288, 144, 143, 240, 208,
+                 64,  81,  25,  25, 144, 323, 300,  90, 144, 240, 270, 168, 352, 270,
+                210, 456], dtype=torch.int32)
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        if not self.is_init():
+            return None
+        shapes = self.bboxes[:, 2:].to(torch.int32)
+        return shapes[:, 0] * shapes[:, 1]
+
+    @property
     def bboxes(self) -&gt; typing.Union[None, torch.Tensor]:
         &#34;&#34;&#34;Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width).
 
@@ -311,7 +341,7 @@ class BaseDiagram:
         tensor([[   0,    0,   17,   17],
                 [   0,   20,    3,   12],
                 [   0, 1949,    3,   11],
-                ...
+                ...,
                 [1903,  180,   18,   15],
                 [1930, 1967,   15,   14],
                 [1963, 1170,   24,   19]], dtype=torch.int16)
@@ -947,6 +977,9 @@ class BaseDiagram:
 <div class="desc"><p>A Basic diagram with the fondamental structure.</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
+<dt><strong><code>area</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The int32 area of each bboxes.
+Return None until spots are initialized.</dd>
 <dt><strong><code>bboxes</code></strong> :&ensp;<code>torch.Tensor</code> or <code>None</code></dt>
 <dd>The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
 for each spots, of shape (n, 4) (readonly).
@@ -983,6 +1016,9 @@ For memory management, it is better to provide a pathlike rather than an array.<
 
     Attributes
     ----------
+    area : torch.Tensor
+        The int32 area of each bboxes.
+        Return None until spots are initialized.
     bboxes : torch.Tensor or None
         The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
         for each spots, of shape (n, 4) (readonly).
@@ -1202,6 +1238,33 @@ For memory management, it is better to provide a pathlike rather than an array.<
             self._properties[name] = ((self.state if erasable else None), value)
 
     @property
+    def area(self) -&gt; typing.Union[None, torch.Tensor]:
+        &#34;&#34;&#34;Return the int32 area of each bboxes.
+
+        Examples
+        --------
+        &gt;&gt;&gt; from laueimproc.classes.base_diagram import BaseDiagram
+        &gt;&gt;&gt; from laueimproc.io import get_sample
+        &gt;&gt;&gt; diagram = BaseDiagram(get_sample())
+        &gt;&gt;&gt; print(diagram.area)
+        None
+        &gt;&gt;&gt; diagram.find_spots()
+        &gt;&gt;&gt; print(diagram.area)  # doctest: +ELLIPSIS
+        tensor([289,  36,  33,  20,  40,  81,  49,  15,  36,  25,  36, 110,  49,  56,
+                 64,  56,  72,  56,  90, 143,  64,  42,  36,  25, 169, 110,  81,  64,
+                100,  49,  36,  42, 121,  36,  36, 121,  81,  56,  72,  80, 110,  56,
+                ...,
+                100,  25, 225, 182,  72, 156,  90,  25, 320, 288, 144, 143, 240, 208,
+                 64,  81,  25,  25, 144, 323, 300,  90, 144, 240, 270, 168, 352, 270,
+                210, 456], dtype=torch.int32)
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        if not self.is_init():
+            return None
+        shapes = self.bboxes[:, 2:].to(torch.int32)
+        return shapes[:, 0] * shapes[:, 1]
+
+    @property
     def bboxes(self) -&gt; typing.Union[None, torch.Tensor]:
         &#34;&#34;&#34;Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width).
 
@@ -1217,7 +1280,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         tensor([[   0,    0,   17,   17],
                 [   0,   20,    3,   12],
                 [   0, 1949,    3,   11],
-                ...
+                ...,
                 [1903,  180,   18,   15],
                 [1930, 1967,   15,   14],
                 [1963, 1170,   24,   19]], dtype=torch.int16)
@@ -1813,6 +1876,58 @@ For memory management, it is better to provide a pathlike rather than an array.<
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="laueimproc.classes.base_diagram.BaseDiagram.area"><code class="name">var <span class="ident">area</span> : Optional[None]</code></dt>
+<dd>
+<div class="desc"><p>Return the int32 area of each bboxes.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.base_diagram import BaseDiagram
+&gt;&gt;&gt; from laueimproc.io import get_sample
+&gt;&gt;&gt; diagram = BaseDiagram(get_sample())
+&gt;&gt;&gt; print(diagram.area)
+None
+&gt;&gt;&gt; diagram.find_spots()
+&gt;&gt;&gt; print(diagram.area)  # doctest: +ELLIPSIS
+tensor([289,  36,  33,  20,  40,  81,  49,  15,  36,  25,  36, 110,  49,  56,
+         64,  56,  72,  56,  90, 143,  64,  42,  36,  25, 169, 110,  81,  64,
+        100,  49,  36,  42, 121,  36,  36, 121,  81,  56,  72,  80, 110,  56,
+        ...,
+        100,  25, 225, 182,  72, 156,  90,  25, 320, 288, 144, 143, 240, 208,
+         64,  81,  25,  25, 144, 323, 300,  90, 144, 240, 270, 168, 352, 270,
+        210, 456], dtype=torch.int32)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def area(self) -&gt; typing.Union[None, torch.Tensor]:
+    &#34;&#34;&#34;Return the int32 area of each bboxes.
+
+    Examples
+    --------
+    &gt;&gt;&gt; from laueimproc.classes.base_diagram import BaseDiagram
+    &gt;&gt;&gt; from laueimproc.io import get_sample
+    &gt;&gt;&gt; diagram = BaseDiagram(get_sample())
+    &gt;&gt;&gt; print(diagram.area)
+    None
+    &gt;&gt;&gt; diagram.find_spots()
+    &gt;&gt;&gt; print(diagram.area)  # doctest: +ELLIPSIS
+    tensor([289,  36,  33,  20,  40,  81,  49,  15,  36,  25,  36, 110,  49,  56,
+             64,  56,  72,  56,  90, 143,  64,  42,  36,  25, 169, 110,  81,  64,
+            100,  49,  36,  42, 121,  36,  36, 121,  81,  56,  72,  80, 110,  56,
+            ...,
+            100,  25, 225, 182,  72, 156,  90,  25, 320, 288, 144, 143, 240, 208,
+             64,  81,  25,  25, 144, 323, 300,  90, 144, 240, 270, 168, 352, 270,
+            210, 456], dtype=torch.int32)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not self.is_init():
+        return None
+    shapes = self.bboxes[:, 2:].to(torch.int32)
+    return shapes[:, 0] * shapes[:, 1]</code></pre>
+</details>
+</dd>
 <dt id="laueimproc.classes.base_diagram.BaseDiagram.bboxes"><code class="name">var <span class="ident">bboxes</span> : Optional[None]</code></dt>
 <dd>
 <div class="desc"><p>Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width).</p>
@@ -1827,7 +1942,7 @@ None
 tensor([[   0,    0,   17,   17],
         [   0,   20,    3,   12],
         [   0, 1949,    3,   11],
-        ...
+        ...,
         [1903,  180,   18,   15],
         [1930, 1967,   15,   14],
         [1963, 1170,   24,   19]], dtype=torch.int16)
@@ -1853,7 +1968,7 @@ def bboxes(self) -&gt; typing.Union[None, torch.Tensor]:
     tensor([[   0,    0,   17,   17],
             [   0,   20,    3,   12],
             [   0, 1949,    3,   11],
-            ...
+            ...,
             [1903,  180,   18,   15],
             [1930, 1967,   15,   14],
             [1963, 1170,   24,   19]], dtype=torch.int16)
@@ -2881,6 +2996,7 @@ It can also be a combination of the above elements to unite the spots.</p>
 <h4><code><a title="laueimproc.classes.base_diagram.BaseDiagram" href="#laueimproc.classes.base_diagram.BaseDiagram">BaseDiagram</a></code></h4>
 <ul class="two-column">
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.add_property" href="#laueimproc.classes.base_diagram.BaseDiagram.add_property">add_property</a></code></li>
+<li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.area" href="#laueimproc.classes.base_diagram.BaseDiagram.area">area</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.bboxes" href="#laueimproc.classes.base_diagram.BaseDiagram.bboxes">bboxes</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.clone" href="#laueimproc.classes.base_diagram.BaseDiagram.clone">clone</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.compress" href="#laueimproc.classes.base_diagram.BaseDiagram.compress">compress</a></code></li>

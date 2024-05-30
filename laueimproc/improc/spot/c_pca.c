@@ -11,13 +11,13 @@
 #define EPS 1.1920929e-7
 
 
-int RoiPCA(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy_int16 bbox[4]) {
+int RoiPCA(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const npy_int16 bbox[4]) {
     // compute one PCA, store std1, std2 and theta in rawout
     long shift;
-    npy_float weight, norm = 0, corr = 0;
-    npy_float pos[2];
-    npy_float mu[2] = {0, 0};
-    npy_float sigma[2] = {0, 0};
+    npy_float32 weight, norm = 0, corr = 0;
+    npy_float32 pos[2];
+    npy_float32 mu[2] = {0, 0};
+    npy_float32 sigma[2] = {0, 0};
 
     // get mean and total intensity
     for (long i = 0; i < bbox[2]; ++i) {
@@ -44,8 +44,7 @@ int RoiPCA(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy
         for (long j = 0; j < bbox[3]; ++j) {
             pos[1] = (npy_float)j - mu[1];  // j centered
             weight = roi[j + shift];
-            weight *= weight;
-            corr += weight * pos[0] * pos[1];
+            cor += weight * pos[0] * pos[1];
             sigma[0] += weight * pos[0] * pos[0], sigma[1] += weight * pos[1] * pos[1];  // SIMD
         }
     }
@@ -62,17 +61,17 @@ int RoiPCA(PyArrayObject* out, const npy_intp i, const npy_float* roi, const npy
     if (fabsf(corr) > EPS) {
         sigma[0] += norm;  // s2 - s1 + sqrt((2*c)**2 + (s2-s1)**2)
         sigma[0] /= corr;  // (s2 - s1 + sqrt((2*c)**2 + (s2-s1)**2)) / (2*c)
-        *(npy_float *)PyArray_GETPTR2(out, i, 2) = atanf(sigma[0]);  // theta
+        *(npy_float32 *)PyArray_GETPTR2(out, i, 2) = atanf(sigma[0]);  // theta
     }
     else {
-        *(npy_float *)PyArray_GETPTR2(out, i, 2) = sigma[0] > EPS ? 0.5*M_PI : 0;  // theta
+        *(npy_float32 *)PyArray_GETPTR2(out, i, 2) = sigma[0] > EPS ? 0.5*M_PI : 0;  // theta
     }
     sigma[0] = sigma[1] - norm;  // s1 + s2 - sqrt((2*c)**2 + (s2-s1)**2)
     sigma[1] += norm;  // s1 + s2 + sqrt((2*c)**2 + (s2-s1)**2)
     sigma[0] *= 0.5;  // lambda2 = 1/2 * (s1 + s2 - sqrt((2*c)**2 + (s2-s1)**2))
     sigma[1] *= 0.5;  // lambda1 = 1/2 * (s1 + s2 + sqrt((2*c)**2 + (s2-s1)**2))
-    *(npy_float *)PyArray_GETPTR2(out, i, 1) = sqrtf(sigma[0]);  // std2
-    *(npy_float *)PyArray_GETPTR2(out, i, 0) = sqrtf(sigma[1]);  // std1
+    *(npy_float32 *)PyArray_GETPTR2(out, i, 1) = sqrtf(sigma[0]);  // std2
+    *(npy_float32 *)PyArray_GETPTR2(out, i, 0) = sqrtf(sigma[1]);  // std1
     return 0;
 }
 
