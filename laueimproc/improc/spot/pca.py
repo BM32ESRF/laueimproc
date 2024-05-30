@@ -61,7 +61,7 @@ def compute_rois_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = Fal
     ...     bytearray(rois.numpy().tobytes()),
     ...     torch.asarray([[0, 0, height, width]], dtype=torch.int16)
     ... )
-    tensor([[99.4423, 49.6588,  0.2973]])
+    tensor([[99.4283, 49.6513,  0.2973]])
     >>>
     >>> rois = np.zeros((4, 5, 5), np.float32)
     >>> rois[0, :, 2] = 1

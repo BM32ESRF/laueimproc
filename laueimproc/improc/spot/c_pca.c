@@ -35,7 +35,7 @@ int RoiPCA(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const n
         return 1;
     }
     norm = 1 / norm;
-    mu[0] *= norm; mu[1] *= norm;
+    mu[0] *= norm, mu[1] *= norm;  // SIMD
 
     // get cov matrix
     for (long i = 0; i < bbox[2]; ++i) {
@@ -44,11 +44,10 @@ int RoiPCA(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const n
         for (long j = 0; j < bbox[3]; ++j) {
             pos[1] = (npy_float)j - mu[1];  // j centered
             weight = roi[j + shift];
-            cor += weight * pos[0] * pos[1];
+            corr += weight * pos[0] * pos[1];
             sigma[0] += weight * pos[0] * pos[0], sigma[1] += weight * pos[1] * pos[1];  // SIMD
         }
     }
-    norm *= norm;
     corr *= norm;
     sigma[0] *= norm, sigma[1] *= norm;
 

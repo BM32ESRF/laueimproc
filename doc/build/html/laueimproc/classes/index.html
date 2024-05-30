@@ -1083,7 +1083,7 @@ def fit_gaussians_em(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dic
 <dl>
 <dt><strong><code>*diagram_refs</code></strong> :&ensp;<code>tuple</code></dt>
 <dd>The diagram references, transmitted to <code>add_diagrams</code>.</dd>
-<dt><strong><code>diag2ind</code></strong> :&ensp;<code>callable</code>, default=<code>laueimproc.classses.dataset.default_diag2ind</code></dt>
+<dt><strong><code>diag2ind</code></strong> :&ensp;<code>callable</code>, default=<code>laueimproc.classses.base_dataset.default_diag2ind</code></dt>
 <dd>The function to associate an index to a diagram.
 If provided, this function has to be pickleable.
 It has to take only one positional argument (a simple Diagram instance)
