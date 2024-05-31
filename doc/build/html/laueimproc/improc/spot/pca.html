@@ -79,6 +79,7 @@ def compute_rois_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = Fal
     &gt;&gt;&gt; rot = torch.asarray([[cos(theta), -sin(theta)], [sin(theta), cos(theta)]])
     &gt;&gt;&gt; diag = torch.asarray([[lambda1, 0.0], [0.0, lambda2]])
     &gt;&gt;&gt; cov = rot @ diag @ rot.mT
+    &gt;&gt;&gt; cov = 0.5 * (cov + cov.mT)  # solve warn covariance is not symmetric positive-semidefinite
     &gt;&gt;&gt; np.random.seed(0)
     &gt;&gt;&gt; points = torch.from_numpy(np.random.multivariate_normal([0, 0], cov, 1_000_000)).to(int)
     &gt;&gt;&gt; points -= points.amin(dim=0).unsqueeze(0)
@@ -91,7 +92,7 @@ def compute_rois_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = Fal
     ...     bytearray(rois.numpy().tobytes()),
     ...     torch.asarray([[0, 0, height, width]], dtype=torch.int16)
     ... )
-    tensor([[99.4423, 49.6588,  0.2973]])
+    tensor([[99.4283, 49.6513,  0.2973]])
     &gt;&gt;&gt;
     &gt;&gt;&gt; rois = np.zeros((4, 5, 5), np.float32)
     &gt;&gt;&gt; rois[0, :, 2] = 1
@@ -210,6 +211,7 @@ is performed with <code><a title="laueimproc.gmm.linalg.cov2d_to_eigtheta" href=
 &gt;&gt;&gt; rot = torch.asarray([[cos(theta), -sin(theta)], [sin(theta), cos(theta)]])
 &gt;&gt;&gt; diag = torch.asarray([[lambda1, 0.0], [0.0, lambda2]])
 &gt;&gt;&gt; cov = rot @ diag @ rot.mT
+&gt;&gt;&gt; cov = 0.5 * (cov + cov.mT)  # solve warn covariance is not symmetric positive-semidefinite
 &gt;&gt;&gt; np.random.seed(0)
 &gt;&gt;&gt; points = torch.from_numpy(np.random.multivariate_normal([0, 0], cov, 1_000_000)).to(int)
 &gt;&gt;&gt; points -= points.amin(dim=0).unsqueeze(0)
@@ -222,7 +224,7 @@ is performed with <code><a title="laueimproc.gmm.linalg.cov2d_to_eigtheta" href=
 ...     bytearray(rois.numpy().tobytes()),
 ...     torch.asarray([[0, 0, height, width]], dtype=torch.int16)
 ... )
-tensor([[99.4423, 49.6588,  0.2973]])
+tensor([[99.4283, 49.6513,  0.2973]])
 &gt;&gt;&gt;
 &gt;&gt;&gt; rois = np.zeros((4, 5, 5), np.float32)
 &gt;&gt;&gt; rois[0, :, 2] = 1
@@ -302,6 +304,7 @@ True
     &gt;&gt;&gt; rot = torch.asarray([[cos(theta), -sin(theta)], [sin(theta), cos(theta)]])
     &gt;&gt;&gt; diag = torch.asarray([[lambda1, 0.0], [0.0, lambda2]])
     &gt;&gt;&gt; cov = rot @ diag @ rot.mT
+    &gt;&gt;&gt; cov = 0.5 * (cov + cov.mT)  # solve warn covariance is not symmetric positive-semidefinite
     &gt;&gt;&gt; np.random.seed(0)
     &gt;&gt;&gt; points = torch.from_numpy(np.random.multivariate_normal([0, 0], cov, 1_000_000)).to(int)
     &gt;&gt;&gt; points -= points.amin(dim=0).unsqueeze(0)
@@ -314,7 +317,7 @@ True
     ...     bytearray(rois.numpy().tobytes()),
     ...     torch.asarray([[0, 0, height, width]], dtype=torch.int16)
     ... )
-    tensor([[99.4423, 49.6588,  0.2973]])
+    tensor([[99.4283, 49.6513,  0.2973]])
     &gt;&gt;&gt;
     &gt;&gt;&gt; rois = np.zeros((4, 5, 5), np.float32)
     &gt;&gt;&gt; rois[0, :, 2] = 1

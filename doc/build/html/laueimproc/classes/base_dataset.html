@@ -53,7 +53,7 @@ import torch
 
 from laueimproc.common import time2sec
 from laueimproc.ml.dataset_dist import (
-    POS_TYPE, _add_pos, _copy_pos, _filter_pos, _to_torch, call_pos_func, check_pos_func_typing,
+    POS_TYPE, _add_pos, _copy_pos, _filter_pos, _to_torch, call_diag2scalars, check_diag2scalars_typing,
     select_closest,
 )
 from .diagram import Diagram
@@ -148,14 +148,14 @@ class BaseDiagramsDataset(threading.Thread):
             \(n\) corresponds to the number of physical parameters.
             For example the beam positon on the sample or, more generally, a vector of scalar
             parameters like time, voltage, temperature, pressure...
-            The function must match ``laueimproc.ml.dataset_dist.check_pos_func_typing``.
+            The function must match ``laueimproc.ml.dataset_dist.check_diag2scalars_typing``.
         &#34;&#34;&#34;
         if diag2ind is None:
             self._diag2ind = default_diag2ind
         else:
             self._diag2ind = cloudpickle.loads(self._check_diag2ind(diag2ind))
         if position is not None:
-            check_pos_func_typing(position)
+            check_diag2scalars_typing(position)
             position = cloudpickle.loads(cloudpickle.dumps(position))  # protection for notebook ref
         self._async_job: dict = {&#34;dirs&#34;: [], &#34;readed&#34;: set()}  # for the async run method
         self._diagrams: dict[int, typing.Union[Diagram, queue.Queue]] = {}  # index to diagram
@@ -576,7 +576,7 @@ class BaseDiagramsDataset(threading.Thread):
                 )
             if self._position[0] is not None:  # get an check sample position
                 self._position[1] = _add_pos(
-                    self._position[1], index, call_pos_func(self._position[0], index)
+                    self._position[1], index, call_diag2scalars(self._position[0], index)
                 )
             if new_diagram.file is not None:
                 self._async_job[&#34;readed&#34;].add(new_diagram.file)
@@ -1079,7 +1079,7 @@ and to return a positive integer.</dd>
 <span><span class="MathJax_Preview">n</span><script type="math/tex">n</script></span> corresponds to the number of physical parameters.
 For example the beam positon on the sample or, more generally, a vector of scalar
 parameters like time, voltage, temperature, pressure&hellip;
-The function must match <code><a title="laueimproc.ml.dataset_dist.check_pos_func_typing" href="../ml/dataset_dist.html#laueimproc.ml.dataset_dist.check_pos_func_typing">check_pos_func_typing()</a></code>.</dd>
+The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2scalars_typing" href="../ml/dataset_dist.html#laueimproc.ml.dataset_dist.check_diag2scalars_typing">check_diag2scalars_typing()</a></code>.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1118,14 +1118,14 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_pos_fun
             \(n\) corresponds to the number of physical parameters.
             For example the beam positon on the sample or, more generally, a vector of scalar
             parameters like time, voltage, temperature, pressure...
-            The function must match ``laueimproc.ml.dataset_dist.check_pos_func_typing``.
+            The function must match ``laueimproc.ml.dataset_dist.check_diag2scalars_typing``.
         &#34;&#34;&#34;
         if diag2ind is None:
             self._diag2ind = default_diag2ind
         else:
             self._diag2ind = cloudpickle.loads(self._check_diag2ind(diag2ind))
         if position is not None:
-            check_pos_func_typing(position)
+            check_diag2scalars_typing(position)
             position = cloudpickle.loads(cloudpickle.dumps(position))  # protection for notebook ref
         self._async_job: dict = {&#34;dirs&#34;: [], &#34;readed&#34;: set()}  # for the async run method
         self._diagrams: dict[int, typing.Union[Diagram, queue.Queue]] = {}  # index to diagram
@@ -1546,7 +1546,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_pos_fun
                 )
             if self._position[0] is not None:  # get an check sample position
                 self._position[1] = _add_pos(
-                    self._position[1], index, call_pos_func(self._position[0], index)
+                    self._position[1], index, call_diag2scalars(self._position[0], index)
                 )
             if new_diagram.file is not None:
                 self._async_job[&#34;readed&#34;].add(new_diagram.file)
@@ -2111,7 +2111,7 @@ def state(self) -&gt; str:
             )
         if self._position[0] is not None:  # get an check sample position
             self._position[1] = _add_pos(
-                self._position[1], index, call_pos_func(self._position[0], index)
+                self._position[1], index, call_diag2scalars(self._position[0], index)
             )
         if new_diagram.file is not None:
             self._async_job[&#34;readed&#34;].add(new_diagram.file)

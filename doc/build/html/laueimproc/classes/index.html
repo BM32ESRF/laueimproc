@@ -352,7 +352,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
     ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
         r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
 
-        See ``laueimproc.improc.gmm`` for terminology.
+        See ``laueimproc.gmm`` for terminology.
 
         Parameters
         ----------
@@ -850,7 +850,7 @@ def compute_rois_sum(self, **_kwargs) -&gt; torch.Tensor:
 </code></dt>
 <dd>
 <div class="desc"><p>Fit each roi by <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span> gaussians.</p>
-<p>See <code>laueimproc.improc.gmm</code> for terminology.</p>
+<p>See <code><a title="laueimproc.gmm" href="../gmm/index.html">laueimproc.gmm</a></code> for terminology.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>loss</code></strong> :&ensp;<code>str</code>, default=<code>"mse"</code></dt>
@@ -909,7 +909,7 @@ def fit_gaussians(
 ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
     r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
 
-    See ``laueimproc.improc.gmm`` for terminology.
+    See ``laueimproc.gmm`` for terminology.
 
     Parameters
     ----------
@@ -1095,7 +1095,7 @@ and to return a positive integer.</dd>
 <span><span class="MathJax_Preview">n</span><script type="math/tex">n</script></span> corresponds to the number of physical parameters.
 For example the beam positon on the sample or, more generally, a vector of scalar
 parameters like time, voltage, temperature, pressure&hellip;
-The function must match <code><a title="laueimproc.ml.dataset_dist.check_pos_func_typing" href="../ml/dataset_dist.html#laueimproc.ml.dataset_dist.check_pos_func_typing">check_pos_func_typing()</a></code>.</dd>
+The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2scalars_typing" href="../ml/dataset_dist.html#laueimproc.ml.dataset_dist.check_diag2scalars_typing">check_diag2scalars_typing()</a></code>.</dd>
 </dl></div>
 <details class="source">
 <summary>
