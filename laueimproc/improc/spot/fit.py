@@ -27,7 +27,7 @@ def fit_gaussians_em(
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
     r"""Fit each roi by \(K\) gaussians.
 
-    See ``laueimproc.improc.gmm`` for terminology.
+    See ``laueimproc.gmm`` for terminology.
 
     Parameters
     ----------
@@ -89,7 +89,7 @@ def fit_gaussians(
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
     r"""Fit each roi by \(K\) gaussians.
 
-    See ``laueimproc.improc.gmm`` for terminology.
+    See ``laueimproc.gmm`` for terminology.
 
     Parameters
     ----------
@@ -100,7 +100,7 @@ def fit_gaussians(
         heights = shapes[:, 0] and widths = shapes[:, 1].
         It doesn't have to be c contiguous.
     **kwargs : dict
-        Transmitted to ``laueimproc.improc.gmm.em``, used for initialisation.
+        Transmitted to ``laueimproc.gmm.em``, used for initialisation.
 
     Returns
     -------

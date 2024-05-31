@@ -44,7 +44,7 @@ class SpotDataloader:
         self._bath_size = None
 
         # find len
-        self._diagram_indices = sorted(dataset.indices)
+        self._diagram_indices = dataset.indices  # copy frozen
         self._nb_spots = sum(len(dataset[i]) for i in self._diagram_indices)
         if not self._nb_spots:
             raise ValueError(f"the dataset {dataset} does not contain any spots")
@@ -98,51 +98,6 @@ class SpotDataloader:
         assert isinstance(new_batch_size, numbers.Integral), new_batch_size.__class__.__name__
         assert new_batch_size >= 1, new_batch_size
         self._bath_size = int(new_batch_size)
-
-
-class SpotDataset(torch.utils.data.Dataset):
-    """Get spots pictures."""
-
-    def __init__(self, dataset, model):
-        """Initialise the data loader.
-
-        Parameters
-        ----------
-        dataset : laueimproc.classes.dataset.DiagramsDataset
-            Contains all the initialised diagrams.
-        model : laueimproc.nn.vae_spot_classifier.VAESpotClassifier
-            The model, for the dataaug.
-        """
-        from laueimproc.classes.dataset import DiagramsDataset
-        from laueimproc.nn.vae_spot_classifier import VAESpotClassifier
-
-        assert isinstance(dataset, DiagramsDataset), dataset.__class__.__name__
-        assert isinstance(model, VAESpotClassifier), model.__class__.__name__
-
-        self._model = model
-
-        # find len
-        diagram_indices = sorted(dataset.indices)
-        self._nb_spots = sum(len(dataset[i]) for i in diagram_indices)
-        if not self._nb_spots:
-            raise ValueError(f"the dataset {dataset} does not contain any spots")
-
-        # precompute all rois
-        self._all_rois = torch.empty((self._nb_spots, *model.shape), dtype=torch.float32)
-        i = 0
-        for idx in diagram_indices:
-            diagram = dataset[idx]
-            for roi, (height, width) in zip(diagram.rois, diagram.bboxes[:, 2:].tolist()):
-                self._all_rois[i] = model.dataaug(roi[:height, :width])
-                i += 1
-
-    def __getitem__(self, idx: int) -> torch.Tensor:
-        """Return the padded or cropped roi picture of index idx."""
-        return self._all_rois[idx]
-
-    def __len__(self) -> int:
-        """Return the total number of spots."""
-        return self._nb_spots
 
 
 def find_shape(dataset, percent: numbers.Real) -> tuple[int, int]:

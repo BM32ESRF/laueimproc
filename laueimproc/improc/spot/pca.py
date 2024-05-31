@@ -49,6 +49,7 @@ def compute_rois_pca(data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = Fal
     >>> rot = torch.asarray([[cos(theta), -sin(theta)], [sin(theta), cos(theta)]])
     >>> diag = torch.asarray([[lambda1, 0.0], [0.0, lambda2]])
     >>> cov = rot @ diag @ rot.mT
+    >>> cov = 0.5 * (cov + cov.mT)  # solve warn covariance is not symmetric positive-semidefinite
     >>> np.random.seed(0)
     >>> points = torch.from_numpy(np.random.multivariate_normal([0, 0], cov, 1_000_000)).to(int)
     >>> points -= points.amin(dim=0).unsqueeze(0)

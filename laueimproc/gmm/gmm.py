@@ -164,7 +164,7 @@ def cost_and_grad(
     # evaluation of jacobian and loss
     rois_pred, mean_jac, cov_jac, mag_jac = gmm2d_and_jac(obs, mean, cov, eta, **_kwargs)
 
-    # compute cost and cost grad
+    # compute cost
     rois_pred -= rois.reshape(*rois_pred.shape)
     cost = torch.sum(rois_pred * rois_pred, dim=1) / areas
     rois_pred += rois_pred  # grad

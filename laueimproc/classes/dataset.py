@@ -5,11 +5,52 @@
 import numbers
 import typing
 
-from laueimproc.classes.base_dataset import BaseDiagramsDataset
+from laueimproc.ml.dataset_dist import select_closest
+from .base_dataset import BaseDiagramsDataset
+from .diagram import Diagram
 
 
 class DiagramsDataset(BaseDiagramsDataset):
     """Link Diagrams together."""
+
+    def select_closest(
+        self, *args, no_raise: bool = False, **kwargs
+    ) -> typing.Union[Diagram, None]:
+        """Select the closest diagram to a given set of phisical parameters.
+
+        Parameters
+        ----------
+        point, tol, scale
+            Transmitted to ``laueimproc.ml.dataset_dist.select_closest``.
+        no_raise : boolean, default = False
+            If set to True, return None rather throwing a LookupError exception.
+
+        Returns
+        -------
+        closet_diag : ``laueimproc.classes.diagram.Diagram``
+            The closet diagram.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.dataset import DiagramsDataset
+        >>> from laueimproc.io import get_samples
+        >>> def position(index: int) -> tuple[int, int]:
+        ...     return divmod(index, 10)
+        ...
+        >>> dataset = DiagramsDataset(get_samples(), diag2scalars=position)
+        >>> dataset.select_closest((4.1, 4.9), tol=(0.2, 0.2))
+        Diagram(img_45.jp2)
+        >>>
+        """
+        assert isinstance(no_raise, bool), no_raise.__class__.__name__
+        indices, coords = self.get_scalars(as_dict=False, copy=False)
+        try:
+            index = select_closest(coords, *args, **kwargs)
+        except LookupError as err:
+            if no_raise:
+                return None
+            raise err
+        return self._get_diagram_from_index(int(indices[index]))
 
     def track_spots(self):
         """Find the apparition of the same spots in differents diagrams."""

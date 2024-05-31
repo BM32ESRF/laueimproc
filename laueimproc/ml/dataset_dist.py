@@ -19,11 +19,11 @@ except ImportError:
     c_dist = None
 
 
-POS_TYPE = typing.Union[dict[int, tuple[float, ...]], tuple[torch.Tensor, torch.Tensor]]
-POS_FUNC_TYPE = typing.Callable[[int], typing.Union[numbers.Real, tuple[numbers.Real, ...]]]
+SCALS_TYPE = typing.Union[dict[int, tuple[float, ...]], tuple[torch.Tensor, torch.Tensor]]
+DIAG2SCALS_TYPE = typing.Callable[[int], typing.Union[numbers.Real, tuple[numbers.Real, ...]]]
 
 
-def _add_pos(pos: POS_TYPE, index: int, coords: tuple[float, ...]) -> POS_TYPE:
+def _add_pos(pos: SCALS_TYPE, index: int, coords: tuple[float, ...]) -> SCALS_TYPE:
     """Append a nez position to the positions.
 
     Notes
@@ -35,7 +35,7 @@ def _add_pos(pos: POS_TYPE, index: int, coords: tuple[float, ...]) -> POS_TYPE:
     return pos
 
 
-def _copy_pos(pos: POS_TYPE) -> POS_TYPE:
+def _copy_pos(pos: SCALS_TYPE) -> SCALS_TYPE:
     """Deep copy of the position.
 
     Notes
@@ -49,19 +49,20 @@ def _copy_pos(pos: POS_TYPE) -> POS_TYPE:
     return (pos[0].clone(), pos[1].clone())
 
 
-def _filter_pos(pos: POS_TYPE, indices: typing.Iterable[int]) -> POS_TYPE:
+def _filter_pos(pos: SCALS_TYPE, indices: typing.Iterable[int]) -> SCALS_TYPE:
     """Select only some positions.
 
     Notes
     -----
     No check for performance reason.
+    indicies are assumed to be in pos.
     """
     pos = _to_dict(pos)
-    pos = {i: pos[i] for i in indices if i in pos}
+    pos = {i: pos[i] for i in indices}
     return pos
 
 
-def _to_dict(pos: POS_TYPE) -> dict[int, tuple[float, ...]]:
+def _to_dict(pos: SCALS_TYPE) -> dict[int, tuple[float, ...]]:
     """Convert the general position into a dictionary form.
 
     Notes
@@ -74,7 +75,7 @@ def _to_dict(pos: POS_TYPE) -> dict[int, tuple[float, ...]]:
     return {i: c for i, *c in zip(indices.tolist(), coords.tolist())}
 
 
-def _to_torch(pos: POS_TYPE) -> tuple[torch.Tensor, torch.Tensor]:
+def _to_torch(pos: SCALS_TYPE) -> tuple[torch.Tensor, torch.Tensor]:
     """Convert the general position into the torch form.
 
     Notes
@@ -89,7 +90,7 @@ def _to_torch(pos: POS_TYPE) -> tuple[torch.Tensor, torch.Tensor]:
     return (indices_torch, coords_torch)
 
 
-def call_pos_func(pos_func: POS_FUNC_TYPE, index: int) -> tuple[float, ...]:
+def call_diag2scalars(pos_func: DIAG2SCALS_TYPE, index: int) -> tuple[float, ...]:
     """Call the function, check, cast and return the output.
 
     The function typing is assumed to be checked.
@@ -118,7 +119,7 @@ def call_pos_func(pos_func: POS_FUNC_TYPE, index: int) -> tuple[float, ...]:
     return out
 
 
-def check_pos_func_typing(pos_func: POS_FUNC_TYPE):
+def check_diag2scalars_typing(pos_func: DIAG2SCALS_TYPE):
     """Ensure that the position function has the right type of input / outputs.
 
     Parameters
@@ -135,7 +136,7 @@ def check_pos_func_typing(pos_func: POS_FUNC_TYPE):
     Examples
     --------
     >>> import pytest
-    >>> from laueimproc.ml.dataset_dist import check_pos_func_typing
+    >>> from laueimproc.ml.dataset_dist import check_diag2scalars_typing
     >>> def ok_1(index: int) -> float:
     ...     return float(index)
     ...
@@ -167,34 +168,34 @@ def check_pos_func_typing(pos_func: POS_FUNC_TYPE):
     >>> def error_4(index: int, cam: str) -> tuple:  # bag input arguments
     ...     return float(index)
     ...
-    >>> check_pos_func_typing(ok_1)
-    >>> check_pos_func_typing(ok_2)
-    >>> check_pos_func_typing(ok_3)
+    >>> check_diag2scalars_typing(ok_1)
+    >>> check_diag2scalars_typing(ok_2)
+    >>> check_diag2scalars_typing(ok_3)
     >>>
     >>> with pytest.warns(SyntaxWarning):
-    ...     check_pos_func_typing(warn_1)
+    ...     check_diag2scalars_typing(warn_1)
     ...
     >>> with pytest.warns(SyntaxWarning):
-    ...     check_pos_func_typing(warn_2)
+    ...     check_diag2scalars_typing(warn_2)
     ...
     >>> with pytest.warns(SyntaxWarning):
-    ...     check_pos_func_typing(warn_3)
+    ...     check_diag2scalars_typing(warn_3)
     ...
     >>> with pytest.warns(SyntaxWarning):
-    ...     check_pos_func_typing(warn_4)
+    ...     check_diag2scalars_typing(warn_4)
     ...
     >>>
     >>> with pytest.raises(AssertionError):
-    ...     check_pos_func_typing(error_1)
+    ...     check_diag2scalars_typing(error_1)
     ...
     >>> with pytest.raises(AssertionError):
-    ...     check_pos_func_typing(error_2)
+    ...     check_diag2scalars_typing(error_2)
     ...
     >>> with pytest.raises(AssertionError):
-    ...     check_pos_func_typing(error_3)
+    ...     check_diag2scalars_typing(error_3)
     ...
     >>> with pytest.raises(AssertionError):
-    ...     check_pos_func_typing(error_4)
+    ...     check_diag2scalars_typing(error_4)
     ...
     >>>
     """

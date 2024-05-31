@@ -279,7 +279,7 @@ class Diagram(BaseDiagram):
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by \(K\) gaussians.
 
-        See ``laueimproc.improc.gmm`` for terminology.
+        See ``laueimproc.gmm`` for terminology.
 
         Parameters
         ----------

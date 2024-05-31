@@ -2,13 +2,12 @@
 
 #define PY_SSIZE_T_CLEAN
 #include "laueimproc/c_check.h"
+#include "laueimproc/gmm/c_linalg.h"
 #include "laueimproc/improc/spot/c_spot_apply.h"
 #include <math.h>
 #include <numpy/arrayobject.h>
 #include <Python.h>
 #include <stdio.h>
-
-#define EPS 1.1920929e-7
 
 
 int RoiPCA(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const npy_int16 bbox[4]) {
@@ -40,7 +39,7 @@ int RoiPCA(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const n
     // get cov matrix
     for (long i = 0; i < bbox[2]; ++i) {
         shift = (long)bbox[3] * i;
-        pos[0] = (npy_float)i - mu[0]; // i centered
+        pos[0] = (npy_float)i - mu[0];  // i centered
         for (long j = 0; j < bbox[3]; ++j) {
             pos[1] = (npy_float)j - mu[1];  // j centered
             weight = roi[j + shift];
@@ -52,25 +51,10 @@ int RoiPCA(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const n
     sigma[0] *= norm, sigma[1] *= norm;
 
     // diagonalization
-    corr *= 2;  // 2*c
-    sigma[1] += sigma[0];  // s1+s2
-    sigma[0] = sigma[1] - 2*sigma[0];  // s2-s1
-    norm = corr*corr + sigma[0]*sigma[0];  // (2*c)**2 + (s2-s1)**2
-    norm = sqrtf(norm);  // sqrt((2*c)**2 + (s2-s1)**2)
-    if (fabsf(corr) > EPS) {
-        sigma[0] += norm;  // s2 - s1 + sqrt((2*c)**2 + (s2-s1)**2)
-        sigma[0] /= corr;  // (s2 - s1 + sqrt((2*c)**2 + (s2-s1)**2)) / (2*c)
-        *(npy_float32 *)PyArray_GETPTR2(out, i, 2) = atanf(sigma[0]);  // theta
-    }
-    else {
-        *(npy_float32 *)PyArray_GETPTR2(out, i, 2) = sigma[0] > EPS ? 0.5*M_PI : 0;  // theta
-    }
-    sigma[0] = sigma[1] - norm;  // s1 + s2 - sqrt((2*c)**2 + (s2-s1)**2)
-    sigma[1] += norm;  // s1 + s2 + sqrt((2*c)**2 + (s2-s1)**2)
-    sigma[0] *= 0.5;  // lambda2 = 1/2 * (s1 + s2 - sqrt((2*c)**2 + (s2-s1)**2))
-    sigma[1] *= 0.5;  // lambda1 = 1/2 * (s1 + s2 + sqrt((2*c)**2 + (s2-s1)**2))
-    *(npy_float32 *)PyArray_GETPTR2(out, i, 1) = sqrtf(sigma[0]);  // std2
-    *(npy_float32 *)PyArray_GETPTR2(out, i, 0) = sqrtf(sigma[1]);  // std1
+    Cov2dToEigtheta(&(sigma[0]), &(sigma[1]), &corr);
+    *(npy_float32 *)PyArray_GETPTR2(out, i, 0) = sigma[0];  // std_1
+    *(npy_float32 *)PyArray_GETPTR2(out, i, 1) = sigma[1];  // std_2
+    *(npy_float32 *)PyArray_GETPTR2(out, i, 2) = corr;  // theta
     return 0;
 }
 

@@ -23,8 +23,15 @@ import torch
 
 from laueimproc.common import time2sec
 from laueimproc.ml.dataset_dist import (
-    POS_TYPE, _add_pos, _copy_pos, _filter_pos, _to_torch, call_pos_func, check_pos_func_typing,
-    select_closest,
+    DIAG2SCALS_TYPE,
+    SCALS_TYPE,
+    _add_pos,
+    _copy_pos,
+    _filter_pos,
+    _to_dict,
+    _to_torch,
+    call_diag2scalars,
+    check_diag2scalars_typing,
 )
 from .diagram import Diagram
 
@@ -90,15 +97,15 @@ class BaseDiagramsDataset(threading.Thread):
 
     Attributes
     ----------
-    indices : set[int]
-        The diagram indices currently reachable in the dataset.
+    indices : list[int]
+        The sorted map diagram indices currently reachable in the dataset.
     """
 
     def __init__(
         self,
         *diagram_refs,
         diag2ind: typing.Optional[typing.Callable[[Diagram], numbers.Integral]] = None,
-        position: typing.Optional[POS_TYPE] = None,
+        diag2scalars: typing.Optional[DIAG2SCALS_TYPE] = None,
     ):
         r"""Initialise the dataset.
 
@@ -111,63 +118,33 @@ class BaseDiagramsDataset(threading.Thread):
             If provided, this function has to be pickleable.
             It has to take only one positional argument (a simple Diagram instance)
             and to return a positive integer.
-        position : callable, optional
+        diag2scalars : callable, optional
             If provided, it allows you to select diagram from physical parameters.
             \(f:I\to\mathbb{R}^n\), an injective application.
             \(I\subset\mathbb{N}\) is the set of the indices of the diagrams in the dataset.
             \(n\) corresponds to the number of physical parameters.
             For example the beam positon on the sample or, more generally, a vector of scalar
             parameters like time, voltage, temperature, pressure...
-            The function must match ``laueimproc.ml.dataset_dist.check_pos_func_typing``.
+            The function must match ``laueimproc.ml.dataset_dist.check_diag2scalars_typing``.
         """
         if diag2ind is None:
-            self._diag2ind = default_diag2ind
+            diag2ind = default_diag2ind
         else:
-            self._diag2ind = cloudpickle.loads(self._check_diag2ind(diag2ind))
-        if position is not None:
-            check_pos_func_typing(position)
-            position = cloudpickle.loads(cloudpickle.dumps(position))  # protection for notebook ref
+            diag2ind = cloudpickle.loads(self._check_diag2ind(diag2ind))
+        if diag2scalars is not None:
+            check_diag2scalars_typing(diag2scalars)
+            diag2scalars = (  # clone is a protection for notebook ref
+                cloudpickle.loads(cloudpickle.dumps(diag2scalars))
+            )
         self._async_job: dict = {"dirs": [], "readed": set()}  # for the async run method
+        self._diag2ind = diag2ind
+        self._diag_scalars = [diag2scalars, {}]  # store the diagrams position
         self._diagrams: dict[int, typing.Union[Diagram, queue.Queue]] = {}  # index to diagram
         self._lock = threading.Lock()
         self._operations_chain: list[tuple[typing.Callable[[Diagram], object], tuple]] = []
-        self._position = [position, {}]  # store the diagrams position
         self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
         super().__init__(daemon=True)
         self.add_diagrams(diagram_refs)
-
-    def __call__(self, *args, **kwargs) -> Diagram:
-        """Select the closest diagram.
-
-        Parameters
-        ----------
-        point, tol, scale
-            Transmitted to ``laueimproc.ml.dataset_dist.select_closest``.
-
-        Returns
-        -------
-        closet_diag : ``laueimproc.classes.diagram.Diagram``
-            The closet diagram.
-
-        Examples
-        --------
-        >>> from laueimproc.classes.base_dataset import BaseDiagramsDataset
-        >>> from laueimproc.io import get_samples
-        >>> def position(index: int) -> tuple[int, int]:
-        ...     return divmod(index, 10)
-        ...
-        >>> dataset = BaseDiagramsDataset(get_samples(), position=position)
-        >>> dataset((4.5, 4.5), tol=(0.6, 0.6))
-        Diagram(img_44.jp2)
-        >>>
-        """
-        assert self._position[0] is not None, \
-            "you have to give the `position` function when you initialise the dataset"
-        with self._lock:
-            self._position[1] = _to_torch(self._position[1])
-            indices, coords = self._position[1]
-        index = select_closest(coords, *args, **kwargs)
-        return self._get_diagram_from_index(int(indices[index]))
 
     def __getstate__(self):
         """Make the dataset pickleable.
@@ -179,15 +156,17 @@ class BaseDiagramsDataset(threading.Thread):
         """
         self.flush()
         with self._lock:
-            if self._position[0] is not None:
-                position = [cloudpickle.dumps(self._position[0]), _copy_pos(self._position[1])]
+            if self._diag_scalars[0] is not None:
+                diag_scalars = (
+                    [cloudpickle.dumps(self._diag_scalars[0]), _copy_pos(self._diag_scalars[1])]
+                )
             else:
-                position = None
+                diag_scalars = None
             return (
                 cloudpickle.dumps(self._diag2ind),
+                diag_scalars,
                 {i: d for i, d in self._diagrams.items() if isinstance(d, Diagram)},
                 cloudpickle.dumps(self._operations_chain),
-                position,
                 self._properties.copy(),
             )
 
@@ -338,15 +317,15 @@ class BaseDiagramsDataset(threading.Thread):
         >>>
         """
         # create attribute
-        self._diag2ind = cloudpickle.loads(state[0])
         self._async_job: dict = {"dirs": [], "readed": set()}
-        self._diagrams = state[1]
-        self._lock = threading.Lock()
-        self._operations_chain = cloudpickle.loads(state[2])
-        if (position := state[3]) is None:
-            self._position = [None, {}]
+        self._diag2ind = cloudpickle.loads(state[0])
+        if (diag_scalars := state[1]) is None:
+            self._diag_scalars = [None, {}]
         else:
-            self._position = [cloudpickle.loads(position[0]), position[1]]
+            self._diag_scalars = [cloudpickle.loads(diag_scalars[0]), diag_scalars[1]]
+        self._diagrams = state[2]
+        self._lock = threading.Lock()
+        self._operations_chain = cloudpickle.loads(state[3])
         self._properties = state[4]
 
         # update attributes
@@ -370,7 +349,7 @@ class BaseDiagramsDataset(threading.Thread):
             Current state:
                 * id, state: ...
                 * nbr diags: 100
-                * position : no
+                * scalars  : no
         >>>
         """
         # title
@@ -403,10 +382,10 @@ class BaseDiagramsDataset(threading.Thread):
             text += "\n    Current state:"
             text += f"\n        * id, state: {id(self)}, {self.state}"
             text += f"\n        * nbr diags: {len(self)}"
-            if self._position[0] is None:
-                text += "\n        * position : no"
+            if self._diag_scalars[0] is None:
+                text += "\n        * scalars  : no"
             else:
-                text += f"\n        * position : {self._position[0]}"
+                text += f"\n        * scalars  : {self._diag_scalars[0]}"
 
         return text
 
@@ -459,7 +438,7 @@ class BaseDiagramsDataset(threading.Thread):
         return serfunc
 
     def _get_diagram_from_index(self, index: numbers.Integral) -> Diagram:
-        """Return the diagram of index `index`."""
+        """Return the diagram of map index `index`."""
         assert isinstance(index, numbers.Integral), index.__class__.__name__
         if index < 0:
             index += len(self)
@@ -489,9 +468,10 @@ class BaseDiagramsDataset(threading.Thread):
         new_dataset = self.__class__.__new__(self.__class__)
         new_dataset.__setstate__(self.__getstate__())
         new_dataset._diagrams = diagrams  # pylint: disable=W0212
-        new_dataset._position[1] = _filter_pos(  # pylint: disable=W0212
-            new_dataset._position[1], diagrams  # pylint: disable=W0212
-        )
+        if new_dataset._diag_scalars[0] is not None:  # pylint: disable=W0212
+            new_dataset._diag_scalars[1] = _filter_pos(  # pylint: disable=W0212
+                new_dataset._diag_scalars[1], diagrams  # pylint: disable=W0212
+            )
         return new_dataset
 
     def add_property(self, name: str, value: object, *, erasable: bool = True):
@@ -544,9 +524,9 @@ class BaseDiagramsDataset(threading.Thread):
                 raise LookupError(
                     f"the diagram {repr(new_diagram)} of index {index} is already in the dataset"
                 )
-            if self._position[0] is not None:  # get an check sample position
-                self._position[1] = _add_pos(
-                    self._position[1], index, call_pos_func(self._position[0], index)
+            if self._diag_scalars[0] is not None:  # get an check sample position
+                self._diag_scalars[1] = _add_pos(
+                    self._diag_scalars[1], index, call_diag2scalars(self._diag_scalars[0], index)
                 )
             if new_diagram.file is not None:
                 self._async_job["readed"].add(new_diagram.file)
@@ -719,7 +699,7 @@ class BaseDiagramsDataset(threading.Thread):
                 ) from err
 
         # apply
-        idxs_diags = [(i, self._get_diagram_from_index(i)) for i in sorted(self.indices)]  # frozen
+        idxs_diags = [(i, self._get_diagram_from_index(i)) for i in self.indices]  # frozen
         with self._lock, multiprocessing.pool.ThreadPool(NCPU) as pool:
             res = dict(
                 tqdm(
@@ -739,42 +719,28 @@ class BaseDiagramsDataset(threading.Thread):
     def autosave(
         self,
         filename: typing.Union[str, pathlib.Path],
-        restore: bool = True,
         delay: typing.Union[numbers.Real, str] = None,
-    ) -> pathlib.Path:
+    ):
         """Manage the dataset recovery.
 
-        This allows the dataset to be backuped at regular time intervals,
-        making it possible to restore where the diagram has been left up.
+        This allows the dataset to be backuped at regular time intervals.
 
         Parameters
         ----------
         filename : pathlike
             The name of the persistant file,
             transmitted to ``laueimproc.io.save_dataset.write_dataset``.
-        restore : boolean, default=True
-            If True and the file exists, it update the dataset with the recorded state.
-            If set to False, the file is never readed, written only.
         delay : float or str, optional
             If provided and > 0, automatic checkpoint will be performed.
             it corresponds to the time interval between two check points.
             The supported formats are defined in ``laueimproc.common.time2sec``.
-
-        Returns
-        -------
-        filename : pathlib.Path
-            The real absolute path.
         """
-        from laueimproc.io.save_dataset import restore_dataset, write_dataset
+        from laueimproc.io.save_dataset import write_dataset
 
         assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
         filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".pickle")
-        assert isinstance(restore, bool), restore.__class__.__name__
 
-        if restore and filename.exists():
-            restore_dataset(filename, self)
-        else:
-            filename = write_dataset(filename, self)
+        filename = write_dataset(filename, self)
         if not delay:
             if "autosave" in self._async_job:
                 del self._async_job["autosave"]
@@ -783,8 +749,6 @@ class BaseDiagramsDataset(threading.Thread):
             self._async_job["autosave"] = [delay, time.time(), filename]
             if not self._started.is_set():
                 self.start()
-
-        return filename
 
     def clone(self, **kwargs):
         """Instanciate a new identical dataset.
@@ -890,22 +854,39 @@ class BaseDiagramsDataset(threading.Thread):
             )
         return value
 
+    def get_scalars(self, as_dict: bool = True, copy: bool = True) -> SCALS_TYPE:
+        """Return the scalars values of each diagrams given by ``diag2scalars``."""
+        if self._diag_scalars[0] is None:
+            raise RuntimeError(
+                "you have to provide the function 'diag2scalars' when you create the dataset, "
+            )
+        assert isinstance(as_dict, bool), as_dict.__class__.__name__
+        assert isinstance(copy, bool), copy.__class__.__name__
+        with self._lock:
+            self._diag_scalars[1] = (
+                _to_dict(self._diag_scalars[1]) if as_dict else _to_torch(self._diag_scalars[1])
+            )
+            if copy:
+                return _copy_pos(self._diag_scalars[1])
+            return self._diag_scalars[1]
+
     @property
-    def indices(self) -> set[int]:
-        """Return the diagram indices currently reachable in the dataset.
+    def indices(self) -> list[int]:
+        """Return the sorted map diagram indices currently reachable in the dataset.
 
         Examples
         --------
         >>> from laueimproc.classes.base_dataset import BaseDiagramsDataset
         >>> from laueimproc.io import get_samples
         >>> dataset = BaseDiagramsDataset(get_samples())
-        >>> sorted(dataset[-10:10:-5].indices)
+        >>> dataset[-10:10:-5].indices
         [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
         >>>
         """
         self.flush()
         with self._lock:
-            return {i for i, d in self._diagrams.items() if isinstance(d, Diagram)}
+            indices = [i for i, d in self._diagrams.items() if isinstance(d, Diagram)]
+        return sorted(indices)
 
     @property
     def state(self) -> str:
@@ -931,9 +912,26 @@ class BaseDiagramsDataset(threading.Thread):
         hasher = hashlib.md5(usedforsecurity=False)
         hasher.update(str(sorted(self._diagrams)).encode())
         hasher.update(cloudpickle.dumps(self._diag2ind))
-        hasher.update(cloudpickle.dumps(self._position[0]))
+        hasher.update(cloudpickle.dumps(self._diag_scalars[0]))
         hasher.update(cloudpickle.dumps(self._operations_chain))
         return hasher.hexdigest()
+
+    def restore(self, filename: typing.Union[str, pathlib.Path]):
+        """Restore the dataset content from the backup file.
+
+        Do nothing if the file doesn't exists.
+        Based on ``laueimproc.io.save_dataset.restore_dataset``.
+
+        Parameters
+        ----------
+        filename : pathlike
+            The name of the persistant file.
+        """
+        from laueimproc.io.save_dataset import restore_dataset
+        assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+        filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".pickle")
+        if filename.exists():
+            restore_dataset(filename, self)
 
     def run(self):
         """Run asynchronousely in a child thread, called by self.start()."""
