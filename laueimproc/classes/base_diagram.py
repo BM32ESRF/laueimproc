@@ -705,7 +705,7 @@ class BaseDiagram:
                 extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
                 interpolation=None,  # antialiasing is True
                 norm="log",
-                cmap="gray",
+                cmap="plasma",  # or gray
                 vmin=vmin,
                 vmax=vmax,
             )
@@ -727,7 +727,7 @@ class BaseDiagram:
                     bboxes[:, 0],
                     bboxes[:, 0],
                 )),
-                color="blue",
+                color="green",
                 scalex=False,
                 scaley=False,
             )

@@ -174,7 +174,7 @@ Create the virtual environement.
 .. code-block:: shell
 
     pyenv update
-    pyenv install -v 3.12
+    pyenv env PYTHON_CONFIGURE_OPTS="--enable-shared --enable-optimizations --with-lto" PYTHON_CFLAGS='-march=native -mtune=native' install -v 3.12
     pyenv virtualenv 3.12 laueenv
     pyenv activate laueenv
 
