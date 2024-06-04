@@ -74,7 +74,7 @@ class SpotDataloader:
         self._bath_size = None
 
         # find len
-        self._diagram_indices = sorted(dataset.indices)
+        self._diagram_indices = dataset.indices  # copy frozen
         self._nb_spots = sum(len(dataset[i]) for i in self._diagram_indices)
         if not self._nb_spots:
             raise ValueError(f&#34;the dataset {dataset} does not contain any spots&#34;)
@@ -128,51 +128,6 @@ class SpotDataloader:
         assert isinstance(new_batch_size, numbers.Integral), new_batch_size.__class__.__name__
         assert new_batch_size &gt;= 1, new_batch_size
         self._bath_size = int(new_batch_size)
-
-
-class SpotDataset(torch.utils.data.Dataset):
-    &#34;&#34;&#34;Get spots pictures.&#34;&#34;&#34;
-
-    def __init__(self, dataset, model):
-        &#34;&#34;&#34;Initialise the data loader.
-
-        Parameters
-        ----------
-        dataset : laueimproc.classes.dataset.DiagramsDataset
-            Contains all the initialised diagrams.
-        model : laueimproc.nn.vae_spot_classifier.VAESpotClassifier
-            The model, for the dataaug.
-        &#34;&#34;&#34;
-        from laueimproc.classes.dataset import DiagramsDataset
-        from laueimproc.nn.vae_spot_classifier import VAESpotClassifier
-
-        assert isinstance(dataset, DiagramsDataset), dataset.__class__.__name__
-        assert isinstance(model, VAESpotClassifier), model.__class__.__name__
-
-        self._model = model
-
-        # find len
-        diagram_indices = sorted(dataset.indices)
-        self._nb_spots = sum(len(dataset[i]) for i in diagram_indices)
-        if not self._nb_spots:
-            raise ValueError(f&#34;the dataset {dataset} does not contain any spots&#34;)
-
-        # precompute all rois
-        self._all_rois = torch.empty((self._nb_spots, *model.shape), dtype=torch.float32)
-        i = 0
-        for idx in diagram_indices:
-            diagram = dataset[idx]
-            for roi, (height, width) in zip(diagram.rois, diagram.bboxes[:, 2:].tolist()):
-                self._all_rois[i] = model.dataaug(roi[:height, :width])
-                i += 1
-
-    def __getitem__(self, idx: int) -&gt; torch.Tensor:
-        &#34;&#34;&#34;Return the padded or cropped roi picture of index idx.&#34;&#34;&#34;
-        return self._all_rois[idx]
-
-    def __len__(self) -&gt; int:
-        &#34;&#34;&#34;Return the total number of spots.&#34;&#34;&#34;
-        return self._nb_spots
 
 
 def find_shape(dataset, percent: numbers.Real) -&gt; tuple[int, int]:
@@ -417,7 +372,7 @@ def find_shape(dataset, percent: numbers.Real) -&gt; tuple[int, int]:
         self._bath_size = None
 
         # find len
-        self._diagram_indices = sorted(dataset.indices)
+        self._diagram_indices = dataset.indices  # copy frozen
         self._nb_spots = sum(len(dataset[i]) for i in self._diagram_indices)
         if not self._nb_spots:
             raise ValueError(f&#34;the dataset {dataset} does not contain any spots&#34;)
@@ -491,74 +446,6 @@ def batch_size(self) -&gt; int:
 </dd>
 </dl>
 </dd>
-<dt id="laueimproc.nn.loader.SpotDataset"><code class="flex name class">
-<span>class <span class="ident">SpotDataset</span></span>
-<span>(</span><span>dataset, model)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Get spots pictures.</p>
-<p>Initialise the data loader.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>dataset</code></strong> :&ensp;<code><a title="laueimproc.classes.dataset.DiagramsDataset" href="../classes/dataset.html#laueimproc.classes.dataset.DiagramsDataset">DiagramsDataset</a></code></dt>
-<dd>Contains all the initialised diagrams.</dd>
-<dt><strong><code>model</code></strong> :&ensp;<code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifier" href="vae_spot_classifier.html#laueimproc.nn.vae_spot_classifier.VAESpotClassifier">VAESpotClassifier</a></code></dt>
-<dd>The model, for the dataaug.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class SpotDataset(torch.utils.data.Dataset):
-    &#34;&#34;&#34;Get spots pictures.&#34;&#34;&#34;
-
-    def __init__(self, dataset, model):
-        &#34;&#34;&#34;Initialise the data loader.
-
-        Parameters
-        ----------
-        dataset : laueimproc.classes.dataset.DiagramsDataset
-            Contains all the initialised diagrams.
-        model : laueimproc.nn.vae_spot_classifier.VAESpotClassifier
-            The model, for the dataaug.
-        &#34;&#34;&#34;
-        from laueimproc.classes.dataset import DiagramsDataset
-        from laueimproc.nn.vae_spot_classifier import VAESpotClassifier
-
-        assert isinstance(dataset, DiagramsDataset), dataset.__class__.__name__
-        assert isinstance(model, VAESpotClassifier), model.__class__.__name__
-
-        self._model = model
-
-        # find len
-        diagram_indices = sorted(dataset.indices)
-        self._nb_spots = sum(len(dataset[i]) for i in diagram_indices)
-        if not self._nb_spots:
-            raise ValueError(f&#34;the dataset {dataset} does not contain any spots&#34;)
-
-        # precompute all rois
-        self._all_rois = torch.empty((self._nb_spots, *model.shape), dtype=torch.float32)
-        i = 0
-        for idx in diagram_indices:
-            diagram = dataset[idx]
-            for roi, (height, width) in zip(diagram.rois, diagram.bboxes[:, 2:].tolist()):
-                self._all_rois[i] = model.dataaug(roi[:height, :width])
-                i += 1
-
-    def __getitem__(self, idx: int) -&gt; torch.Tensor:
-        &#34;&#34;&#34;Return the padded or cropped roi picture of index idx.&#34;&#34;&#34;
-        return self._all_rois[idx]
-
-    def __len__(self) -&gt; int:
-        &#34;&#34;&#34;Return the total number of spots.&#34;&#34;&#34;
-        return self._nb_spots</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>torch.utils.data.dataset.Dataset</li>
-<li>typing.Generic</li>
-</ul>
-</dd>
 </dl>
 </section>
 </article>
@@ -585,9 +472,6 @@ def batch_size(self) -&gt; int:
 <ul class="">
 <li><code><a title="laueimproc.nn.loader.SpotDataloader.batch_size" href="#laueimproc.nn.loader.SpotDataloader.batch_size">batch_size</a></code></li>
 </ul>
-</li>
-<li>
-<h4><code><a title="laueimproc.nn.loader.SpotDataset" href="#laueimproc.nn.loader.SpotDataset">SpotDataset</a></code></h4>
 </li>
 </ul>
 </li>

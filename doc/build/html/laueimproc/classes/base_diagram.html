@@ -77,7 +77,7 @@ class BaseDiagram:
 
     Attributes
     ----------
-    area : torch.Tensor
+    areas : torch.Tensor
         The int32 area of each bboxes.
         Return None until spots are initialized.
     bboxes : torch.Tensor or None
@@ -299,7 +299,7 @@ class BaseDiagram:
             self._properties[name] = ((self.state if erasable else None), value)
 
     @property
-    def area(self) -&gt; typing.Union[None, torch.Tensor]:
+    def areas(self) -&gt; typing.Union[None, torch.Tensor]:
         &#34;&#34;&#34;Return the int32 area of each bboxes.
 
         Examples
@@ -307,10 +307,10 @@ class BaseDiagram:
         &gt;&gt;&gt; from laueimproc.classes.base_diagram import BaseDiagram
         &gt;&gt;&gt; from laueimproc.io import get_sample
         &gt;&gt;&gt; diagram = BaseDiagram(get_sample())
-        &gt;&gt;&gt; print(diagram.area)
+        &gt;&gt;&gt; print(diagram.areas)
         None
         &gt;&gt;&gt; diagram.find_spots()
-        &gt;&gt;&gt; print(diagram.area)  # doctest: +ELLIPSIS
+        &gt;&gt;&gt; print(diagram.areas)  # doctest: +ELLIPSIS
         tensor([289,  36,  33,  20,  40,  81,  49,  15,  36,  25,  36, 110,  49,  56,
                  64,  56,  72,  56,  90, 143,  64,  42,  36,  25, 169, 110,  81,  64,
                 100,  49,  36,  42, 121,  36,  36, 121,  81,  56,  72,  80, 110,  56,
@@ -735,7 +735,7 @@ class BaseDiagram:
                 extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
                 interpolation=None,  # antialiasing is True
                 norm=&#34;log&#34;,
-                cmap=&#34;gray&#34;,
+                cmap=&#34;plasma&#34;,  # or gray
                 vmin=vmin,
                 vmax=vmax,
             )
@@ -757,7 +757,7 @@ class BaseDiagram:
                     bboxes[:, 0],
                     bboxes[:, 0],
                 )),
-                color=&#34;blue&#34;,
+                color=&#34;green&#34;,
                 scalex=False,
                 scaley=False,
             )
@@ -977,7 +977,7 @@ class BaseDiagram:
 <div class="desc"><p>A Basic diagram with the fondamental structure.</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>area</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dt><strong><code>areas</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The int32 area of each bboxes.
 Return None until spots are initialized.</dd>
 <dt><strong><code>bboxes</code></strong> :&ensp;<code>torch.Tensor</code> or <code>None</code></dt>
@@ -1016,7 +1016,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
 
     Attributes
     ----------
-    area : torch.Tensor
+    areas : torch.Tensor
         The int32 area of each bboxes.
         Return None until spots are initialized.
     bboxes : torch.Tensor or None
@@ -1238,7 +1238,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
             self._properties[name] = ((self.state if erasable else None), value)
 
     @property
-    def area(self) -&gt; typing.Union[None, torch.Tensor]:
+    def areas(self) -&gt; typing.Union[None, torch.Tensor]:
         &#34;&#34;&#34;Return the int32 area of each bboxes.
 
         Examples
@@ -1246,10 +1246,10 @@ For memory management, it is better to provide a pathlike rather than an array.<
         &gt;&gt;&gt; from laueimproc.classes.base_diagram import BaseDiagram
         &gt;&gt;&gt; from laueimproc.io import get_sample
         &gt;&gt;&gt; diagram = BaseDiagram(get_sample())
-        &gt;&gt;&gt; print(diagram.area)
+        &gt;&gt;&gt; print(diagram.areas)
         None
         &gt;&gt;&gt; diagram.find_spots()
-        &gt;&gt;&gt; print(diagram.area)  # doctest: +ELLIPSIS
+        &gt;&gt;&gt; print(diagram.areas)  # doctest: +ELLIPSIS
         tensor([289,  36,  33,  20,  40,  81,  49,  15,  36,  25,  36, 110,  49,  56,
                  64,  56,  72,  56,  90, 143,  64,  42,  36,  25, 169, 110,  81,  64,
                 100,  49,  36,  42, 121,  36,  36, 121,  81,  56,  72,  80, 110,  56,
@@ -1674,7 +1674,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
                 extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
                 interpolation=None,  # antialiasing is True
                 norm=&#34;log&#34;,
-                cmap=&#34;gray&#34;,
+                cmap=&#34;plasma&#34;,  # or gray
                 vmin=vmin,
                 vmax=vmax,
             )
@@ -1696,7 +1696,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
                     bboxes[:, 0],
                     bboxes[:, 0],
                 )),
-                color=&#34;blue&#34;,
+                color=&#34;green&#34;,
                 scalex=False,
                 scaley=False,
             )
@@ -1876,17 +1876,17 @@ For memory management, it is better to provide a pathlike rather than an array.<
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="laueimproc.classes.base_diagram.BaseDiagram.area"><code class="name">var <span class="ident">area</span> : Optional[None]</code></dt>
+<dt id="laueimproc.classes.base_diagram.BaseDiagram.areas"><code class="name">var <span class="ident">areas</span> : Optional[None]</code></dt>
 <dd>
 <div class="desc"><p>Return the int32 area of each bboxes.</p>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.base_diagram import BaseDiagram
 &gt;&gt;&gt; from laueimproc.io import get_sample
 &gt;&gt;&gt; diagram = BaseDiagram(get_sample())
-&gt;&gt;&gt; print(diagram.area)
+&gt;&gt;&gt; print(diagram.areas)
 None
 &gt;&gt;&gt; diagram.find_spots()
-&gt;&gt;&gt; print(diagram.area)  # doctest: +ELLIPSIS
+&gt;&gt;&gt; print(diagram.areas)  # doctest: +ELLIPSIS
 tensor([289,  36,  33,  20,  40,  81,  49,  15,  36,  25,  36, 110,  49,  56,
          64,  56,  72,  56,  90, 143,  64,  42,  36,  25, 169, 110,  81,  64,
         100,  49,  36,  42, 121,  36,  36, 121,  81,  56,  72,  80, 110,  56,
@@ -1901,7 +1901,7 @@ tensor([289,  36,  33,  20,  40,  81,  49,  15,  36,  25,  36, 110,  49,  56,
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def area(self) -&gt; typing.Union[None, torch.Tensor]:
+def areas(self) -&gt; typing.Union[None, torch.Tensor]:
     &#34;&#34;&#34;Return the int32 area of each bboxes.
 
     Examples
@@ -1909,10 +1909,10 @@ def area(self) -&gt; typing.Union[None, torch.Tensor]:
     &gt;&gt;&gt; from laueimproc.classes.base_diagram import BaseDiagram
     &gt;&gt;&gt; from laueimproc.io import get_sample
     &gt;&gt;&gt; diagram = BaseDiagram(get_sample())
-    &gt;&gt;&gt; print(diagram.area)
+    &gt;&gt;&gt; print(diagram.areas)
     None
     &gt;&gt;&gt; diagram.find_spots()
-    &gt;&gt;&gt; print(diagram.area)  # doctest: +ELLIPSIS
+    &gt;&gt;&gt; print(diagram.areas)  # doctest: +ELLIPSIS
     tensor([289,  36,  33,  20,  40,  81,  49,  15,  36,  25,  36, 110,  49,  56,
              64,  56,  72,  56,  90, 143,  64,  42,  36,  25, 169, 110,  81,  64,
             100,  49,  36,  42, 121,  36,  36, 121,  81,  56,  72,  80, 110,  56,
@@ -2011,15 +2011,19 @@ PosixPath('/.../laueimproc/io/ge.jp2')
         raise TypeError(msg) from None
     val = cache.get(self.attrname, _NOT_FOUND)
     if val is _NOT_FOUND:
-        val = self.func(instance)
-        try:
-            cache[self.attrname] = val
-        except TypeError:
-            msg = (
-                f&#34;The &#39;__dict__&#39; attribute on {type(instance).__name__!r} instance &#34;
-                f&#34;does not support item assignment for caching {self.attrname!r} property.&#34;
-            )
-            raise TypeError(msg) from None
+        with self.lock:
+            # check if another thread filled cache while we awaited lock
+            val = cache.get(self.attrname, _NOT_FOUND)
+            if val is _NOT_FOUND:
+                val = self.func(instance)
+                try:
+                    cache[self.attrname] = val
+                except TypeError:
+                    msg = (
+                        f&#34;The &#39;__dict__&#39; attribute on {type(instance).__name__!r} instance &#34;
+                        f&#34;does not support item assignment for caching {self.attrname!r} property.&#34;
+                    )
+                    raise TypeError(msg) from None
     return val</code></pre>
 </details>
 </dd>
@@ -2794,7 +2798,7 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
             extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
             interpolation=None,  # antialiasing is True
             norm=&#34;log&#34;,
-            cmap=&#34;gray&#34;,
+            cmap=&#34;plasma&#34;,  # or gray
             vmin=vmin,
             vmax=vmax,
         )
@@ -2816,7 +2820,7 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
                 bboxes[:, 0],
                 bboxes[:, 0],
             )),
-            color=&#34;blue&#34;,
+            color=&#34;green&#34;,
             scalex=False,
             scaley=False,
         )
@@ -2996,7 +3000,7 @@ It can also be a combination of the above elements to unite the spots.</p>
 <h4><code><a title="laueimproc.classes.base_diagram.BaseDiagram" href="#laueimproc.classes.base_diagram.BaseDiagram">BaseDiagram</a></code></h4>
 <ul class="two-column">
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.add_property" href="#laueimproc.classes.base_diagram.BaseDiagram.add_property">add_property</a></code></li>
-<li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.area" href="#laueimproc.classes.base_diagram.BaseDiagram.area">area</a></code></li>
+<li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.areas" href="#laueimproc.classes.base_diagram.BaseDiagram.areas">areas</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.bboxes" href="#laueimproc.classes.base_diagram.BaseDiagram.bboxes">bboxes</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.clone" href="#laueimproc.classes.base_diagram.BaseDiagram.clone">clone</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.compress" href="#laueimproc.classes.base_diagram.BaseDiagram.compress">compress</a></code></li>

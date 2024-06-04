@@ -119,7 +119,7 @@ def gauss2d(
         The observations of shape (..., \(N\), 2).
         \(\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j\)
     mean : torch.Tensor
-        The 2x1 column mean vector of shape (..., \(K\), 2, 1).
+        The 2x1 column mean vector of shape (..., \(K\), 2).
         \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
     cov : torch.Tensor
         The 2x2 covariance matrix of shape (..., \(K\), 2, 2).
@@ -140,7 +140,7 @@ def gauss2d(
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.gmm.gauss import gauss2d
     &gt;&gt;&gt; obs = torch.randn((1000, 100, 2))  # (..., n_obs, n_var)
-    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2, 1))  # (..., n_clu, n_var, 1)
+    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2))  # (..., n_clu, n_var)
     &gt;&gt;&gt; cov = obs.mT @ obs  # create real symmetric positive covariance matrix
     &gt;&gt;&gt; cov = cov.unsqueeze(-3).expand(1000, 3, 2, 2)  # (..., n_clu, n_var, n_var)
     &gt;&gt;&gt;
@@ -162,8 +162,8 @@ def gauss2d(
     norm = torch.rsqrt(norm)  # no &#34;out=None if cov.requires_grad else norm&#34; for jacobian
     inv = inv.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, n_var)
 
-    cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
-    prob = cent_obs.mT @ inv @ cent_obs  # (..., n_clu, n_obs, 1, 1)
+    cent_obs = obs.unsqueeze(-3) - mean.unsqueeze(-2)  # (..., n_clu, n_obs, n_var)
+    prob = cent_obs.unsqueeze(-2) @ inv @ cent_obs.unsqueeze(-1)  # (..., n_clu, n_obs, 1, 1)
     prob = prob.squeeze(-1).squeeze(-1)  # (..., n_clu, n_obs)
     prob *= -.5
     prob = torch.exp(prob)  # no &#34;out=None if prob.requires_grad else prob&#34; for jacobian
@@ -401,7 +401,7 @@ torch.Size([1000, 3, 10])
 <dd>The observations of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, 2).
 <span><span class="MathJax_Preview">\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j</span><script type="math/tex">\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j</script></span></dd>
 <dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The 2x1 column mean vector of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 1).
+<dd>The 2x1 column mean vector of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2).
 <span><span class="MathJax_Preview">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</span><script type="math/tex">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</script></span></dd>
 <dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The 2x2 covariance matrix of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).
@@ -424,7 +424,7 @@ It is associated to <span><span class="MathJax_Preview">\mathcal{N}_{\mathbf{\mu
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.gmm.gauss import gauss2d
 &gt;&gt;&gt; obs = torch.randn((1000, 100, 2))  # (..., n_obs, n_var)
-&gt;&gt;&gt; mean = torch.randn((1000, 3, 2, 1))  # (..., n_clu, n_var, 1)
+&gt;&gt;&gt; mean = torch.randn((1000, 3, 2))  # (..., n_clu, n_var)
 &gt;&gt;&gt; cov = obs.mT @ obs  # create real symmetric positive covariance matrix
 &gt;&gt;&gt; cov = cov.unsqueeze(-3).expand(1000, 3, 2, 2)  # (..., n_clu, n_var, n_var)
 &gt;&gt;&gt;
@@ -453,7 +453,7 @@ torch.Size([1000, 3, 100])
         The observations of shape (..., \(N\), 2).
         \(\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j\)
     mean : torch.Tensor
-        The 2x1 column mean vector of shape (..., \(K\), 2, 1).
+        The 2x1 column mean vector of shape (..., \(K\), 2).
         \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
     cov : torch.Tensor
         The 2x2 covariance matrix of shape (..., \(K\), 2, 2).
@@ -474,7 +474,7 @@ torch.Size([1000, 3, 100])
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.gmm.gauss import gauss2d
     &gt;&gt;&gt; obs = torch.randn((1000, 100, 2))  # (..., n_obs, n_var)
-    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2, 1))  # (..., n_clu, n_var, 1)
+    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2))  # (..., n_clu, n_var)
     &gt;&gt;&gt; cov = obs.mT @ obs  # create real symmetric positive covariance matrix
     &gt;&gt;&gt; cov = cov.unsqueeze(-3).expand(1000, 3, 2, 2)  # (..., n_clu, n_var, n_var)
     &gt;&gt;&gt;
@@ -496,8 +496,8 @@ torch.Size([1000, 3, 100])
     norm = torch.rsqrt(norm)  # no &#34;out=None if cov.requires_grad else norm&#34; for jacobian
     inv = inv.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, n_var)
 
-    cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
-    prob = cent_obs.mT @ inv @ cent_obs  # (..., n_clu, n_obs, 1, 1)
+    cent_obs = obs.unsqueeze(-3) - mean.unsqueeze(-2)  # (..., n_clu, n_obs, n_var)
+    prob = cent_obs.unsqueeze(-2) @ inv @ cent_obs.unsqueeze(-1)  # (..., n_clu, n_obs, 1, 1)
     prob = prob.squeeze(-1).squeeze(-1)  # (..., n_clu, n_obs)
     prob *= -.5
     prob = torch.exp(prob)  # no &#34;out=None if prob.requires_grad else prob&#34; for jacobian

@@ -378,7 +378,7 @@ static PyObject* RawShapes2Rois(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_ValueError, "data length is not a multiple of float32 length");
         return NULL;
     }
-    if (rawdata == NULL){
+    if (rawdata == NULL) {
         PyErr_SetString(PyExc_ValueError, "data is empty");
         return NULL;
     }

@@ -47,7 +47,7 @@ class BaseDiagram:
 
     Attributes
     ----------
-    area : torch.Tensor
+    areas : torch.Tensor
         The int32 area of each bboxes.
         Return None until spots are initialized.
     bboxes : torch.Tensor or None
@@ -269,7 +269,7 @@ class BaseDiagram:
             self._properties[name] = ((self.state if erasable else None), value)
 
     @property
-    def area(self) -> typing.Union[None, torch.Tensor]:
+    def areas(self) -> typing.Union[None, torch.Tensor]:
         """Return the int32 area of each bboxes.
 
         Examples
@@ -277,10 +277,10 @@ class BaseDiagram:
         >>> from laueimproc.classes.base_diagram import BaseDiagram
         >>> from laueimproc.io import get_sample
         >>> diagram = BaseDiagram(get_sample())
-        >>> print(diagram.area)
+        >>> print(diagram.areas)
         None
         >>> diagram.find_spots()
-        >>> print(diagram.area)  # doctest: +ELLIPSIS
+        >>> print(diagram.areas)  # doctest: +ELLIPSIS
         tensor([289,  36,  33,  20,  40,  81,  49,  15,  36,  25,  36, 110,  49,  56,
                  64,  56,  72,  56,  90, 143,  64,  42,  36,  25, 169, 110,  81,  64,
                 100,  49,  36,  42, 121,  36,  36, 121,  81,  56,  72,  80, 110,  56,

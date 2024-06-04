@@ -37,7 +37,7 @@ int ApplyToRois(
     }
     datalen /= sizeof(npy_float);
     rawdata = (npy_float32 *)PyByteArray_AsString((PyObject *)data);
-    if (rawdata == NULL){
+    if (rawdata == NULL) {
         fprintf(stderr, "data is empty\n");
         return 1;
     }

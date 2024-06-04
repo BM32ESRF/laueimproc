@@ -20,8 +20,8 @@ LaueImproc supports these versions.
 .. _Windows Installation:
 
 
-Dependencies
-------------
+Dependencies (Optional)
+-----------------------
 
 If you have a GPU, please install CUDA or ROC then follow the `PyTorch installation guide <https://pytorch.org/>`_. Without CUDA or ROC, the software is not able to use the GPU (CPU only).
 
@@ -174,7 +174,7 @@ Create the virtual environement.
 .. code-block:: shell
 
     pyenv update
-    pyenv install -v 3.12
+    pyenv env PYTHON_CONFIGURE_OPTS="--enable-shared --enable-optimizations --with-lto" PYTHON_CFLAGS='-march=native -mtune=native' install -v 3.12
     pyenv virtualenv 3.12 laueenv
     pyenv activate laueenv
 

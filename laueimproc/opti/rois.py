@@ -64,7 +64,7 @@ def filter_by_indices(
         indices_np = indices.numpy(force=True)
         bboxes_np = bboxes.numpy(force=True)
         new_data, new_bboxes_np = c_rois.filter_by_indices(indices_np, data, bboxes_np)
-        return new_data, torch.from_numpy(new_bboxes_np).to(bboxes.dtype)
+        return new_data, torch.from_numpy(new_bboxes_np).to(bboxes.device)
 
     assert isinstance(indices, torch.Tensor), indices.__class__.__name__
     assert indices.ndim == 1, indices.shape

@@ -5,7 +5,6 @@
 import torch
 
 from laueimproc.convention import ij_to_xy_decorator
-from laueimproc.improc.spot.fit import fit_gaussians
 from laueimproc.opti.cache import auto_cache
 from .base_diagram import check_init, BaseDiagram
 
@@ -258,83 +257,83 @@ class Diagram(BaseDiagram):
             data, bboxes = self._rois
         return fit_gaussians_em(data, bboxes, **kwargs)
 
-    def fit_gaussian(
-        self, *args, **kwargs
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-        r"""Fit each roi by one gaussian.
+    # def fit_gaussian(
+    #     self, *args, **kwargs
+    # ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    #     r"""Fit each roi by one gaussian.
 
-        Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
-        """
-        mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
-        mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
-        if "eigtheta" in infodict:
-            infodict = infodict.copy()  # to avoid insane cache reference error
-            infodict["eigtheta"] = infodict["eigtheta"].squeeze(1)
-        return mean, cov, magnitude, infodict
+    #     Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
+    #     """
+    #     mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
+    #     mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
+    #     if "eigtheta" in infodict:
+    #         infodict = infodict.copy()  # to avoid insane cache reference error
+    #         infodict["eigtheta"] = infodict["eigtheta"].squeeze(1)
+    #     return mean, cov, magnitude, infodict
 
-    @auto_cache
-    @check_init
-    def fit_gaussians(
-        self, loss: str = "mse", indexing: str = "ij", **kwargs
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-        r"""Fit each roi by \(K\) gaussians.
+    # @auto_cache
+    # @check_init
+    # def fit_gaussians(
+    #     self, loss: str = "mse", indexing: str = "ij", **kwargs
+    # ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    #     r"""Fit each roi by \(K\) gaussians.
 
-        See ``laueimproc.gmm`` for terminology.
+    #     See ``laueimproc.gmm`` for terminology.
 
-        Parameters
-        ----------
-        loss : str, default="mse"
-            Quantify the difference between ``self.rois`` and estimated rois from the gmm.
-            The possible values are:
+    #     Parameters
+    #     ----------
+    #     loss : str, default="mse"
+    #         Quantify the difference between ``self.rois`` and estimated rois from the gmm.
+    #         The possible values are:
 
-            * "l1" (absolute difference): \(
-                \frac{1}{H.W}
-                \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-                | rois_{k,i,j} - rois\_pred_{k,i,j} |
-            \)
+    #         * "l1" (absolute difference): \(
+    #             \frac{1}{H.W}
+    #             \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
+    #             | rois_{k,i,j} - rois\_pred_{k,i,j} |
+    #         \)
 
-            * "mse" (mean square error): \(
-                \frac{1}{H.W}
-                \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-                \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
-            \)
-        indexing : str, default="ij"
-            The convention used for the returned positions values. Can be "ij" or "xy".
-        **kwargs : dict
-            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
+    #         * "mse" (mean square error): \(
+    #             \frac{1}{H.W}
+    #             \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
+    #             \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
+    #         \)
+    #     indexing : str, default="ij"
+    #         The convention used for the returned positions values. Can be "ij" or "xy".
+    #     **kwargs : dict
+    #         Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
 
-        Returns
-        -------
-        mean : torch.Tensor
-            The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
-        cov : torch.Tensor
-            The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
-        magnitude : torch.Tensor
-            The absolute magnitude \(\theta.\eta\). Shape (n, \(K\)).
-        infodict : dict[str]
-            See ``laueimproc.improc.spot.fit.fit_gaussians``.
-        """
-        assert loss == "mse", "only mse is implemented"
+    #     Returns
+    #     -------
+    #     mean : torch.Tensor
+    #         The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
+    #     cov : torch.Tensor
+    #         The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
+    #     magnitude : torch.Tensor
+    #         The absolute magnitude \(\theta.\eta\). Shape (n, \(K\)).
+    #     infodict : dict[str]
+    #         See ``laueimproc.improc.spot.fit.fit_gaussians``.
+    #     """
+    #     assert loss == "mse", "only mse is implemented"
 
-        # preparation
-        with self._rois_lock:
-            data = self._rois[0]
-            shapes = self._rois[1][:, 2:]
-            shift = self._rois[1][:, :2]
+    #     # preparation
+    #     with self._rois_lock:
+    #         data = self._rois[0]
+    #         shapes = self._rois[1][:, 2:]
+    #         shift = self._rois[1][:, :2]
 
-        # main fit
-        mean, cov, magnitude, infodict = fit_gaussians(data, shapes, **kwargs)
+    #     # main fit
+    #     mean, cov, magnitude, infodict = fit_gaussians(data, shapes, **kwargs)
 
-        # spot base to diagram base
-        if mean.requires_grad:
-            mean = mean + shift.reshape(-1, 1, 2, 1)
-        else:
-            mean += shift.reshape(-1, 1, 2, 1)
+    #     # spot base to diagram base
+    #     if mean.requires_grad:
+    #         mean = mean + shift.reshape(-1, 1, 2, 1)
+    #     else:
+    #         mean += shift.reshape(-1, 1, 2, 1)
 
-        assert isinstance(indexing, str), indexing.__class__.__name__
-        assert indexing in {"ij", "xy"}, indexing
-        if indexing == "xy":
-            mean = torch.flip(mean, 2)
-            mean += 0.5
+    #     assert isinstance(indexing, str), indexing.__class__.__name__
+    #     assert indexing in {"ij", "xy"}, indexing
+    #     if indexing == "xy":
+    #         mean = torch.flip(mean, 2)
+    #         mean += 0.5
 
-        return mean, cov, magnitude, infodict
+    #     return mean, cov, magnitude, infodict

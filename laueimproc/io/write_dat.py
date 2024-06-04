@@ -97,7 +97,7 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
     assert isinstance(diagram, Diagram), diagram.__class__.__name__
 
     backgrounds = torch.sum(diagram.rawrois - diagram.rois, dim=(1, 2))
-    backgrounds /= diagram.area.to(backgrounds.dtype)
+    backgrounds /= diagram.areas.to(backgrounds.dtype)
 
     # header
     file_content = (

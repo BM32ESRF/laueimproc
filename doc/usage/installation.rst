@@ -20,8 +20,8 @@ LaueImproc supports these versions.
 .. _Windows Installation:
 
 
-Dependencies
-------------
+Dependencies (Optional)
+-----------------------
 
 If you have a GPU, please install CUDA or ROC then follow the `PyTorch installation guide <https://pytorch.org/>`_. Without CUDA or ROC, the software is not able to use the GPU (CPU only).
 

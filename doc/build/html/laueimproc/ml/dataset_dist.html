@@ -49,11 +49,11 @@ except ImportError:
     c_dist = None
 
 
-POS_TYPE = typing.Union[dict[int, tuple[float, ...]], tuple[torch.Tensor, torch.Tensor]]
-POS_FUNC_TYPE = typing.Callable[[int], typing.Union[numbers.Real, tuple[numbers.Real, ...]]]
+SCALS_TYPE = typing.Union[dict[int, tuple[float, ...]], tuple[torch.Tensor, torch.Tensor]]
+DIAG2SCALS_TYPE = typing.Callable[[int], typing.Union[numbers.Real, tuple[numbers.Real, ...]]]
 
 
-def _add_pos(pos: POS_TYPE, index: int, coords: tuple[float, ...]) -&gt; POS_TYPE:
+def _add_pos(pos: SCALS_TYPE, index: int, coords: tuple[float, ...]) -&gt; SCALS_TYPE:
     &#34;&#34;&#34;Append a nez position to the positions.
 
     Notes
@@ -65,7 +65,7 @@ def _add_pos(pos: POS_TYPE, index: int, coords: tuple[float, ...]) -&gt; POS_TYP
     return pos
 
 
-def _copy_pos(pos: POS_TYPE) -&gt; POS_TYPE:
+def _copy_pos(pos: SCALS_TYPE) -&gt; SCALS_TYPE:
     &#34;&#34;&#34;Deep copy of the position.
 
     Notes
@@ -79,19 +79,20 @@ def _copy_pos(pos: POS_TYPE) -&gt; POS_TYPE:
     return (pos[0].clone(), pos[1].clone())
 
 
-def _filter_pos(pos: POS_TYPE, indices: typing.Iterable[int]) -&gt; POS_TYPE:
+def _filter_pos(pos: SCALS_TYPE, indices: typing.Iterable[int]) -&gt; SCALS_TYPE:
     &#34;&#34;&#34;Select only some positions.
 
     Notes
     -----
     No check for performance reason.
+    indicies are assumed to be in pos.
     &#34;&#34;&#34;
     pos = _to_dict(pos)
-    pos = {i: pos[i] for i in indices if i in pos}
+    pos = {i: pos[i] for i in indices}
     return pos
 
 
-def _to_dict(pos: POS_TYPE) -&gt; dict[int, tuple[float, ...]]:
+def _to_dict(pos: SCALS_TYPE) -&gt; dict[int, tuple[float, ...]]:
     &#34;&#34;&#34;Convert the general position into a dictionary form.
 
     Notes
@@ -104,7 +105,7 @@ def _to_dict(pos: POS_TYPE) -&gt; dict[int, tuple[float, ...]]:
     return {i: c for i, *c in zip(indices.tolist(), coords.tolist())}
 
 
-def _to_torch(pos: POS_TYPE) -&gt; tuple[torch.Tensor, torch.Tensor]:
+def _to_torch(pos: SCALS_TYPE) -&gt; tuple[torch.Tensor, torch.Tensor]:
     &#34;&#34;&#34;Convert the general position into the torch form.
 
     Notes
@@ -119,7 +120,7 @@ def _to_torch(pos: POS_TYPE) -&gt; tuple[torch.Tensor, torch.Tensor]:
     return (indices_torch, coords_torch)
 
 
-def call_diag2scalars(pos_func: POS_FUNC_TYPE, index: int) -&gt; tuple[float, ...]:
+def call_diag2scalars(pos_func: DIAG2SCALS_TYPE, index: int) -&gt; tuple[float, ...]:
     &#34;&#34;&#34;Call the function, check, cast and return the output.
 
     The function typing is assumed to be checked.
@@ -148,7 +149,7 @@ def call_diag2scalars(pos_func: POS_FUNC_TYPE, index: int) -&gt; tuple[float, ..
     return out
 
 
-def check_diag2scalars_typing(pos_func: POS_FUNC_TYPE):
+def check_diag2scalars_typing(pos_func: DIAG2SCALS_TYPE):
     &#34;&#34;&#34;Ensure that the position function has the right type of input / outputs.
 
     Parameters
@@ -410,7 +411,7 @@ def select_closest(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def call_diag2scalars(pos_func: POS_FUNC_TYPE, index: int) -&gt; tuple[float, ...]:
+<pre><code class="python">def call_diag2scalars(pos_func: DIAG2SCALS_TYPE, index: int) -&gt; tuple[float, ...]:
     &#34;&#34;&#34;Call the function, check, cast and return the output.
 
     The function typing is assumed to be checked.
@@ -524,7 +525,7 @@ and that return a scalar vector in a space of n dimensions.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def check_diag2scalars_typing(pos_func: POS_FUNC_TYPE):
+<pre><code class="python">def check_diag2scalars_typing(pos_func: DIAG2SCALS_TYPE):
     &#34;&#34;&#34;Ensure that the position function has the right type of input / outputs.
 
     Parameters

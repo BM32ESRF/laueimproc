@@ -117,6 +117,7 @@ show_error_codes = true
 # C0415 'import outside toplevel' solve cyclic import and allow optional modules
 disable = "E0611,C0103,E1101,E1102,E1133,E1135,C0415"
 extension-pkg-allow-list = [
+  "laueimproc.gmm.c_gmm",
   "laueimproc.improc.c_find_bboxes",
   "laueimproc.improc.spot.c_basic",
   "laueimproc.improc.spot.c_extrema",

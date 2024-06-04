@@ -35,11 +35,52 @@
 import numbers
 import typing
 
-from laueimproc.classes.base_dataset import BaseDiagramsDataset
+from laueimproc.ml.dataset_dist import select_closest
+from .base_dataset import BaseDiagramsDataset
+from .diagram import Diagram
 
 
 class DiagramsDataset(BaseDiagramsDataset):
     &#34;&#34;&#34;Link Diagrams together.&#34;&#34;&#34;
+
+    def select_closest(
+        self, *args, no_raise: bool = False, **kwargs
+    ) -&gt; typing.Union[Diagram, None]:
+        &#34;&#34;&#34;Select the closest diagram to a given set of phisical parameters.
+
+        Parameters
+        ----------
+        point, tol, scale
+            Transmitted to ``laueimproc.ml.dataset_dist.select_closest``.
+        no_raise : boolean, default = False
+            If set to True, return None rather throwing a LookupError exception.
+
+        Returns
+        -------
+        closet_diag : ``laueimproc.classes.diagram.Diagram``
+            The closet diagram.
+
+        Examples
+        --------
+        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
+        &gt;&gt;&gt; from laueimproc.io import get_samples
+        &gt;&gt;&gt; def position(index: int) -&gt; tuple[int, int]:
+        ...     return divmod(index, 10)
+        ...
+        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples(), diag2scalars=position)
+        &gt;&gt;&gt; dataset.select_closest((4.1, 4.9), tol=(0.2, 0.2))
+        Diagram(img_45.jp2)
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        assert isinstance(no_raise, bool), no_raise.__class__.__name__
+        indices, coords = self.get_scalars(as_dict=False, copy=False)
+        try:
+            index = select_closest(coords, *args, **kwargs)
+        except LookupError as err:
+            if no_raise:
+                return None
+            raise err
+        return self._get_diagram_from_index(int(indices[index]))
 
     def track_spots(self):
         &#34;&#34;&#34;Find the apparition of the same spots in differents diagrams.&#34;&#34;&#34;
@@ -118,7 +159,7 @@ class DiagramsDataset(BaseDiagramsDataset):
 <dl>
 <dt id="laueimproc.classes.dataset.DiagramsDataset"><code class="flex name class">
 <span>class <span class="ident">DiagramsDataset</span></span>
-<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, position: Union[dict[int, tuple[float, ...]], tuple[torch.Tensor, torch.Tensor], ForwardRef(None)] = None)</span>
+<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, diag2scalars: Optional[Callable[[int], Union[numbers.Real, tuple[numbers.Real, ...]]]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Link Diagrams together.</p>
@@ -132,7 +173,7 @@ class DiagramsDataset(BaseDiagramsDataset):
 If provided, this function has to be pickleable.
 It has to take only one positional argument (a simple Diagram instance)
 and to return a positive integer.</dd>
-<dt><strong><code>position</code></strong> :&ensp;<code>callable</code>, optional</dt>
+<dt><strong><code>diag2scalars</code></strong> :&ensp;<code>callable</code>, optional</dt>
 <dd>If provided, it allows you to select diagram from physical parameters.
 <span><span class="MathJax_Preview">f:I\to\mathbb{R}^n</span><script type="math/tex">f:I\to\mathbb{R}^n</script></span>, an injective application.
 <span><span class="MathJax_Preview">I\subset\mathbb{N}</span><script type="math/tex">I\subset\mathbb{N}</script></span> is the set of the indices of the diagrams in the dataset.
@@ -147,6 +188,45 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 </summary>
 <pre><code class="python">class DiagramsDataset(BaseDiagramsDataset):
     &#34;&#34;&#34;Link Diagrams together.&#34;&#34;&#34;
+
+    def select_closest(
+        self, *args, no_raise: bool = False, **kwargs
+    ) -&gt; typing.Union[Diagram, None]:
+        &#34;&#34;&#34;Select the closest diagram to a given set of phisical parameters.
+
+        Parameters
+        ----------
+        point, tol, scale
+            Transmitted to ``laueimproc.ml.dataset_dist.select_closest``.
+        no_raise : boolean, default = False
+            If set to True, return None rather throwing a LookupError exception.
+
+        Returns
+        -------
+        closet_diag : ``laueimproc.classes.diagram.Diagram``
+            The closet diagram.
+
+        Examples
+        --------
+        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
+        &gt;&gt;&gt; from laueimproc.io import get_samples
+        &gt;&gt;&gt; def position(index: int) -&gt; tuple[int, int]:
+        ...     return divmod(index, 10)
+        ...
+        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples(), diag2scalars=position)
+        &gt;&gt;&gt; dataset.select_closest((4.1, 4.9), tol=(0.2, 0.2))
+        Diagram(img_45.jp2)
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        assert isinstance(no_raise, bool), no_raise.__class__.__name__
+        indices, coords = self.get_scalars(as_dict=False, copy=False)
+        try:
+            index = select_closest(coords, *args, **kwargs)
+        except LookupError as err:
+            if no_raise:
+                return None
+            raise err
+        return self._get_diagram_from_index(int(indices[index]))
 
     def track_spots(self):
         &#34;&#34;&#34;Find the apparition of the same spots in differents diagrams.&#34;&#34;&#34;
@@ -220,6 +300,78 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 </ul>
 <h3>Methods</h3>
 <dl>
+<dt id="laueimproc.classes.dataset.DiagramsDataset.select_closest"><code class="name flex">
+<span>def <span class="ident">select_closest</span></span>(<span>self, *args, no_raise: bool = False, **kwargs) ‑> Optional[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Select the closest diagram to a given set of phisical parameters.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>point</code></strong>, <strong><code>tol</code></strong>, <strong><code>scale</code></strong></dt>
+<dd>Transmitted to <code><a title="laueimproc.ml.dataset_dist.select_closest" href="../ml/dataset_dist.html#laueimproc.ml.dataset_dist.select_closest">select_closest()</a></code>.</dd>
+<dt><strong><code>no_raise</code></strong> :&ensp;<code>boolean</code>, default <code>= False</code></dt>
+<dd>If set to True, return None rather throwing a LookupError exception.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>closet_diag</code></strong> :&ensp;<code>laueimproc.classes.diagram.Diagram</code></dt>
+<dd>The closet diagram.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
+&gt;&gt;&gt; from laueimproc.io import get_samples
+&gt;&gt;&gt; def position(index: int) -&gt; tuple[int, int]:
+...     return divmod(index, 10)
+...
+&gt;&gt;&gt; dataset = DiagramsDataset(get_samples(), diag2scalars=position)
+&gt;&gt;&gt; dataset.select_closest((4.1, 4.9), tol=(0.2, 0.2))
+Diagram(img_45.jp2)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def select_closest(
+    self, *args, no_raise: bool = False, **kwargs
+) -&gt; typing.Union[Diagram, None]:
+    &#34;&#34;&#34;Select the closest diagram to a given set of phisical parameters.
+
+    Parameters
+    ----------
+    point, tol, scale
+        Transmitted to ``laueimproc.ml.dataset_dist.select_closest``.
+    no_raise : boolean, default = False
+        If set to True, return None rather throwing a LookupError exception.
+
+    Returns
+    -------
+    closet_diag : ``laueimproc.classes.diagram.Diagram``
+        The closet diagram.
+
+    Examples
+    --------
+    &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
+    &gt;&gt;&gt; from laueimproc.io import get_samples
+    &gt;&gt;&gt; def position(index: int) -&gt; tuple[int, int]:
+    ...     return divmod(index, 10)
+    ...
+    &gt;&gt;&gt; dataset = DiagramsDataset(get_samples(), diag2scalars=position)
+    &gt;&gt;&gt; dataset.select_closest((4.1, 4.9), tol=(0.2, 0.2))
+    Diagram(img_45.jp2)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(no_raise, bool), no_raise.__class__.__name__
+    indices, coords = self.get_scalars(as_dict=False, copy=False)
+    try:
+        index = select_closest(coords, *args, **kwargs)
+    except LookupError as err:
+        if no_raise:
+            return None
+        raise err
+    return self._get_diagram_from_index(int(indices[index]))</code></pre>
+</details>
+</dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.track_spots"><code class="name flex">
 <span>def <span class="ident">track_spots</span></span>(<span>self)</span>
 </code></dt>
@@ -350,7 +502,9 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
 <li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.clone" href="base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.clone">clone</a></code></li>
 <li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.flush" href="base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.flush">flush</a></code></li>
 <li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.get_property" href="base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.get_property">get_property</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.get_scalars" href="base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.get_scalars">get_scalars</a></code></li>
 <li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.indices" href="base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.indices">indices</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.restore" href="base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.restore">restore</a></code></li>
 <li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.run" href="base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.run">run</a></code></li>
 <li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.state" href="base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.state">state</a></code></li>
 </ul>
@@ -376,6 +530,7 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
 <li>
 <h4><code><a title="laueimproc.classes.dataset.DiagramsDataset" href="#laueimproc.classes.dataset.DiagramsDataset">DiagramsDataset</a></code></h4>
 <ul class="">
+<li><code><a title="laueimproc.classes.dataset.DiagramsDataset.select_closest" href="#laueimproc.classes.dataset.DiagramsDataset.select_closest">select_closest</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.track_spots" href="#laueimproc.classes.dataset.DiagramsDataset.track_spots">track_spots</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.train_spot_classifier" href="#laueimproc.classes.dataset.DiagramsDataset.train_spot_classifier">train_spot_classifier</a></code></li>
 </ul>

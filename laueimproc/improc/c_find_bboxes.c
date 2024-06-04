@@ -166,7 +166,7 @@ static PyObject* FindBBoxes(PyObject* self, PyObject* args) {
     if (CheckImg(binary, NPY_UINT8)) {
         return NULL;
     }
-    if (max_size < 1){
+    if (max_size < 1) {
         PyErr_SetString(PyExc_ValueError, "'max_size' has to be >= 1");
         return NULL;
     }

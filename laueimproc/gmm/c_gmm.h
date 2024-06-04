@@ -2,14 +2,85 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <numpy/arrayobject.h>
+#include <math.h>
 #include <Python.h>
 #include <stdio.h>
 
 
-int CostAndGrad(
-    npy_float32* roi, const long height, const long width,
-    npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu,
-    npy_float32* cost, npy_float32* mean_grad, npy_float32* cov_grad, npy_float32* eta_grad
+int MSECost(
+    npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
+    npy_float32* mean, npy_float32* cov, npy_float32* mag, const long n_clu,
+    npy_float32* cost
+) {
+    /*
+        Compute the mse loss of the roi and the gmm.
+
+        rois : the pixels value of the roi
+        height, width : the shape of the roi
+        mean : the mean points of shape (k, 2)
+        cov : the covarianc matricies of shape (k, 2, 2)
+        mag : the relative weitgh of shape (k,)
+
+        cost : the scalar loss value
+    */
+    npy_float32* fact_const;  // contains the value independent of i
+    const long area = height * width;
+    const npy_float32 inv_area = 1.0 / (npy_float32)area;
+
+    *cost = 0.0;
+
+    // precompute const values, i loop invariant
+    fact_const = malloc(2 * n_clu * sizeof(*fact_const));
+    if (fact_const == NULL) {
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+    #pragma omp simd safelen(1)
+    for (long k = 0; k < n_clu; ++k) {
+        npy_float32 sigma_d0 = cov[4 * k], corr = cov[4 * k + 1], sigma_d1 = cov[4 * k + 3];
+        npy_float32 inv_det = 1.0 / (sigma_d0 * sigma_d1 - corr * corr);
+        fact_const[2 * k] = inv_det;
+        fact_const[2 * k + 1] = sqrtf(inv_det);
+    }
+
+    // compute the prediction for each pixel and reduce it
+    for (long i = 0; i < area; ++i) {
+        npy_float32 roi_pred = 0.0;  // the predicted pixel value (proba density)
+        npy_float32 pos_i, pos_j;  // the positions
+        pos_i = (npy_float32)(i / width + anchor_i) + 0.5, pos_j = (npy_float32)(i % width + anchor_j) + 0.5;
+        #pragma omp simd reduction(+:roi_pred) safelen(1)
+        for (long k = 0; k < n_clu; ++k) {
+            // compute the proba
+            npy_float32 mu_d0 = mean[2 * k], mu_d1 = mean[2 * k + 1];
+            npy_float32 sigma_d0 = cov[4 * k], corr = cov[4 * k + 1], sigma_d1 = cov[4 * k + 3];
+
+            // gmm direct evaluation
+            npy_float32 inv_det = fact_const[2 * k];
+            npy_float32 sqrt_inv_det = fact_const[2 * k + 1];
+            npy_float32 pos_i_cent = pos_i - mu_d0, pos_j_cent = pos_j - mu_d1;
+            npy_float32 x1 = inv_det * pos_i_cent, x2 = inv_det * pos_j_cent;
+            npy_float32 x3 = sigma_d0 * x2 - corr * x1, x4 = sigma_d1 * x1 - corr * x2;
+            x1 = -0.5 * pos_i_cent, x2 = -0.5 * pos_j_cent;
+            npy_float32 prob = expf(x4 * x1 + x3 * x2) / M_PI;
+            prob *= 0.5 * mag[k] * sqrt_inv_det;
+
+            // sum of the gaussians contribution
+            roi_pred += prob;
+        }
+        // mse loss
+        npy_float32 buff = roi_pred - roi[i];
+        *cost += buff * buff;
+    }
+    free(fact_const);
+    *cost *= inv_area;  // average mse loss
+    return 0;
+}
+
+
+int MSECostAndGrad(
+    npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
+    npy_float32* mean, npy_float32* cov, npy_float32* mag, const long n_clu,
+    npy_float32* cost, npy_float32* mean_grad, npy_float32* cov_grad, npy_float32* mag_grad
 ) {
     /*
         Compute the mse loss of the roi and the gmm. Compute the gradiant as well.
@@ -18,273 +89,167 @@ int CostAndGrad(
         height, width : the shape of the roi
         mean : the mean points of shape (k, 2)
         cov : the covarianc matricies of shape (k, 2, 2)
-        eta : the relative weitgh of shape (k,)
+        mag : the relative weitgh of shape (k,)
 
         cost : the scalar loss value
         mean_grad : the gradient of mean of shape (k, 2)
         cov_grad : the gradient of cov of shape (k, 2, 2)
-        eta_grad : the gradient of eta of shape (k,)
+        mag_grad : the gradient of mag of shape (k,)
     */
+    npy_float32* fact_const;  // contains the value independent of i
     const long area = height * width;
+    const npy_float32 inv_area = 1.0 / (npy_float32)area;
 
+    // set values to zero for sumation
     *cost = 0.0;
+    memset(mean_grad, 0, n_clu * 2 * sizeof(*mean_grad));
+    memset(cov_grad, 0, n_clu * 4 * sizeof(*cov_grad));
+    memset(mag_grad, 0, n_clu * sizeof(*mag_grad));
 
+    // precompute const values, i loop invariant
+    fact_const = malloc(7 * n_clu * sizeof(*fact_const));
+    if (fact_const == NULL) {
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+    #pragma omp simd safelen(1)
+    for (long k = 0; k < n_clu; ++k) {
+        npy_float32 sigma_d0 = cov[4 * k], corr = cov[4 * k + 1], sigma_d1 = cov[4 * k + 3];
+        npy_float32 diag = sigma_d0 * sigma_d1;
+        npy_float32 c2 = corr * corr;
+        npy_float32 inv_det = 1.0 / (diag - c2);
+        fact_const[7 * k] = -diag;
+        fact_const[7 * k + 1] = -c2;
+        fact_const[7 * k + 2] = inv_det;
+        fact_const[7 * k + 3] = inv_det * inv_det;
+        fact_const[7 * k + 4] = sqrtf(inv_det);
+        fact_const[7 * k + 5] = sigma_d0 * sigma_d0;
+        fact_const[7 * k + 6] = sigma_d1 * sigma_d1;
+    }
+
+    // compute jacobian and reduce it as grad
     for (long i = 0; i < area; ++i) {
         npy_float32 roi_pred = 0.0;  // the predicted pixel value (proba density)
-        npy_float32 buff;  // tmp var
         npy_float32 pos_i, pos_j;  // the positions
 
-        pos_i = (npy_float32)(i / width) + 0.5, pos_j = (npy_float32)(i % width) + 0.5;
+        pos_i = (npy_float32)(i / width + anchor_i) + 0.5, pos_j = (npy_float32)(i % width + anchor_j) + 0.5;
 
+        #pragma omp simd reduction(+:roi_pred) safelen(1)
         for (long k = 0; k < n_clu; ++k) {
             // compute the proba
-            roi_pred += 1.0;  // sum of the gaussians contribution
+            npy_float32 mu_d0 = mean[2 * k], mu_d1 = mean[2 * k + 1];
+            npy_float32 sigma_d0 = cov[4 * k], corr = cov[4 * k + 1], sigma_d1 = cov[4 * k + 3];
+
+            // gmm direct evaluation
+            npy_float32 inv_det = fact_const[7 * k + 2];
+            npy_float32 sqrt_inv_det = fact_const[7 * k + 4];
+            npy_float32 pos_i_cent = pos_i - mu_d0, pos_j_cent = pos_j - mu_d1;
+            npy_float32 x1 = inv_det * pos_i_cent, x2 = inv_det * pos_j_cent;
+            npy_float32 x3 = sigma_d0 * x2 - corr * x1, x4 = sigma_d1 * x1 - corr * x2;
+            x1 = -0.5 * pos_i_cent, x2 = -0.5 * pos_j_cent;
+            npy_float32 prob = expf(x4 * x1 + x3 * x2) / M_PI;
+            prob *= 0.5 * mag[k] * sqrt_inv_det;
+
+            // sum of the gaussians contribution
+            roi_pred += prob;
         }
         for (long k = 0; k < n_clu; ++k) {
             // compute the jacobians
-            npy_float32 mean_jac_i = 0.0, mean_jac_j = 0.0;  // (N, K, 2)
-            npy_float32 cov_jac_s1 = 0.0, cov_jac_s2 = 0.0, cov_jac_c = 0.0;  // (N, K, 2, 2)
+            npy_float32 mean_jac_i, mean_jac_j;  // (N, K, 2)
+            npy_float32 cov_jac_s1, cov_jac_s2, cov_jac_c;  // (N, K, 2, 2)
+            npy_float32 mag_jac;  // (N, K)
+
+            npy_float32 mu_d0 = mean[2 * k], mu_d1 = mean[2 * k + 1];
+            npy_float32 sigma_d0 = cov[4 * k], corr = cov[4 * k + 1], sigma_d1 = cov[4 * k + 3];
+            npy_float32 nu = mag[k];
+
+            npy_float32 mdiag = fact_const[7 * k];
+            npy_float32 mc2 = fact_const[7 * k + 1];
+            npy_float32 inv_det = fact_const[7 * k + 2];
+            npy_float32 inv_det_2 = fact_const[7 * k + 3];
+            npy_float32 sqrt_inv_det = fact_const[7 * k + 4];
+
+            npy_float32 pos_i_cent = pos_i - mu_d0, pos_j_cent = pos_j - mu_d1;
+            cov_jac_c = -inv_det * pos_j_cent;
+            npy_float32 _9 = -inv_det * pos_i_cent;
+            mean_jac_i = cov_jac_c * corr;
+            mean_jac_j = -_9 * sigma_d1;
+            mean_jac_i = mean_jac_i + mean_jac_j;
+            mean_jac_j = _9 * corr;
+            cov_jac_s2 = -cov_jac_c * sigma_d0;
+            mean_jac_j = mean_jac_j + cov_jac_s2;
+            cov_jac_s2 = -0.5 * mean_jac_j * pos_j_cent;
+            npy_float32 _13 = -0.5 * mean_jac_i * pos_i_cent;
+            cov_jac_s2 = cov_jac_s2 + _13;
+            cov_jac_s2 = expf(cov_jac_s2);
+            _13 = (0.5 / M_PI) * cov_jac_s2;
+            mag_jac = _13 * sqrt_inv_det;
+            npy_float32 _15 = mag_jac * nu;
+            npy_float32 _2 = inv_det;
+            npy_float32 _3 = sqrt_inv_det * nu;
+            _2 *= _3;
+            npy_float32 _16 = (-0.25 / M_PI) * cov_jac_s2 * _2;
+            npy_float32 _17 = inv_det_2 * pos_i_cent, _18 = inv_det_2 * pos_j_cent;
+            npy_float32 _4 = corr * sigma_d1;
+            npy_float32 _19 = -0.5 * pos_i_cent, _20 = -0.5 * pos_j_cent;
+            npy_float32 _21 = corr * sigma_d0;
+            mean_jac_i *= _15, mean_jac_j *= _15;
+            cov_jac_s1 = _16 * sigma_d1;
+            npy_float32 _23 = _18 * _4;
+            _23 -= _17 * fact_const[7 * k + 6];
+            _23 *= _19;
+            npy_float32 _25 = -cov_jac_c;
+            pos_i_cent *= inv_det_2 *  corr * sigma_d1;
+            _25 += _18 * mdiag + pos_i_cent;
+            _25 *= _20;
+            _23 += _25;
+            _3 *= 0.5 / M_PI;
+            _23 *= cov_jac_s2 * _3;
+            cov_jac_s1 += _23;
+            _16 *= sigma_d0;
+            _23 = -_9;
+            _25 = _17 * mdiag;
+            _23 += _25 + inv_det_2 * pos_j_cent * corr * sigma_d0;
+            _23 *= _19;
+            _25 = _17 * _21;
+            _25 -= fact_const[7 * k + 5] * _18;
+            _25 *= _20;
+            _23 += _25;
+            cov_jac_s2 *= _23 * _3;
+            cov_jac_s2 += _16;
+            cov_jac_c += 2.0 * (mc2 * _18 + _17 * _4);
+            cov_jac_c *= _19;
+            _9 += 2.0 * (mc2 * _17 + _18 * _21);
+            _9 *= _20;
+            cov_jac_c += _9;
+            cov_jac_c *= _15;
+            cov_jac_c += _13 * _2 * corr;
 
             // reduce jacobians to grad
-            mean_jac_i *= roi_pred, mean_jac_j *= roi_pred;
+            npy_float32 mse_grad = 2 * (roi_pred - roi[i]) * inv_area;
+
+            mean_jac_i *= mse_grad, mean_jac_j *= mse_grad;
             mean_grad[2 * k] += mean_jac_i;
             mean_grad[2 * k + 1] += mean_jac_j;
 
-            cov_jac_s1 *= roi_pred, cov_jac_s2 *= roi_pred, cov_jac_c *= roi_pred;
+            cov_jac_s1 *= mse_grad, cov_jac_s2 *= mse_grad, cov_jac_c *= mse_grad;
             cov_grad[4 * k] += cov_jac_s1;
-            cov_grad[4 * k + 1] += cov_jac_c;  // penser a copier a la fin
-            cov_grad[4 * k + 2] += cov_jac_s2;
+            cov_grad[4 * k + 1] += cov_jac_c;  // copy cov_grad[4 * k + 2] later
+            cov_grad[4 * k + 3] += cov_jac_s2;
 
+            mag_jac *= mse_grad;
+            mag_grad[k] += mag_jac;
         }
-
         // mse loss
-        buff = roi_pred - roi[i];
+        npy_float32 buff = roi_pred - roi[i];
         *cost += buff * buff;
 
-        // jacobian to grad
-        // roi_pred (\(N\),)
-        // mean_jac (\(N\), \(K\), 2)
-        // mean_grad (K, 2)
-        mean_grad = sum(mean_jac * roi_pred); // somme selon n_obs axis
+        // cov symetric
+        for (long k = 0; k < n_clu; ++k) {
+            cov_grad[4 * k + 2] = cov_grad[4 * k + 1];
+        }
     }
-
-    *cost /= (npy_float32)(area);  // average mse loss
-
-
-    // mean_grad = sum(mean_jac * roi_pred); // somme selon n_obs axis
-    // cov_grad = sum(cov_jac * roi_pred);
-    // eta_grad = sum(eta_jac * roi_pred);
-
+    free(fact_const);
+    *cost *= inv_area;  // average mse loss
     return 0;
 }
-
-void lambdify_float(const npy_intp _dim, float *_10, float *_11, float *_12, float *_14, float *_15, float *_22, float *_8, float *corr, float *eta, float *mu_d0, float *mu_d1, float *o_d0, float *o_d1, float *sigma_d0, float *sigma_d1) {
-  npy_intp _i;
-  #pragma omp parallel for simd schedule(static)
-  for ( _i = 0; _i < _dim; ++_i ) {
-    float _0, _1, _13, _16, _17, _18, _19, _2, _20, _21, _23, _24, _25, _26, _3, _4, _5, _6, _7, _9, _buf;
-    _0 = corr[_i] * corr[_i];
-    _1 = -1.0f * sigma_d0[_i];
-    _1 *= sigma_d1[_i];
-    _1 += _0;
-    _2 = -1.0f * _1;
-    _3 = 1.0f / sqrtf(_2);
-    _4 = -1.0f * mu_d0[_i];
-    _5 = _4 + o_d0[_i];
-    _4 = 1.0f / _1;
-    _6 = -1.0f * mu_d1[_i];
-    _7 = _6 + o_d1[_i];
-    _8[_i] = _4 * _7;
-    _9 = _4 * _5;
-    _10[_i] = _8[_i] * corr[_i];
-    _11[_i] = -1.0f * _9;
-    _11[_i] *= sigma_d1[_i];
-    _10[_i] += _11[_i];
-    _11[_i] = _9 * corr[_i];
-    _12[_i] = -1.0f * _8[_i];
-    _12[_i] *= sigma_d0[_i];
-    _11[_i] += _12[_i];
-    _12[_i] = -0.5f * _11[_i];
-    _12[_i] *= _7;
-    _13 = -0.5f * _10[_i];
-    _13 *= _5;
-    _12[_i] += _13;
-    _12[_i] = expf(_12[_i]);
-    _13 = 0.15915494309189535f * _12[_i];
-    _14[_i] = _13 * _3;
-    _15[_i] = _14[_i] * eta[_i];
-    _buf = _2;
-    _2 *= _2;
-    _2 *= _buf;
-    _2 = 1.0f / sqrtf(_2);
-    _2 *= eta[_i];
-    _16 = 0.07957747154594767f * _12[_i];
-    _16 *= _2;
-    _1 *= _1;
-    _1 = 1.0f/_1;
-    _17 = _1 * _5;
-    _18 = _1 * _7;
-    _4 = corr[_i] * sigma_d1[_i];
-    _19 = 0.5f * _5;
-    _6 = sigma_d0[_i] * sigma_d1[_i];
-    _20 = 0.5f * _7;
-    _21 = corr[_i] * sigma_d0[_i];
-    _0 *= 2.0f;
-    _10[_i] *= _15[_i];
-    _11[_i] *= _15[_i];
-    _22[_i] = -1.0f * _16;
-    _22[_i] *= sigma_d1[_i];
-    _23 = _18 * _4;
-    _24 = sigma_d1[_i] * sigma_d1[_i];
-    _25 = -1.0f * _17;
-    _25 *= _24;
-    _23 += _25;
-    _23 *= -1.0f;
-    _23 *= _19;
-    _25 = -1.0f * _8[_i];
-    _26 = -1.0f * _18;
-    _26 *= _6;
-    _5 *= _1;
-    _5 *= corr[_i];
-    _5 *= sigma_d1[_i];
-    _25 += _26;
-    _25 += _5;
-    _25 *= -1.0f;
-    _25 *= _20;
-    _23 += _25;
-    _23 *= 0.15915494309189535f;
-    _23 *= _12[_i];
-    _23 *= _3;
-    _23 *= eta[_i];
-    _22[_i] += _23;
-    _16 *= -1.0f;
-    _16 *= sigma_d0[_i];
-    _23 = -1.0f * _9;
-    _25 = -1.0f * _17;
-    _25 *= _6;
-    _26 = _1 * _7;
-    _26 *= corr[_i];
-    _26 *= sigma_d0[_i];
-    _23 += _25;
-    _23 += _26;
-    _23 *= -1.0f;
-    _23 *= _19;
-    _25 = _17 * _21;
-    _1 = sigma_d0[_i] * sigma_d0[_i];
-    _26 = -1.0f * _1;
-    _26 *= _18;
-    _25 += _26;
-    _25 *= -1.0f;
-    _25 *= _20;
-    _23 += _25;
-    _12[_i] *= 0.15915494309189535f;
-    _12[_i] *= _23;
-    _12[_i] *= _3;
-    _12[_i] *= eta[_i];
-    _12[_i] += _16;
-    _16 = -1.0f * _0;
-    _16 *= _18;
-    _23 = 2.0f * _17;
-    _23 *= _4;
-    _8[_i] += _16;
-    _8[_i] += _23;
-    _8[_i] *= -1.0f;
-    _8[_i] *= _19;
-    _16 = -1.0f * _0;
-    _16 *= _17;
-    _17 = 2.0f * _18;
-    _17 *= _21;
-    _9 += _16;
-    _9 += _17;
-    _9 *= -1.0f;
-    _9 *= _20;
-    _8[_i] += _9;
-    _8[_i] *= _15[_i];
-    _9 = _13 * _2;
-    _9 *= corr[_i];
-    _8[_i] += _9;
-  }
-}
-
-def lambdify(corr, eta, mu_d0, mu_d1, o_d0, o_d1, sigma_d0, sigma_d1):
-    // this section is not cached and not compiled
-    _0 = corr**2
-    _1 = -sigma_d0*sigma_d1
-    _1 = _0 + _1
-    _2 = -_1
-    _3 = _2**(-0.5)
-    _4 = -mu_d0
-    _5 = _4 + o_d0
-    _4 = 1/_1
-    _6 = -mu_d1
-    _7 = _6 + o_d1
-    _8 = _4*_7
-    _9 = _4*_5
-    _10 = _8*corr
-    _11 = -_9*sigma_d1
-    _10 = _10 + _11
-    _11 = _9*corr
-    _12 = -_8*sigma_d0
-    _11 = _11 + _12
-    _12 = -_11*_7/2
-    _13 = -_10*_5/2
-    _12 = _12 + _13
-    _12 = exp(_12)
-    _13 = 0.1591549430918953357688838*_12
-    _14 = _13*_3
-    _15 = _14*eta
-    _2 = _2**(-1.5)
-    _2 = _2*eta
-    _16 = 0.07957747154594766788444188*_12*_2
-    _1 = _1**(-2)
-    _17 = _1*_5
-    _18 = _1*_7
-    _4 = corr*sigma_d1
-    _19 = 0.5*_5
-    _6 = sigma_d0*sigma_d1
-    _20 = 0.5*_7
-    _21 = corr*sigma_d0
-    _0 = 2.0*_0
-    _10 = _10*_15
-    _11 = _11*_15
-    _22 = -_16*sigma_d1
-    _23 = _18*_4
-    _24 = sigma_d1**2
-    _25 = -_17*_24
-    _23 = _23 + _25
-    _23 = -_19*_23
-    _25 = -_8
-    _26 = -_18*_6
-    _5 = _1*_5*corr*sigma_d1
-    _25 = _25 + _26 + _5
-    _25 = -_20*_25
-    _23 = _23 + _25
-    _23 = 0.1591549430918953357688838*_12*_23*_3*eta
-    _22 = _22 + _23
-    _16 = -_16*sigma_d0
-    _23 = -_9
-    _25 = -_17*_6
-    _26 = _1*_7*corr*sigma_d0
-    _23 = _23 + _25 + _26
-    _23 = -_19*_23
-    _25 = _17*_21
-    _1 = sigma_d0**2
-    _26 = -_1*_18
-    _25 = _25 + _26
-    _25 = -_20*_25
-    _23 = _23 + _25
-    _12 = 0.1591549430918953357688838*_12*_23*_3*eta
-    _12 = _12 + _16
-    _16 = -_0*_18
-    _23 = 2.0*_17*_4
-    _8 = _16 + _23 + _8
-    _8 = -_19*_8
-    _16 = -_0*_17
-    _17 = 2.0*_18*_21
-    _9 = _16 + _17 + _9
-    _9 = -_20*_9
-    _8 = _8 + _9
-    _8 = _15*_8
-    _9 = _13*_2*corr
-    _8 = _8 + _9
-    return [_15, _14, _10, _11, _22, _12, _8]

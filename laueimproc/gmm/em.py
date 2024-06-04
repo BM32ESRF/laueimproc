@@ -131,7 +131,7 @@ def _fit_n_clusters_one_step(
     eps = torch.finfo(obs.dtype).eps
 
     # posterior probability that observation j belongs to cluster i
-    post = gauss2d(obs, mean, cov, _check=False)  # (..., n_clu, n_obs)
+    post = gauss2d(obs, mean.squeeze(-1), cov, _check=False)  # (..., n_clu, n_obs)
     post += eps  # prevention again division by 0
     post /= torch.sum(post, dim=-2, keepdim=True)  # (..., n_clu, n_obs)
 

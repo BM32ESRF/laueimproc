@@ -35,7 +35,6 @@
 import torch
 
 from laueimproc.convention import ij_to_xy_decorator
-from laueimproc.improc.spot.fit import fit_gaussians
 from laueimproc.opti.cache import auto_cache
 from .base_diagram import check_init, BaseDiagram
 
@@ -288,86 +287,86 @@ class Diagram(BaseDiagram):
             data, bboxes = self._rois
         return fit_gaussians_em(data, bboxes, **kwargs)
 
-    def fit_gaussian(
-        self, *args, **kwargs
-    ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-        r&#34;&#34;&#34;Fit each roi by one gaussian.
+    # def fit_gaussian(
+    #     self, *args, **kwargs
+    # ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    #     r&#34;&#34;&#34;Fit each roi by one gaussian.
 
-        Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
-        &#34;&#34;&#34;
-        mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
-        mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
-        if &#34;eigtheta&#34; in infodict:
-            infodict = infodict.copy()  # to avoid insane cache reference error
-            infodict[&#34;eigtheta&#34;] = infodict[&#34;eigtheta&#34;].squeeze(1)
-        return mean, cov, magnitude, infodict
+    #     Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
+    #     &#34;&#34;&#34;
+    #     mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
+    #     mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
+    #     if &#34;eigtheta&#34; in infodict:
+    #         infodict = infodict.copy()  # to avoid insane cache reference error
+    #         infodict[&#34;eigtheta&#34;] = infodict[&#34;eigtheta&#34;].squeeze(1)
+    #     return mean, cov, magnitude, infodict
 
-    @auto_cache
-    @check_init
-    def fit_gaussians(
-        self, loss: str = &#34;mse&#34;, indexing: str = &#34;ij&#34;, **kwargs
-    ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-        r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
+    # @auto_cache
+    # @check_init
+    # def fit_gaussians(
+    #     self, loss: str = &#34;mse&#34;, indexing: str = &#34;ij&#34;, **kwargs
+    # ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    #     r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
 
-        See ``laueimproc.gmm`` for terminology.
+    #     See ``laueimproc.gmm`` for terminology.
 
-        Parameters
-        ----------
-        loss : str, default=&#34;mse&#34;
-            Quantify the difference between ``self.rois`` and estimated rois from the gmm.
-            The possible values are:
+    #     Parameters
+    #     ----------
+    #     loss : str, default=&#34;mse&#34;
+    #         Quantify the difference between ``self.rois`` and estimated rois from the gmm.
+    #         The possible values are:
 
-            * &#34;l1&#34; (absolute difference): \(
-                \frac{1}{H.W}
-                \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-                | rois_{k,i,j} - rois\_pred_{k,i,j} |
-            \)
+    #         * &#34;l1&#34; (absolute difference): \(
+    #             \frac{1}{H.W}
+    #             \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
+    #             | rois_{k,i,j} - rois\_pred_{k,i,j} |
+    #         \)
 
-            * &#34;mse&#34; (mean square error): \(
-                \frac{1}{H.W}
-                \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-                \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
-            \)
-        indexing : str, default=&#34;ij&#34;
-            The convention used for the returned positions values. Can be &#34;ij&#34; or &#34;xy&#34;.
-        **kwargs : dict
-            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
+    #         * &#34;mse&#34; (mean square error): \(
+    #             \frac{1}{H.W}
+    #             \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
+    #             \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
+    #         \)
+    #     indexing : str, default=&#34;ij&#34;
+    #         The convention used for the returned positions values. Can be &#34;ij&#34; or &#34;xy&#34;.
+    #     **kwargs : dict
+    #         Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
 
-        Returns
-        -------
-        mean : torch.Tensor
-            The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
-        cov : torch.Tensor
-            The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
-        magnitude : torch.Tensor
-            The absolute magnitude \(\theta.\eta\). Shape (n, \(K\)).
-        infodict : dict[str]
-            See ``laueimproc.improc.spot.fit.fit_gaussians``.
-        &#34;&#34;&#34;
-        assert loss == &#34;mse&#34;, &#34;only mse is implemented&#34;
+    #     Returns
+    #     -------
+    #     mean : torch.Tensor
+    #         The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
+    #     cov : torch.Tensor
+    #         The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
+    #     magnitude : torch.Tensor
+    #         The absolute magnitude \(\theta.\eta\). Shape (n, \(K\)).
+    #     infodict : dict[str]
+    #         See ``laueimproc.improc.spot.fit.fit_gaussians``.
+    #     &#34;&#34;&#34;
+    #     assert loss == &#34;mse&#34;, &#34;only mse is implemented&#34;
 
-        # preparation
-        with self._rois_lock:
-            data = self._rois[0]
-            shapes = self._rois[1][:, 2:]
-            shift = self._rois[1][:, :2]
+    #     # preparation
+    #     with self._rois_lock:
+    #         data = self._rois[0]
+    #         shapes = self._rois[1][:, 2:]
+    #         shift = self._rois[1][:, :2]
 
-        # main fit
-        mean, cov, magnitude, infodict = fit_gaussians(data, shapes, **kwargs)
+    #     # main fit
+    #     mean, cov, magnitude, infodict = fit_gaussians(data, shapes, **kwargs)
 
-        # spot base to diagram base
-        if mean.requires_grad:
-            mean = mean + shift.reshape(-1, 1, 2, 1)
-        else:
-            mean += shift.reshape(-1, 1, 2, 1)
+    #     # spot base to diagram base
+    #     if mean.requires_grad:
+    #         mean = mean + shift.reshape(-1, 1, 2, 1)
+    #     else:
+    #         mean += shift.reshape(-1, 1, 2, 1)
 
-        assert isinstance(indexing, str), indexing.__class__.__name__
-        assert indexing in {&#34;ij&#34;, &#34;xy&#34;}, indexing
-        if indexing == &#34;xy&#34;:
-            mean = torch.flip(mean, 2)
-            mean += 0.5
+    #     assert isinstance(indexing, str), indexing.__class__.__name__
+    #     assert indexing in {&#34;ij&#34;, &#34;xy&#34;}, indexing
+    #     if indexing == &#34;xy&#34;:
+    #         mean = torch.flip(mean, 2)
+    #         mean += 0.5
 
-        return mean, cov, magnitude, infodict</code></pre>
+    #     return mean, cov, magnitude, infodict</code></pre>
 </details>
 </section>
 <section>
@@ -644,86 +643,86 @@ For memory management, it is better to provide a pathlike rather than an array.<
             data, bboxes = self._rois
         return fit_gaussians_em(data, bboxes, **kwargs)
 
-    def fit_gaussian(
-        self, *args, **kwargs
-    ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-        r&#34;&#34;&#34;Fit each roi by one gaussian.
+    # def fit_gaussian(
+    #     self, *args, **kwargs
+    # ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    #     r&#34;&#34;&#34;Fit each roi by one gaussian.
 
-        Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
-        &#34;&#34;&#34;
-        mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
-        mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
-        if &#34;eigtheta&#34; in infodict:
-            infodict = infodict.copy()  # to avoid insane cache reference error
-            infodict[&#34;eigtheta&#34;] = infodict[&#34;eigtheta&#34;].squeeze(1)
-        return mean, cov, magnitude, infodict
+    #     Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
+    #     &#34;&#34;&#34;
+    #     mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
+    #     mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
+    #     if &#34;eigtheta&#34; in infodict:
+    #         infodict = infodict.copy()  # to avoid insane cache reference error
+    #         infodict[&#34;eigtheta&#34;] = infodict[&#34;eigtheta&#34;].squeeze(1)
+    #     return mean, cov, magnitude, infodict
 
-    @auto_cache
-    @check_init
-    def fit_gaussians(
-        self, loss: str = &#34;mse&#34;, indexing: str = &#34;ij&#34;, **kwargs
-    ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-        r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
+    # @auto_cache
+    # @check_init
+    # def fit_gaussians(
+    #     self, loss: str = &#34;mse&#34;, indexing: str = &#34;ij&#34;, **kwargs
+    # ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    #     r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
 
-        See ``laueimproc.gmm`` for terminology.
+    #     See ``laueimproc.gmm`` for terminology.
 
-        Parameters
-        ----------
-        loss : str, default=&#34;mse&#34;
-            Quantify the difference between ``self.rois`` and estimated rois from the gmm.
-            The possible values are:
+    #     Parameters
+    #     ----------
+    #     loss : str, default=&#34;mse&#34;
+    #         Quantify the difference between ``self.rois`` and estimated rois from the gmm.
+    #         The possible values are:
 
-            * &#34;l1&#34; (absolute difference): \(
-                \frac{1}{H.W}
-                \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-                | rois_{k,i,j} - rois\_pred_{k,i,j} |
-            \)
+    #         * &#34;l1&#34; (absolute difference): \(
+    #             \frac{1}{H.W}
+    #             \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
+    #             | rois_{k,i,j} - rois\_pred_{k,i,j} |
+    #         \)
 
-            * &#34;mse&#34; (mean square error): \(
-                \frac{1}{H.W}
-                \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-                \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
-            \)
-        indexing : str, default=&#34;ij&#34;
-            The convention used for the returned positions values. Can be &#34;ij&#34; or &#34;xy&#34;.
-        **kwargs : dict
-            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
+    #         * &#34;mse&#34; (mean square error): \(
+    #             \frac{1}{H.W}
+    #             \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
+    #             \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
+    #         \)
+    #     indexing : str, default=&#34;ij&#34;
+    #         The convention used for the returned positions values. Can be &#34;ij&#34; or &#34;xy&#34;.
+    #     **kwargs : dict
+    #         Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
 
-        Returns
-        -------
-        mean : torch.Tensor
-            The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
-        cov : torch.Tensor
-            The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
-        magnitude : torch.Tensor
-            The absolute magnitude \(\theta.\eta\). Shape (n, \(K\)).
-        infodict : dict[str]
-            See ``laueimproc.improc.spot.fit.fit_gaussians``.
-        &#34;&#34;&#34;
-        assert loss == &#34;mse&#34;, &#34;only mse is implemented&#34;
+    #     Returns
+    #     -------
+    #     mean : torch.Tensor
+    #         The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
+    #     cov : torch.Tensor
+    #         The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
+    #     magnitude : torch.Tensor
+    #         The absolute magnitude \(\theta.\eta\). Shape (n, \(K\)).
+    #     infodict : dict[str]
+    #         See ``laueimproc.improc.spot.fit.fit_gaussians``.
+    #     &#34;&#34;&#34;
+    #     assert loss == &#34;mse&#34;, &#34;only mse is implemented&#34;
 
-        # preparation
-        with self._rois_lock:
-            data = self._rois[0]
-            shapes = self._rois[1][:, 2:]
-            shift = self._rois[1][:, :2]
+    #     # preparation
+    #     with self._rois_lock:
+    #         data = self._rois[0]
+    #         shapes = self._rois[1][:, 2:]
+    #         shift = self._rois[1][:, :2]
 
-        # main fit
-        mean, cov, magnitude, infodict = fit_gaussians(data, shapes, **kwargs)
+    #     # main fit
+    #     mean, cov, magnitude, infodict = fit_gaussians(data, shapes, **kwargs)
 
-        # spot base to diagram base
-        if mean.requires_grad:
-            mean = mean + shift.reshape(-1, 1, 2, 1)
-        else:
-            mean += shift.reshape(-1, 1, 2, 1)
+    #     # spot base to diagram base
+    #     if mean.requires_grad:
+    #         mean = mean + shift.reshape(-1, 1, 2, 1)
+    #     else:
+    #         mean += shift.reshape(-1, 1, 2, 1)
 
-        assert isinstance(indexing, str), indexing.__class__.__name__
-        assert indexing in {&#34;ij&#34;, &#34;xy&#34;}, indexing
-        if indexing == &#34;xy&#34;:
-            mean = torch.flip(mean, 2)
-            mean += 0.5
+    #     assert isinstance(indexing, str), indexing.__class__.__name__
+    #     assert indexing in {&#34;ij&#34;, &#34;xy&#34;}, indexing
+    #     if indexing == &#34;xy&#34;:
+    #         mean = torch.flip(mean, 2)
+    #         mean += 0.5
 
-        return mean, cov, magnitude, infodict</code></pre>
+    #     return mean, cov, magnitude, infodict</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1133,156 +1132,6 @@ def compute_rois_sum(self, **_kwargs) -&gt; torch.Tensor:
     return compute_rois_sum(data, bboxes, **_kwargs)</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.classes.diagram.Diagram.fit_gaussian"><code class="name flex">
-<span>def <span class="ident">fit_gaussian</span></span>(<span>self, *args, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Fit each roi by one gaussian.</p>
-<p>Same as <code>fit_gaussians</code> but squeeze the <span><span class="MathJax_Preview">K = 1</span><script type="math/tex">K = 1</script></span> dimension.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def fit_gaussian(
-    self, *args, **kwargs
-) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-    r&#34;&#34;&#34;Fit each roi by one gaussian.
-
-    Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
-    &#34;&#34;&#34;
-    mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
-    mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
-    if &#34;eigtheta&#34; in infodict:
-        infodict = infodict.copy()  # to avoid insane cache reference error
-        infodict[&#34;eigtheta&#34;] = infodict[&#34;eigtheta&#34;].squeeze(1)
-    return mean, cov, magnitude, infodict</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.classes.diagram.Diagram.fit_gaussians"><code class="name flex">
-<span>def <span class="ident">fit_gaussians</span></span>(<span>self, loss: str = 'mse', indexing: str = 'ij', **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Fit each roi by <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span> gaussians.</p>
-<p>See <code><a title="laueimproc.gmm" href="../gmm/index.html">laueimproc.gmm</a></code> for terminology.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>loss</code></strong> :&ensp;<code>str</code>, default=<code>"mse"</code></dt>
-<dd>
-<p>Quantify the difference between <code>self.rois</code> and estimated rois from the gmm.
-The possible values are:</p>
-<ul>
-<li>
-<p>"l1" (absolute difference): <span><span class="MathJax_Preview">
-\frac{1}{H.W}
-\sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-| rois_{k,i,j} - rois\_pred_{k,i,j} |
-</span><script type="math/tex">
-\frac{1}{H.W}
-\sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-| rois_{k,i,j} - rois\_pred_{k,i,j} |
-</script></span></p>
-</li>
-<li>
-<p>"mse" (mean square error): <span><span class="MathJax_Preview">
-\frac{1}{H.W}
-\sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-\left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
-</span><script type="math/tex">
-\frac{1}{H.W}
-\sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-\left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
-</script></span></p>
-</li>
-</ul>
-</dd>
-<dt><strong><code>indexing</code></strong> :&ensp;<code>str</code>, default=<code>"ij"</code></dt>
-<dd>The convention used for the returned positions values. Can be "ij" or "xy".</dd>
-<dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Transmitted to <code><a title="laueimproc.improc.spot.fit.fit_gaussians" href="../improc/spot/fit.html#laueimproc.improc.spot.fit.fit_gaussians">fit_gaussians()</a></code>.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The vectors <span><span class="MathJax_Preview">\mathbf{\mu}</span><script type="math/tex">\mathbf{\mu}</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 1). In the absolute diagram base.</dd>
-<dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The matrices <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).</dd>
-<dt><strong><code>magnitude</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The absolute magnitude <span><span class="MathJax_Preview">\theta.\eta</span><script type="math/tex">\theta.\eta</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
-<dt><strong><code>infodict</code></strong> :&ensp;<code>dict[str]</code></dt>
-<dd>See <code><a title="laueimproc.improc.spot.fit.fit_gaussians" href="../improc/spot/fit.html#laueimproc.improc.spot.fit.fit_gaussians">fit_gaussians()</a></code>.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@auto_cache
-@check_init
-def fit_gaussians(
-    self, loss: str = &#34;mse&#34;, indexing: str = &#34;ij&#34;, **kwargs
-) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-    r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
-
-    See ``laueimproc.gmm`` for terminology.
-
-    Parameters
-    ----------
-    loss : str, default=&#34;mse&#34;
-        Quantify the difference between ``self.rois`` and estimated rois from the gmm.
-        The possible values are:
-
-        * &#34;l1&#34; (absolute difference): \(
-            \frac{1}{H.W}
-            \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-            | rois_{k,i,j} - rois\_pred_{k,i,j} |
-        \)
-
-        * &#34;mse&#34; (mean square error): \(
-            \frac{1}{H.W}
-            \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-            \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
-        \)
-    indexing : str, default=&#34;ij&#34;
-        The convention used for the returned positions values. Can be &#34;ij&#34; or &#34;xy&#34;.
-    **kwargs : dict
-        Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
-
-    Returns
-    -------
-    mean : torch.Tensor
-        The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
-    cov : torch.Tensor
-        The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
-    magnitude : torch.Tensor
-        The absolute magnitude \(\theta.\eta\). Shape (n, \(K\)).
-    infodict : dict[str]
-        See ``laueimproc.improc.spot.fit.fit_gaussians``.
-    &#34;&#34;&#34;
-    assert loss == &#34;mse&#34;, &#34;only mse is implemented&#34;
-
-    # preparation
-    with self._rois_lock:
-        data = self._rois[0]
-        shapes = self._rois[1][:, 2:]
-        shift = self._rois[1][:, :2]
-
-    # main fit
-    mean, cov, magnitude, infodict = fit_gaussians(data, shapes, **kwargs)
-
-    # spot base to diagram base
-    if mean.requires_grad:
-        mean = mean + shift.reshape(-1, 1, 2, 1)
-    else:
-        mean += shift.reshape(-1, 1, 2, 1)
-
-    assert isinstance(indexing, str), indexing.__class__.__name__
-    assert indexing in {&#34;ij&#34;, &#34;xy&#34;}, indexing
-    if indexing == &#34;xy&#34;:
-        mean = torch.flip(mean, 2)
-        mean += 0.5
-
-    return mean, cov, magnitude, infodict</code></pre>
-</details>
-</dd>
 <dt id="laueimproc.classes.diagram.Diagram.fit_gaussians_em"><code class="name flex">
 <span>def <span class="ident">fit_gaussians_em</span></span>(<span>self, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, dict]</span>
 </code></dt>
@@ -1365,7 +1214,7 @@ def fit_gaussians_em(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dic
 <li><code><b><a title="laueimproc.classes.base_diagram.BaseDiagram" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram">BaseDiagram</a></b></code>:
 <ul class="hlist">
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.add_property" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.add_property">add_property</a></code></li>
-<li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.area" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.area">area</a></code></li>
+<li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.areas" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.areas">areas</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.bboxes" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.bboxes">bboxes</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.clone" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.clone">clone</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.compress" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.compress">compress</a></code></li>
@@ -1410,8 +1259,6 @@ def fit_gaussians_em(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dic
 <li><code><a title="laueimproc.classes.diagram.Diagram.compute_rois_nb_peaks" href="#laueimproc.classes.diagram.Diagram.compute_rois_nb_peaks">compute_rois_nb_peaks</a></code></li>
 <li><code><a title="laueimproc.classes.diagram.Diagram.compute_rois_pca" href="#laueimproc.classes.diagram.Diagram.compute_rois_pca">compute_rois_pca</a></code></li>
 <li><code><a title="laueimproc.classes.diagram.Diagram.compute_rois_sum" href="#laueimproc.classes.diagram.Diagram.compute_rois_sum">compute_rois_sum</a></code></li>
-<li><code><a title="laueimproc.classes.diagram.Diagram.fit_gaussian" href="#laueimproc.classes.diagram.Diagram.fit_gaussian">fit_gaussian</a></code></li>
-<li><code><a title="laueimproc.classes.diagram.Diagram.fit_gaussians" href="#laueimproc.classes.diagram.Diagram.fit_gaussians">fit_gaussians</a></code></li>
 <li><code><a title="laueimproc.classes.diagram.Diagram.fit_gaussians_em" href="#laueimproc.classes.diagram.Diagram.fit_gaussians_em">fit_gaussians_em</a></code></li>
 </ul>
 </li>

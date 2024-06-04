@@ -58,7 +58,7 @@ def check_gmm(gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -&gt; None:
     ----------
     gmm : tuple of torch.Tensor
         * mean : torch.Tensor
-            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
         * cov : torch.Tensor
             The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
         * eta : torch.Tensor
@@ -83,10 +83,10 @@ def check_gmm(gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -&gt; None:
         f&#34;eta has to be a torch tensor, not a {eta.__class__.__name__}&#34;
 
     # check shape
-    assert mean.ndim &gt;= 3, f&#34;mean has to be of shape (..., K, D, 1), not {mean.shape}&#34;
+    assert mean.ndim &gt;= 2, f&#34;mean has to be of shape (..., K, D, 1), not {mean.shape}&#34;
     assert cov.ndim &gt;= 3, f&#34;cov has to be of shape (..., N, D, D), not {cov.shape}&#34;
     assert eta.ndim &gt;= 1, f&#34;eta has to be a shape (..., K), np {eta.shape}&#34;
-    *mean_batch, mean_K, mean_D, mean_1 = mean.shape
+    *mean_batch, mean_K, mean_D = mean.shape
     *cov_batch, cov_K, cov_D1, cov_D2 = cov.shape
     *eta_batch, eta_K = eta.shape
     assert mean_batch == cov_batch == eta_batch, \
@@ -95,7 +95,6 @@ def check_gmm(gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -&gt; None:
         f&#34;space dimension inconsistant {mean_D} vs {cov_D1} vs {cov_D2}&#34;
     assert mean_K == cov_K == eta_K, \
         f&#34;number of gaussians inconsistant {mean_K} vs {cov_K} vs {eta_K}&#34;
-    assert mean_1 == 1, f&#34;mean has to be a vector column, not {mean.shape}&#34;
 
 
 def check_infit(obs: torch.Tensor, weights: typing.Optional[torch.Tensor]) -&gt; None:
@@ -138,7 +137,7 @@ def check_ingauss(obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor) -&gt
     obs : torch.Tensor
         The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
     mean : torch.Tensor
-        The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+        The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
     cov : torch.Tensor
         The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
 
@@ -157,17 +156,16 @@ def check_ingauss(obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor) -&gt
 
     # check shape
     assert obs.ndim &gt;= 2, f&#34;obs has to be of shape (..., N, D), not {obs.shape}&#34;
-    assert mean.ndim &gt;= 3, f&#34;mean has to be of shape (..., K, D, 1), not {mean.shape}&#34;
+    assert mean.ndim &gt;= 2, f&#34;mean has to be of shape (..., K, D, 1), not {mean.shape}&#34;
     assert cov.ndim &gt;= 3, f&#34;cov has to be of shape (..., N, D, D), not {cov.shape}&#34;
     *obs_batch, _, obs_D = obs.shape
-    *mean_batch, mean_K, mean_D, mean_1 = mean.shape
+    *mean_batch, mean_K, mean_D = mean.shape
     *cov_batch, cov_K, cov_D1, cov_D2 = cov.shape
     assert obs_batch == mean_batch == cov_batch, \
         f&#34;batch dimension dosent match {obs_batch} vs {mean_batch} vs {cov_batch}&#34;
     assert obs_D == mean_D == cov_D1 == cov_D2, \
         f&#34;space dimension inconsistant {obs_D} vs {mean_D} vs {cov_D1} vs {cov_D2}&#34;
-    assert mean_K == cov_K, f&#34;number of gaussians inconsistant {mean_K} vs {cov_K}&#34;
-    assert mean_1 == 1, f&#34;mean has to be a vector column, not {mean.shape}&#34;</code></pre>
+    assert mean_K == cov_K, f&#34;number of gaussians inconsistant {mean_K} vs {cov_K}&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -188,7 +186,7 @@ def check_ingauss(obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor) -&gt
 <dd>
 <ul>
 <li>mean : torch.Tensor
-The column mean vector <span><span class="MathJax_Preview">\mathbf{\mu}_j</span><script type="math/tex">\mathbf{\mu}_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, 1).</li>
+The column mean vector <span><span class="MathJax_Preview">\mathbf{\mu}_j</span><script type="math/tex">\mathbf{\mu}_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</li>
 <li>cov : torch.Tensor
 The covariance matrix <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</li>
 <li>eta : torch.Tensor
@@ -212,7 +210,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
     ----------
     gmm : tuple of torch.Tensor
         * mean : torch.Tensor
-            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
         * cov : torch.Tensor
             The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
         * eta : torch.Tensor
@@ -237,10 +235,10 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
         f&#34;eta has to be a torch tensor, not a {eta.__class__.__name__}&#34;
 
     # check shape
-    assert mean.ndim &gt;= 3, f&#34;mean has to be of shape (..., K, D, 1), not {mean.shape}&#34;
+    assert mean.ndim &gt;= 2, f&#34;mean has to be of shape (..., K, D, 1), not {mean.shape}&#34;
     assert cov.ndim &gt;= 3, f&#34;cov has to be of shape (..., N, D, D), not {cov.shape}&#34;
     assert eta.ndim &gt;= 1, f&#34;eta has to be a shape (..., K), np {eta.shape}&#34;
-    *mean_batch, mean_K, mean_D, mean_1 = mean.shape
+    *mean_batch, mean_K, mean_D = mean.shape
     *cov_batch, cov_K, cov_D1, cov_D2 = cov.shape
     *eta_batch, eta_K = eta.shape
     assert mean_batch == cov_batch == eta_batch, \
@@ -248,8 +246,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
     assert mean_D == cov_D1 == cov_D2, \
         f&#34;space dimension inconsistant {mean_D} vs {cov_D1} vs {cov_D2}&#34;
     assert mean_K == cov_K == eta_K, \
-        f&#34;number of gaussians inconsistant {mean_K} vs {cov_K} vs {eta_K}&#34;
-    assert mean_1 == 1, f&#34;mean has to be a vector column, not {mean.shape}&#34;</code></pre>
+        f&#34;number of gaussians inconsistant {mean_K} vs {cov_K} vs {eta_K}&#34;</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.gmm.check.check_infit"><code class="name flex">
@@ -315,7 +312,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
 <dt><strong><code>obs</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The observations <span><span class="MathJax_Preview">\mathbf{x}_i</span><script type="math/tex">\mathbf{x}_i</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</dd>
 <dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The column mean vector <span><span class="MathJax_Preview">\mathbf{\mu}_j</span><script type="math/tex">\mathbf{\mu}_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, 1).</dd>
+<dd>The column mean vector <span><span class="MathJax_Preview">\mathbf{\mu}_j</span><script type="math/tex">\mathbf{\mu}_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</dd>
 <dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The covariance matrix <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</dd>
 </dl>
@@ -336,7 +333,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
     obs : torch.Tensor
         The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
     mean : torch.Tensor
-        The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+        The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
     cov : torch.Tensor
         The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
 
@@ -355,17 +352,16 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
 
     # check shape
     assert obs.ndim &gt;= 2, f&#34;obs has to be of shape (..., N, D), not {obs.shape}&#34;
-    assert mean.ndim &gt;= 3, f&#34;mean has to be of shape (..., K, D, 1), not {mean.shape}&#34;
+    assert mean.ndim &gt;= 2, f&#34;mean has to be of shape (..., K, D, 1), not {mean.shape}&#34;
     assert cov.ndim &gt;= 3, f&#34;cov has to be of shape (..., N, D, D), not {cov.shape}&#34;
     *obs_batch, _, obs_D = obs.shape
-    *mean_batch, mean_K, mean_D, mean_1 = mean.shape
+    *mean_batch, mean_K, mean_D = mean.shape
     *cov_batch, cov_K, cov_D1, cov_D2 = cov.shape
     assert obs_batch == mean_batch == cov_batch, \
         f&#34;batch dimension dosent match {obs_batch} vs {mean_batch} vs {cov_batch}&#34;
     assert obs_D == mean_D == cov_D1 == cov_D2, \
         f&#34;space dimension inconsistant {obs_D} vs {mean_D} vs {cov_D1} vs {cov_D2}&#34;
-    assert mean_K == cov_K, f&#34;number of gaussians inconsistant {mean_K} vs {cov_K}&#34;
-    assert mean_1 == 1, f&#34;mean has to be a vector column, not {mean.shape}&#34;</code></pre>
+    assert mean_K == cov_K, f&#34;number of gaussians inconsistant {mean_K} vs {cov_K}&#34;</code></pre>
 </details>
 </dd>
 </dl>

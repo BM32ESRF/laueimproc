@@ -56,6 +56,14 @@ class Build(_build_py):
                 **COMP_RULES,
             )
         )
+        self.distribution.ext_modules.append(
+            Extension(
+                "laueimproc.gmm.c_gmm",
+                sources=["laueimproc/gmm/c_gmm.c"],
+                optional=True,
+                **COMP_RULES,
+            )
+        )
         # self.distribution.ext_modules.append(
         #     Extension(
         #         "laueimproc.improc.c_morpho",

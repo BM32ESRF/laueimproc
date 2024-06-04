@@ -6,12 +6,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="usage/installation.html" />
 <meta property="og:site_name" content="laueimproc" />
-<meta property="og:description" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.2.2,, Yes, Yes, Yes, Yes,, LaueImproc 0.0.0 - 1.2.1,,, Yes..." />
+<meta property="og:description" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.3.1,, Yes, Yes, Yes, Yes,, LaueImproc 0.0.0 - 1.2.1,,, Yes..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="/_images/social_previews/summary_usage_installation_3b2b9ed9.png" />
-<meta property="og:image:alt" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.2.2,, Yes, Yes, Ye..." />
-<meta name="description" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.2.2,, Yes, Yes, Yes, Yes,, LaueImproc 0.0.0 - 1.2.1,,, Yes..." />
+<meta property="og:image" content="/None" />
+<meta property="og:image:alt" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.3.1,, Yes, Yes, Ye..." />
+<meta name="description" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.3.1,, Yes, Yes, Yes, Yes,, LaueImproc 0.0.0 - 1.2.1,,, Yes..." />
 <meta name="twitter:card" content="summary_large_image" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -66,7 +66,7 @@
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#python-and-pytorch-support">Python and PyTorch Support</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies-optional">Dependencies (Optional)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#virtual-environement">Virtual Environement</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#install-pyenv">Install pyenv</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#configure-pyenv">Configure pyenv</a></li>
@@ -125,7 +125,7 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>LaueImproc 1.2.2</p></td>
+<tr class="row-even"><td><p>LaueImproc 1.3.1</p></td>
 <td></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
@@ -142,8 +142,8 @@
 </tbody>
 </table>
 </section>
-<section id="dependencies">
-<span id="windows-installation"></span><span id="macos-installation"></span><span id="freebsd-installation"></span><span id="linux-installation"></span><span id="opensuse-system"></span><span id="arch-manjaro-system"></span><span id="rhel-centos-fedora-system"></span><span id="debian-ubuntu-mint-system"></span><h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
+<section id="dependencies-optional">
+<span id="windows-installation"></span><span id="macos-installation"></span><span id="freebsd-installation"></span><span id="linux-installation"></span><span id="opensuse-system"></span><span id="arch-manjaro-system"></span><span id="rhel-centos-fedora-system"></span><span id="debian-ubuntu-mint-system"></span><h2>Dependencies (Optional)<a class="headerlink" href="#dependencies-optional" title="Link to this heading"></a></h2>
 <p>If you have a GPU, please install CUDA or ROC then follow the <a class="reference external" href="https://pytorch.org/">PyTorch installation guide</a>. Without CUDA or ROC, the software is not able to use the GPU (CPU only).</p>
 <div class="tab-set docutils container">
 <input checked="True" class="tab-input" id="tab-set--0-input--1" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--1">Linux</label><div class="tab-content docutils container">
@@ -280,7 +280,7 @@ brew<span class="w"> </span>install<span class="w"> </span>pyenv
 <h3>Configure pyenv<a class="headerlink" href="#configure-pyenv" title="Link to this heading"></a></h3>
 <p>Create the virtual environement.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pyenv<span class="w"> </span>update
-pyenv<span class="w"> </span>install<span class="w"> </span>-v<span class="w"> </span><span class="m">3</span>.12
+pyenv<span class="w"> </span>env<span class="w"> </span><span class="nv">PYTHON_CONFIGURE_OPTS</span><span class="o">=</span><span class="s2">&quot;--enable-shared --enable-optimizations --with-lto&quot;</span><span class="w"> </span><span class="nv">PYTHON_CFLAGS</span><span class="o">=</span><span class="s1">&#39;-march=native -mtune=native&#39;</span><span class="w"> </span>install<span class="w"> </span>-v<span class="w"> </span><span class="m">3</span>.12
 pyenv<span class="w"> </span>virtualenv<span class="w"> </span><span class="m">3</span>.12<span class="w"> </span>laueenv
 pyenv<span class="w"> </span>activate<span class="w"> </span>laueenv
 </pre></div>

@@ -32,8 +32,18 @@
 
 &#34;&#34;&#34;Helper for compute a mixture of multivariate gaussians.&#34;&#34;&#34;
 
+import logging
+
 import torch
 
+try:
+    from laueimproc.gmm import c_gmm
+except ImportError:
+    logging.warning(
+        &#34;failed to import laueimproc.gmm.c_gmm, a slow python version is used instead&#34;
+    )
+    c_gmm = None
+from laueimproc.opti.rois import rawshapes2rois
 from .check import check_gmm
 from .gauss import gauss2d
 
@@ -43,10 +53,10 @@ def _gmm2d_and_jac_autodiff(
 ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     &#34;&#34;&#34;Automatic torch differenciation version of gmm2d_and_jac.&#34;&#34;&#34;
     *batch, n_obs, _ = obs.shape
-    *_, n_clu, _, _ = mean.shape
+    *_, n_clu, _ = mean.shape
 
     obs = obs.reshape(-1, n_obs, 2)  # (b, n_obs, 2)
-    mean = mean.reshape(-1, n_clu, 2, 1)  # (b, n_clu, 2, 1)
+    mean = mean.reshape(-1, n_clu, 2)  # (b, n_clu, 2)
     cov = cov.reshape(-1, n_clu, 2, 2)  # (b, n_clu, 2, 2)
     eta = eta.reshape(-1, n_clu)  # (b, n_clu)
 
@@ -60,7 +70,7 @@ def _gmm2d_and_jac_autodiff(
     cov_jac[..., 1, 0] = cov_jac[..., 0, 1]  # because only cov_jac[..., 0, 1] is used for gauss
 
     prob = prob.reshape(*batch, n_obs)
-    mean_jac = mean_jac.reshape(*batch, n_obs, n_clu, 2, 1)
+    mean_jac = mean_jac.reshape(*batch, n_obs, n_clu, 2)
     cov_jac = cov_jac.reshape(*batch, n_obs, n_clu, 2, 2)
     eta_jac = eta_jac.reshape(*batch, n_obs, n_clu)
 
@@ -79,7 +89,7 @@ def gmm2d(
         The observations of shape (..., \(N\), 2).
         \(\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j\)
     mean : torch.Tensor
-        The 2x1 column mean vector of shape (..., \(K\), 2, 1).
+        The 2x1 column mean vector of shape (..., \(K\), 2).
         \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
     cov : torch.Tensor
         The 2x2 covariance matrix of shape (..., \(K\), 2, 2).
@@ -105,111 +115,9 @@ def gmm2d(
     return prob
 
 
-def cost_and_grad(
-    rois: torch.Tensor, shapes: torch.Tensor,
-    mean: torch.Tensor, cov: torch.Tensor, eta: torch.Tensor,
-    **_kwargs
-) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-    r&#34;&#34;&#34;Compute the grad of the loss between the predicted gmm and the rois.
-
-    Parameters
-    ----------
-    rois : torch.Tensor
-        The unfolded and padded rois of dtype torch.float32 and shape (n, h, w).
-    shapes : torch.Tensor
-        Contains the information of the bboxes shapes.
-        heights = shapes[:, 0] and widths = shapes[:, 1].
-        It doesn&#39;t have to be c contiguous.
-    mean : torch.Tensor
-        The 2x1 column mean vector of shape (n, \(K\), 2, 1).
-        \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
-    cov : torch.Tensor
-        The 2x2 covariance matrix of shape (n, \(K\), 2, 2).
-        \(\mathbf{\Sigma} = \begin{pmatrix} \sigma_1 &amp; c \\ c &amp; \sigma_2 \\ \end{pmatrix}\)
-        with \(\begin{cases}
-            \sigma_1 &gt; 0 \\
-            \sigma_2 &gt; 0 \\
-        \end{cases}\)
-    eta : torch.Tensor
-        The scalar mass of each gaussian \(\eta_j\) of shape (n, \(K\)).
-
-    Returns
-    -------
-    cost : torch.Tensor
-        The value of the reduced loss function evaluated for each roi.
-        The shape in (n,).
-    mean_grad : torch.Tensor
-        The gradient of the 2x1 column mean vector of shape (n, \(K\), 2, 1).
-    cov_grad : torch.Tensor
-        The gradient of the 2x2 half covariance matrix of shape (n, \(K\), 2, 2).
-        Take care of the factor 2 of the coefficient of correlation.
-    eta_grad : torch.Tensor
-        The gradient of the scalar mass of each gaussian of shape (n, \(K\)).
-
-    Examples
-    --------
-    &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.gmm.gmm import cost_and_grad
-    &gt;&gt;&gt; rois = torch.rand((1000, 10, 10))
-    &gt;&gt;&gt; shapes = torch.full((1000, 4), 10, dtype=torch.int16)
-    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2, 1)) + 5.0  # (n, n_clu, n_var, 1)
-    &gt;&gt;&gt; cov = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 1, 2, 2).expand(1000, 3, 2, 2).clone()
-    &gt;&gt;&gt; eta = torch.rand((1000, 3))  # (n, n_clu)
-    &gt;&gt;&gt; eta /= eta.sum(dim=-1, keepdim=True)
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; cost, mean_grad, cov_grad, eta_grad = cost_and_grad(rois, shapes, mean, cov, eta)
-    &gt;&gt;&gt; cost.shape
-    torch.Size([1000])
-    &gt;&gt;&gt; mean_grad.shape
-    torch.Size([1000, 3, 2, 1])
-    &gt;&gt;&gt; cov_grad.shape
-    torch.Size([1000, 3, 2, 2])
-    &gt;&gt;&gt; eta_grad.shape
-    torch.Size([1000, 3])
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; cost_, mean_grad_, cov_grad_, eta_grad_ = cost_and_grad(rois, shapes, mean, cov, eta)
-    &gt;&gt;&gt; assert torch.allclose(cost, cost_)
-    &gt;&gt;&gt; assert torch.allclose(mean_grad, mean_grad_)
-    &gt;&gt;&gt; assert torch.allclose(cov_grad, cov_grad_)
-    &gt;&gt;&gt; assert torch.allclose(eta_grad, eta_grad_)
-    &gt;&gt;&gt;
-    &#34;&#34;&#34;
-    if _kwargs.get(&#34;_check&#34;, True):
-        assert isinstance(rois, torch.Tensor), rois.__class__.__name__
-        assert rois.ndim == 3, rois.shape
-        assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__
-        assert shapes.ndim == 2, shapes.shape
-
-    # preparation
-    areas = torch.prod(shapes, dim=1).to(dtype=rois.dtype, device=rois.device)
-    obs = torch.meshgrid(
-        torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
-        torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
-        indexing=&#34;ij&#34;,
-    )
-    obs = (obs[0].ravel(), obs[1].ravel())
-    obs = torch.cat([obs[0].unsqueeze(1), obs[1].unsqueeze(1)], dim=1)
-    obs = obs.expand(rois.shape[0], -1, -1)  # (n, n_obs, n_var)
-
-    # evaluation of jacobian and loss
-    rois_pred, mean_jac, cov_jac, mag_jac = gmm2d_and_jac(obs, mean, cov, eta, **_kwargs)
-
-    # compute cost and cost grad
-    rois_pred -= rois.reshape(*rois_pred.shape)
-    cost = torch.sum(rois_pred * rois_pred, dim=1) / areas
-    rois_pred += rois_pred  # grad
-    rois_pred /= areas.unsqueeze(1)
-
-    # compute grad
-    mean_jac *= rois_pred.reshape(*rois_pred.shape, 1, 1, 1)
-    cov_jac *= rois_pred.reshape(*rois_pred.shape, 1, 1, 1)
-    mag_jac *= rois_pred.reshape(*rois_pred.shape, 1)
-    return cost, torch.sum(mean_jac, dim=1), torch.sum(cov_jac, dim=1), torch.sum(mag_jac, dim=1)
-
-
 def gmm2d_and_jac(  # pylint: disable=R0914
-    obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, eta: torch.Tensor,
-    *, _check: bool = True, _autodiff: bool = False
+    obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, mag: torch.Tensor,
+    *, _check: bool = True, _autodiff: bool = False, **_
 ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     r&#34;&#34;&#34;Compute the grad of a 2d mixture gaussian model.
 
@@ -219,7 +127,7 @@ def gmm2d_and_jac(  # pylint: disable=R0914
         The observations of shape (..., \(N\), 2).
         \(\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j\)
     mean : torch.Tensor
-        The 2x1 column mean vector of shape (..., \(K\), 2, 1).
+        The 2x1 column mean vector of shape (..., \(K\), 2).
         \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
     cov : torch.Tensor
         The 2x2 covariance matrix of shape (..., \(K\), 2, 2).
@@ -228,7 +136,7 @@ def gmm2d_and_jac(  # pylint: disable=R0914
             \sigma_1 &gt; 0 \\
             \sigma_2 &gt; 0 \\
         \end{cases}\)
-    eta : torch.Tensor
+    mag : torch.Tensor
         The scalar mass of each gaussian \(\eta_j\) of shape (..., \(K\)).
 
     Returns
@@ -236,11 +144,11 @@ def gmm2d_and_jac(  # pylint: disable=R0914
     prob : torch.Tensor
         Returned value from ``gmm2d`` of shape (..., \(N\)).
     mean_jac : torch.Tensor
-        The jacobian of the 2x1 column mean vector of shape (..., \(N\), \(K\), 2, 1).
+        The jacobian of the 2x1 column mean vector of shape (..., \(N\), \(K\), 2).
     cov_jac : torch.Tensor
         The jacobian of the 2x2 half covariance matrix of shape (..., \(N\), \(K\), 2, 2).
         Take care of the factor 2 of the coefficient of correlation.
-    eta_jac : torch.Tensor
+    mag_jac : torch.Tensor
         The jacobian of the scalar mass of each gaussian of shape (..., \(N\), \(K\)).
 
     Examples
@@ -248,39 +156,39 @@ def gmm2d_and_jac(  # pylint: disable=R0914
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.gmm.gmm import gmm2d_and_jac
     &gt;&gt;&gt; obs = torch.randn((1000, 100, 2))  # (..., n_obs, n_var)
-    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2, 1))  # (..., n_clu, n_var, 1)
+    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2))  # (..., n_clu, n_var)
     &gt;&gt;&gt; cov = obs.mT @ obs  # create real symmetric positive covariance matrix
     &gt;&gt;&gt; cov = cov.unsqueeze(-3).expand(1000, 3, 2, 2).clone()  # (..., n_clu, n_var, n_var)
-    &gt;&gt;&gt; eta = torch.rand((1000, 3))  # (..., n_clu)
-    &gt;&gt;&gt; eta /= eta.sum(dim=-1, keepdim=True)
+    &gt;&gt;&gt; mag = torch.rand((1000, 3))  # (..., n_clu)
+    &gt;&gt;&gt; mag /= mag.sum(dim=-1, keepdim=True)
     &gt;&gt;&gt;
-    &gt;&gt;&gt; prob, mean_jac, cov_jac, eta_jac = gmm2d_and_jac(obs, mean, cov, eta)
+    &gt;&gt;&gt; prob, mean_jac, cov_jac, mag_jac = gmm2d_and_jac(obs, mean, cov, mag)
     &gt;&gt;&gt; prob.shape
     torch.Size([1000, 100])
     &gt;&gt;&gt; mean_jac.shape
-    torch.Size([1000, 100, 3, 2, 1])
+    torch.Size([1000, 100, 3, 2])
     &gt;&gt;&gt; cov_jac.shape
     torch.Size([1000, 100, 3, 2, 2])
-    &gt;&gt;&gt; eta_jac.shape
+    &gt;&gt;&gt; mag_jac.shape
     torch.Size([1000, 100, 3])
     &gt;&gt;&gt;
-    &gt;&gt;&gt; prob_, mean_jac_, cov_jac_, eta_jac_ = gmm2d_and_jac(obs, mean, cov, eta, _autodiff=True)
+    &gt;&gt;&gt; prob_, mean_jac_, cov_jac_, mag_jac_ = gmm2d_and_jac(obs, mean, cov, mag, _autodiff=True)
     &gt;&gt;&gt; assert torch.allclose(prob, prob_)
     &gt;&gt;&gt; assert torch.allclose(mean_jac, mean_jac_)
     &gt;&gt;&gt; assert torch.allclose(cov_jac, cov_jac_)
-    &gt;&gt;&gt; assert torch.allclose(eta_jac, eta_jac_)
+    &gt;&gt;&gt; assert torch.allclose(mag_jac, mag_jac_)
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     if _check:
-        check_gmm((mean, cov, eta))
+        check_gmm((mean, cov, mag))
 
     if _autodiff:
-        return _gmm2d_and_jac_autodiff(obs, mean, cov, eta)
+        return _gmm2d_and_jac_autodiff(obs, mean, cov, mag)
 
     corr = cov[..., 0, 1].unsqueeze(-2).unsqueeze(-1)  # (..., 1, n_clu, 1)
     sigmas = cov[..., [1, 0], [1, 0]].unsqueeze(-3)  # (..., 1, n_clu, 2)
-    obs = obs.unsqueeze(-2) - mean.squeeze(-1).unsqueeze(-3)  # (..., n_obs, n_clu, 2)
-    eta = eta.unsqueeze(-2).unsqueeze(-1)  # (..., 1, n_clu, 1)
+    obs = obs.unsqueeze(-2) - mean.unsqueeze(-3)  # (..., n_obs, n_clu, 2)
+    mag = mag.unsqueeze(-2).unsqueeze(-1)  # (..., 1, n_clu, 1)
 
     dcorr = corr**2  # (..., 1, n_clu, 1)
     x25 = sigmas.prod(-1, keepdim=True)  # (..., 1, n_clu, 1)
@@ -291,10 +199,10 @@ def gmm2d_and_jac(  # pylint: disable=R0914
     obs *= 0.5  # ok because copy
     mean_jac = sigmas*x7 - corr*x7.flip(-1)  # (..., n_obs, n_clu, 2)
     x14 = torch.exp(-(mean_jac*obs).sum(-1, keepdim=True)) / (2*torch.pi)  # (..., n_obs, n_clu, 1)
-    eta_jac = x14 * x3  # (..., n_obs, n_clu, 1)
-    prob = eta * eta_jac  # (..., n_obs, n_clu, 1)
+    mag_jac = x14 * x3  # (..., n_obs, n_clu, 1)
+    prob = mag * mag_jac  # (..., n_obs, n_clu, 1)
     mean_jac *= prob  # (..., n_obs, n_clu, 2)
-    x14 *= eta
+    x14 *= mag
     x2 = x3**3 * x14  # (..., n_obs, n_clu, 1)
     x6 *= x6  # (..., 1, n_clu, 1)
     x22 = 2 * x6 * obs  # (..., n_obs, n_clu, 2)
@@ -311,7 +219,231 @@ def gmm2d_and_jac(  # pylint: disable=R0914
         x3[..., 0].unsqueeze(-1), dcorr, dcorr, x3[..., 1].unsqueeze(-1)
     ], dim=-1).reshape(*obs.shape, 2)
 
-    return prob, mean_jac.unsqueeze(-1), cov_jac, eta_jac.squeeze(-1)
+    return prob, mean_jac, cov_jac, mag_jac.squeeze(-1)
+
+
+def mse_cost(
+    data: bytearray, bboxes: torch.Tensor,
+    mean: torch.Tensor, cov: torch.Tensor, mag: torch.Tensor,
+    **kwargs
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Compute the mse loss between the predicted gmm and the rois.
+
+    Parameters
+    ----------
+    data : bytearray
+        The raw data \(\alpha_i\) of the concatenated not padded float32 rois.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4). It doesn&#39;t have to be c contiguous.
+    mean : torch.Tensor
+        The 2x1 column mean vector of shape (n, \(K\), 2).
+        \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
+    cov : torch.Tensor
+        The 2x2 covariance matrix of shape (n, \(K\), 2, 2).
+        \(\mathbf{\Sigma} = \begin{pmatrix} \sigma_1 &amp; c \\ c &amp; \sigma_2 \\ \end{pmatrix}\)
+        with \(\begin{cases}
+            \sigma_1 &gt; 0 \\
+            \sigma_2 &gt; 0 \\
+        \end{cases}\)
+    mag : torch.Tensor
+        The scalar mass of each gaussian \(\eta_j\) of shape (n, \(K\)).
+
+    Returns
+    -------
+    cost : torch.Tensor
+        The value of the reduced loss function evaluated for each roi.
+        The shape in (n,).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.gmm.gmm import mse_cost
+    &gt;&gt;&gt; from laueimproc.opti.rois import roisshapes2raw
+    &gt;&gt;&gt; rois = torch.rand((1000, 10, 10))
+    &gt;&gt;&gt; bboxes = torch.full((1000, 4), 10, dtype=torch.int16)
+    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2)) + 15.0  # (n, n_clu, n_var, 1)
+    &gt;&gt;&gt; cov = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 1, 2, 2).expand(1000, 3, 2, 2).clone()
+    &gt;&gt;&gt; mag = torch.rand((1000, 3))  # (n, n_clu)
+    &gt;&gt;&gt; mag /= mag.sum(dim=-1, keepdim=True)
+    &gt;&gt;&gt; data = roisshapes2raw(rois, bboxes[:, 2:])
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; cost = mse_cost(data, bboxes, mean, cov, mag)
+    &gt;&gt;&gt; cost.shape
+    torch.Size([1000])
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; cost_ = mse_cost(data, bboxes, mean, cov, mag, _no_c=True)
+    &gt;&gt;&gt; assert torch.allclose(cost, cost_)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not kwargs.get(&#34;_no_c&#34;, False) and c_gmm is not None:
+        return torch.from_numpy(
+            c_gmm.mse_cost(
+                data,
+                bboxes.numpy(force=True),
+                mean.numpy(force=True),
+                cov.numpy(force=True),
+                mag.numpy(force=True),
+            )
+        ).to(bboxes.device)
+
+    # verifications
+    assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
+    assert bboxes.ndim == 2, bboxes.shape
+    assert bboxes.shape[1] == 4, bboxes.shape
+
+    # preparation
+    rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=kwargs.get(&#34;_no_c&#34;, False))
+    obs = torch.meshgrid(
+        torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
+        torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
+        indexing=&#34;ij&#34;,
+    )
+    obs = (obs[0].ravel(), obs[1].ravel())
+    obs = torch.cat([obs[0].unsqueeze(1), obs[1].unsqueeze(1)], dim=1)
+    obs = obs.expand(rois.shape[0], -1, -1).clone()  # (n, n_obs, n_var)
+    obs += bboxes[:, :2].to(torch.float32).unsqueeze(1)  # rel to abs
+
+    # prediction
+    rois_pred = gmm2d(obs, mean, cov, mag)
+    rois_pred = rois_pred.reshape(*rois.shape)
+
+    # mse
+    costs = [
+        float(torch.mean((rois[i] - rois_pred[i])**2))
+        for i, (h, w) in enumerate(bboxes[:, 2:].tolist())
+    ]
+    return torch.asarray(costs, dtype=torch.float32, device=bboxes.device)
+
+
+def mse_cost_and_grad(
+    data: bytearray, bboxes: torch.Tensor,
+    mean: torch.Tensor, cov: torch.Tensor, mag: torch.Tensor,
+    **kwargs
+) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    r&#34;&#34;&#34;Compute the grad of the loss between the predicted gmm and the rois.
+
+    Parameters
+    ----------
+    data : bytearray
+        The raw data \(\alpha_i\) of the concatenated not padded float32 rois.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4). It doesn&#39;t have to be c contiguous.
+    mean : torch.Tensor
+        The 2x1 column mean vector of shape (n, \(K\), 2).
+        \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
+    cov : torch.Tensor
+        The 2x2 covariance matrix of shape (n, \(K\), 2, 2).
+        \(\mathbf{\Sigma} = \begin{pmatrix} \sigma_1 &amp; c \\ c &amp; \sigma_2 \\ \end{pmatrix}\)
+        with \(\begin{cases}
+            \sigma_1 &gt; 0 \\
+            \sigma_2 &gt; 0 \\
+        \end{cases}\)
+    mag : torch.Tensor
+        The scalar mass of each gaussian \(\eta_j\) of shape (n, \(K\)).
+
+    Returns
+    -------
+    cost : torch.Tensor
+        The value of the reduced loss function evaluated for each roi.
+        The shape in (n,).
+    mean_grad : torch.Tensor
+        The gradient of the 2x1 column mean vector of shape (n, \(K\), 2).
+    cov_grad : torch.Tensor
+        The gradient of the 2x2 half covariance matrix of shape (n, \(K\), 2, 2).
+        Take care of the factor 2 of the coefficient of correlation.
+    mag_grad : torch.Tensor
+        The gradient of the scalar mass of each gaussian of shape (n, \(K\)).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.gmm.gmm import mse_cost_and_grad
+    &gt;&gt;&gt; from laueimproc.opti.rois import roisshapes2raw
+    &gt;&gt;&gt; rois = torch.rand((1000, 10, 10))
+    &gt;&gt;&gt; bboxes = torch.full((1000, 4), 10, dtype=torch.int16)
+    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2)) + 15.0  # (n, n_clu, n_var)
+    &gt;&gt;&gt; cov = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 1, 2, 2).expand(1000, 3, 2, 2).clone()
+    &gt;&gt;&gt; mag = torch.rand((1000, 3))  # (n, n_clu)
+    &gt;&gt;&gt; mag /= mag.sum(dim=-1, keepdim=True)
+    &gt;&gt;&gt; data = roisshapes2raw(rois, bboxes[:, 2:])
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; cost, mean_grad, cov_grad, mag_grad = mse_cost_and_grad(data, bboxes, mean, cov, mag)
+    &gt;&gt;&gt; tuple(cost.shape), tuple(mean_grad.shape), tuple(cov_grad.shape), tuple(mag_grad.shape)
+    ((1000,), (1000, 3, 2), (1000, 3, 2, 2), (1000, 3))
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; cost_, mean_g, cov_g, mag_g = mse_cost_and_grad(data, bboxes, mean, cov, mag, _no_c=True)
+    &gt;&gt;&gt; assert torch.allclose(cost, cost_)
+    &gt;&gt;&gt; assert torch.allclose(mean_grad, mean_g)
+    &gt;&gt;&gt; assert torch.allclose(cov_grad, cov_g)
+    &gt;&gt;&gt; assert torch.allclose(mag_grad, mag_g)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not kwargs.get(&#34;_no_c&#34;, False) and c_gmm is not None:
+        return tuple(
+            torch.from_numpy(tensor).to(bboxes.device)
+            for tensor in c_gmm.mse_cost_and_grad(
+                data,
+                bboxes.numpy(force=True),
+                mean.numpy(force=True),
+                cov.numpy(force=True),
+                mag.numpy(force=True),
+            )
+        )
+
+    # verifications
+    assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
+    assert bboxes.ndim == 2, bboxes.shape
+    assert bboxes.shape[1] == 4, bboxes.shape
+
+    # recursive delegation (no 0 padding)
+    if bboxes.shape[0] &gt; 1:
+        areas = torch.cumsum(bboxes[:, 2].to(torch.int32) * bboxes[:, 3].to(torch.int32), dim=0)
+        areas = [0] + areas.tolist()
+        grad = zip(
+            *(
+                mse_cost_and_grad(
+                    data[torch.float32.itemsize*bl:torch.float32.itemsize*bh],
+                    bboxes[i].unsqueeze(0),
+                    mean[i].unsqueeze(0),
+                    cov[i].unsqueeze(0),
+                    mag[i].unsqueeze(0),
+                    **kwargs,
+                )
+                for i, (bl, bh) in enumerate(zip(areas[:-1], areas[1:]))
+            )
+        )
+        grad = tuple(torch.cat(tensors, dim=0) for tensors in grad)
+        return grad
+
+    # preparation
+    rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=kwargs.get(&#34;_no_c&#34;, False))
+    areas = bboxes[:, 2].to(torch.float32) * bboxes[:, 3].to(torch.float32)
+    obs = torch.meshgrid(
+        torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
+        torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
+        indexing=&#34;ij&#34;,
+    )
+    obs = (obs[0].ravel(), obs[1].ravel())
+    obs = torch.cat([obs[0].unsqueeze(1), obs[1].unsqueeze(1)], dim=1)
+    obs = obs.expand(rois.shape[0], -1, -1).clone()  # (n, n_obs, n_var)
+    obs += bboxes[:, :2].to(torch.float32).unsqueeze(1)  # rel to abs
+
+    # evaluation of jacobian and loss
+    rois_pred, mean_jac, cov_jac, mag_jac = gmm2d_and_jac(obs, mean, cov, mag, **kwargs)
+
+    # compute cost
+    rois_pred -= rois.reshape(*rois_pred.shape)
+    cost = torch.sum(rois_pred * rois_pred, dim=1) / areas
+    rois_pred += rois_pred
+    rois_pred /= areas.unsqueeze(1)  # grad of mse
+
+    # compute grad
+    mean_jac *= rois_pred.reshape(*rois_pred.shape, 1, 1)
+    cov_jac *= rois_pred.reshape(*rois_pred.shape, 1, 1, 1)
+    mag_jac *= rois_pred.reshape(*rois_pred.shape, 1)
+    return cost, torch.sum(mean_jac, dim=1), torch.sum(cov_jac, dim=1), torch.sum(mag_jac, dim=1)
 
 
 # def gmm2d_and_jac_sympy():
@@ -351,7 +483,9 @@ def gmm2d_and_jac(  # pylint: disable=R0914
 
 #     # pseudo simplification
 #     from sympy import cse, pprint
-#     pprint(cse(jac, list=False))
+#     pprint(cse(jac, list=False, optimizations=&#34;basic&#34;, order=&#34;canonical&#34;))
+#     print()
+#     print(cse(jac, list=False, optimizations=&#34;basic&#34;, order=&#34;canonical&#34;))
 
 #     # compile source code
 #     from cutcutcodec.core.compilation.sympy_to_torch.lambdify import (
@@ -379,181 +513,6 @@ def gmm2d_and_jac(  # pylint: disable=R0914
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="laueimproc.gmm.gmm.cost_and_grad"><code class="name flex">
-<span>def <span class="ident">cost_and_grad</span></span>(<span>rois: torch.Tensor, shapes: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, eta: torch.Tensor, **_kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Compute the grad of the loss between the predicted gmm and the rois.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>rois</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The unfolded and padded rois of dtype torch.float32 and shape (n, h, w).</dd>
-<dt><strong><code>shapes</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>Contains the information of the bboxes shapes.
-heights = shapes[:, 0] and widths = shapes[:, 1].
-It doesn't have to be c contiguous.</dd>
-<dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The 2x1 column mean vector of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 1).
-<span><span class="MathJax_Preview">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</span><script type="math/tex">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</script></span></dd>
-<dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The 2x2 covariance matrix of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).
-<span><span class="MathJax_Preview">\mathbf{\Sigma} = \begin{pmatrix} \sigma_1 &amp; c \\ c &amp; \sigma_2 \\ \end{pmatrix}</span><script type="math/tex">\mathbf{\Sigma} = \begin{pmatrix} \sigma_1 & c \\ c & \sigma_2 \\ \end{pmatrix}</script></span>
-with <span><span class="MathJax_Preview">\begin{cases}
-\sigma_1 &gt; 0 \\
-\sigma_2 &gt; 0 \\
-\end{cases}</span><script type="math/tex">\begin{cases}
-\sigma_1 > 0 \\
-\sigma_2 > 0 \\
-\end{cases}</script></span></dd>
-<dt><strong><code>eta</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The scalar mass of each gaussian <span><span class="MathJax_Preview">\eta_j</span><script type="math/tex">\eta_j</script></span> of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>cost</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The value of the reduced loss function evaluated for each roi.
-The shape in (n,).</dd>
-<dt><strong><code>mean_grad</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The gradient of the 2x1 column mean vector of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 1).</dd>
-<dt><strong><code>cov_grad</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The gradient of the 2x2 half covariance matrix of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).
-Take care of the factor 2 of the coefficient of correlation.</dd>
-<dt><strong><code>eta_grad</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The gradient of the scalar mass of each gaussian of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.gmm.gmm import cost_and_grad
-&gt;&gt;&gt; rois = torch.rand((1000, 10, 10))
-&gt;&gt;&gt; shapes = torch.full((1000, 4), 10, dtype=torch.int16)
-&gt;&gt;&gt; mean = torch.randn((1000, 3, 2, 1)) + 5.0  # (n, n_clu, n_var, 1)
-&gt;&gt;&gt; cov = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 1, 2, 2).expand(1000, 3, 2, 2).clone()
-&gt;&gt;&gt; eta = torch.rand((1000, 3))  # (n, n_clu)
-&gt;&gt;&gt; eta /= eta.sum(dim=-1, keepdim=True)
-&gt;&gt;&gt;
-&gt;&gt;&gt; cost, mean_grad, cov_grad, eta_grad = cost_and_grad(rois, shapes, mean, cov, eta)
-&gt;&gt;&gt; cost.shape
-torch.Size([1000])
-&gt;&gt;&gt; mean_grad.shape
-torch.Size([1000, 3, 2, 1])
-&gt;&gt;&gt; cov_grad.shape
-torch.Size([1000, 3, 2, 2])
-&gt;&gt;&gt; eta_grad.shape
-torch.Size([1000, 3])
-&gt;&gt;&gt;
-&gt;&gt;&gt; cost_, mean_grad_, cov_grad_, eta_grad_ = cost_and_grad(rois, shapes, mean, cov, eta)
-&gt;&gt;&gt; assert torch.allclose(cost, cost_)
-&gt;&gt;&gt; assert torch.allclose(mean_grad, mean_grad_)
-&gt;&gt;&gt; assert torch.allclose(cov_grad, cov_grad_)
-&gt;&gt;&gt; assert torch.allclose(eta_grad, eta_grad_)
-&gt;&gt;&gt;
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def cost_and_grad(
-    rois: torch.Tensor, shapes: torch.Tensor,
-    mean: torch.Tensor, cov: torch.Tensor, eta: torch.Tensor,
-    **_kwargs
-) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-    r&#34;&#34;&#34;Compute the grad of the loss between the predicted gmm and the rois.
-
-    Parameters
-    ----------
-    rois : torch.Tensor
-        The unfolded and padded rois of dtype torch.float32 and shape (n, h, w).
-    shapes : torch.Tensor
-        Contains the information of the bboxes shapes.
-        heights = shapes[:, 0] and widths = shapes[:, 1].
-        It doesn&#39;t have to be c contiguous.
-    mean : torch.Tensor
-        The 2x1 column mean vector of shape (n, \(K\), 2, 1).
-        \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
-    cov : torch.Tensor
-        The 2x2 covariance matrix of shape (n, \(K\), 2, 2).
-        \(\mathbf{\Sigma} = \begin{pmatrix} \sigma_1 &amp; c \\ c &amp; \sigma_2 \\ \end{pmatrix}\)
-        with \(\begin{cases}
-            \sigma_1 &gt; 0 \\
-            \sigma_2 &gt; 0 \\
-        \end{cases}\)
-    eta : torch.Tensor
-        The scalar mass of each gaussian \(\eta_j\) of shape (n, \(K\)).
-
-    Returns
-    -------
-    cost : torch.Tensor
-        The value of the reduced loss function evaluated for each roi.
-        The shape in (n,).
-    mean_grad : torch.Tensor
-        The gradient of the 2x1 column mean vector of shape (n, \(K\), 2, 1).
-    cov_grad : torch.Tensor
-        The gradient of the 2x2 half covariance matrix of shape (n, \(K\), 2, 2).
-        Take care of the factor 2 of the coefficient of correlation.
-    eta_grad : torch.Tensor
-        The gradient of the scalar mass of each gaussian of shape (n, \(K\)).
-
-    Examples
-    --------
-    &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.gmm.gmm import cost_and_grad
-    &gt;&gt;&gt; rois = torch.rand((1000, 10, 10))
-    &gt;&gt;&gt; shapes = torch.full((1000, 4), 10, dtype=torch.int16)
-    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2, 1)) + 5.0  # (n, n_clu, n_var, 1)
-    &gt;&gt;&gt; cov = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 1, 2, 2).expand(1000, 3, 2, 2).clone()
-    &gt;&gt;&gt; eta = torch.rand((1000, 3))  # (n, n_clu)
-    &gt;&gt;&gt; eta /= eta.sum(dim=-1, keepdim=True)
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; cost, mean_grad, cov_grad, eta_grad = cost_and_grad(rois, shapes, mean, cov, eta)
-    &gt;&gt;&gt; cost.shape
-    torch.Size([1000])
-    &gt;&gt;&gt; mean_grad.shape
-    torch.Size([1000, 3, 2, 1])
-    &gt;&gt;&gt; cov_grad.shape
-    torch.Size([1000, 3, 2, 2])
-    &gt;&gt;&gt; eta_grad.shape
-    torch.Size([1000, 3])
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; cost_, mean_grad_, cov_grad_, eta_grad_ = cost_and_grad(rois, shapes, mean, cov, eta)
-    &gt;&gt;&gt; assert torch.allclose(cost, cost_)
-    &gt;&gt;&gt; assert torch.allclose(mean_grad, mean_grad_)
-    &gt;&gt;&gt; assert torch.allclose(cov_grad, cov_grad_)
-    &gt;&gt;&gt; assert torch.allclose(eta_grad, eta_grad_)
-    &gt;&gt;&gt;
-    &#34;&#34;&#34;
-    if _kwargs.get(&#34;_check&#34;, True):
-        assert isinstance(rois, torch.Tensor), rois.__class__.__name__
-        assert rois.ndim == 3, rois.shape
-        assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__
-        assert shapes.ndim == 2, shapes.shape
-
-    # preparation
-    areas = torch.prod(shapes, dim=1).to(dtype=rois.dtype, device=rois.device)
-    obs = torch.meshgrid(
-        torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
-        torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
-        indexing=&#34;ij&#34;,
-    )
-    obs = (obs[0].ravel(), obs[1].ravel())
-    obs = torch.cat([obs[0].unsqueeze(1), obs[1].unsqueeze(1)], dim=1)
-    obs = obs.expand(rois.shape[0], -1, -1)  # (n, n_obs, n_var)
-
-    # evaluation of jacobian and loss
-    rois_pred, mean_jac, cov_jac, mag_jac = gmm2d_and_jac(obs, mean, cov, eta, **_kwargs)
-
-    # compute cost and cost grad
-    rois_pred -= rois.reshape(*rois_pred.shape)
-    cost = torch.sum(rois_pred * rois_pred, dim=1) / areas
-    rois_pred += rois_pred  # grad
-    rois_pred /= areas.unsqueeze(1)
-
-    # compute grad
-    mean_jac *= rois_pred.reshape(*rois_pred.shape, 1, 1, 1)
-    cov_jac *= rois_pred.reshape(*rois_pred.shape, 1, 1, 1)
-    mag_jac *= rois_pred.reshape(*rois_pred.shape, 1)
-    return cost, torch.sum(mean_jac, dim=1), torch.sum(cov_jac, dim=1), torch.sum(mag_jac, dim=1)</code></pre>
-</details>
-</dd>
 <dt id="laueimproc.gmm.gmm.gmm2d"><code class="name flex">
 <span>def <span class="ident">gmm2d</span></span>(<span>obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, eta: torch.Tensor) ‑> torch.Tensor</span>
 </code></dt>
@@ -565,7 +524,7 @@ torch.Size([1000, 3])
 <dd>The observations of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, 2).
 <span><span class="MathJax_Preview">\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j</span><script type="math/tex">\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j</script></span></dd>
 <dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The 2x1 column mean vector of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 1).
+<dd>The 2x1 column mean vector of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2).
 <span><span class="MathJax_Preview">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</span><script type="math/tex">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</script></span></dd>
 <dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The 2x2 covariance matrix of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).
@@ -602,7 +561,7 @@ The shape of <span><span class="MathJax_Preview">\Gamma(\mathbf{x}_i)</span><scr
         The observations of shape (..., \(N\), 2).
         \(\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j\)
     mean : torch.Tensor
-        The 2x1 column mean vector of shape (..., \(K\), 2, 1).
+        The 2x1 column mean vector of shape (..., \(K\), 2).
         \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
     cov : torch.Tensor
         The 2x2 covariance matrix of shape (..., \(K\), 2, 2).
@@ -629,7 +588,7 @@ The shape of <span><span class="MathJax_Preview">\Gamma(\mathbf{x}_i)</span><scr
 </details>
 </dd>
 <dt id="laueimproc.gmm.gmm.gmm2d_and_jac"><code class="name flex">
-<span>def <span class="ident">gmm2d_and_jac</span></span>(<span>obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, eta: torch.Tensor) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]</span>
+<span>def <span class="ident">gmm2d_and_jac</span></span>(<span>obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, mag: torch.Tensor, **_) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute the grad of a 2d mixture gaussian model.</p>
@@ -639,7 +598,7 @@ The shape of <span><span class="MathJax_Preview">\Gamma(\mathbf{x}_i)</span><scr
 <dd>The observations of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, 2).
 <span><span class="MathJax_Preview">\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j</span><script type="math/tex">\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j</script></span></dd>
 <dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The 2x1 column mean vector of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 1).
+<dd>The 2x1 column mean vector of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2).
 <span><span class="MathJax_Preview">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</span><script type="math/tex">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</script></span></dd>
 <dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The 2x2 covariance matrix of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).
@@ -651,7 +610,7 @@ with <span><span class="MathJax_Preview">\begin{cases}
 \sigma_1 > 0 \\
 \sigma_2 > 0 \\
 \end{cases}</script></span></dd>
-<dt><strong><code>eta</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dt><strong><code>mag</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The scalar mass of each gaussian <span><span class="MathJax_Preview">\eta_j</span><script type="math/tex">\eta_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -659,38 +618,38 @@ with <span><span class="MathJax_Preview">\begin{cases}
 <dt><strong><code>prob</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>Returned value from <code><a title="laueimproc.gmm.gmm.gmm2d" href="#laueimproc.gmm.gmm.gmm2d">gmm2d()</a></code> of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>).</dd>
 <dt><strong><code>mean_jac</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The jacobian of the 2x1 column mean vector of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 1).</dd>
+<dd>The jacobian of the 2x1 column mean vector of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2).</dd>
 <dt><strong><code>cov_jac</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The jacobian of the 2x2 half covariance matrix of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).
 Take care of the factor 2 of the coefficient of correlation.</dd>
-<dt><strong><code>eta_jac</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dt><strong><code>mag_jac</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The jacobian of the scalar mass of each gaussian of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.gmm.gmm import gmm2d_and_jac
 &gt;&gt;&gt; obs = torch.randn((1000, 100, 2))  # (..., n_obs, n_var)
-&gt;&gt;&gt; mean = torch.randn((1000, 3, 2, 1))  # (..., n_clu, n_var, 1)
+&gt;&gt;&gt; mean = torch.randn((1000, 3, 2))  # (..., n_clu, n_var)
 &gt;&gt;&gt; cov = obs.mT @ obs  # create real symmetric positive covariance matrix
 &gt;&gt;&gt; cov = cov.unsqueeze(-3).expand(1000, 3, 2, 2).clone()  # (..., n_clu, n_var, n_var)
-&gt;&gt;&gt; eta = torch.rand((1000, 3))  # (..., n_clu)
-&gt;&gt;&gt; eta /= eta.sum(dim=-1, keepdim=True)
+&gt;&gt;&gt; mag = torch.rand((1000, 3))  # (..., n_clu)
+&gt;&gt;&gt; mag /= mag.sum(dim=-1, keepdim=True)
 &gt;&gt;&gt;
-&gt;&gt;&gt; prob, mean_jac, cov_jac, eta_jac = gmm2d_and_jac(obs, mean, cov, eta)
+&gt;&gt;&gt; prob, mean_jac, cov_jac, mag_jac = gmm2d_and_jac(obs, mean, cov, mag)
 &gt;&gt;&gt; prob.shape
 torch.Size([1000, 100])
 &gt;&gt;&gt; mean_jac.shape
-torch.Size([1000, 100, 3, 2, 1])
+torch.Size([1000, 100, 3, 2])
 &gt;&gt;&gt; cov_jac.shape
 torch.Size([1000, 100, 3, 2, 2])
-&gt;&gt;&gt; eta_jac.shape
+&gt;&gt;&gt; mag_jac.shape
 torch.Size([1000, 100, 3])
 &gt;&gt;&gt;
-&gt;&gt;&gt; prob_, mean_jac_, cov_jac_, eta_jac_ = gmm2d_and_jac(obs, mean, cov, eta, _autodiff=True)
+&gt;&gt;&gt; prob_, mean_jac_, cov_jac_, mag_jac_ = gmm2d_and_jac(obs, mean, cov, mag, _autodiff=True)
 &gt;&gt;&gt; assert torch.allclose(prob, prob_)
 &gt;&gt;&gt; assert torch.allclose(mean_jac, mean_jac_)
 &gt;&gt;&gt; assert torch.allclose(cov_jac, cov_jac_)
-&gt;&gt;&gt; assert torch.allclose(eta_jac, eta_jac_)
+&gt;&gt;&gt; assert torch.allclose(mag_jac, mag_jac_)
 &gt;&gt;&gt;
 </code></pre></div>
 <details class="source">
@@ -698,8 +657,8 @@ torch.Size([1000, 100, 3])
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def gmm2d_and_jac(  # pylint: disable=R0914
-    obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, eta: torch.Tensor,
-    *, _check: bool = True, _autodiff: bool = False
+    obs: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, mag: torch.Tensor,
+    *, _check: bool = True, _autodiff: bool = False, **_
 ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     r&#34;&#34;&#34;Compute the grad of a 2d mixture gaussian model.
 
@@ -709,7 +668,7 @@ torch.Size([1000, 100, 3])
         The observations of shape (..., \(N\), 2).
         \(\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j\)
     mean : torch.Tensor
-        The 2x1 column mean vector of shape (..., \(K\), 2, 1).
+        The 2x1 column mean vector of shape (..., \(K\), 2).
         \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
     cov : torch.Tensor
         The 2x2 covariance matrix of shape (..., \(K\), 2, 2).
@@ -718,7 +677,7 @@ torch.Size([1000, 100, 3])
             \sigma_1 &gt; 0 \\
             \sigma_2 &gt; 0 \\
         \end{cases}\)
-    eta : torch.Tensor
+    mag : torch.Tensor
         The scalar mass of each gaussian \(\eta_j\) of shape (..., \(K\)).
 
     Returns
@@ -726,11 +685,11 @@ torch.Size([1000, 100, 3])
     prob : torch.Tensor
         Returned value from ``gmm2d`` of shape (..., \(N\)).
     mean_jac : torch.Tensor
-        The jacobian of the 2x1 column mean vector of shape (..., \(N\), \(K\), 2, 1).
+        The jacobian of the 2x1 column mean vector of shape (..., \(N\), \(K\), 2).
     cov_jac : torch.Tensor
         The jacobian of the 2x2 half covariance matrix of shape (..., \(N\), \(K\), 2, 2).
         Take care of the factor 2 of the coefficient of correlation.
-    eta_jac : torch.Tensor
+    mag_jac : torch.Tensor
         The jacobian of the scalar mass of each gaussian of shape (..., \(N\), \(K\)).
 
     Examples
@@ -738,39 +697,39 @@ torch.Size([1000, 100, 3])
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.gmm.gmm import gmm2d_and_jac
     &gt;&gt;&gt; obs = torch.randn((1000, 100, 2))  # (..., n_obs, n_var)
-    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2, 1))  # (..., n_clu, n_var, 1)
+    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2))  # (..., n_clu, n_var)
     &gt;&gt;&gt; cov = obs.mT @ obs  # create real symmetric positive covariance matrix
     &gt;&gt;&gt; cov = cov.unsqueeze(-3).expand(1000, 3, 2, 2).clone()  # (..., n_clu, n_var, n_var)
-    &gt;&gt;&gt; eta = torch.rand((1000, 3))  # (..., n_clu)
-    &gt;&gt;&gt; eta /= eta.sum(dim=-1, keepdim=True)
+    &gt;&gt;&gt; mag = torch.rand((1000, 3))  # (..., n_clu)
+    &gt;&gt;&gt; mag /= mag.sum(dim=-1, keepdim=True)
     &gt;&gt;&gt;
-    &gt;&gt;&gt; prob, mean_jac, cov_jac, eta_jac = gmm2d_and_jac(obs, mean, cov, eta)
+    &gt;&gt;&gt; prob, mean_jac, cov_jac, mag_jac = gmm2d_and_jac(obs, mean, cov, mag)
     &gt;&gt;&gt; prob.shape
     torch.Size([1000, 100])
     &gt;&gt;&gt; mean_jac.shape
-    torch.Size([1000, 100, 3, 2, 1])
+    torch.Size([1000, 100, 3, 2])
     &gt;&gt;&gt; cov_jac.shape
     torch.Size([1000, 100, 3, 2, 2])
-    &gt;&gt;&gt; eta_jac.shape
+    &gt;&gt;&gt; mag_jac.shape
     torch.Size([1000, 100, 3])
     &gt;&gt;&gt;
-    &gt;&gt;&gt; prob_, mean_jac_, cov_jac_, eta_jac_ = gmm2d_and_jac(obs, mean, cov, eta, _autodiff=True)
+    &gt;&gt;&gt; prob_, mean_jac_, cov_jac_, mag_jac_ = gmm2d_and_jac(obs, mean, cov, mag, _autodiff=True)
     &gt;&gt;&gt; assert torch.allclose(prob, prob_)
     &gt;&gt;&gt; assert torch.allclose(mean_jac, mean_jac_)
     &gt;&gt;&gt; assert torch.allclose(cov_jac, cov_jac_)
-    &gt;&gt;&gt; assert torch.allclose(eta_jac, eta_jac_)
+    &gt;&gt;&gt; assert torch.allclose(mag_jac, mag_jac_)
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     if _check:
-        check_gmm((mean, cov, eta))
+        check_gmm((mean, cov, mag))
 
     if _autodiff:
-        return _gmm2d_and_jac_autodiff(obs, mean, cov, eta)
+        return _gmm2d_and_jac_autodiff(obs, mean, cov, mag)
 
     corr = cov[..., 0, 1].unsqueeze(-2).unsqueeze(-1)  # (..., 1, n_clu, 1)
     sigmas = cov[..., [1, 0], [1, 0]].unsqueeze(-3)  # (..., 1, n_clu, 2)
-    obs = obs.unsqueeze(-2) - mean.squeeze(-1).unsqueeze(-3)  # (..., n_obs, n_clu, 2)
-    eta = eta.unsqueeze(-2).unsqueeze(-1)  # (..., 1, n_clu, 1)
+    obs = obs.unsqueeze(-2) - mean.unsqueeze(-3)  # (..., n_obs, n_clu, 2)
+    mag = mag.unsqueeze(-2).unsqueeze(-1)  # (..., 1, n_clu, 1)
 
     dcorr = corr**2  # (..., 1, n_clu, 1)
     x25 = sigmas.prod(-1, keepdim=True)  # (..., 1, n_clu, 1)
@@ -781,10 +740,10 @@ torch.Size([1000, 100, 3])
     obs *= 0.5  # ok because copy
     mean_jac = sigmas*x7 - corr*x7.flip(-1)  # (..., n_obs, n_clu, 2)
     x14 = torch.exp(-(mean_jac*obs).sum(-1, keepdim=True)) / (2*torch.pi)  # (..., n_obs, n_clu, 1)
-    eta_jac = x14 * x3  # (..., n_obs, n_clu, 1)
-    prob = eta * eta_jac  # (..., n_obs, n_clu, 1)
+    mag_jac = x14 * x3  # (..., n_obs, n_clu, 1)
+    prob = mag * mag_jac  # (..., n_obs, n_clu, 1)
     mean_jac *= prob  # (..., n_obs, n_clu, 2)
-    x14 *= eta
+    x14 *= mag
     x2 = x3**3 * x14  # (..., n_obs, n_clu, 1)
     x6 *= x6  # (..., 1, n_clu, 1)
     x22 = 2 * x6 * obs  # (..., n_obs, n_clu, 2)
@@ -801,7 +760,357 @@ torch.Size([1000, 100, 3])
         x3[..., 0].unsqueeze(-1), dcorr, dcorr, x3[..., 1].unsqueeze(-1)
     ], dim=-1).reshape(*obs.shape, 2)
 
-    return prob, mean_jac.unsqueeze(-1), cov_jac, eta_jac.squeeze(-1)</code></pre>
+    return prob, mean_jac, cov_jac, mag_jac.squeeze(-1)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.gmm.gmm.mse_cost"><code class="name flex">
+<span>def <span class="ident">mse_cost</span></span>(<span>data: bytearray, bboxes: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, mag: torch.Tensor, **kwargs) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the mse loss between the predicted gmm and the rois.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytearray</code></dt>
+<dd>The raw data <span><span class="MathJax_Preview">\alpha_i</span><script type="math/tex">\alpha_i</script></span> of the concatenated not padded float32 rois.</dd>
+<dt><strong><code>bboxes</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+for each spots, of shape (n, 4). It doesn't have to be c contiguous.</dd>
+<dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 2x1 column mean vector of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2).
+<span><span class="MathJax_Preview">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</span><script type="math/tex">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</script></span></dd>
+<dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 2x2 covariance matrix of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).
+<span><span class="MathJax_Preview">\mathbf{\Sigma} = \begin{pmatrix} \sigma_1 &amp; c \\ c &amp; \sigma_2 \\ \end{pmatrix}</span><script type="math/tex">\mathbf{\Sigma} = \begin{pmatrix} \sigma_1 & c \\ c & \sigma_2 \\ \end{pmatrix}</script></span>
+with <span><span class="MathJax_Preview">\begin{cases}
+\sigma_1 &gt; 0 \\
+\sigma_2 &gt; 0 \\
+\end{cases}</span><script type="math/tex">\begin{cases}
+\sigma_1 > 0 \\
+\sigma_2 > 0 \\
+\end{cases}</script></span></dd>
+<dt><strong><code>mag</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The scalar mass of each gaussian <span><span class="MathJax_Preview">\eta_j</span><script type="math/tex">\eta_j</script></span> of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>cost</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The value of the reduced loss function evaluated for each roi.
+The shape in (n,).</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.gmm.gmm import mse_cost
+&gt;&gt;&gt; from laueimproc.opti.rois import roisshapes2raw
+&gt;&gt;&gt; rois = torch.rand((1000, 10, 10))
+&gt;&gt;&gt; bboxes = torch.full((1000, 4), 10, dtype=torch.int16)
+&gt;&gt;&gt; mean = torch.randn((1000, 3, 2)) + 15.0  # (n, n_clu, n_var, 1)
+&gt;&gt;&gt; cov = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 1, 2, 2).expand(1000, 3, 2, 2).clone()
+&gt;&gt;&gt; mag = torch.rand((1000, 3))  # (n, n_clu)
+&gt;&gt;&gt; mag /= mag.sum(dim=-1, keepdim=True)
+&gt;&gt;&gt; data = roisshapes2raw(rois, bboxes[:, 2:])
+&gt;&gt;&gt;
+&gt;&gt;&gt; cost = mse_cost(data, bboxes, mean, cov, mag)
+&gt;&gt;&gt; cost.shape
+torch.Size([1000])
+&gt;&gt;&gt;
+&gt;&gt;&gt; cost_ = mse_cost(data, bboxes, mean, cov, mag, _no_c=True)
+&gt;&gt;&gt; assert torch.allclose(cost, cost_)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mse_cost(
+    data: bytearray, bboxes: torch.Tensor,
+    mean: torch.Tensor, cov: torch.Tensor, mag: torch.Tensor,
+    **kwargs
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Compute the mse loss between the predicted gmm and the rois.
+
+    Parameters
+    ----------
+    data : bytearray
+        The raw data \(\alpha_i\) of the concatenated not padded float32 rois.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4). It doesn&#39;t have to be c contiguous.
+    mean : torch.Tensor
+        The 2x1 column mean vector of shape (n, \(K\), 2).
+        \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
+    cov : torch.Tensor
+        The 2x2 covariance matrix of shape (n, \(K\), 2, 2).
+        \(\mathbf{\Sigma} = \begin{pmatrix} \sigma_1 &amp; c \\ c &amp; \sigma_2 \\ \end{pmatrix}\)
+        with \(\begin{cases}
+            \sigma_1 &gt; 0 \\
+            \sigma_2 &gt; 0 \\
+        \end{cases}\)
+    mag : torch.Tensor
+        The scalar mass of each gaussian \(\eta_j\) of shape (n, \(K\)).
+
+    Returns
+    -------
+    cost : torch.Tensor
+        The value of the reduced loss function evaluated for each roi.
+        The shape in (n,).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.gmm.gmm import mse_cost
+    &gt;&gt;&gt; from laueimproc.opti.rois import roisshapes2raw
+    &gt;&gt;&gt; rois = torch.rand((1000, 10, 10))
+    &gt;&gt;&gt; bboxes = torch.full((1000, 4), 10, dtype=torch.int16)
+    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2)) + 15.0  # (n, n_clu, n_var, 1)
+    &gt;&gt;&gt; cov = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 1, 2, 2).expand(1000, 3, 2, 2).clone()
+    &gt;&gt;&gt; mag = torch.rand((1000, 3))  # (n, n_clu)
+    &gt;&gt;&gt; mag /= mag.sum(dim=-1, keepdim=True)
+    &gt;&gt;&gt; data = roisshapes2raw(rois, bboxes[:, 2:])
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; cost = mse_cost(data, bboxes, mean, cov, mag)
+    &gt;&gt;&gt; cost.shape
+    torch.Size([1000])
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; cost_ = mse_cost(data, bboxes, mean, cov, mag, _no_c=True)
+    &gt;&gt;&gt; assert torch.allclose(cost, cost_)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not kwargs.get(&#34;_no_c&#34;, False) and c_gmm is not None:
+        return torch.from_numpy(
+            c_gmm.mse_cost(
+                data,
+                bboxes.numpy(force=True),
+                mean.numpy(force=True),
+                cov.numpy(force=True),
+                mag.numpy(force=True),
+            )
+        ).to(bboxes.device)
+
+    # verifications
+    assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
+    assert bboxes.ndim == 2, bboxes.shape
+    assert bboxes.shape[1] == 4, bboxes.shape
+
+    # preparation
+    rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=kwargs.get(&#34;_no_c&#34;, False))
+    obs = torch.meshgrid(
+        torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
+        torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
+        indexing=&#34;ij&#34;,
+    )
+    obs = (obs[0].ravel(), obs[1].ravel())
+    obs = torch.cat([obs[0].unsqueeze(1), obs[1].unsqueeze(1)], dim=1)
+    obs = obs.expand(rois.shape[0], -1, -1).clone()  # (n, n_obs, n_var)
+    obs += bboxes[:, :2].to(torch.float32).unsqueeze(1)  # rel to abs
+
+    # prediction
+    rois_pred = gmm2d(obs, mean, cov, mag)
+    rois_pred = rois_pred.reshape(*rois.shape)
+
+    # mse
+    costs = [
+        float(torch.mean((rois[i] - rois_pred[i])**2))
+        for i, (h, w) in enumerate(bboxes[:, 2:].tolist())
+    ]
+    return torch.asarray(costs, dtype=torch.float32, device=bboxes.device)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.gmm.gmm.mse_cost_and_grad"><code class="name flex">
+<span>def <span class="ident">mse_cost_and_grad</span></span>(<span>data: bytearray, bboxes: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, mag: torch.Tensor, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the grad of the loss between the predicted gmm and the rois.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytearray</code></dt>
+<dd>The raw data <span><span class="MathJax_Preview">\alpha_i</span><script type="math/tex">\alpha_i</script></span> of the concatenated not padded float32 rois.</dd>
+<dt><strong><code>bboxes</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+for each spots, of shape (n, 4). It doesn't have to be c contiguous.</dd>
+<dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 2x1 column mean vector of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2).
+<span><span class="MathJax_Preview">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</span><script type="math/tex">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</script></span></dd>
+<dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 2x2 covariance matrix of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).
+<span><span class="MathJax_Preview">\mathbf{\Sigma} = \begin{pmatrix} \sigma_1 &amp; c \\ c &amp; \sigma_2 \\ \end{pmatrix}</span><script type="math/tex">\mathbf{\Sigma} = \begin{pmatrix} \sigma_1 & c \\ c & \sigma_2 \\ \end{pmatrix}</script></span>
+with <span><span class="MathJax_Preview">\begin{cases}
+\sigma_1 &gt; 0 \\
+\sigma_2 &gt; 0 \\
+\end{cases}</span><script type="math/tex">\begin{cases}
+\sigma_1 > 0 \\
+\sigma_2 > 0 \\
+\end{cases}</script></span></dd>
+<dt><strong><code>mag</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The scalar mass of each gaussian <span><span class="MathJax_Preview">\eta_j</span><script type="math/tex">\eta_j</script></span> of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>cost</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The value of the reduced loss function evaluated for each roi.
+The shape in (n,).</dd>
+<dt><strong><code>mean_grad</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The gradient of the 2x1 column mean vector of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2).</dd>
+<dt><strong><code>cov_grad</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The gradient of the 2x2 half covariance matrix of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).
+Take care of the factor 2 of the coefficient of correlation.</dd>
+<dt><strong><code>mag_grad</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The gradient of the scalar mass of each gaussian of shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.gmm.gmm import mse_cost_and_grad
+&gt;&gt;&gt; from laueimproc.opti.rois import roisshapes2raw
+&gt;&gt;&gt; rois = torch.rand((1000, 10, 10))
+&gt;&gt;&gt; bboxes = torch.full((1000, 4), 10, dtype=torch.int16)
+&gt;&gt;&gt; mean = torch.randn((1000, 3, 2)) + 15.0  # (n, n_clu, n_var)
+&gt;&gt;&gt; cov = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 1, 2, 2).expand(1000, 3, 2, 2).clone()
+&gt;&gt;&gt; mag = torch.rand((1000, 3))  # (n, n_clu)
+&gt;&gt;&gt; mag /= mag.sum(dim=-1, keepdim=True)
+&gt;&gt;&gt; data = roisshapes2raw(rois, bboxes[:, 2:])
+&gt;&gt;&gt;
+&gt;&gt;&gt; cost, mean_grad, cov_grad, mag_grad = mse_cost_and_grad(data, bboxes, mean, cov, mag)
+&gt;&gt;&gt; tuple(cost.shape), tuple(mean_grad.shape), tuple(cov_grad.shape), tuple(mag_grad.shape)
+((1000,), (1000, 3, 2), (1000, 3, 2, 2), (1000, 3))
+&gt;&gt;&gt;
+&gt;&gt;&gt; cost_, mean_g, cov_g, mag_g = mse_cost_and_grad(data, bboxes, mean, cov, mag, _no_c=True)
+&gt;&gt;&gt; assert torch.allclose(cost, cost_)
+&gt;&gt;&gt; assert torch.allclose(mean_grad, mean_g)
+&gt;&gt;&gt; assert torch.allclose(cov_grad, cov_g)
+&gt;&gt;&gt; assert torch.allclose(mag_grad, mag_g)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mse_cost_and_grad(
+    data: bytearray, bboxes: torch.Tensor,
+    mean: torch.Tensor, cov: torch.Tensor, mag: torch.Tensor,
+    **kwargs
+) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    r&#34;&#34;&#34;Compute the grad of the loss between the predicted gmm and the rois.
+
+    Parameters
+    ----------
+    data : bytearray
+        The raw data \(\alpha_i\) of the concatenated not padded float32 rois.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4). It doesn&#39;t have to be c contiguous.
+    mean : torch.Tensor
+        The 2x1 column mean vector of shape (n, \(K\), 2).
+        \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
+    cov : torch.Tensor
+        The 2x2 covariance matrix of shape (n, \(K\), 2, 2).
+        \(\mathbf{\Sigma} = \begin{pmatrix} \sigma_1 &amp; c \\ c &amp; \sigma_2 \\ \end{pmatrix}\)
+        with \(\begin{cases}
+            \sigma_1 &gt; 0 \\
+            \sigma_2 &gt; 0 \\
+        \end{cases}\)
+    mag : torch.Tensor
+        The scalar mass of each gaussian \(\eta_j\) of shape (n, \(K\)).
+
+    Returns
+    -------
+    cost : torch.Tensor
+        The value of the reduced loss function evaluated for each roi.
+        The shape in (n,).
+    mean_grad : torch.Tensor
+        The gradient of the 2x1 column mean vector of shape (n, \(K\), 2).
+    cov_grad : torch.Tensor
+        The gradient of the 2x2 half covariance matrix of shape (n, \(K\), 2, 2).
+        Take care of the factor 2 of the coefficient of correlation.
+    mag_grad : torch.Tensor
+        The gradient of the scalar mass of each gaussian of shape (n, \(K\)).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.gmm.gmm import mse_cost_and_grad
+    &gt;&gt;&gt; from laueimproc.opti.rois import roisshapes2raw
+    &gt;&gt;&gt; rois = torch.rand((1000, 10, 10))
+    &gt;&gt;&gt; bboxes = torch.full((1000, 4), 10, dtype=torch.int16)
+    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2)) + 15.0  # (n, n_clu, n_var)
+    &gt;&gt;&gt; cov = torch.tensor([[1., 0.], [0., 1.]]).reshape(1, 1, 2, 2).expand(1000, 3, 2, 2).clone()
+    &gt;&gt;&gt; mag = torch.rand((1000, 3))  # (n, n_clu)
+    &gt;&gt;&gt; mag /= mag.sum(dim=-1, keepdim=True)
+    &gt;&gt;&gt; data = roisshapes2raw(rois, bboxes[:, 2:])
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; cost, mean_grad, cov_grad, mag_grad = mse_cost_and_grad(data, bboxes, mean, cov, mag)
+    &gt;&gt;&gt; tuple(cost.shape), tuple(mean_grad.shape), tuple(cov_grad.shape), tuple(mag_grad.shape)
+    ((1000,), (1000, 3, 2), (1000, 3, 2, 2), (1000, 3))
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; cost_, mean_g, cov_g, mag_g = mse_cost_and_grad(data, bboxes, mean, cov, mag, _no_c=True)
+    &gt;&gt;&gt; assert torch.allclose(cost, cost_)
+    &gt;&gt;&gt; assert torch.allclose(mean_grad, mean_g)
+    &gt;&gt;&gt; assert torch.allclose(cov_grad, cov_g)
+    &gt;&gt;&gt; assert torch.allclose(mag_grad, mag_g)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not kwargs.get(&#34;_no_c&#34;, False) and c_gmm is not None:
+        return tuple(
+            torch.from_numpy(tensor).to(bboxes.device)
+            for tensor in c_gmm.mse_cost_and_grad(
+                data,
+                bboxes.numpy(force=True),
+                mean.numpy(force=True),
+                cov.numpy(force=True),
+                mag.numpy(force=True),
+            )
+        )
+
+    # verifications
+    assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
+    assert bboxes.ndim == 2, bboxes.shape
+    assert bboxes.shape[1] == 4, bboxes.shape
+
+    # recursive delegation (no 0 padding)
+    if bboxes.shape[0] &gt; 1:
+        areas = torch.cumsum(bboxes[:, 2].to(torch.int32) * bboxes[:, 3].to(torch.int32), dim=0)
+        areas = [0] + areas.tolist()
+        grad = zip(
+            *(
+                mse_cost_and_grad(
+                    data[torch.float32.itemsize*bl:torch.float32.itemsize*bh],
+                    bboxes[i].unsqueeze(0),
+                    mean[i].unsqueeze(0),
+                    cov[i].unsqueeze(0),
+                    mag[i].unsqueeze(0),
+                    **kwargs,
+                )
+                for i, (bl, bh) in enumerate(zip(areas[:-1], areas[1:]))
+            )
+        )
+        grad = tuple(torch.cat(tensors, dim=0) for tensors in grad)
+        return grad
+
+    # preparation
+    rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=kwargs.get(&#34;_no_c&#34;, False))
+    areas = bboxes[:, 2].to(torch.float32) * bboxes[:, 3].to(torch.float32)
+    obs = torch.meshgrid(
+        torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
+        torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
+        indexing=&#34;ij&#34;,
+    )
+    obs = (obs[0].ravel(), obs[1].ravel())
+    obs = torch.cat([obs[0].unsqueeze(1), obs[1].unsqueeze(1)], dim=1)
+    obs = obs.expand(rois.shape[0], -1, -1).clone()  # (n, n_obs, n_var)
+    obs += bboxes[:, :2].to(torch.float32).unsqueeze(1)  # rel to abs
+
+    # evaluation of jacobian and loss
+    rois_pred, mean_jac, cov_jac, mag_jac = gmm2d_and_jac(obs, mean, cov, mag, **kwargs)
+
+    # compute cost
+    rois_pred -= rois.reshape(*rois_pred.shape)
+    cost = torch.sum(rois_pred * rois_pred, dim=1) / areas
+    rois_pred += rois_pred
+    rois_pred /= areas.unsqueeze(1)  # grad of mse
+
+    # compute grad
+    mean_jac *= rois_pred.reshape(*rois_pred.shape, 1, 1)
+    cov_jac *= rois_pred.reshape(*rois_pred.shape, 1, 1, 1)
+    mag_jac *= rois_pred.reshape(*rois_pred.shape, 1)
+    return cost, torch.sum(mean_jac, dim=1), torch.sum(cov_jac, dim=1), torch.sum(mag_jac, dim=1)</code></pre>
 </details>
 </dd>
 </dl>
@@ -822,9 +1131,10 @@ torch.Size([1000, 100, 3])
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.gmm.gmm.cost_and_grad" href="#laueimproc.gmm.gmm.cost_and_grad">cost_and_grad</a></code></li>
 <li><code><a title="laueimproc.gmm.gmm.gmm2d" href="#laueimproc.gmm.gmm.gmm2d">gmm2d</a></code></li>
 <li><code><a title="laueimproc.gmm.gmm.gmm2d_and_jac" href="#laueimproc.gmm.gmm.gmm2d_and_jac">gmm2d_and_jac</a></code></li>
+<li><code><a title="laueimproc.gmm.gmm.mse_cost" href="#laueimproc.gmm.gmm.mse_cost">mse_cost</a></code></li>
+<li><code><a title="laueimproc.gmm.gmm.mse_cost_and_grad" href="#laueimproc.gmm.gmm.mse_cost_and_grad">mse_cost_and_grad</a></code></li>
 </ul>
 </li>
 </ul>

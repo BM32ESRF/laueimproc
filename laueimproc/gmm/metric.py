@@ -110,7 +110,7 @@ def log_likelihood(
         check_gmm(gmm)
 
     mean, cov, eta = gmm
-    prob = gauss(obs, mean, cov, _check=False)  # (..., n_clu, n_obs)
+    prob = gauss(obs, mean.squeeze(-1), cov, _check=False)  # (..., n_clu, n_obs)
     prob **= weights.unsqueeze(-2)
     prob *= eta.unsqueeze(-1)
     ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)

@@ -35,7 +35,7 @@
 import logging
 import numbers
 
-import numpy as np
+# import numpy as np
 import torch
 
 try:
@@ -48,7 +48,7 @@ except ImportError:
     from laueimproc.gmm.em import em
 else:
     em = None
-from laueimproc.gmm.gmm import cost_and_grad
+# from laueimproc.gmm.gmm import cost_and_grad
 from laueimproc.opti.rois import rawshapes2rois
 
 
@@ -114,109 +114,109 @@ def fit_gaussians_em(
     return mean, cov, eta, infodict
 
 
-def fit_gaussians(
-    data: bytearray, shapes: np.ndarray[np.int32], **kwargs
-) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-    r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
+# def fit_gaussians(
+#     data: bytearray, shapes: np.ndarray[np.int32], **kwargs
+# ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+#     r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
 
-    See ``laueimproc.gmm`` for terminology.
+#     See ``laueimproc.gmm`` for terminology.
 
-    Parameters
-    ----------
-    data : bytearray
-        The raw data of the concatenated not padded float32 rois.
-    shapes : np.ndarray[np.int32]
-        Contains the information of the bboxes shapes.
-        heights = shapes[:, 0] and widths = shapes[:, 1].
-        It doesn&#39;t have to be c contiguous.
-    **kwargs : dict
-        Transmitted to ``laueimproc.gmm.em``, used for initialisation.
+#     Parameters
+#     ----------
+#     data : bytearray
+#         The raw data of the concatenated not padded float32 rois.
+#     shapes : np.ndarray[np.int32]
+#         Contains the information of the bboxes shapes.
+#         heights = shapes[:, 0] and widths = shapes[:, 1].
+#         It doesn&#39;t have to be c contiguous.
+#     **kwargs : dict
+#         Transmitted to ``laueimproc.gmm.em``, used for initialisation.
 
-    Returns
-    -------
-    mean : torch.Tensor
-        The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the relative rois base.
-    cov : torch.Tensor
-        The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
-    mass : torch.Tensor
-        The absolute mass \(\theta.\eta\). Shape (n, \(K\)).
-    infodict : dict[str]
+#     Returns
+#     -------
+#     mean : torch.Tensor
+#         The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the relative rois base.
+#     cov : torch.Tensor
+#         The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
+#     mass : torch.Tensor
+#         The absolute mass \(\theta.\eta\). Shape (n, \(K\)).
+#     infodict : dict[str]
 
-        * &#34;loss&#34; : torch.Tensor
-            The vector of loss. Shape (n,).
-        * &#34;pred&#34; : torch.Tensor
-            The predicted rois tensor. Shape(n, h, w)
-    &#34;&#34;&#34;
-    # verification
-    assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__
+#         * &#34;loss&#34; : torch.Tensor
+#             The vector of loss. Shape (n,).
+#         * &#34;pred&#34; : torch.Tensor
+#             The predicted rois tensor. Shape(n, h, w)
+#     &#34;&#34;&#34;
+#     # verification
+#     assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__
 
-    rois = rawshapes2rois(data, shapes.numpy(force=True))
+#     rois = rawshapes2rois(data, shapes.numpy(force=True))
 
-    # initial guess
-    obs = torch.meshgrid(
-        torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
-        torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
-        indexing=&#34;ij&#34;,
-    )
-    obs = (obs[0].ravel(), obs[1].ravel())
-    obs = torch.cat([obs[0].unsqueeze(-1), obs[1].unsqueeze(-1)], dim=1)
-    obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
-    mean, cov, mag = em(
-        obs, torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2])), **kwargs
-    )
-    infodict = {}
-    mag *= torch.amax(rois, dim=(-1, -2))
-    init = (mean.clone(), cov.clone(), mag.clone())
+#     # initial guess
+#     obs = torch.meshgrid(
+#         torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
+#         torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
+#         indexing=&#34;ij&#34;,
+#     )
+#     obs = (obs[0].ravel(), obs[1].ravel())
+#     obs = torch.cat([obs[0].unsqueeze(-1), obs[1].unsqueeze(-1)], dim=1)
+#     obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
+#     mean, cov, mag = em(
+#         obs, torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2])), **kwargs
+#     )
+#     infodict = {}
+#     mag *= torch.amax(rois, dim=(-1, -2))
+#     init = (mean.clone(), cov.clone(), mag.clone())
 
-    # overfit
-    for i, (height, width) in enumerate(shapes.tolist()):
-        mean[i], cov[i], mag[i] = _fit_gaussians_no_batch(
-            rois[i, :height, :width], mean[i], cov[i], mag[i]
-        )
+#     # overfit
+#     for i, (height, width) in enumerate(shapes.tolist()):
+#         mean[i], cov[i], mag[i] = _fit_gaussians_no_batch(
+#             rois[i, :height, :width], mean[i], cov[i], mag[i]
+#         )
 
-    # solve cabbages
-    mean[mean.isnan()] = init[0][mean.isnan()]
-    cov[cov.isnan()] = init[1][cov.isnan()]
-    mag[mag.isnan()] = init[2][mag.isnan()]
+#     # solve cabbages
+#     mean[mean.isnan()] = init[0][mean.isnan()]
+#     cov[cov.isnan()] = init[1][cov.isnan()]
+#     mag[mag.isnan()] = init[2][mag.isnan()]
 
-    return mean, cov, mag, infodict
+#     return mean, cov, mag, infodict
 
 
-def _fit_gaussians_no_batch(
-    roi: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, mag: torch.Tensor
-):
-    &#34;&#34;&#34;Help ``fit_gaussians``.&#34;&#34;&#34;
-    optimizer = torch.optim.LBFGS(
-        [mean, cov, mag],
-        max_iter=100,
-        history_size=6*mag.shape[-1],
-        # max_eval=60*mag.shape[-1],  # for case of optimal step only
-        tolerance_change=1e-9,
-        tolerance_grad=1e-7,
-        line_search_fn=None,  # not &#34;strong_wolfe&#34; beacause it is not grad efficient,
-    )
-    shapes = torch.tensor([[roi.shape[0], roi.shape[1]]], dtype=torch.int32, device=roi.device)
+# def _fit_gaussians_no_batch(
+#     roi: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, mag: torch.Tensor
+# ):
+#     &#34;&#34;&#34;Help ``fit_gaussians``.&#34;&#34;&#34;
+#     optimizer = torch.optim.LBFGS(
+#         [mean, cov, mag],
+#         max_iter=100,
+#         history_size=6*mag.shape[-1],
+#         # max_eval=60*mag.shape[-1],  # for case of optimal step only
+#         tolerance_change=1e-9,
+#         tolerance_grad=1e-7,
+#         line_search_fn=None,  # not &#34;strong_wolfe&#34; beacause it is not grad efficient,
+#     )
+#     shapes = torch.tensor([[roi.shape[0], roi.shape[1]]], dtype=torch.int32, device=roi.device)
 
-    def closure():
-        objective, mean_grad, cov_grad, mag_grad = cost_and_grad(
-            roi.unsqueeze(0), shapes, mean.unsqueeze(0), cov.unsqueeze(0), mag.unsqueeze(0)
-        )
-        mean.grad = mean_grad.squeeze(0)
-        cov.grad = cov_grad.squeeze(0)
-        mag.grad = mag_grad.squeeze(0)
-        return objective.mean()
+#     def closure():
+#         objective, mean_grad, cov_grad, mag_grad = cost_and_grad(
+#             roi.unsqueeze(0), shapes, mean.unsqueeze(0), cov.unsqueeze(0), mag.unsqueeze(0)
+#         )
+#         mean.grad = mean_grad.squeeze(0)
+#         cov.grad = cov_grad.squeeze(0)
+#         mag.grad = mag_grad.squeeze(0)
+#         return objective.mean()
 
-    optimizer.step(closure)
+#     optimizer.step(closure)
 
-    # print(mean_ := mean.ravel().clone())
-    # orig_loss = optimizer.step(closure)
-    # print(&#34;-----------------------&#34;, roi.shape)
-    # print(&#34;orig loss&#34;, optimizer.step(closure))
-    # print(&#34;n iter:&#34;, optimizer.state_dict()[&#34;state&#34;][0][&#34;n_iter&#34;])
-    # print(optimizer.state_dict()[&#34;state&#34;][0].get(&#34;prev_loss&#34;))  # can be nan
-    # print(&#34;:&#34;, (mean.ravel()-mean_).tolist())
+#     # print(mean_ := mean.ravel().clone())
+#     # orig_loss = optimizer.step(closure)
+#     # print(&#34;-----------------------&#34;, roi.shape)
+#     # print(&#34;orig loss&#34;, optimizer.step(closure))
+#     # print(&#34;n iter:&#34;, optimizer.state_dict()[&#34;state&#34;][0][&#34;n_iter&#34;])
+#     # print(optimizer.state_dict()[&#34;state&#34;][0].get(&#34;prev_loss&#34;))  # can be nan
+#     # print(&#34;:&#34;, (mean.ravel()-mean_).tolist())
 
-    return mean, cov, mag</code></pre>
+#     return mean, cov, mag</code></pre>
 </details>
 </section>
 <section>
@@ -226,113 +226,6 @@ def _fit_gaussians_no_batch(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="laueimproc.improc.spot.fit.fit_gaussians"><code class="name flex">
-<span>def <span class="ident">fit_gaussians</span></span>(<span>data: bytearray, shapes: numpy.ndarray[numpy.int32], **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Fit each roi by <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span> gaussians.</p>
-<p>See <code><a title="laueimproc.gmm" href="../../gmm/index.html">laueimproc.gmm</a></code> for terminology.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>data</code></strong> :&ensp;<code>bytearray</code></dt>
-<dd>The raw data of the concatenated not padded float32 rois.</dd>
-<dt><strong><code>shapes</code></strong> :&ensp;<code>np.ndarray[np.int32]</code></dt>
-<dd>Contains the information of the bboxes shapes.
-heights = shapes[:, 0] and widths = shapes[:, 1].
-It doesn't have to be c contiguous.</dd>
-<dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Transmitted to <code><a title="laueimproc.gmm.em" href="../../gmm/em.html">laueimproc.gmm.em</a></code>, used for initialisation.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The vectors <span><span class="MathJax_Preview">\mathbf{\mu}</span><script type="math/tex">\mathbf{\mu}</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 1). In the relative rois base.</dd>
-<dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The matrices <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).</dd>
-<dt><strong><code>mass</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The absolute mass <span><span class="MathJax_Preview">\theta.\eta</span><script type="math/tex">\theta.\eta</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
-<dt><strong><code>infodict</code></strong> :&ensp;<code>dict[str]</code></dt>
-<dd>
-<ul>
-<li>"loss" : torch.Tensor
-The vector of loss. Shape (n,).</li>
-<li>"pred" : torch.Tensor
-The predicted rois tensor. Shape(n, h, w)</li>
-</ul>
-</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def fit_gaussians(
-    data: bytearray, shapes: np.ndarray[np.int32], **kwargs
-) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-    r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
-
-    See ``laueimproc.gmm`` for terminology.
-
-    Parameters
-    ----------
-    data : bytearray
-        The raw data of the concatenated not padded float32 rois.
-    shapes : np.ndarray[np.int32]
-        Contains the information of the bboxes shapes.
-        heights = shapes[:, 0] and widths = shapes[:, 1].
-        It doesn&#39;t have to be c contiguous.
-    **kwargs : dict
-        Transmitted to ``laueimproc.gmm.em``, used for initialisation.
-
-    Returns
-    -------
-    mean : torch.Tensor
-        The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the relative rois base.
-    cov : torch.Tensor
-        The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
-    mass : torch.Tensor
-        The absolute mass \(\theta.\eta\). Shape (n, \(K\)).
-    infodict : dict[str]
-
-        * &#34;loss&#34; : torch.Tensor
-            The vector of loss. Shape (n,).
-        * &#34;pred&#34; : torch.Tensor
-            The predicted rois tensor. Shape(n, h, w)
-    &#34;&#34;&#34;
-    # verification
-    assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__
-
-    rois = rawshapes2rois(data, shapes.numpy(force=True))
-
-    # initial guess
-    obs = torch.meshgrid(
-        torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
-        torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
-        indexing=&#34;ij&#34;,
-    )
-    obs = (obs[0].ravel(), obs[1].ravel())
-    obs = torch.cat([obs[0].unsqueeze(-1), obs[1].unsqueeze(-1)], dim=1)
-    obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
-    mean, cov, mag = em(
-        obs, torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2])), **kwargs
-    )
-    infodict = {}
-    mag *= torch.amax(rois, dim=(-1, -2))
-    init = (mean.clone(), cov.clone(), mag.clone())
-
-    # overfit
-    for i, (height, width) in enumerate(shapes.tolist()):
-        mean[i], cov[i], mag[i] = _fit_gaussians_no_batch(
-            rois[i, :height, :width], mean[i], cov[i], mag[i]
-        )
-
-    # solve cabbages
-    mean[mean.isnan()] = init[0][mean.isnan()]
-    cov[cov.isnan()] = init[1][cov.isnan()]
-    mag[mag.isnan()] = init[2][mag.isnan()]
-
-    return mean, cov, mag, infodict</code></pre>
-</details>
-</dd>
 <dt id="laueimproc.improc.spot.fit.fit_gaussians_em"><code class="name flex">
 <span>def <span class="ident">fit_gaussians_em</span></span>(<span>data: bytearray, bboxes: torch.Tensor, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]</span>
 </code></dt>
@@ -444,7 +337,6 @@ for each spots, of shape (n, 4). It doesn't have to be c contiguous.</dd>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.improc.spot.fit.fit_gaussians" href="#laueimproc.improc.spot.fit.fit_gaussians">fit_gaussians</a></code></li>
 <li><code><a title="laueimproc.improc.spot.fit.fit_gaussians_em" href="#laueimproc.improc.spot.fit.fit_gaussians_em">fit_gaussians_em</a></code></li>
 </ul>
 </li>

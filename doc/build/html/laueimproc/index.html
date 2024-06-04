@@ -385,86 +385,86 @@ For memory management, it is better to provide a pathlike rather than an array.<
             data, bboxes = self._rois
         return fit_gaussians_em(data, bboxes, **kwargs)
 
-    def fit_gaussian(
-        self, *args, **kwargs
-    ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-        r&#34;&#34;&#34;Fit each roi by one gaussian.
+    # def fit_gaussian(
+    #     self, *args, **kwargs
+    # ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    #     r&#34;&#34;&#34;Fit each roi by one gaussian.
 
-        Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
-        &#34;&#34;&#34;
-        mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
-        mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
-        if &#34;eigtheta&#34; in infodict:
-            infodict = infodict.copy()  # to avoid insane cache reference error
-            infodict[&#34;eigtheta&#34;] = infodict[&#34;eigtheta&#34;].squeeze(1)
-        return mean, cov, magnitude, infodict
+    #     Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
+    #     &#34;&#34;&#34;
+    #     mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
+    #     mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
+    #     if &#34;eigtheta&#34; in infodict:
+    #         infodict = infodict.copy()  # to avoid insane cache reference error
+    #         infodict[&#34;eigtheta&#34;] = infodict[&#34;eigtheta&#34;].squeeze(1)
+    #     return mean, cov, magnitude, infodict
 
-    @auto_cache
-    @check_init
-    def fit_gaussians(
-        self, loss: str = &#34;mse&#34;, indexing: str = &#34;ij&#34;, **kwargs
-    ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-        r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
+    # @auto_cache
+    # @check_init
+    # def fit_gaussians(
+    #     self, loss: str = &#34;mse&#34;, indexing: str = &#34;ij&#34;, **kwargs
+    # ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    #     r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
 
-        See ``laueimproc.gmm`` for terminology.
+    #     See ``laueimproc.gmm`` for terminology.
 
-        Parameters
-        ----------
-        loss : str, default=&#34;mse&#34;
-            Quantify the difference between ``self.rois`` and estimated rois from the gmm.
-            The possible values are:
+    #     Parameters
+    #     ----------
+    #     loss : str, default=&#34;mse&#34;
+    #         Quantify the difference between ``self.rois`` and estimated rois from the gmm.
+    #         The possible values are:
 
-            * &#34;l1&#34; (absolute difference): \(
-                \frac{1}{H.W}
-                \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-                | rois_{k,i,j} - rois\_pred_{k,i,j} |
-            \)
+    #         * &#34;l1&#34; (absolute difference): \(
+    #             \frac{1}{H.W}
+    #             \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
+    #             | rois_{k,i,j} - rois\_pred_{k,i,j} |
+    #         \)
 
-            * &#34;mse&#34; (mean square error): \(
-                \frac{1}{H.W}
-                \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-                \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
-            \)
-        indexing : str, default=&#34;ij&#34;
-            The convention used for the returned positions values. Can be &#34;ij&#34; or &#34;xy&#34;.
-        **kwargs : dict
-            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
+    #         * &#34;mse&#34; (mean square error): \(
+    #             \frac{1}{H.W}
+    #             \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
+    #             \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
+    #         \)
+    #     indexing : str, default=&#34;ij&#34;
+    #         The convention used for the returned positions values. Can be &#34;ij&#34; or &#34;xy&#34;.
+    #     **kwargs : dict
+    #         Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
 
-        Returns
-        -------
-        mean : torch.Tensor
-            The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
-        cov : torch.Tensor
-            The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
-        magnitude : torch.Tensor
-            The absolute magnitude \(\theta.\eta\). Shape (n, \(K\)).
-        infodict : dict[str]
-            See ``laueimproc.improc.spot.fit.fit_gaussians``.
-        &#34;&#34;&#34;
-        assert loss == &#34;mse&#34;, &#34;only mse is implemented&#34;
+    #     Returns
+    #     -------
+    #     mean : torch.Tensor
+    #         The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
+    #     cov : torch.Tensor
+    #         The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
+    #     magnitude : torch.Tensor
+    #         The absolute magnitude \(\theta.\eta\). Shape (n, \(K\)).
+    #     infodict : dict[str]
+    #         See ``laueimproc.improc.spot.fit.fit_gaussians``.
+    #     &#34;&#34;&#34;
+    #     assert loss == &#34;mse&#34;, &#34;only mse is implemented&#34;
 
-        # preparation
-        with self._rois_lock:
-            data = self._rois[0]
-            shapes = self._rois[1][:, 2:]
-            shift = self._rois[1][:, :2]
+    #     # preparation
+    #     with self._rois_lock:
+    #         data = self._rois[0]
+    #         shapes = self._rois[1][:, 2:]
+    #         shift = self._rois[1][:, :2]
 
-        # main fit
-        mean, cov, magnitude, infodict = fit_gaussians(data, shapes, **kwargs)
+    #     # main fit
+    #     mean, cov, magnitude, infodict = fit_gaussians(data, shapes, **kwargs)
 
-        # spot base to diagram base
-        if mean.requires_grad:
-            mean = mean + shift.reshape(-1, 1, 2, 1)
-        else:
-            mean += shift.reshape(-1, 1, 2, 1)
+    #     # spot base to diagram base
+    #     if mean.requires_grad:
+    #         mean = mean + shift.reshape(-1, 1, 2, 1)
+    #     else:
+    #         mean += shift.reshape(-1, 1, 2, 1)
 
-        assert isinstance(indexing, str), indexing.__class__.__name__
-        assert indexing in {&#34;ij&#34;, &#34;xy&#34;}, indexing
-        if indexing == &#34;xy&#34;:
-            mean = torch.flip(mean, 2)
-            mean += 0.5
+    #     assert isinstance(indexing, str), indexing.__class__.__name__
+    #     assert indexing in {&#34;ij&#34;, &#34;xy&#34;}, indexing
+    #     if indexing == &#34;xy&#34;:
+    #         mean = torch.flip(mean, 2)
+    #         mean += 0.5
 
-        return mean, cov, magnitude, infodict</code></pre>
+    #     return mean, cov, magnitude, infodict</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -874,156 +874,6 @@ def compute_rois_sum(self, **_kwargs) -&gt; torch.Tensor:
     return compute_rois_sum(data, bboxes, **_kwargs)</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.Diagram.fit_gaussian"><code class="name flex">
-<span>def <span class="ident">fit_gaussian</span></span>(<span>self, *args, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Fit each roi by one gaussian.</p>
-<p>Same as <code>fit_gaussians</code> but squeeze the <span><span class="MathJax_Preview">K = 1</span><script type="math/tex">K = 1</script></span> dimension.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def fit_gaussian(
-    self, *args, **kwargs
-) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-    r&#34;&#34;&#34;Fit each roi by one gaussian.
-
-    Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
-    &#34;&#34;&#34;
-    mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
-    mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
-    if &#34;eigtheta&#34; in infodict:
-        infodict = infodict.copy()  # to avoid insane cache reference error
-        infodict[&#34;eigtheta&#34;] = infodict[&#34;eigtheta&#34;].squeeze(1)
-    return mean, cov, magnitude, infodict</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.Diagram.fit_gaussians"><code class="name flex">
-<span>def <span class="ident">fit_gaussians</span></span>(<span>self, loss: str = 'mse', indexing: str = 'ij', **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Fit each roi by <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span> gaussians.</p>
-<p>See <code><a title="laueimproc.gmm" href="gmm/index.html">laueimproc.gmm</a></code> for terminology.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>loss</code></strong> :&ensp;<code>str</code>, default=<code>"mse"</code></dt>
-<dd>
-<p>Quantify the difference between <code>self.rois</code> and estimated rois from the gmm.
-The possible values are:</p>
-<ul>
-<li>
-<p>"l1" (absolute difference): <span><span class="MathJax_Preview">
-\frac{1}{H.W}
-\sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-| rois_{k,i,j} - rois\_pred_{k,i,j} |
-</span><script type="math/tex">
-\frac{1}{H.W}
-\sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-| rois_{k,i,j} - rois\_pred_{k,i,j} |
-</script></span></p>
-</li>
-<li>
-<p>"mse" (mean square error): <span><span class="MathJax_Preview">
-\frac{1}{H.W}
-\sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-\left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
-</span><script type="math/tex">
-\frac{1}{H.W}
-\sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-\left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
-</script></span></p>
-</li>
-</ul>
-</dd>
-<dt><strong><code>indexing</code></strong> :&ensp;<code>str</code>, default=<code>"ij"</code></dt>
-<dd>The convention used for the returned positions values. Can be "ij" or "xy".</dd>
-<dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Transmitted to <code><a title="laueimproc.improc.spot.fit.fit_gaussians" href="improc/spot/fit.html#laueimproc.improc.spot.fit.fit_gaussians">fit_gaussians()</a></code>.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The vectors <span><span class="MathJax_Preview">\mathbf{\mu}</span><script type="math/tex">\mathbf{\mu}</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 1). In the absolute diagram base.</dd>
-<dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The matrices <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).</dd>
-<dt><strong><code>magnitude</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The absolute magnitude <span><span class="MathJax_Preview">\theta.\eta</span><script type="math/tex">\theta.\eta</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
-<dt><strong><code>infodict</code></strong> :&ensp;<code>dict[str]</code></dt>
-<dd>See <code><a title="laueimproc.improc.spot.fit.fit_gaussians" href="improc/spot/fit.html#laueimproc.improc.spot.fit.fit_gaussians">fit_gaussians()</a></code>.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@auto_cache
-@check_init
-def fit_gaussians(
-    self, loss: str = &#34;mse&#34;, indexing: str = &#34;ij&#34;, **kwargs
-) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-    r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
-
-    See ``laueimproc.gmm`` for terminology.
-
-    Parameters
-    ----------
-    loss : str, default=&#34;mse&#34;
-        Quantify the difference between ``self.rois`` and estimated rois from the gmm.
-        The possible values are:
-
-        * &#34;l1&#34; (absolute difference): \(
-            \frac{1}{H.W}
-            \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-            | rois_{k,i,j} - rois\_pred_{k,i,j} |
-        \)
-
-        * &#34;mse&#34; (mean square error): \(
-            \frac{1}{H.W}
-            \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-            \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
-        \)
-    indexing : str, default=&#34;ij&#34;
-        The convention used for the returned positions values. Can be &#34;ij&#34; or &#34;xy&#34;.
-    **kwargs : dict
-        Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
-
-    Returns
-    -------
-    mean : torch.Tensor
-        The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
-    cov : torch.Tensor
-        The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
-    magnitude : torch.Tensor
-        The absolute magnitude \(\theta.\eta\). Shape (n, \(K\)).
-    infodict : dict[str]
-        See ``laueimproc.improc.spot.fit.fit_gaussians``.
-    &#34;&#34;&#34;
-    assert loss == &#34;mse&#34;, &#34;only mse is implemented&#34;
-
-    # preparation
-    with self._rois_lock:
-        data = self._rois[0]
-        shapes = self._rois[1][:, 2:]
-        shift = self._rois[1][:, :2]
-
-    # main fit
-    mean, cov, magnitude, infodict = fit_gaussians(data, shapes, **kwargs)
-
-    # spot base to diagram base
-    if mean.requires_grad:
-        mean = mean + shift.reshape(-1, 1, 2, 1)
-    else:
-        mean += shift.reshape(-1, 1, 2, 1)
-
-    assert isinstance(indexing, str), indexing.__class__.__name__
-    assert indexing in {&#34;ij&#34;, &#34;xy&#34;}, indexing
-    if indexing == &#34;xy&#34;:
-        mean = torch.flip(mean, 2)
-        mean += 0.5
-
-    return mean, cov, magnitude, infodict</code></pre>
-</details>
-</dd>
 <dt id="laueimproc.Diagram.fit_gaussians_em"><code class="name flex">
 <span>def <span class="ident">fit_gaussians_em</span></span>(<span>self, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, dict]</span>
 </code></dt>
@@ -1106,7 +956,7 @@ def fit_gaussians_em(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dic
 <li><code><b><a title="laueimproc.classes.base_diagram.BaseDiagram" href="classes/base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram">BaseDiagram</a></b></code>:
 <ul class="hlist">
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.add_property" href="classes/base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.add_property">add_property</a></code></li>
-<li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.area" href="classes/base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.area">area</a></code></li>
+<li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.areas" href="classes/base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.areas">areas</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.bboxes" href="classes/base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.bboxes">bboxes</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.clone" href="classes/base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.clone">clone</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.compress" href="classes/base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.compress">compress</a></code></li>
@@ -1128,7 +978,7 @@ def fit_gaussians_em(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dic
 </dd>
 <dt id="laueimproc.DiagramsDataset"><code class="flex name class">
 <span>class <span class="ident">DiagramsDataset</span></span>
-<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="classes/diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, position: Union[dict[int, tuple[float, ...]], tuple[torch.Tensor, torch.Tensor], ForwardRef(None)] = None)</span>
+<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="classes/diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, diag2scalars: Optional[Callable[[int], Union[numbers.Real, tuple[numbers.Real, ...]]]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Link Diagrams together.</p>
@@ -1142,7 +992,7 @@ def fit_gaussians_em(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dic
 If provided, this function has to be pickleable.
 It has to take only one positional argument (a simple Diagram instance)
 and to return a positive integer.</dd>
-<dt><strong><code>position</code></strong> :&ensp;<code>callable</code>, optional</dt>
+<dt><strong><code>diag2scalars</code></strong> :&ensp;<code>callable</code>, optional</dt>
 <dd>If provided, it allows you to select diagram from physical parameters.
 <span><span class="MathJax_Preview">f:I\to\mathbb{R}^n</span><script type="math/tex">f:I\to\mathbb{R}^n</script></span>, an injective application.
 <span><span class="MathJax_Preview">I\subset\mathbb{N}</span><script type="math/tex">I\subset\mathbb{N}</script></span> is the set of the indices of the diagrams in the dataset.
@@ -1157,6 +1007,45 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 </summary>
 <pre><code class="python">class DiagramsDataset(BaseDiagramsDataset):
     &#34;&#34;&#34;Link Diagrams together.&#34;&#34;&#34;
+
+    def select_closest(
+        self, *args, no_raise: bool = False, **kwargs
+    ) -&gt; typing.Union[Diagram, None]:
+        &#34;&#34;&#34;Select the closest diagram to a given set of phisical parameters.
+
+        Parameters
+        ----------
+        point, tol, scale
+            Transmitted to ``laueimproc.ml.dataset_dist.select_closest``.
+        no_raise : boolean, default = False
+            If set to True, return None rather throwing a LookupError exception.
+
+        Returns
+        -------
+        closet_diag : ``laueimproc.classes.diagram.Diagram``
+            The closet diagram.
+
+        Examples
+        --------
+        &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
+        &gt;&gt;&gt; from laueimproc.io import get_samples
+        &gt;&gt;&gt; def position(index: int) -&gt; tuple[int, int]:
+        ...     return divmod(index, 10)
+        ...
+        &gt;&gt;&gt; dataset = DiagramsDataset(get_samples(), diag2scalars=position)
+        &gt;&gt;&gt; dataset.select_closest((4.1, 4.9), tol=(0.2, 0.2))
+        Diagram(img_45.jp2)
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        assert isinstance(no_raise, bool), no_raise.__class__.__name__
+        indices, coords = self.get_scalars(as_dict=False, copy=False)
+        try:
+            index = select_closest(coords, *args, **kwargs)
+        except LookupError as err:
+            if no_raise:
+                return None
+            raise err
+        return self._get_diagram_from_index(int(indices[index]))
 
     def track_spots(self):
         &#34;&#34;&#34;Find the apparition of the same spots in differents diagrams.&#34;&#34;&#34;
@@ -1230,6 +1119,78 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 </ul>
 <h3>Methods</h3>
 <dl>
+<dt id="laueimproc.DiagramsDataset.select_closest"><code class="name flex">
+<span>def <span class="ident">select_closest</span></span>(<span>self, *args, no_raise: bool = False, **kwargs) ‑> Optional[<a title="laueimproc.classes.diagram.Diagram" href="classes/diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Select the closest diagram to a given set of phisical parameters.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>point</code></strong>, <strong><code>tol</code></strong>, <strong><code>scale</code></strong></dt>
+<dd>Transmitted to <code><a title="laueimproc.ml.dataset_dist.select_closest" href="ml/dataset_dist.html#laueimproc.ml.dataset_dist.select_closest">select_closest()</a></code>.</dd>
+<dt><strong><code>no_raise</code></strong> :&ensp;<code>boolean</code>, default <code>= False</code></dt>
+<dd>If set to True, return None rather throwing a LookupError exception.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>closet_diag</code></strong> :&ensp;<code>laueimproc.classes.diagram.Diagram</code></dt>
+<dd>The closet diagram.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
+&gt;&gt;&gt; from laueimproc.io import get_samples
+&gt;&gt;&gt; def position(index: int) -&gt; tuple[int, int]:
+...     return divmod(index, 10)
+...
+&gt;&gt;&gt; dataset = DiagramsDataset(get_samples(), diag2scalars=position)
+&gt;&gt;&gt; dataset.select_closest((4.1, 4.9), tol=(0.2, 0.2))
+Diagram(img_45.jp2)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def select_closest(
+    self, *args, no_raise: bool = False, **kwargs
+) -&gt; typing.Union[Diagram, None]:
+    &#34;&#34;&#34;Select the closest diagram to a given set of phisical parameters.
+
+    Parameters
+    ----------
+    point, tol, scale
+        Transmitted to ``laueimproc.ml.dataset_dist.select_closest``.
+    no_raise : boolean, default = False
+        If set to True, return None rather throwing a LookupError exception.
+
+    Returns
+    -------
+    closet_diag : ``laueimproc.classes.diagram.Diagram``
+        The closet diagram.
+
+    Examples
+    --------
+    &gt;&gt;&gt; from laueimproc.classes.dataset import DiagramsDataset
+    &gt;&gt;&gt; from laueimproc.io import get_samples
+    &gt;&gt;&gt; def position(index: int) -&gt; tuple[int, int]:
+    ...     return divmod(index, 10)
+    ...
+    &gt;&gt;&gt; dataset = DiagramsDataset(get_samples(), diag2scalars=position)
+    &gt;&gt;&gt; dataset.select_closest((4.1, 4.9), tol=(0.2, 0.2))
+    Diagram(img_45.jp2)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(no_raise, bool), no_raise.__class__.__name__
+    indices, coords = self.get_scalars(as_dict=False, copy=False)
+    try:
+        index = select_closest(coords, *args, **kwargs)
+    except LookupError as err:
+        if no_raise:
+            return None
+        raise err
+    return self._get_diagram_from_index(int(indices[index]))</code></pre>
+</details>
+</dd>
 <dt id="laueimproc.DiagramsDataset.track_spots"><code class="name flex">
 <span>def <span class="ident">track_spots</span></span>(<span>self)</span>
 </code></dt>
@@ -1360,7 +1321,9 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
 <li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.clone" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.clone">clone</a></code></li>
 <li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.flush" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.flush">flush</a></code></li>
 <li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.get_property" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.get_property">get_property</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.get_scalars" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.get_scalars">get_scalars</a></code></li>
 <li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.indices" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.indices">indices</a></code></li>
+<li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.restore" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.restore">restore</a></code></li>
 <li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.run" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.run">run</a></code></li>
 <li><code><a title="laueimproc.classes.base_dataset.BaseDiagramsDataset.state" href="classes/base_dataset.html#laueimproc.classes.base_dataset.BaseDiagramsDataset.state">state</a></code></li>
 </ul>
@@ -1406,14 +1369,13 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
 <li><code><a title="laueimproc.Diagram.compute_rois_nb_peaks" href="#laueimproc.Diagram.compute_rois_nb_peaks">compute_rois_nb_peaks</a></code></li>
 <li><code><a title="laueimproc.Diagram.compute_rois_pca" href="#laueimproc.Diagram.compute_rois_pca">compute_rois_pca</a></code></li>
 <li><code><a title="laueimproc.Diagram.compute_rois_sum" href="#laueimproc.Diagram.compute_rois_sum">compute_rois_sum</a></code></li>
-<li><code><a title="laueimproc.Diagram.fit_gaussian" href="#laueimproc.Diagram.fit_gaussian">fit_gaussian</a></code></li>
-<li><code><a title="laueimproc.Diagram.fit_gaussians" href="#laueimproc.Diagram.fit_gaussians">fit_gaussians</a></code></li>
 <li><code><a title="laueimproc.Diagram.fit_gaussians_em" href="#laueimproc.Diagram.fit_gaussians_em">fit_gaussians_em</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="laueimproc.DiagramsDataset" href="#laueimproc.DiagramsDataset">DiagramsDataset</a></code></h4>
 <ul class="">
+<li><code><a title="laueimproc.DiagramsDataset.select_closest" href="#laueimproc.DiagramsDataset.select_closest">select_closest</a></code></li>
 <li><code><a title="laueimproc.DiagramsDataset.track_spots" href="#laueimproc.DiagramsDataset.track_spots">track_spots</a></code></li>
 <li><code><a title="laueimproc.DiagramsDataset.train_spot_classifier" href="#laueimproc.DiagramsDataset.train_spot_classifier">train_spot_classifier</a></code></li>
 </ul>
