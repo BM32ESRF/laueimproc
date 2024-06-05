@@ -58,6 +58,14 @@ class Build(_build_py):
         )
         self.distribution.ext_modules.append(
             Extension(
+                "laueimproc.gmm.c_fit",
+                sources=["laueimproc/gmm/c_fit.c"],
+                optional=True,
+                **COMP_RULES,
+            )
+        )
+        self.distribution.ext_modules.append(
+            Extension(
                 "laueimproc.gmm.c_gmm",
                 sources=["laueimproc/gmm/c_gmm.c"],
                 optional=True,

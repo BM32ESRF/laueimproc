@@ -660,6 +660,7 @@ class BaseDiagram:
         Use `self.show()` to Display the diagram from scratch.
         """
         from matplotlib.axes import Axes
+        from matplotlib.colors import Normalize
         from matplotlib.figure import Figure
 
         assert disp is None or isinstance(disp, (Figure, Axes))
@@ -699,15 +700,14 @@ class BaseDiagram:
                 "left", functions=(lambda y: y-.5, lambda i: i+.5)
             ).set_ylabel("i (first dim in 'ij' conv)")
         if kwargs.get("show_image", True):
+
             axes.imshow(
                 image.numpy(force=True),
                 aspect="equal",
                 extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
                 interpolation=None,  # antialiasing is True
-                norm="log",
+                norm=Normalize(vmin, vmax),
                 cmap="plasma",  # or gray
-                vmin=vmin,
-                vmax=vmax,
             )
         if kwargs.get("show_boxes", True) and len(self):
             bboxes = self.bboxes.numpy(force=True).astype(np.float32)

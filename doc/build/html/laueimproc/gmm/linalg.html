@@ -32,6 +32,8 @@
 
 &#34;&#34;&#34;Helper for fast linear algebra for 2d matrix.&#34;&#34;&#34;
 
+import numbers
+
 import torch
 
 
@@ -55,7 +57,7 @@ def batched_matmul(mat1: torch.Tensor, mat2: torch.Tensor) -&gt; torch.Tensor:
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.gmm.linalg import batched_matmul
     &gt;&gt;&gt; mat1 = torch.randn((9, 1, 7, 6, 3, 4))
-    &gt;&gt;&gt; mat2 = torch.randn((8, 1, 6, 4, 5))
+    &gt;&gt;&gt; mat2 = torch.randn(   (8, 1, 6, 4, 5))
     &gt;&gt;&gt; batched_matmul(mat1, mat2).shape
     torch.Size([9, 8, 7, 6, 3, 5])
     &gt;&gt;&gt;
@@ -64,7 +66,8 @@ def batched_matmul(mat1: torch.Tensor, mat2: torch.Tensor) -&gt; torch.Tensor:
     assert isinstance(mat2, torch.Tensor), mat2.__class__.__name__
     assert mat1.ndim &gt;= 2 and mat2.ndim &gt;= 2, (mat1.shape, mat2.shape)
     *batch1, n_dim, m_dim = mat1.shape
-    *batch2, m_dim, p_dim = mat2.shape
+    *batch2, m_dim_, p_dim = mat2.shape
+    assert m_dim == m_dim_, (mat1.shape, mat2.shape)
     batch = torch.broadcast_shapes(batch1, batch2)
     batched_mat1 = mat1.expand(*batch, n_dim, m_dim).reshape(-1, n_dim, m_dim)
     batched_mat2 = mat2.expand(*batch, m_dim, p_dim).reshape(-1, m_dim, p_dim)
@@ -262,7 +265,70 @@ def inv_cov2d(cov: torch.Tensor, inv: bool = True) -&gt; tuple[torch.Tensor, tor
     assert cov.shape[-2:] == (2, 2), cov.shape
     assert isinstance(inv, bool), inv.__class__.__name__
 
-    return _inv_cov2d(cov, inv)</code></pre>
+    return _inv_cov2d(cov, inv)
+
+
+def multivariate_normal(cov: torch.Tensor, nbr: numbers.Integral) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Draw a random realisations of 2d centered gaussian law.
+
+    Parameters
+    ----------
+    cov : torch.Tensor
+        Covariance matrix of shape (..., 2, 2).
+    nbr : int
+        The numbers of samples by cov matrices.
+
+    Returns
+    -------
+    draw : torch.Tensor
+        The random centered draw of cov matrix cov, shape (nbr, ..., 2).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import math, torch
+    &gt;&gt;&gt; from laueimproc.gmm.linalg import multivariate_normal
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; s1, s2, t = 9.0, 2.0, math.radians(20)
+    &gt;&gt;&gt; rot = torch.asarray([[math.cos(t), -math.sin(t)], [math.sin(t), math.cos(t)]])
+    &gt;&gt;&gt; samples = torch.randn(10_000, 2)  # N(0, [[1, 0], [0, 1]])
+    &gt;&gt;&gt; samples *= torch.asarray([[s1, s2]])  # N(0, [[s1**2, 0], [0, s2**2]])
+    &gt;&gt;&gt; samples @= torch.linalg.inv(rot)
+    &gt;&gt;&gt; cov = (samples.mT @ samples) / (len(samples) - 1)
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; draw = multivariate_normal(cov, len(samples))
+    &gt;&gt;&gt; cov_ = (draw.mT @ draw) / (len(draw) - 1)
+    &gt;&gt;&gt; torch.allclose(cov, cov_, rtol=0.1)
+    True
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; # import matplotlib.pyplot as plt
+    &gt;&gt;&gt; # _ = plt.scatter(*samples.mT, alpha=0.1)
+    &gt;&gt;&gt; # _ = plt.scatter(*draw.mT, alpha=0.1)
+    &gt;&gt;&gt; # _ = plt.axis(&#34;equal&#34;)
+    &gt;&gt;&gt; # plt.show()
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(cov, torch.Tensor), cov.__class__.__name__
+    assert cov.ndim &gt;= 2 and cov.shape[-2:] == (2, 2), cov.shape
+    assert isinstance(nbr, numbers.Integral), nbr.__class__.__name__
+    assert nbr &gt;= 0, nbr
+
+    *batch, _, _ = cov.shape
+
+    eightheta = cov2d_to_eigtheta(cov)
+    sigma1 = torch.sqrt(eightheta[..., 0]).unsqueeze(-1)
+    sigma2 = torch.sqrt(eightheta[..., 1]).unsqueeze(-1)
+    theta = eightheta[..., 2].unsqueeze(-1)
+
+    cos_theta = torch.cos(theta)
+    sin_theta = torch.sin(theta)
+    pass_b_to_bp = torch.cat(
+        [sigma1*cos_theta, -sigma2*sin_theta, sigma1*sin_theta, sigma2*cos_theta],
+        dim=-1,
+    ).reshape(1, *batch, 2, 2)
+
+    samples = torch.randn((nbr, *batch, 2, 1), dtype=cov.dtype, device=cov.device)
+    samples = batched_matmul(pass_b_to_bp, samples)
+    return samples.squeeze(-1)</code></pre>
 </details>
 </section>
 <section>
@@ -293,7 +359,7 @@ def inv_cov2d(cov: torch.Tensor, inv: bool = True) -&gt; tuple[torch.Tensor, tor
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.gmm.linalg import batched_matmul
 &gt;&gt;&gt; mat1 = torch.randn((9, 1, 7, 6, 3, 4))
-&gt;&gt;&gt; mat2 = torch.randn((8, 1, 6, 4, 5))
+&gt;&gt;&gt; mat2 = torch.randn(   (8, 1, 6, 4, 5))
 &gt;&gt;&gt; batched_matmul(mat1, mat2).shape
 torch.Size([9, 8, 7, 6, 3, 5])
 &gt;&gt;&gt;
@@ -322,7 +388,7 @@ torch.Size([9, 8, 7, 6, 3, 5])
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.gmm.linalg import batched_matmul
     &gt;&gt;&gt; mat1 = torch.randn((9, 1, 7, 6, 3, 4))
-    &gt;&gt;&gt; mat2 = torch.randn((8, 1, 6, 4, 5))
+    &gt;&gt;&gt; mat2 = torch.randn(   (8, 1, 6, 4, 5))
     &gt;&gt;&gt; batched_matmul(mat1, mat2).shape
     torch.Size([9, 8, 7, 6, 3, 5])
     &gt;&gt;&gt;
@@ -331,7 +397,8 @@ torch.Size([9, 8, 7, 6, 3, 5])
     assert isinstance(mat2, torch.Tensor), mat2.__class__.__name__
     assert mat1.ndim &gt;= 2 and mat2.ndim &gt;= 2, (mat1.shape, mat2.shape)
     *batch1, n_dim, m_dim = mat1.shape
-    *batch2, m_dim, p_dim = mat2.shape
+    *batch2, m_dim_, p_dim = mat2.shape
+    assert m_dim == m_dim_, (mat1.shape, mat2.shape)
     batch = torch.broadcast_shapes(batch1, batch2)
     batched_mat1 = mat1.expand(*batch, n_dim, m_dim).reshape(-1, n_dim, m_dim)
     batched_mat2 = mat2.expand(*batch, m_dim, p_dim).reshape(-1, m_dim, p_dim)
@@ -692,6 +759,113 @@ True
     return _inv_cov2d(cov, inv)</code></pre>
 </details>
 </dd>
+<dt id="laueimproc.gmm.linalg.multivariate_normal"><code class="name flex">
+<span>def <span class="ident">multivariate_normal</span></span>(<span>cov: torch.Tensor, nbr: numbers.Integral) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Draw a random realisations of 2d centered gaussian law.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Covariance matrix of shape (&hellip;, 2, 2).</dd>
+<dt><strong><code>nbr</code></strong> :&ensp;<code>int</code></dt>
+<dd>The numbers of samples by cov matrices.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>draw</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The random centered draw of cov matrix cov, shape (nbr, &hellip;, 2).</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import math, torch
+&gt;&gt;&gt; from laueimproc.gmm.linalg import multivariate_normal
+&gt;&gt;&gt;
+&gt;&gt;&gt; s1, s2, t = 9.0, 2.0, math.radians(20)
+&gt;&gt;&gt; rot = torch.asarray([[math.cos(t), -math.sin(t)], [math.sin(t), math.cos(t)]])
+&gt;&gt;&gt; samples = torch.randn(10_000, 2)  # N(0, [[1, 0], [0, 1]])
+&gt;&gt;&gt; samples *= torch.asarray([[s1, s2]])  # N(0, [[s1**2, 0], [0, s2**2]])
+&gt;&gt;&gt; samples @= torch.linalg.inv(rot)
+&gt;&gt;&gt; cov = (samples.mT @ samples) / (len(samples) - 1)
+&gt;&gt;&gt;
+&gt;&gt;&gt; draw = multivariate_normal(cov, len(samples))
+&gt;&gt;&gt; cov_ = (draw.mT @ draw) / (len(draw) - 1)
+&gt;&gt;&gt; torch.allclose(cov, cov_, rtol=0.1)
+True
+&gt;&gt;&gt;
+&gt;&gt;&gt; # import matplotlib.pyplot as plt
+&gt;&gt;&gt; # _ = plt.scatter(*samples.mT, alpha=0.1)
+&gt;&gt;&gt; # _ = plt.scatter(*draw.mT, alpha=0.1)
+&gt;&gt;&gt; # _ = plt.axis(&quot;equal&quot;)
+&gt;&gt;&gt; # plt.show()
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def multivariate_normal(cov: torch.Tensor, nbr: numbers.Integral) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Draw a random realisations of 2d centered gaussian law.
+
+    Parameters
+    ----------
+    cov : torch.Tensor
+        Covariance matrix of shape (..., 2, 2).
+    nbr : int
+        The numbers of samples by cov matrices.
+
+    Returns
+    -------
+    draw : torch.Tensor
+        The random centered draw of cov matrix cov, shape (nbr, ..., 2).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import math, torch
+    &gt;&gt;&gt; from laueimproc.gmm.linalg import multivariate_normal
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; s1, s2, t = 9.0, 2.0, math.radians(20)
+    &gt;&gt;&gt; rot = torch.asarray([[math.cos(t), -math.sin(t)], [math.sin(t), math.cos(t)]])
+    &gt;&gt;&gt; samples = torch.randn(10_000, 2)  # N(0, [[1, 0], [0, 1]])
+    &gt;&gt;&gt; samples *= torch.asarray([[s1, s2]])  # N(0, [[s1**2, 0], [0, s2**2]])
+    &gt;&gt;&gt; samples @= torch.linalg.inv(rot)
+    &gt;&gt;&gt; cov = (samples.mT @ samples) / (len(samples) - 1)
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; draw = multivariate_normal(cov, len(samples))
+    &gt;&gt;&gt; cov_ = (draw.mT @ draw) / (len(draw) - 1)
+    &gt;&gt;&gt; torch.allclose(cov, cov_, rtol=0.1)
+    True
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; # import matplotlib.pyplot as plt
+    &gt;&gt;&gt; # _ = plt.scatter(*samples.mT, alpha=0.1)
+    &gt;&gt;&gt; # _ = plt.scatter(*draw.mT, alpha=0.1)
+    &gt;&gt;&gt; # _ = plt.axis(&#34;equal&#34;)
+    &gt;&gt;&gt; # plt.show()
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(cov, torch.Tensor), cov.__class__.__name__
+    assert cov.ndim &gt;= 2 and cov.shape[-2:] == (2, 2), cov.shape
+    assert isinstance(nbr, numbers.Integral), nbr.__class__.__name__
+    assert nbr &gt;= 0, nbr
+
+    *batch, _, _ = cov.shape
+
+    eightheta = cov2d_to_eigtheta(cov)
+    sigma1 = torch.sqrt(eightheta[..., 0]).unsqueeze(-1)
+    sigma2 = torch.sqrt(eightheta[..., 1]).unsqueeze(-1)
+    theta = eightheta[..., 2].unsqueeze(-1)
+
+    cos_theta = torch.cos(theta)
+    sin_theta = torch.sin(theta)
+    pass_b_to_bp = torch.cat(
+        [sigma1*cos_theta, -sigma2*sin_theta, sigma1*sin_theta, sigma2*cos_theta],
+        dim=-1,
+    ).reshape(1, *batch, 2, 2)
+
+    samples = torch.randn((nbr, *batch, 2, 1), dtype=cov.dtype, device=cov.device)
+    samples = batched_matmul(pass_b_to_bp, samples)
+    return samples.squeeze(-1)</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -713,6 +887,7 @@ True
 <li><code><a title="laueimproc.gmm.linalg.batched_matmul" href="#laueimproc.gmm.linalg.batched_matmul">batched_matmul</a></code></li>
 <li><code><a title="laueimproc.gmm.linalg.cov2d_to_eigtheta" href="#laueimproc.gmm.linalg.cov2d_to_eigtheta">cov2d_to_eigtheta</a></code></li>
 <li><code><a title="laueimproc.gmm.linalg.inv_cov2d" href="#laueimproc.gmm.linalg.inv_cov2d">inv_cov2d</a></code></li>
+<li><code><a title="laueimproc.gmm.linalg.multivariate_normal" href="#laueimproc.gmm.linalg.multivariate_normal">multivariate_normal</a></code></li>
 </ul>
 </li>
 </ul>

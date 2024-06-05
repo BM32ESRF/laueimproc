@@ -10,51 +10,18 @@
 #include <stdio.h>
 
 
-int RoiPCA(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const npy_int16 bbox[4]) {
+int RoiPCA(PyArrayObject* out, const npy_intp b, const npy_float32* roi, const npy_int16 bbox[4]) {
     // compute one PCA, store std1, std2 and theta in rawout
-    long shift;
-    npy_float32 weight, norm = 0, corr = 0;
-    npy_float32 pos[2];
-    npy_float32 mu[2] = {0, 0};
-    npy_float32 sigma[2] = {0, 0};
-
-    // get mean and total intensity
-    for (long i = 0; i < bbox[2]; ++i) {
-        shift = (long)bbox[3] * i;
-        pos[0] = (npy_float)i;
-        for (long j = 0; j < bbox[3]; ++j) {
-            pos[1] = (npy_float)j;
-            weight = roi[j + shift];
-            mu[0] += pos[0] * weight, mu[1] += pos[1] * weight;  // SIMD
-            norm += weight;
-        }
-    }
-    if (!norm) {
-        fprintf(stderr, "failed to compute pca because all the dup_w are equal to 0\n");
+    npy_float32 mean[2], cov[3];
+    if (ObsToMeanCov(roi, bbox, mean, cov)) {
         return 1;
     }
-    norm = 1 / norm;
-    mu[0] *= norm, mu[1] *= norm;  // SIMD
-
-    // get cov matrix
-    for (long i = 0; i < bbox[2]; ++i) {
-        shift = (long)bbox[3] * i;
-        pos[0] = (npy_float)i - mu[0];  // i centered
-        for (long j = 0; j < bbox[3]; ++j) {
-            pos[1] = (npy_float)j - mu[1];  // j centered
-            weight = roi[j + shift];
-            corr += weight * pos[0] * pos[1];
-            sigma[0] += weight * pos[0] * pos[0], sigma[1] += weight * pos[1] * pos[1];  // SIMD
-        }
+    if (Cov2dToEigtheta(&(cov[0]), &(cov[1]), &(cov[2]))) {
+        return 1;
     }
-    corr *= norm;
-    sigma[0] *= norm, sigma[1] *= norm;
-
-    // diagonalization
-    Cov2dToEigtheta(&(sigma[0]), &(sigma[1]), &corr);
-    *(npy_float32 *)PyArray_GETPTR2(out, i, 0) = sigma[0];  // std_1
-    *(npy_float32 *)PyArray_GETPTR2(out, i, 1) = sigma[1];  // std_2
-    *(npy_float32 *)PyArray_GETPTR2(out, i, 2) = corr;  // theta
+    *(npy_float32 *)PyArray_GETPTR2(out, b, 0) = cov[0];  // std_1
+    *(npy_float32 *)PyArray_GETPTR2(out, b, 1) = cov[1];  // std_2
+    *(npy_float32 *)PyArray_GETPTR2(out, b, 2) = cov[2];  // theta
     return 0;
 }
 

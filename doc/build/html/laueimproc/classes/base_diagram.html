@@ -690,6 +690,7 @@ class BaseDiagram:
         Use `self.show()` to Display the diagram from scratch.
         &#34;&#34;&#34;
         from matplotlib.axes import Axes
+        from matplotlib.colors import Normalize
         from matplotlib.figure import Figure
 
         assert disp is None or isinstance(disp, (Figure, Axes))
@@ -729,15 +730,14 @@ class BaseDiagram:
                 &#34;left&#34;, functions=(lambda y: y-.5, lambda i: i+.5)
             ).set_ylabel(&#34;i (first dim in &#39;ij&#39; conv)&#34;)
         if kwargs.get(&#34;show_image&#34;, True):
+
             axes.imshow(
                 image.numpy(force=True),
                 aspect=&#34;equal&#34;,
                 extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
                 interpolation=None,  # antialiasing is True
-                norm=&#34;log&#34;,
+                norm=Normalize(vmin, vmax),
                 cmap=&#34;plasma&#34;,  # or gray
-                vmin=vmin,
-                vmax=vmax,
             )
         if kwargs.get(&#34;show_boxes&#34;, True) and len(self):
             bboxes = self.bboxes.numpy(force=True).astype(np.float32)
@@ -1629,6 +1629,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         Use `self.show()` to Display the diagram from scratch.
         &#34;&#34;&#34;
         from matplotlib.axes import Axes
+        from matplotlib.colors import Normalize
         from matplotlib.figure import Figure
 
         assert disp is None or isinstance(disp, (Figure, Axes))
@@ -1668,15 +1669,14 @@ For memory management, it is better to provide a pathlike rather than an array.<
                 &#34;left&#34;, functions=(lambda y: y-.5, lambda i: i+.5)
             ).set_ylabel(&#34;i (first dim in &#39;ij&#39; conv)&#34;)
         if kwargs.get(&#34;show_image&#34;, True):
+
             axes.imshow(
                 image.numpy(force=True),
                 aspect=&#34;equal&#34;,
                 extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
                 interpolation=None,  # antialiasing is True
-                norm=&#34;log&#34;,
+                norm=Normalize(vmin, vmax),
                 cmap=&#34;plasma&#34;,  # or gray
-                vmin=vmin,
-                vmax=vmax,
             )
         if kwargs.get(&#34;show_boxes&#34;, True) and len(self):
             bboxes = self.bboxes.numpy(force=True).astype(np.float32)
@@ -2753,6 +2753,7 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
     Use `self.show()` to Display the diagram from scratch.
     &#34;&#34;&#34;
     from matplotlib.axes import Axes
+    from matplotlib.colors import Normalize
     from matplotlib.figure import Figure
 
     assert disp is None or isinstance(disp, (Figure, Axes))
@@ -2792,15 +2793,14 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
             &#34;left&#34;, functions=(lambda y: y-.5, lambda i: i+.5)
         ).set_ylabel(&#34;i (first dim in &#39;ij&#39; conv)&#34;)
     if kwargs.get(&#34;show_image&#34;, True):
+
         axes.imshow(
             image.numpy(force=True),
             aspect=&#34;equal&#34;,
             extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
             interpolation=None,  # antialiasing is True
-            norm=&#34;log&#34;,
+            norm=Normalize(vmin, vmax),
             cmap=&#34;plasma&#34;,  # or gray
-            vmin=vmin,
-            vmax=vmax,
         )
     if kwargs.get(&#34;show_boxes&#34;, True) and len(self):
         bboxes = self.bboxes.numpy(force=True).astype(np.float32)

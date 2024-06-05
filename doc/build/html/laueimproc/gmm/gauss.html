@@ -76,7 +76,7 @@ def gauss(
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.gmm.gauss import gauss
     &gt;&gt;&gt; obs = torch.randn((1000, 10, 4))  # (..., n_obs, n_var)
-    &gt;&gt;&gt; mean = torch.randn((1000, 3, 4, 1))  # (..., n_clu, n_var, 1)
+    &gt;&gt;&gt; mean = torch.randn((1000, 3, 4))  # (..., n_clu, n_var)
     &gt;&gt;&gt; cov = obs.mT @ obs  # create real symmetric positive covariance matrix
     &gt;&gt;&gt; cov = cov.unsqueeze(-3).expand(1000, 3, 4, 4)  # (..., n_clu, n_var, n_var)
     &gt;&gt;&gt;
@@ -96,8 +96,8 @@ def gauss(
     norm = torch.rsqrt(norm, out=None if cov.requires_grad else norm)
 
     cov_inv = torch.linalg.inv(cov).unsqueeze(-3)  # (..., n_clu, n_obs, n_var, n_var)
-    cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
-    prob = cent_obs.mT @ cov_inv @ cent_obs  # (..., n_clu, n_obs, 1, 1)
+    cent_obs = obs.unsqueeze(-3) - mean.unsqueeze(-2)  # (..., n_clu, n_obs, n_var)
+    prob = cent_obs.unsqueeze(-2) @ cov_inv @ cent_obs.unsqueeze(-1)  # (..., n_clu, n_obs, 1, 1)
     prob = prob.squeeze(-1).squeeze(-1)  # (..., n_clu, n_obs)
     prob *= -.5
     prob = torch.exp(prob, out=None if prob.requires_grad else prob)
@@ -170,84 +170,7 @@ def gauss2d(
 
     prob = norm * prob  # no &#34;out=None if prob.requires_grad else prob&#34; for jacobian
 
-    return prob
-
-
-def gauss2d_and_jac(
-    obs: torch.Tensor, mean: torch.Tensor, half_cov: torch.Tensor, *, _check: bool = True
-) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    r&#34;&#34;&#34;Compute the grad of a 2d gauss.
-
-    Parameters
-    ----------
-    obs : torch.Tensor
-        The observations of shape (..., \(N\), 2).
-        \(\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j\)
-    mean : torch.Tensor
-        The 2x1 column mean vector of shape (..., \(K\), 2, 1).
-        \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
-    half_cov : torch.Tensor
-        The 2x2 half covariance matrix of shape (..., \(K\), 2, 2).
-        \(
-            \frac{\mathbf{\Sigma}}{2} + \left(\frac{\mathbf{\Sigma}}{2}\right)^\intercal
-            = \mathbf{\Sigma}
-            = \begin{pmatrix} \sigma_1 &amp; c \\ c &amp; \sigma_2 \\ \end{pmatrix}
-        \)
-        with \(\begin{cases}
-            \sigma_1 &gt; 0 \\
-            \sigma_2 &gt; 0 \\
-        \end{cases}\)
-
-    Returns
-    -------
-    prob : torch.Tensor
-        Returned value from ``gauss2d``, of shape (..., \(K\), \(N\)).
-    mean_jac : torch.Tensor
-        The gradient of the 2x1 column mean vector of shape (..., \(K\), \(N\), \(K\), 2, 1).
-    half_cov_jac : torch.Tensor
-        The gradient of the 2x2 half covariance matrix of shape (..., \(K\), \(N\), \(K\), 2, 2).
-
-    Examples
-    --------
-    &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.gmm.gauss import gauss2d_and_jac
-    &gt;&gt;&gt; obs = torch.randn((1000, 100, 2))  # (..., n_obs, n_var)
-    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2, 1))  # (..., n_clu, n_var, 1)
-    &gt;&gt;&gt; cov = obs.mT @ obs  # create real symmetric positive covariance matrix
-    &gt;&gt;&gt; cov = cov.unsqueeze(-3).expand(1000, 3, 2, 2)  # (..., n_clu, n_var, n_var)
-    &gt;&gt;&gt; half_cov = cov / 2
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; prob, mean_jac, half_cov_jac = gauss2d_and_jac(obs, mean, half_cov)
-    &gt;&gt;&gt; prob.shape
-    torch.Size([1000, 3, 100])
-    &gt;&gt;&gt; mean_jac.shape
-    torch.Size([1000, 3, 100, 3, 2, 1])
-    &gt;&gt;&gt; half_cov_jac.shape
-    torch.Size([1000, 3, 100, 3, 2, 2])
-    &gt;&gt;&gt;
-    &#34;&#34;&#34;
-    if _check:
-        assert isinstance(mean, torch.Tensor), mean.__class__.__name__
-        assert isinstance(half_cov, torch.Tensor), half_cov.__class__.__name__
-        assert half_cov.shape[-2:] == (2, 2), half_cov.shape
-
-    *batch, n_obs, _ = obs.shape
-    *_, n_clu, _, _ = mean.shape
-    obs = obs.reshape(-1, n_obs, 2)  # (b, n_obs, 2)
-    mean = mean.reshape(-1, n_clu, 2, 1)  # (b, n_clu, 2, 1)
-    half_cov = half_cov.reshape(-1, n_clu, 2, 2)  # (b, n_clu, 2, 1)
-
-    prob = gauss2d(obs, mean, half_cov + half_cov.mT, _check=_check)
-    prob = prob.reshape(*batch, n_clu, n_obs)
-    mean_jac, half_cov_jac = (
-        torch.func.vmap(torch.func.jacfwd(
-            lambda o, m, hv: gauss2d(o, m, hv+hv.mT, _check=False),
-            argnums=(1, 2),
-        ))(obs, mean, half_cov)
-    )
-    mean_jac = mean_jac.reshape(*batch, n_clu, n_obs, n_clu, 2, 1)
-    half_cov_jac = half_cov_jac.reshape(*batch, n_clu, n_obs, n_clu, 2, 2)
-    return prob, mean_jac, half_cov_jac</code></pre>
+    return prob</code></pre>
 </details>
 </section>
 <section>
@@ -305,7 +228,7 @@ e^{
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.gmm.gauss import gauss
 &gt;&gt;&gt; obs = torch.randn((1000, 10, 4))  # (..., n_obs, n_var)
-&gt;&gt;&gt; mean = torch.randn((1000, 3, 4, 1))  # (..., n_clu, n_var, 1)
+&gt;&gt;&gt; mean = torch.randn((1000, 3, 4))  # (..., n_clu, n_var)
 &gt;&gt;&gt; cov = obs.mT @ obs  # create real symmetric positive covariance matrix
 &gt;&gt;&gt; cov = cov.unsqueeze(-3).expand(1000, 3, 4, 4)  # (..., n_clu, n_var, n_var)
 &gt;&gt;&gt;
@@ -359,7 +282,7 @@ torch.Size([1000, 3, 10])
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.gmm.gauss import gauss
     &gt;&gt;&gt; obs = torch.randn((1000, 10, 4))  # (..., n_obs, n_var)
-    &gt;&gt;&gt; mean = torch.randn((1000, 3, 4, 1))  # (..., n_clu, n_var, 1)
+    &gt;&gt;&gt; mean = torch.randn((1000, 3, 4))  # (..., n_clu, n_var)
     &gt;&gt;&gt; cov = obs.mT @ obs  # create real symmetric positive covariance matrix
     &gt;&gt;&gt; cov = cov.unsqueeze(-3).expand(1000, 3, 4, 4)  # (..., n_clu, n_var, n_var)
     &gt;&gt;&gt;
@@ -379,8 +302,8 @@ torch.Size([1000, 3, 10])
     norm = torch.rsqrt(norm, out=None if cov.requires_grad else norm)
 
     cov_inv = torch.linalg.inv(cov).unsqueeze(-3)  # (..., n_clu, n_obs, n_var, n_var)
-    cent_obs = obs.unsqueeze(-1).unsqueeze(-4) - mean.unsqueeze(-3)  # (..., n_clu, n_obs, n_var, 1)
-    prob = cent_obs.mT @ cov_inv @ cent_obs  # (..., n_clu, n_obs, 1, 1)
+    cent_obs = obs.unsqueeze(-3) - mean.unsqueeze(-2)  # (..., n_clu, n_obs, n_var)
+    prob = cent_obs.unsqueeze(-2) @ cov_inv @ cent_obs.unsqueeze(-1)  # (..., n_clu, n_obs, 1, 1)
     prob = prob.squeeze(-1).squeeze(-1)  # (..., n_clu, n_obs)
     prob *= -.5
     prob = torch.exp(prob, out=None if prob.requires_grad else prob)
@@ -507,146 +430,6 @@ torch.Size([1000, 3, 100])
     return prob</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.gmm.gauss.gauss2d_and_jac"><code class="name flex">
-<span>def <span class="ident">gauss2d_and_jac</span></span>(<span>obs: torch.Tensor, mean: torch.Tensor, half_cov: torch.Tensor) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Compute the grad of a 2d gauss.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>obs</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The observations of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, 2).
-<span><span class="MathJax_Preview">\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j</span><script type="math/tex">\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j</script></span></dd>
-<dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The 2x1 column mean vector of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 1).
-<span><span class="MathJax_Preview">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</span><script type="math/tex">\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j</script></span></dd>
-<dt><strong><code>half_cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The 2x2 half covariance matrix of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).
-<span><span class="MathJax_Preview">
-\frac{\mathbf{\Sigma}}{2} + \left(\frac{\mathbf{\Sigma}}{2}\right)^\intercal
-= \mathbf{\Sigma}
-= \begin{pmatrix} \sigma_1 &amp; c \\ c &amp; \sigma_2 \\ \end{pmatrix}
-</span><script type="math/tex">
-\frac{\mathbf{\Sigma}}{2} + \left(\frac{\mathbf{\Sigma}}{2}\right)^\intercal
-= \mathbf{\Sigma}
-= \begin{pmatrix} \sigma_1 & c \\ c & \sigma_2 \\ \end{pmatrix}
-</script></span>
-with <span><span class="MathJax_Preview">\begin{cases}
-\sigma_1 &gt; 0 \\
-\sigma_2 &gt; 0 \\
-\end{cases}</span><script type="math/tex">\begin{cases}
-\sigma_1 > 0 \\
-\sigma_2 > 0 \\
-\end{cases}</script></span></dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>prob</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>Returned value from <code><a title="laueimproc.gmm.gauss.gauss2d" href="#laueimproc.gmm.gauss.gauss2d">gauss2d()</a></code>, of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>).</dd>
-<dt><strong><code>mean_jac</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The gradient of the 2x1 column mean vector of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 1).</dd>
-<dt><strong><code>half_cov_jac</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The gradient of the 2x2 half covariance matrix of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.gmm.gauss import gauss2d_and_jac
-&gt;&gt;&gt; obs = torch.randn((1000, 100, 2))  # (..., n_obs, n_var)
-&gt;&gt;&gt; mean = torch.randn((1000, 3, 2, 1))  # (..., n_clu, n_var, 1)
-&gt;&gt;&gt; cov = obs.mT @ obs  # create real symmetric positive covariance matrix
-&gt;&gt;&gt; cov = cov.unsqueeze(-3).expand(1000, 3, 2, 2)  # (..., n_clu, n_var, n_var)
-&gt;&gt;&gt; half_cov = cov / 2
-&gt;&gt;&gt;
-&gt;&gt;&gt; prob, mean_jac, half_cov_jac = gauss2d_and_jac(obs, mean, half_cov)
-&gt;&gt;&gt; prob.shape
-torch.Size([1000, 3, 100])
-&gt;&gt;&gt; mean_jac.shape
-torch.Size([1000, 3, 100, 3, 2, 1])
-&gt;&gt;&gt; half_cov_jac.shape
-torch.Size([1000, 3, 100, 3, 2, 2])
-&gt;&gt;&gt;
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def gauss2d_and_jac(
-    obs: torch.Tensor, mean: torch.Tensor, half_cov: torch.Tensor, *, _check: bool = True
-) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    r&#34;&#34;&#34;Compute the grad of a 2d gauss.
-
-    Parameters
-    ----------
-    obs : torch.Tensor
-        The observations of shape (..., \(N\), 2).
-        \(\mathbf{x}_i = \begin{pmatrix} x_1 \\ x_2 \\ \end{pmatrix}_j\)
-    mean : torch.Tensor
-        The 2x1 column mean vector of shape (..., \(K\), 2, 1).
-        \(\mathbf{\mu}_j = \begin{pmatrix} \mu_1 \\ \mu_2 \\ \end{pmatrix}_j\)
-    half_cov : torch.Tensor
-        The 2x2 half covariance matrix of shape (..., \(K\), 2, 2).
-        \(
-            \frac{\mathbf{\Sigma}}{2} + \left(\frac{\mathbf{\Sigma}}{2}\right)^\intercal
-            = \mathbf{\Sigma}
-            = \begin{pmatrix} \sigma_1 &amp; c \\ c &amp; \sigma_2 \\ \end{pmatrix}
-        \)
-        with \(\begin{cases}
-            \sigma_1 &gt; 0 \\
-            \sigma_2 &gt; 0 \\
-        \end{cases}\)
-
-    Returns
-    -------
-    prob : torch.Tensor
-        Returned value from ``gauss2d``, of shape (..., \(K\), \(N\)).
-    mean_jac : torch.Tensor
-        The gradient of the 2x1 column mean vector of shape (..., \(K\), \(N\), \(K\), 2, 1).
-    half_cov_jac : torch.Tensor
-        The gradient of the 2x2 half covariance matrix of shape (..., \(K\), \(N\), \(K\), 2, 2).
-
-    Examples
-    --------
-    &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.gmm.gauss import gauss2d_and_jac
-    &gt;&gt;&gt; obs = torch.randn((1000, 100, 2))  # (..., n_obs, n_var)
-    &gt;&gt;&gt; mean = torch.randn((1000, 3, 2, 1))  # (..., n_clu, n_var, 1)
-    &gt;&gt;&gt; cov = obs.mT @ obs  # create real symmetric positive covariance matrix
-    &gt;&gt;&gt; cov = cov.unsqueeze(-3).expand(1000, 3, 2, 2)  # (..., n_clu, n_var, n_var)
-    &gt;&gt;&gt; half_cov = cov / 2
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; prob, mean_jac, half_cov_jac = gauss2d_and_jac(obs, mean, half_cov)
-    &gt;&gt;&gt; prob.shape
-    torch.Size([1000, 3, 100])
-    &gt;&gt;&gt; mean_jac.shape
-    torch.Size([1000, 3, 100, 3, 2, 1])
-    &gt;&gt;&gt; half_cov_jac.shape
-    torch.Size([1000, 3, 100, 3, 2, 2])
-    &gt;&gt;&gt;
-    &#34;&#34;&#34;
-    if _check:
-        assert isinstance(mean, torch.Tensor), mean.__class__.__name__
-        assert isinstance(half_cov, torch.Tensor), half_cov.__class__.__name__
-        assert half_cov.shape[-2:] == (2, 2), half_cov.shape
-
-    *batch, n_obs, _ = obs.shape
-    *_, n_clu, _, _ = mean.shape
-    obs = obs.reshape(-1, n_obs, 2)  # (b, n_obs, 2)
-    mean = mean.reshape(-1, n_clu, 2, 1)  # (b, n_clu, 2, 1)
-    half_cov = half_cov.reshape(-1, n_clu, 2, 2)  # (b, n_clu, 2, 1)
-
-    prob = gauss2d(obs, mean, half_cov + half_cov.mT, _check=_check)
-    prob = prob.reshape(*batch, n_clu, n_obs)
-    mean_jac, half_cov_jac = (
-        torch.func.vmap(torch.func.jacfwd(
-            lambda o, m, hv: gauss2d(o, m, hv+hv.mT, _check=False),
-            argnums=(1, 2),
-        ))(obs, mean, half_cov)
-    )
-    mean_jac = mean_jac.reshape(*batch, n_clu, n_obs, n_clu, 2, 1)
-    half_cov_jac = half_cov_jac.reshape(*batch, n_clu, n_obs, n_clu, 2, 2)
-    return prob, mean_jac, half_cov_jac</code></pre>
-</details>
-</dd>
 </dl>
 </section>
 <section>
@@ -667,7 +450,6 @@ torch.Size([1000, 3, 100, 3, 2, 2])
 <ul class="">
 <li><code><a title="laueimproc.gmm.gauss.gauss" href="#laueimproc.gmm.gauss.gauss">gauss</a></code></li>
 <li><code><a title="laueimproc.gmm.gauss.gauss2d" href="#laueimproc.gmm.gauss.gauss2d">gauss2d</a></code></li>
-<li><code><a title="laueimproc.gmm.gauss.gauss2d_and_jac" href="#laueimproc.gmm.gauss.gauss2d_and_jac">gauss2d_and_jac</a></code></li>
 </ul>
 </li>
 </ul>

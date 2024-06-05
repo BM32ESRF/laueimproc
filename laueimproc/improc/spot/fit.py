@@ -5,20 +5,15 @@
 import logging
 import numbers
 
-# import numpy as np
 import torch
 
 try:
-    from laueimproc.gmm.em import c_em
+    from laueimproc.gmm import c_fit
 except ImportError:
     logging.warning(
         "failed to import laueimproc.gmm.em.c_em, a slow python version is used instead"
     )
-    c_em = None
-    from laueimproc.gmm.em import em
-else:
-    em = None
-# from laueimproc.gmm.gmm import cost_and_grad
+    c_fit = None
 from laueimproc.opti.rois import rawshapes2rois
 
 
@@ -37,7 +32,7 @@ def fit_gaussians_em(
         The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
         for each spots, of shape (n, 4). It doesn't have to be c contiguous.
     **dict : dict
-        Transmitted to ``laueimproc.gmm.em``.
+        Transmitted to ``laueimproc.gmm.fit.fit_em``.
 
     Returns
     -------
@@ -50,17 +45,18 @@ def fit_gaussians_em(
     infodict : dict[str]
         A dictionary of optional outputs.
     """
-    if not kwargs.get("_no_c", False) and c_em is not None:
-        mean, cov, eta = c_em(data, bboxes.numpy(force=True), **kwargs)
+    if not kwargs.get("_no_c", False) and c_fit is not None:
+        mean, cov, eta = c_fit.fit_em(data, bboxes.numpy(force=True), **kwargs)
         mean = torch.from_numpy(mean)
         cov = torch.from_numpy(cov)
         eta = torch.from_numpy(eta)
     else:
+        from laueimproc.gmm import fit
         rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=kwargs.get("_no_c", False))
         rois = [rois[i, :h, :w] for i, (h, w) in enumerate(bboxes[:, 2:].tolist())]
         mean, cov, eta = [], [], []
         for roi in rois:
-            mean_, cov_, eta_ = em(roi, **kwargs)
+            mean_, cov_, eta_ = fit.fit_em(roi, **kwargs)
             mean.append(mean_.unsqueeze(0))
             cov.append(cov_.unsqueeze(0))
             eta.append(eta_.unsqueeze(0))

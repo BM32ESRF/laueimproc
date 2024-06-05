@@ -2,6 +2,8 @@
 
 """Helper for fast linear algebra for 2d matrix."""
 
+import numbers
+
 import torch
 
 
@@ -25,7 +27,7 @@ def batched_matmul(mat1: torch.Tensor, mat2: torch.Tensor) -> torch.Tensor:
     >>> import torch
     >>> from laueimproc.gmm.linalg import batched_matmul
     >>> mat1 = torch.randn((9, 1, 7, 6, 3, 4))
-    >>> mat2 = torch.randn((8, 1, 6, 4, 5))
+    >>> mat2 = torch.randn(   (8, 1, 6, 4, 5))
     >>> batched_matmul(mat1, mat2).shape
     torch.Size([9, 8, 7, 6, 3, 5])
     >>>
@@ -34,7 +36,8 @@ def batched_matmul(mat1: torch.Tensor, mat2: torch.Tensor) -> torch.Tensor:
     assert isinstance(mat2, torch.Tensor), mat2.__class__.__name__
     assert mat1.ndim >= 2 and mat2.ndim >= 2, (mat1.shape, mat2.shape)
     *batch1, n_dim, m_dim = mat1.shape
-    *batch2, m_dim, p_dim = mat2.shape
+    *batch2, m_dim_, p_dim = mat2.shape
+    assert m_dim == m_dim_, (mat1.shape, mat2.shape)
     batch = torch.broadcast_shapes(batch1, batch2)
     batched_mat1 = mat1.expand(*batch, n_dim, m_dim).reshape(-1, n_dim, m_dim)
     batched_mat2 = mat2.expand(*batch, m_dim, p_dim).reshape(-1, m_dim, p_dim)
@@ -233,3 +236,66 @@ def inv_cov2d(cov: torch.Tensor, inv: bool = True) -> tuple[torch.Tensor, torch.
     assert isinstance(inv, bool), inv.__class__.__name__
 
     return _inv_cov2d(cov, inv)
+
+
+def multivariate_normal(cov: torch.Tensor, nbr: numbers.Integral) -> torch.Tensor:
+    """Draw a random realisations of 2d centered gaussian law.
+
+    Parameters
+    ----------
+    cov : torch.Tensor
+        Covariance matrix of shape (..., 2, 2).
+    nbr : int
+        The numbers of samples by cov matrices.
+
+    Returns
+    -------
+    draw : torch.Tensor
+        The random centered draw of cov matrix cov, shape (nbr, ..., 2).
+
+    Examples
+    --------
+    >>> import math, torch
+    >>> from laueimproc.gmm.linalg import multivariate_normal
+    >>>
+    >>> s1, s2, t = 9.0, 2.0, math.radians(20)
+    >>> rot = torch.asarray([[math.cos(t), -math.sin(t)], [math.sin(t), math.cos(t)]])
+    >>> samples = torch.randn(10_000, 2)  # N(0, [[1, 0], [0, 1]])
+    >>> samples *= torch.asarray([[s1, s2]])  # N(0, [[s1**2, 0], [0, s2**2]])
+    >>> samples @= torch.linalg.inv(rot)
+    >>> cov = (samples.mT @ samples) / (len(samples) - 1)
+    >>>
+    >>> draw = multivariate_normal(cov, len(samples))
+    >>> cov_ = (draw.mT @ draw) / (len(draw) - 1)
+    >>> torch.allclose(cov, cov_, rtol=0.1)
+    True
+    >>>
+    >>> # import matplotlib.pyplot as plt
+    >>> # _ = plt.scatter(*samples.mT, alpha=0.1)
+    >>> # _ = plt.scatter(*draw.mT, alpha=0.1)
+    >>> # _ = plt.axis("equal")
+    >>> # plt.show()
+    >>>
+    """
+    assert isinstance(cov, torch.Tensor), cov.__class__.__name__
+    assert cov.ndim >= 2 and cov.shape[-2:] == (2, 2), cov.shape
+    assert isinstance(nbr, numbers.Integral), nbr.__class__.__name__
+    assert nbr >= 0, nbr
+
+    *batch, _, _ = cov.shape
+
+    eightheta = cov2d_to_eigtheta(cov)
+    sigma1 = torch.sqrt(eightheta[..., 0]).unsqueeze(-1)
+    sigma2 = torch.sqrt(eightheta[..., 1]).unsqueeze(-1)
+    theta = eightheta[..., 2].unsqueeze(-1)
+
+    cos_theta = torch.cos(theta)
+    sin_theta = torch.sin(theta)
+    pass_b_to_bp = torch.cat(
+        [sigma1*cos_theta, -sigma2*sin_theta, sigma1*sin_theta, sigma2*cos_theta],
+        dim=-1,
+    ).reshape(1, *batch, 2, 2)
+
+    samples = torch.randn((nbr, *batch, 2, 1), dtype=cov.dtype, device=cov.device)
+    samples = batched_matmul(pass_b_to_bp, samples)
+    return samples.squeeze(-1)

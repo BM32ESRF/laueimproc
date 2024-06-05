@@ -45,7 +45,7 @@ import typing
 import torch
 
 from .gauss import gauss2d
-from .linalg import batched_matmul
+from .linalg import multivariate_normal
 from .metric import log_likelihood
 
 
@@ -284,13 +284,7 @@ def _fit_n_clusters_serveral_steps_serveral_tries(
     # draw random initial conditions
     mean = (  # (n_tries, ..., n_clu, n_var, 1)
         mean.unsqueeze(0).squeeze(-1)  # (1, ..., n_clu, n_var)
-        + batched_matmul(  # (n_tries, ..., n_clu, n_var)
-            torch.randn(
-                (nbr_tries, *batch, nbr_clusters, 1, n_var),
-                dtype=obs.dtype, device=obs.device
-            ),
-            cov,  # (..., n_clu, n_var, n_var)
-        ).squeeze(-2)
+        + multivariate_normal(cov, nbr_tries)  # (n_tries, ..., n_clu, n_var)
     ).unsqueeze(-1)
     cov = (  # (n_tries, ..., n_clu, n_var, n_var)
         cov
@@ -324,13 +318,12 @@ def _fit_n_clusters_serveral_steps_serveral_tries(
     return mean, cov, eta
 
 
-def em(
+def fit_em(
     roi: torch.Tensor,
     nbr_clusters: numbers.Integral = 1,
     nbr_tries: numbers.Integral = 2,
-    **_,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    r"""Implement a weighted version of the EM algorithm for one roi.
+    r"""Implement a weighted version of the 2d EM algorithm.
 
     Parameters
     ----------

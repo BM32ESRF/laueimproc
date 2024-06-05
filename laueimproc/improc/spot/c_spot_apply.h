@@ -8,7 +8,7 @@ int ApplyToRois(
     PyArrayObject* out,
     PyByteArrayObject* data,
     PyArrayObject* bboxes,
-    int (*func)(PyArrayObject* out, const npy_intp i, const npy_float32* roi, const npy_int16 bbox[4])
+    int (*func)(PyArrayObject* out, const npy_intp b, const npy_float32* roi, const npy_int16 bbox[4])
 ) {
     /* Apply the function on each roi.
 
@@ -42,21 +42,21 @@ int ApplyToRois(
         return 1;
     }
 
-    for (npy_intp i = 0; i < n; ++i) {
-        bbox[0] = *(npy_int16 *)PyArray_GETPTR2(bboxes, i, 0);
-        bbox[1] = *(npy_int16 *)PyArray_GETPTR2(bboxes, i, 1);
-        bbox[2] = *(npy_int16 *)PyArray_GETPTR2(bboxes, i, 2);
-        bbox[3] = *(npy_int16 *)PyArray_GETPTR2(bboxes, i, 3);
+    for (npy_intp b = 0; b < n; ++b) {
+        bbox[0] = *(npy_int16 *)PyArray_GETPTR2(bboxes, b, 0);
+        bbox[1] = *(npy_int16 *)PyArray_GETPTR2(bboxes, b, 1);
+        bbox[2] = *(npy_int16 *)PyArray_GETPTR2(bboxes, b, 2);
+        bbox[3] = *(npy_int16 *)PyArray_GETPTR2(bboxes, b, 3);
         area = (npy_intp)(bbox[2]) * (npy_intp)(bbox[3]);
         if (!area) {
-            fprintf(stderr, "the bbox %ld has zero area\n", i);
+            fprintf(stderr, "the bbox %ld has zero area\n", b);
             return 1;
         }
         if (shift + area > datalen) {
-            fprintf(stderr, "the data length 4*%ld is too short to fill roi of index %ld\n", datalen, i);
+            fprintf(stderr, "the data length 4*%ld is too short to fill roi of index %ld\n", datalen, b);
             return 1;
         }
-        if ((*func)(out, i, rawdata+shift, bbox)) {
+        if ((*func)(out, b, rawdata+shift, bbox)) {
             return 1;
         }
         shift += area;

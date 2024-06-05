@@ -194,10 +194,10 @@ int CheckMeanCovMag(PyArrayObject* mean, PyArrayObject* cov, PyArrayObject* mag)
 static PyObject* CostParser(PyObject* self, PyObject* args, PyObject* kwargs) {
     // Compute the mse loss between the predicted gmm and the rois
     static char *kwlist[] = {"data", "bboxes", "mean", "cov", "mag", NULL};
+    int error;
+    npy_intp shape[2];
     PyArrayObject *bboxes, *mean, *cov, *mag, *cost;
     PyByteArrayObject* data;
-    npy_intp shape[2];
-    int error;
 
     // parse and check
     if (!PyArg_ParseTupleAndKeywords(
@@ -273,14 +273,20 @@ static PyObject* CostAndGradParser(PyObject* self, PyObject* args, PyObject* kwa
     }
     mean_grad = (PyArrayObject *)PyArray_EMPTY(3, shape, NPY_FLOAT32, 0);  // c contiguous
     if (mean_grad == NULL) {
+        Py_DECREF(cost);
         return PyErr_NoMemory();
     }
     cov_grad = (PyArrayObject *)PyArray_EMPTY(4, shape, NPY_FLOAT32, 0);  // c contiguous
     if (cov_grad == NULL) {
+        Py_DECREF(cost);
+        Py_DECREF(mean_grad);
         return PyErr_NoMemory();
     }
     mag_grad = (PyArrayObject *)PyArray_EMPTY(2, shape, NPY_FLOAT32, 0);  // c contiguous
     if (mag_grad == NULL) {
+        Py_DECREF(cost);
+        Py_DECREF(mean_grad);
+        Py_DECREF(cov_grad);
         return PyErr_NoMemory();
     }
 
