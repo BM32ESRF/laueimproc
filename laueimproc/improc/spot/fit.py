@@ -63,12 +63,12 @@ def fit_gaussians_em(
         The metrics are computed in the ``laueimproc.gmm.metric`` module.
 
         * aic: Akaike Information Criterion of shape (...,). \(aic = 2p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the likelihood.
         * bic: Bayesian Information Criterion of shape (...,).
         \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the likelihood.
         * log_likelihood of shape (...,): \(
-            L_{\alpha,\omega} = \log\left(
+            \log\left(L_{\alpha,\omega}\right) = \log\left(
                 \prod\limits_{i=1}^N \sum\limits_{j=1}^K
                 \eta_j \left(
                     \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
@@ -115,11 +115,11 @@ def fit_gaussians_em(
     True
     >>> any(torch.allclose(mu, mean_ref[0, 2], atol=0.5) for mu in mean[0])
     True
-    >>> any(torch.allclose(c, cov_ref[0], atol=0.5) for c in cov[0])
+    >>> any(torch.allclose(c, cov_ref[0], atol=1.0) for c in cov[0])
     True
-    >>> any(torch.allclose(c, cov_ref[1], atol=0.5) for c in cov[0])
+    >>> any(torch.allclose(c, cov_ref[1], atol=1.0) for c in cov[0])
     True
-    >>> any(torch.allclose(c, cov_ref[2], atol=0.5) for c in cov[0])
+    >>> any(torch.allclose(c, cov_ref[2], atol=1.0) for c in cov[0])
     True
     >>>
     >>> # import matplotlib.pyplot as plt

@@ -32,8 +32,11 @@
 
 &#34;&#34;&#34;Link serveral diagrams together.&#34;&#34;&#34;
 
+import multiprocessing.pool
 import numbers
 import typing
+
+import torch
 
 from laueimproc.ml.dataset_dist import select_closest
 from .base_dataset import BaseDiagramsDataset
@@ -42,6 +45,29 @@ from .diagram import Diagram
 
 class DiagramsDataset(BaseDiagramsDataset):
     &#34;&#34;&#34;Link Diagrams together.&#34;&#34;&#34;
+
+    def compute_mean_image(self) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Compute the average image.
+
+        Returns
+        -------
+        torch.Tensor
+            The average image of all the images contained in this dataset.
+        &#34;&#34;&#34;
+        assert len(self) &gt; 0, &#34;impossible to compute the mean image of an empty dataset&#34;
+        img = None
+        count = 0.0
+        with multiprocessing.pool.ThreadPool() as pool:
+            for loc_img in pool.imap_unordered(lambda d: d.image, self):
+                if img is None:
+                    img = loc_img.clone()
+                else:
+                    assert img.shape == loc_img.shape, \
+                        f&#34;all images have be of same shape ({img.shape} vs {loc_img.shape})&#34;
+                img += loc_img
+                count += 1.0
+        img /= count
+        return img
 
     def select_closest(
         self, *args, no_raise: bool = False, **kwargs
@@ -189,6 +215,29 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 <pre><code class="python">class DiagramsDataset(BaseDiagramsDataset):
     &#34;&#34;&#34;Link Diagrams together.&#34;&#34;&#34;
 
+    def compute_mean_image(self) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Compute the average image.
+
+        Returns
+        -------
+        torch.Tensor
+            The average image of all the images contained in this dataset.
+        &#34;&#34;&#34;
+        assert len(self) &gt; 0, &#34;impossible to compute the mean image of an empty dataset&#34;
+        img = None
+        count = 0.0
+        with multiprocessing.pool.ThreadPool() as pool:
+            for loc_img in pool.imap_unordered(lambda d: d.image, self):
+                if img is None:
+                    img = loc_img.clone()
+                else:
+                    assert img.shape == loc_img.shape, \
+                        f&#34;all images have be of same shape ({img.shape} vs {loc_img.shape})&#34;
+                img += loc_img
+                count += 1.0
+        img /= count
+        return img
+
     def select_closest(
         self, *args, no_raise: bool = False, **kwargs
     ) -&gt; typing.Union[Diagram, None]:
@@ -300,6 +349,44 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 </ul>
 <h3>Methods</h3>
 <dl>
+<dt id="laueimproc.classes.dataset.DiagramsDataset.compute_mean_image"><code class="name flex">
+<span>def <span class="ident">compute_mean_image</span></span>(<span>self) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the average image.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>torch.Tensor</code></dt>
+<dd>The average image of all the images contained in this dataset.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_mean_image(self) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Compute the average image.
+
+    Returns
+    -------
+    torch.Tensor
+        The average image of all the images contained in this dataset.
+    &#34;&#34;&#34;
+    assert len(self) &gt; 0, &#34;impossible to compute the mean image of an empty dataset&#34;
+    img = None
+    count = 0.0
+    with multiprocessing.pool.ThreadPool() as pool:
+        for loc_img in pool.imap_unordered(lambda d: d.image, self):
+            if img is None:
+                img = loc_img.clone()
+            else:
+                assert img.shape == loc_img.shape, \
+                    f&#34;all images have be of same shape ({img.shape} vs {loc_img.shape})&#34;
+            img += loc_img
+            count += 1.0
+    img /= count
+    return img</code></pre>
+</details>
+</dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.select_closest"><code class="name flex">
 <span>def <span class="ident">select_closest</span></span>(<span>self, *args, no_raise: bool = False, **kwargs) ‑> Optional[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>]</span>
 </code></dt>
@@ -530,6 +617,7 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
 <li>
 <h4><code><a title="laueimproc.classes.dataset.DiagramsDataset" href="#laueimproc.classes.dataset.DiagramsDataset">DiagramsDataset</a></code></h4>
 <ul class="">
+<li><code><a title="laueimproc.classes.dataset.DiagramsDataset.compute_mean_image" href="#laueimproc.classes.dataset.DiagramsDataset.compute_mean_image">compute_mean_image</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.select_closest" href="#laueimproc.classes.dataset.DiagramsDataset.select_closest">select_closest</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.track_spots" href="#laueimproc.classes.dataset.DiagramsDataset.track_spots">track_spots</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.train_spot_classifier" href="#laueimproc.classes.dataset.DiagramsDataset.train_spot_classifier">train_spot_classifier</a></code></li>

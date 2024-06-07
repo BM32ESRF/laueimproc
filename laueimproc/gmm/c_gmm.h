@@ -1,11 +1,11 @@
 /* Very basic function for multivariate gaussian computing. */
 
+#define EPS 1.19209e-7
 #define PY_SSIZE_T_CLEAN
 #include <numpy/arrayobject.h>
 #include <math.h>
 #include <Python.h>
 #include <stdio.h>
-
 
 
 int GMM(
@@ -116,6 +116,7 @@ int LogLikelihood(
             sub_log_likelihood += prob;
         }
         // sum(log) more accurate than log(prod), (even if computing less efficient)
+        sub_log_likelihood += EPS;  // for stability
         sub_log_likelihood = logf(sub_log_likelihood);
         *log_likelihood += sub_log_likelihood;
     }

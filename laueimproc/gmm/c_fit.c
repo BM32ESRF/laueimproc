@@ -1,6 +1,5 @@
 /* Regression algorithm to fit 2d multivariate gaussians mixture model. */
 
-
 #define PY_SSIZE_T_CLEAN
 #include "laueimproc/c_check.h"
 #include "laueimproc/gmm/c_gmm.h"
@@ -371,6 +370,81 @@ int BatchedFit(
     }
     return 0;
 }
+
+
+// int BatchedFitParallel(
+//     PyByteArrayObject* data, PyArrayObject* bboxes,
+//     npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu, const long n_tries,
+//     int (*func)(
+//         const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
+//         npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu, const long n_tries
+//     )
+// ) {
+//     /* Apply the function func on each roi. */
+//     npy_float32* rawdata;
+//     npy_intp datalen = (npy_intp)PyByteArray_Size((PyObject *)data), area;
+//     npy_intp* shift;
+//     int error = 0;
+//     const npy_intp n = PyArray_DIM(bboxes, 0);
+
+//     if (datalen % sizeof(npy_float)) {
+//         fprintf(stderr, "data length is not a multiple of float32 length\n");
+//         return 1;
+//     }
+//     datalen /= sizeof(npy_float);
+//     rawdata = (npy_float32 *)PyByteArray_AsString((PyObject *)data);
+//     if (rawdata == NULL) {
+//         fprintf(stderr, "data is empty\n");
+//         return 1;
+//     }
+
+//     // precompute shift for parralel for
+//     shift = malloc((n + 1) * sizeof(*shift));
+//     if (shift == NULL) {
+//         fprintf(stderr, "failed to malloc\n");
+//         return 1;
+//     }
+//     shift[0] = 0;
+//     for (npy_intp i = 0; i < n; ++i) {
+//         long height = *(npy_int16 *)PyArray_GETPTR2(bboxes, i, 2);
+//         long width = *(npy_int16 *)PyArray_GETPTR2(bboxes, i, 3);
+//         area = (npy_intp)(height * width);
+//         if (!area) {
+//             fprintf(stderr, "the bbox %ld has zero area\n", i);
+//             free(shift);
+//             return 1;
+//         }
+//         if (shift[i] + area > datalen) {
+//             fprintf(stderr, "the data length 4*%ld is too short to fill roi of index %ld\n", datalen, i);
+//             free(shift);
+//             return 1;
+//         }
+//         shift[i+1] = shift[i] + area;
+//     }
+//     if (datalen != shift[n]) {  // data to long
+//         fprintf(stderr, "the data length 4*%ld is too long to fill a total area of %ld pxls.\n", datalen, shift[n]);
+//         return 1;
+//     }
+
+//     srand(time(NULL));  // init random seed
+
+//     // call function
+//     #pragma omp parallel for schedule(static)
+//     for (npy_intp i = 0; i < n; ++i) {
+//         long anchor_i = *(npy_int16 *)PyArray_GETPTR2(bboxes, i, 0);
+//         long anchor_j = *(npy_int16 *)PyArray_GETPTR2(bboxes, i, 1);
+//         long height = *(npy_int16 *)PyArray_GETPTR2(bboxes, i, 2);
+//         long width = *(npy_int16 *)PyArray_GETPTR2(bboxes, i, 3);
+//         int local_error = func(
+//             rawdata + shift[i], anchor_i, anchor_j, height, width,
+//             mean + 2 * n_clu * i, cov + 4 * n_clu * i, eta + n_clu * i, n_clu, n_tries
+//         );
+//         #pragma omp atomic
+//         error |= local_error;
+//     }
+//     free(shift);
+//     return error;
+// }
 
 
 static PyObject* FitEmParser(PyObject* self, PyObject* args, PyObject* kwargs) {

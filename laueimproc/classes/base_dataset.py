@@ -7,6 +7,7 @@ import inspect
 import multiprocessing.pool
 import numbers
 import pathlib
+import pickle
 import queue
 import re
 import threading
@@ -773,8 +774,11 @@ class BaseDiagramsDataset(threading.Thread):
         >>> assert dataset.state == dataset_bis.state
         >>>
         """
+        state = self.__getstate__()
+        if kwargs.get("deep", True):
+            state = pickle.loads(pickle.dumps(state))
         new_dataset = self.__class__.__new__(self.__class__)
-        new_dataset.__setstate__(self.__getstate__())
+        new_dataset.__setstate__(state)
         new_dataset._diagrams = {  # pylint: disable=W0212
             i: d.clone(**kwargs) for i, d in new_dataset._diagrams.items()  # pylint: disable=W0212
         }

@@ -37,6 +37,7 @@ import inspect
 import multiprocessing.pool
 import numbers
 import pathlib
+import pickle
 import queue
 import re
 import threading
@@ -803,8 +804,11 @@ class BaseDiagramsDataset(threading.Thread):
         &gt;&gt;&gt; assert dataset.state == dataset_bis.state
         &gt;&gt;&gt;
         &#34;&#34;&#34;
+        state = self.__getstate__()
+        if kwargs.get(&#34;deep&#34;, True):
+            state = pickle.loads(pickle.dumps(state))
         new_dataset = self.__class__.__new__(self.__class__)
-        new_dataset.__setstate__(self.__getstate__())
+        new_dataset.__setstate__(state)
         new_dataset._diagrams = {  # pylint: disable=W0212
             i: d.clone(**kwargs) for i, d in new_dataset._diagrams.items()  # pylint: disable=W0212
         }
@@ -1764,8 +1768,11 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
         &gt;&gt;&gt; assert dataset.state == dataset_bis.state
         &gt;&gt;&gt;
         &#34;&#34;&#34;
+        state = self.__getstate__()
+        if kwargs.get(&#34;deep&#34;, True):
+            state = pickle.loads(pickle.dumps(state))
         new_dataset = self.__class__.__new__(self.__class__)
-        new_dataset.__setstate__(self.__getstate__())
+        new_dataset.__setstate__(state)
         new_dataset._diagrams = {  # pylint: disable=W0212
             i: d.clone(**kwargs) for i, d in new_dataset._diagrams.items()  # pylint: disable=W0212
         }
@@ -2546,8 +2553,11 @@ The supported formats are defined in <code><a title="laueimproc.common.time2sec"
     &gt;&gt;&gt; assert dataset.state == dataset_bis.state
     &gt;&gt;&gt;
     &#34;&#34;&#34;
+    state = self.__getstate__()
+    if kwargs.get(&#34;deep&#34;, True):
+        state = pickle.loads(pickle.dumps(state))
     new_dataset = self.__class__.__new__(self.__class__)
-    new_dataset.__setstate__(self.__getstate__())
+    new_dataset.__setstate__(state)
     new_dataset._diagrams = {  # pylint: disable=W0212
         i: d.clone(**kwargs) for i, d in new_dataset._diagrams.items()  # pylint: disable=W0212
     }

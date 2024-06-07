@@ -2,8 +2,11 @@
 
 """Link serveral diagrams together."""
 
+import multiprocessing.pool
 import numbers
 import typing
+
+import torch
 
 from laueimproc.ml.dataset_dist import select_closest
 from .base_dataset import BaseDiagramsDataset
@@ -12,6 +15,29 @@ from .diagram import Diagram
 
 class DiagramsDataset(BaseDiagramsDataset):
     """Link Diagrams together."""
+
+    def compute_mean_image(self) -> torch.Tensor:
+        """Compute the average image.
+
+        Returns
+        -------
+        torch.Tensor
+            The average image of all the images contained in this dataset.
+        """
+        assert len(self) > 0, "impossible to compute the mean image of an empty dataset"
+        img = None
+        count = 0.0
+        with multiprocessing.pool.ThreadPool() as pool:
+            for loc_img in pool.imap_unordered(lambda d: d.image, self):
+                if img is None:
+                    img = loc_img.clone()
+                else:
+                    assert img.shape == loc_img.shape, \
+                        f"all images have be of same shape ({img.shape} vs {loc_img.shape})"
+                img += loc_img
+                count += 1.0
+        img /= count
+        return img
 
     def select_closest(
         self, *args, no_raise: bool = False, **kwargs

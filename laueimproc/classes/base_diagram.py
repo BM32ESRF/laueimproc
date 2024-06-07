@@ -330,8 +330,9 @@ class BaseDiagram:
         ----------
         deep : boolean, default=True
             If True, the memory of the new created diagram object is totally
-            independ of this object (slow but safe). Otherwise, `image` and `rois` attributes
-            and cached big data share the same memory view (Tensor). So modifying one of these
+            independ of this object (slow but safe).
+            Otherwise, `self.image`, `self.rois`, `properties` and `cached data`
+            share the same memory view (Tensor). So modifying one of these
             attributes in one diagram will modify the same attribute in the other diagram.
             It if realy faster but not safe.
         cache : boolean, default=True

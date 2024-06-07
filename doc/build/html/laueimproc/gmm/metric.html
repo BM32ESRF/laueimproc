@@ -70,7 +70,7 @@ def aic(
     aic : torch.Tensor
         Akaike Information Criterion
         \(aic = 2p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the likelihood.
     &#34;&#34;&#34;
     if _check:
         check_infit(obs, weights)
@@ -83,8 +83,8 @@ def aic(
     ) * gmm[2].shape[-1]  # nbr of gaussians
     m2llh = log_likelihood(obs, weights, gmm, _check=False) if _llh is None else _llh.clone()
     m2llh *= -2.0
-    aic = m2llh + 2*float(free_parameters)
-    return aic
+    aic_val = m2llh + 2*float(free_parameters)
+    return aic_val
 
 
 def bic(
@@ -116,7 +116,7 @@ def bic(
     bic : torch.Tensor
         Bayesian Information Criterion
         \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the likelihood.
     &#34;&#34;&#34;
     if _check:
         check_infit(obs, weights)
@@ -135,8 +135,8 @@ def bic(
     else:
         log_n_obs = torch.sum(weights, axis=-1, keepdim=False)
         log_n_obs = torch.log(log_n_obs, out=log_n_obs)
-    bic = m2llh + log_n_obs*float(free_parameters)
-    return bic
+    bic_val = m2llh + log_n_obs*float(free_parameters)
+    return bic_val
 
 
 def log_likelihood(
@@ -183,6 +183,7 @@ def log_likelihood(
     prob **= weights.unsqueeze(-2)
     prob *= eta.unsqueeze(-1)
     ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)
+    ind_prob += torch.finfo(torch.float32).eps  # for stability
     ind_prob = torch.log(ind_prob, out=None if ind_prob.requires_grad else ind_prob)
     return torch.sum(ind_prob, axis=-1, keepdim=False)  # (...,)</code></pre>
 </details>
@@ -222,7 +223,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
 <dt><strong><code>aic</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>Akaike Information Criterion
 <span><span class="MathJax_Preview">aic = 2p-2\log(L_{\alpha,\omega})</span><script type="math/tex">aic = 2p-2\log(L_{\alpha,\omega})</script></span>,
-<span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the log likelihood.</dd>
+<span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the likelihood.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -257,7 +258,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
     aic : torch.Tensor
         Akaike Information Criterion
         \(aic = 2p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the likelihood.
     &#34;&#34;&#34;
     if _check:
         check_infit(obs, weights)
@@ -270,8 +271,8 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
     ) * gmm[2].shape[-1]  # nbr of gaussians
     m2llh = log_likelihood(obs, weights, gmm, _check=False) if _llh is None else _llh.clone()
     m2llh *= -2.0
-    aic = m2llh + 2*float(free_parameters)
-    return aic</code></pre>
+    aic_val = m2llh + 2*float(free_parameters)
+    return aic_val</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.gmm.metric.bic"><code class="name flex">
@@ -302,7 +303,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
 <dt><strong><code>bic</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>Bayesian Information Criterion
 <span><span class="MathJax_Preview">bic = \log(N)p-2\log(L_{\alpha,\omega})</span><script type="math/tex">bic = \log(N)p-2\log(L_{\alpha,\omega})</script></span>,
-<span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the log likelihood.</dd>
+<span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the likelihood.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -337,7 +338,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
     bic : torch.Tensor
         Bayesian Information Criterion
         \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the likelihood.
     &#34;&#34;&#34;
     if _check:
         check_infit(obs, weights)
@@ -356,8 +357,8 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
     else:
         log_n_obs = torch.sum(weights, axis=-1, keepdim=False)
         log_n_obs = torch.log(log_n_obs, out=log_n_obs)
-    bic = m2llh + log_n_obs*float(free_parameters)
-    return bic</code></pre>
+    bic_val = m2llh + log_n_obs*float(free_parameters)
+    return bic_val</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.gmm.metric.log_likelihood"><code class="name flex">
@@ -451,6 +452,7 @@ L_{\alpha,\omega} = \log\left(
     prob **= weights.unsqueeze(-2)
     prob *= eta.unsqueeze(-1)
     ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)
+    ind_prob += torch.finfo(torch.float32).eps  # for stability
     ind_prob = torch.log(ind_prob, out=None if ind_prob.requires_grad else ind_prob)
     return torch.sum(ind_prob, axis=-1, keepdim=False)  # (...,)</code></pre>
 </details>

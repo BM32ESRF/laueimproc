@@ -40,7 +40,7 @@ def aic(
     aic : torch.Tensor
         Akaike Information Criterion
         \(aic = 2p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the likelihood.
     """
     if _check:
         check_infit(obs, weights)
@@ -53,8 +53,8 @@ def aic(
     ) * gmm[2].shape[-1]  # nbr of gaussians
     m2llh = log_likelihood(obs, weights, gmm, _check=False) if _llh is None else _llh.clone()
     m2llh *= -2.0
-    aic = m2llh + 2*float(free_parameters)
-    return aic
+    aic_val = m2llh + 2*float(free_parameters)
+    return aic_val
 
 
 def bic(
@@ -86,7 +86,7 @@ def bic(
     bic : torch.Tensor
         Bayesian Information Criterion
         \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the likelihood.
     """
     if _check:
         check_infit(obs, weights)
@@ -105,8 +105,8 @@ def bic(
     else:
         log_n_obs = torch.sum(weights, axis=-1, keepdim=False)
         log_n_obs = torch.log(log_n_obs, out=log_n_obs)
-    bic = m2llh + log_n_obs*float(free_parameters)
-    return bic
+    bic_val = m2llh + log_n_obs*float(free_parameters)
+    return bic_val
 
 
 def log_likelihood(
@@ -153,5 +153,6 @@ def log_likelihood(
     prob **= weights.unsqueeze(-2)
     prob *= eta.unsqueeze(-1)
     ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)
+    ind_prob += torch.finfo(torch.float32).eps  # for stability
     ind_prob = torch.log(ind_prob, out=None if ind_prob.requires_grad else ind_prob)
     return torch.sum(ind_prob, axis=-1, keepdim=False)  # (...,)

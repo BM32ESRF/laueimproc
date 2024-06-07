@@ -93,12 +93,12 @@ def fit_gaussians_em(
         The metrics are computed in the ``laueimproc.gmm.metric`` module.
 
         * aic: Akaike Information Criterion of shape (...,). \(aic = 2p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the likelihood.
         * bic: Bayesian Information Criterion of shape (...,).
         \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the likelihood.
         * log_likelihood of shape (...,): \(
-            L_{\alpha,\omega} = \log\left(
+            \log\left(L_{\alpha,\omega}\right) = \log\left(
                 \prod\limits_{i=1}^N \sum\limits_{j=1}^K
                 \eta_j \left(
                     \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
@@ -124,9 +124,10 @@ def fit_gaussians_em(
     &gt;&gt;&gt; from laueimproc.improc.spot.fit import fit_gaussians_em
     &gt;&gt;&gt;
     &gt;&gt;&gt; cov_ref = torch.asarray([[[2, 1], [1, 4]], [[3, -3], [-3, 9]], [[4, 0], [0, 4]]])
+    &gt;&gt;&gt; cov_ref = cov_ref.to(torch.float32)
     &gt;&gt;&gt; mean_ref = torch.asarray([[[10.0, 15.0], [20.0, 15.0], [15.0, 20.0]]])
-    &gt;&gt;&gt; obs = multivariate_normal(cov_ref.to(float), 3_000_000) + mean_ref
-    &gt;&gt;&gt; obs = (obs + 0.5).to(torch.int32).reshape(-1, 2)
+    &gt;&gt;&gt; obs = multivariate_normal(cov_ref, 3_000_000) + mean_ref
+    &gt;&gt;&gt; obs = obs.to(torch.int32).reshape(-1, 2)
     &gt;&gt;&gt; height, width = 35, 35
     &gt;&gt;&gt; rois = obs[:, 0]*width + obs[:, 1]
     &gt;&gt;&gt; rois = rois[torch.logical_and(rois &gt;= 0, rois &lt; height * width)]
@@ -138,13 +139,23 @@ def fit_gaussians_em(
     &gt;&gt;&gt; mean, cov, eta, infodict = fit_gaussians_em(
     ...     data, bboxes, nbr_clusters=3, aic=True, bic=True, log_likelihood=True
     ... )
+    &gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 0], atol=0.5) for mu in mean[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 1], atol=0.5) for mu in mean[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 2], atol=0.5) for mu in mean[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(c, cov_ref[0], atol=1.0) for c in cov[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(c, cov_ref[1], atol=1.0) for c in cov[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(c, cov_ref[2], atol=1.0) for c in cov[0])
+    True
     &gt;&gt;&gt;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; import matplotlib.pyplot as plt
-    &gt;&gt;&gt; _ = plt.imshow(rois[0], extent=(.0, width+.0, height+.0, .0))
-    &gt;&gt;&gt; _ = plt.scatter(mean[..., 1].ravel() - .0, mean[..., 0].ravel() - .0)
-    &gt;&gt;&gt; plt.show()
-    &gt;&gt;&gt; mean, cov
+    &gt;&gt;&gt; # import matplotlib.pyplot as plt
+    &gt;&gt;&gt; # _ = plt.imshow(rois[0], extent=(0, width, height, 0))
+    &gt;&gt;&gt; # _ = plt.scatter(mean[..., 1].ravel(), mean[..., 0].ravel())
+    &gt;&gt;&gt; # plt.show()
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     # compute gmm
@@ -339,19 +350,19 @@ for each spots, of shape (n, 4). It doesn't have to be c contiguous.</dd>
 The metrics are computed in the <code><a title="laueimproc.gmm.metric" href="../../gmm/metric.html">laueimproc.gmm.metric</a></code> module.</p>
 <ul>
 <li>aic: Akaike Information Criterion of shape (&hellip;,). <span><span class="MathJax_Preview">aic = 2p-2\log(L_{\alpha,\omega})</span><script type="math/tex">aic = 2p-2\log(L_{\alpha,\omega})</script></span>,
-<span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the log likelihood.</li>
+<span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the likelihood.</li>
 <li>bic: Bayesian Information Criterion of shape (&hellip;,).
 <span><span class="MathJax_Preview">bic = \log(N)p-2\log(L_{\alpha,\omega})</span><script type="math/tex">bic = \log(N)p-2\log(L_{\alpha,\omega})</script></span>,
-<span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the log likelihood.</li>
+<span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the likelihood.</li>
 <li>log_likelihood of shape (&hellip;,): <span><span class="MathJax_Preview">
-L_{\alpha,\omega} = \log\left(
+\log\left(L_{\alpha,\omega}\right) = \log\left(
 \prod\limits_{i=1}^N \sum\limits_{j=1}^K
 \eta_j \left(
 \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
 \right)^{\alpha_i}
 \right)
 </span><script type="math/tex">
-L_{\alpha,\omega} = \log\left(
+\log\left(L_{\alpha,\omega}\right) = \log\left(
 \prod\limits_{i=1}^N \sum\limits_{j=1}^K
 \eta_j \left(
 \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
@@ -378,9 +389,10 @@ L_{\alpha,\omega} = \log\left(
 &gt;&gt;&gt; from laueimproc.improc.spot.fit import fit_gaussians_em
 &gt;&gt;&gt;
 &gt;&gt;&gt; cov_ref = torch.asarray([[[2, 1], [1, 4]], [[3, -3], [-3, 9]], [[4, 0], [0, 4]]])
+&gt;&gt;&gt; cov_ref = cov_ref.to(torch.float32)
 &gt;&gt;&gt; mean_ref = torch.asarray([[[10.0, 15.0], [20.0, 15.0], [15.0, 20.0]]])
-&gt;&gt;&gt; obs = multivariate_normal(cov_ref.to(float), 3_000_000) + mean_ref
-&gt;&gt;&gt; obs = (obs + 0.5).to(torch.int32).reshape(-1, 2)
+&gt;&gt;&gt; obs = multivariate_normal(cov_ref, 3_000_000) + mean_ref
+&gt;&gt;&gt; obs = obs.to(torch.int32).reshape(-1, 2)
 &gt;&gt;&gt; height, width = 35, 35
 &gt;&gt;&gt; rois = obs[:, 0]*width + obs[:, 1]
 &gt;&gt;&gt; rois = rois[torch.logical_and(rois &gt;= 0, rois &lt; height * width)]
@@ -392,13 +404,23 @@ L_{\alpha,\omega} = \log\left(
 &gt;&gt;&gt; mean, cov, eta, infodict = fit_gaussians_em(
 ...     data, bboxes, nbr_clusters=3, aic=True, bic=True, log_likelihood=True
 ... )
+&gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 0], atol=0.5) for mu in mean[0])
+True
+&gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 1], atol=0.5) for mu in mean[0])
+True
+&gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 2], atol=0.5) for mu in mean[0])
+True
+&gt;&gt;&gt; any(torch.allclose(c, cov_ref[0], atol=1.0) for c in cov[0])
+True
+&gt;&gt;&gt; any(torch.allclose(c, cov_ref[1], atol=1.0) for c in cov[0])
+True
+&gt;&gt;&gt; any(torch.allclose(c, cov_ref[2], atol=1.0) for c in cov[0])
+True
 &gt;&gt;&gt;
-&gt;&gt;&gt;
-&gt;&gt;&gt; import matplotlib.pyplot as plt
-&gt;&gt;&gt; _ = plt.imshow(rois[0], extent=(.0, width+.0, height+.0, .0))
-&gt;&gt;&gt; _ = plt.scatter(mean[..., 1].ravel() - .0, mean[..., 0].ravel() - .0)
-&gt;&gt;&gt; plt.show()
-&gt;&gt;&gt; mean, cov
+&gt;&gt;&gt; # import matplotlib.pyplot as plt
+&gt;&gt;&gt; # _ = plt.imshow(rois[0], extent=(0, width, height, 0))
+&gt;&gt;&gt; # _ = plt.scatter(mean[..., 1].ravel(), mean[..., 0].ravel())
+&gt;&gt;&gt; # plt.show()
 &gt;&gt;&gt;
 </code></pre></div>
 <details class="source">
@@ -426,12 +448,12 @@ L_{\alpha,\omega} = \log\left(
         The metrics are computed in the ``laueimproc.gmm.metric`` module.
 
         * aic: Akaike Information Criterion of shape (...,). \(aic = 2p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the likelihood.
         * bic: Bayesian Information Criterion of shape (...,).
         \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
-        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+        \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the likelihood.
         * log_likelihood of shape (...,): \(
-            L_{\alpha,\omega} = \log\left(
+            \log\left(L_{\alpha,\omega}\right) = \log\left(
                 \prod\limits_{i=1}^N \sum\limits_{j=1}^K
                 \eta_j \left(
                     \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
@@ -457,9 +479,10 @@ L_{\alpha,\omega} = \log\left(
     &gt;&gt;&gt; from laueimproc.improc.spot.fit import fit_gaussians_em
     &gt;&gt;&gt;
     &gt;&gt;&gt; cov_ref = torch.asarray([[[2, 1], [1, 4]], [[3, -3], [-3, 9]], [[4, 0], [0, 4]]])
+    &gt;&gt;&gt; cov_ref = cov_ref.to(torch.float32)
     &gt;&gt;&gt; mean_ref = torch.asarray([[[10.0, 15.0], [20.0, 15.0], [15.0, 20.0]]])
-    &gt;&gt;&gt; obs = multivariate_normal(cov_ref.to(float), 3_000_000) + mean_ref
-    &gt;&gt;&gt; obs = (obs + 0.5).to(torch.int32).reshape(-1, 2)
+    &gt;&gt;&gt; obs = multivariate_normal(cov_ref, 3_000_000) + mean_ref
+    &gt;&gt;&gt; obs = obs.to(torch.int32).reshape(-1, 2)
     &gt;&gt;&gt; height, width = 35, 35
     &gt;&gt;&gt; rois = obs[:, 0]*width + obs[:, 1]
     &gt;&gt;&gt; rois = rois[torch.logical_and(rois &gt;= 0, rois &lt; height * width)]
@@ -471,13 +494,23 @@ L_{\alpha,\omega} = \log\left(
     &gt;&gt;&gt; mean, cov, eta, infodict = fit_gaussians_em(
     ...     data, bboxes, nbr_clusters=3, aic=True, bic=True, log_likelihood=True
     ... )
+    &gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 0], atol=0.5) for mu in mean[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 1], atol=0.5) for mu in mean[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 2], atol=0.5) for mu in mean[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(c, cov_ref[0], atol=1.0) for c in cov[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(c, cov_ref[1], atol=1.0) for c in cov[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(c, cov_ref[2], atol=1.0) for c in cov[0])
+    True
     &gt;&gt;&gt;
-    &gt;&gt;&gt;
-    &gt;&gt;&gt; import matplotlib.pyplot as plt
-    &gt;&gt;&gt; _ = plt.imshow(rois[0], extent=(.0, width+.0, height+.0, .0))
-    &gt;&gt;&gt; _ = plt.scatter(mean[..., 1].ravel() - .0, mean[..., 0].ravel() - .0)
-    &gt;&gt;&gt; plt.show()
-    &gt;&gt;&gt; mean, cov
+    &gt;&gt;&gt; # import matplotlib.pyplot as plt
+    &gt;&gt;&gt; # _ = plt.imshow(rois[0], extent=(0, width, height, 0))
+    &gt;&gt;&gt; # _ = plt.scatter(mean[..., 1].ravel(), mean[..., 0].ravel())
+    &gt;&gt;&gt; # plt.show()
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     # compute gmm
