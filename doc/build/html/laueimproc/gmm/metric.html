@@ -41,7 +41,7 @@ from .check import check_gmm, check_infit
 from .gauss import gauss
 
 
-def aic_bic(
+def aic(
     obs: torch.Tensor,
     weights: typing.Optional[torch.Tensor],
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
@@ -59,7 +59,7 @@ def aic_bic(
         The duplication weights of shape (..., \(N\)).
     gmm : tuple of torch.Tensor
         * mean : torch.Tensor
-            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
         * cov : torch.Tensor
             The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
         * eta : torch.Tensor
@@ -71,6 +71,48 @@ def aic_bic(
         Akaike Information Criterion
         \(aic = 2p-2\log(L_{\alpha,\omega})\),
         \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+    &#34;&#34;&#34;
+    if _check:
+        check_infit(obs, weights)
+        check_gmm(gmm)
+
+    free_parameters: int = (
+        (obs.shape[-1] * (obs.shape[-1]+1))**2 // 2  # nbr of parameters in cov matrix
+        + obs.shape[-1]  # nbr of parameters in mean vector
+        + 1  # eta
+    ) * gmm[2].shape[-1]  # nbr of gaussians
+    m2llh = log_likelihood(obs, weights, gmm, _check=False) if _llh is None else _llh.clone()
+    m2llh *= -2.0
+    aic = m2llh + 2*float(free_parameters)
+    return aic
+
+
+def bic(
+    obs: torch.Tensor,
+    weights: typing.Optional[torch.Tensor],
+    gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+    *,
+    _llh: typing.Optional[torch.Tensor] = None,
+    _check: bool = True,
+) -&gt; tuple[torch.Tensor, torch.Tensor]:
+    r&#34;&#34;&#34;Compute the Akaike Information Criterion and the Bayesian Information Criterion.
+
+    Parameters
+    ----------
+    obs : torch.Tensor
+        The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
+    weights : torch.Tensor, optional
+        The duplication weights of shape (..., \(N\)).
+    gmm : tuple of torch.Tensor
+        * mean : torch.Tensor
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
+        * cov : torch.Tensor
+            The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
+        * eta : torch.Tensor
+            The relative mass \(\eta_j\) of shape (..., \(K\)).
+
+    Returns
+    -------
     bic : torch.Tensor
         Bayesian Information Criterion
         \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
@@ -88,16 +130,13 @@ def aic_bic(
     m2llh = log_likelihood(obs, weights, gmm, _check=False) if _llh is None else _llh.clone()
     m2llh *= -2.0
 
-    aic = m2llh + 2*float(free_parameters)
-
     if weights is None:
         log_n_obs = math.log(obs.shape[-2])
     else:
         log_n_obs = torch.sum(weights, axis=-1, keepdim=False)
         log_n_obs = torch.log(log_n_obs, out=log_n_obs)
     bic = m2llh + log_n_obs*float(free_parameters)
-
-    return aic, bic
+    return bic
 
 
 def log_likelihood(
@@ -116,7 +155,7 @@ def log_likelihood(
         The duplication weights of shape (..., \(N\)).
     gmm : tuple of torch.Tensor
         * mean : torch.Tensor
-            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
         * cov : torch.Tensor
             The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
         * eta : torch.Tensor
@@ -140,7 +179,7 @@ def log_likelihood(
         check_gmm(gmm)
 
     mean, cov, eta = gmm
-    prob = gauss(obs, mean.squeeze(-1), cov, _check=False)  # (..., n_clu, n_obs)
+    prob = gauss(obs, mean, cov, _check=False)  # (..., n_clu, n_obs)
     prob **= weights.unsqueeze(-2)
     prob *= eta.unsqueeze(-1)
     ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)
@@ -155,8 +194,8 @@ def log_likelihood(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="laueimproc.gmm.metric.aic_bic"><code class="name flex">
-<span>def <span class="ident">aic_bic</span></span>(<span>obs: torch.Tensor, weights: Optional[None], gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) ‑> tuple[torch.Tensor, torch.Tensor]</span>
+<dt id="laueimproc.gmm.metric.aic"><code class="name flex">
+<span>def <span class="ident">aic</span></span>(<span>obs: torch.Tensor, weights: Optional[None], gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) ‑> tuple[torch.Tensor, torch.Tensor]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute the Akaike Information Criterion and the Bayesian Information Criterion.</p>
@@ -170,7 +209,7 @@ def log_likelihood(
 <dd>
 <ul>
 <li>mean : torch.Tensor
-The column mean vector <span><span class="MathJax_Preview">\mathbf{\mu}_j</span><script type="math/tex">\mathbf{\mu}_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, 1).</li>
+The column mean vector <span><span class="MathJax_Preview">\mathbf{\mu}_j</span><script type="math/tex">\mathbf{\mu}_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</li>
 <li>cov : torch.Tensor
 The covariance matrix <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</li>
 <li>eta : torch.Tensor
@@ -184,16 +223,12 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
 <dd>Akaike Information Criterion
 <span><span class="MathJax_Preview">aic = 2p-2\log(L_{\alpha,\omega})</span><script type="math/tex">aic = 2p-2\log(L_{\alpha,\omega})</script></span>,
 <span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the log likelihood.</dd>
-<dt><strong><code>bic</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>Bayesian Information Criterion
-<span><span class="MathJax_Preview">bic = \log(N)p-2\log(L_{\alpha,\omega})</span><script type="math/tex">bic = \log(N)p-2\log(L_{\alpha,\omega})</script></span>,
-<span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the log likelihood.</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def aic_bic(
+<pre><code class="python">def aic(
     obs: torch.Tensor,
     weights: typing.Optional[torch.Tensor],
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
@@ -211,7 +246,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
         The duplication weights of shape (..., \(N\)).
     gmm : tuple of torch.Tensor
         * mean : torch.Tensor
-            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
         * cov : torch.Tensor
             The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
         * eta : torch.Tensor
@@ -223,6 +258,82 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
         Akaike Information Criterion
         \(aic = 2p-2\log(L_{\alpha,\omega})\),
         \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+    &#34;&#34;&#34;
+    if _check:
+        check_infit(obs, weights)
+        check_gmm(gmm)
+
+    free_parameters: int = (
+        (obs.shape[-1] * (obs.shape[-1]+1))**2 // 2  # nbr of parameters in cov matrix
+        + obs.shape[-1]  # nbr of parameters in mean vector
+        + 1  # eta
+    ) * gmm[2].shape[-1]  # nbr of gaussians
+    m2llh = log_likelihood(obs, weights, gmm, _check=False) if _llh is None else _llh.clone()
+    m2llh *= -2.0
+    aic = m2llh + 2*float(free_parameters)
+    return aic</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.gmm.metric.bic"><code class="name flex">
+<span>def <span class="ident">bic</span></span>(<span>obs: torch.Tensor, weights: Optional[None], gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) ‑> tuple[torch.Tensor, torch.Tensor]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the Akaike Information Criterion and the Bayesian Information Criterion.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>obs</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The observations <span><span class="MathJax_Preview">\mathbf{x}_i</span><script type="math/tex">\mathbf{x}_i</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</dd>
+<dt><strong><code>weights</code></strong> :&ensp;<code>torch.Tensor</code>, optional</dt>
+<dd>The duplication weights of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>).</dd>
+<dt><strong><code>gmm</code></strong> :&ensp;<code>tuple</code> of <code>torch.Tensor</code></dt>
+<dd>
+<ul>
+<li>mean : torch.Tensor
+The column mean vector <span><span class="MathJax_Preview">\mathbf{\mu}_j</span><script type="math/tex">\mathbf{\mu}_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</li>
+<li>cov : torch.Tensor
+The covariance matrix <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</li>
+<li>eta : torch.Tensor
+The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type="math/tex">\eta_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</li>
+</ul>
+</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bic</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Bayesian Information Criterion
+<span><span class="MathJax_Preview">bic = \log(N)p-2\log(L_{\alpha,\omega})</span><script type="math/tex">bic = \log(N)p-2\log(L_{\alpha,\omega})</script></span>,
+<span><span class="MathJax_Preview">p</span><script type="math/tex">p</script></span> is the number of free parameters and <span><span class="MathJax_Preview">L_{\alpha,\omega}</span><script type="math/tex">L_{\alpha,\omega}</script></span> the log likelihood.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bic(
+    obs: torch.Tensor,
+    weights: typing.Optional[torch.Tensor],
+    gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+    *,
+    _llh: typing.Optional[torch.Tensor] = None,
+    _check: bool = True,
+) -&gt; tuple[torch.Tensor, torch.Tensor]:
+    r&#34;&#34;&#34;Compute the Akaike Information Criterion and the Bayesian Information Criterion.
+
+    Parameters
+    ----------
+    obs : torch.Tensor
+        The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
+    weights : torch.Tensor, optional
+        The duplication weights of shape (..., \(N\)).
+    gmm : tuple of torch.Tensor
+        * mean : torch.Tensor
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
+        * cov : torch.Tensor
+            The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
+        * eta : torch.Tensor
+            The relative mass \(\eta_j\) of shape (..., \(K\)).
+
+    Returns
+    -------
     bic : torch.Tensor
         Bayesian Information Criterion
         \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
@@ -240,16 +351,13 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
     m2llh = log_likelihood(obs, weights, gmm, _check=False) if _llh is None else _llh.clone()
     m2llh *= -2.0
 
-    aic = m2llh + 2*float(free_parameters)
-
     if weights is None:
         log_n_obs = math.log(obs.shape[-2])
     else:
         log_n_obs = torch.sum(weights, axis=-1, keepdim=False)
         log_n_obs = torch.log(log_n_obs, out=log_n_obs)
     bic = m2llh + log_n_obs*float(free_parameters)
-
-    return aic, bic</code></pre>
+    return bic</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.gmm.metric.log_likelihood"><code class="name flex">
@@ -267,7 +375,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
 <dd>
 <ul>
 <li>mean : torch.Tensor
-The column mean vector <span><span class="MathJax_Preview">\mathbf{\mu}_j</span><script type="math/tex">\mathbf{\mu}_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, 1).</li>
+The column mean vector <span><span class="MathJax_Preview">\mathbf{\mu}_j</span><script type="math/tex">\mathbf{\mu}_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</li>
 <li>cov : torch.Tensor
 The covariance matrix <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</li>
 <li>eta : torch.Tensor
@@ -315,7 +423,7 @@ L_{\alpha,\omega} = \log\left(
         The duplication weights of shape (..., \(N\)).
     gmm : tuple of torch.Tensor
         * mean : torch.Tensor
-            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
         * cov : torch.Tensor
             The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
         * eta : torch.Tensor
@@ -339,7 +447,7 @@ L_{\alpha,\omega} = \log\left(
         check_gmm(gmm)
 
     mean, cov, eta = gmm
-    prob = gauss(obs, mean.squeeze(-1), cov, _check=False)  # (..., n_clu, n_obs)
+    prob = gauss(obs, mean, cov, _check=False)  # (..., n_clu, n_obs)
     prob **= weights.unsqueeze(-2)
     prob *= eta.unsqueeze(-1)
     ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)
@@ -365,7 +473,8 @@ L_{\alpha,\omega} = \log\left(
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.gmm.metric.aic_bic" href="#laueimproc.gmm.metric.aic_bic">aic_bic</a></code></li>
+<li><code><a title="laueimproc.gmm.metric.aic" href="#laueimproc.gmm.metric.aic">aic</a></code></li>
+<li><code><a title="laueimproc.gmm.metric.bic" href="#laueimproc.gmm.metric.bic">bic</a></code></li>
 <li><code><a title="laueimproc.gmm.metric.log_likelihood" href="#laueimproc.gmm.metric.log_likelihood">log_likelihood</a></code></li>
 </ul>
 </li>

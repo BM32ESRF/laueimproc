@@ -223,11 +223,12 @@ class Diagram(BaseDiagram):
     def fit_gaussians_em(self, **kwargs) -> tuple[torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by \(K\) gaussians using the EM algorithm.
 
-        See ``laueimproc.gmm`` for terminology and ``laueimproc.gmm.em`` for the algo description.
+        See ``laueimproc.gmm`` for terminology,
+        and ``laueimproc.gmm.fit.fit_em`` for the algo description.
 
         Parameters
         ----------
-        **kwargs : dict
+        nbr_clusters, nbr_tries, aic, bic, log_likelihood
             Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
 
         Returns
@@ -252,6 +253,9 @@ class Diagram(BaseDiagram):
         (torch.Size([240, 3, 2]), torch.Size([240, 3, 2, 2]), torch.Size([240, 3]))
         >>>
         """
+        assert set(kwargs).issubset(
+            {"nbr_clusters", "nbr_tries", "aic", "bic", "log_likelihood", "_no_c"}
+        ), kwargs
         from laueimproc.improc.spot.fit import fit_gaussians_em
         with self._rois_lock:
             data, bboxes = self._rois

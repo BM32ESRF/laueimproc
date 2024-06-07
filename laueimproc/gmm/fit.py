@@ -195,46 +195,39 @@ def _fit_n_clusters_serveral_steps(
 
     Returns
     -------
-    gmm : tuple of torch.Tensor
-        mean : torch.Tensor
-            A reference to the input parameter `mean`.
-        cov : torch.Tensor
-            A reference to the input parameter `cov`.
-        eta : torch.Tensor
-            A reference to the input parameter `eta`.
-    log_likelihood : torch.Tensor
-        The log likelihood of the last result of shape (...,).
+    mean : torch.Tensor
+        A reference to the input parameter `mean`.
+    cov : torch.Tensor
+        A reference to the input parameter `cov`.
+    eta : torch.Tensor
+        A reference to the input parameter `eta`.
 
     Notes
     -----
     * No verifications are performed for performance reason.
     """
     mean, cov, eta = gmm
-    llh = log_likelihood(obs, weights, gmm, _check=False)  # (...,)
-
-    ongoing = torch.ones_like(llh, dtype=bool)  # mask for clusters converging
+    ongoing = torch.full(obs.shape[:-2], True, dtype=bool)  # mask for clusters converging
 
     for _ in range(1000):  # not while True for security
         on_weights = None if weights is None else weights[ongoing]
-        new_gmm = _fit_n_clusters_one_step(
+        new_mean, cov[ongoing], eta[ongoing] = _fit_n_clusters_one_step(
             obs[ongoing], on_weights, (mean[ongoing], cov[ongoing], eta[ongoing])
         )
-        mean[ongoing], cov[ongoing], eta[ongoing] = new_gmm
-        new_llh = log_likelihood(obs[ongoing], on_weights, new_gmm, _check=False)
         converged = (   # the mask of the converged clusters
-            new_llh - llh[ongoing] <= 1e-3
+            abs(new_mean - mean[ongoing]).all(dim=(-1, -2, -3)) <= 0.01
         )
-        llh[ongoing] = new_llh
+        mean[ongoing] = new_mean
         if torch.all(converged):
             break
-        # we want to do equivalent of ongoing[ongoing][converged] = False
+        # we want to do an equivalent of ongoing[ongoing][converged] = False
         ongoing_ = ongoing[ongoing]
         ongoing_[converged] = False
         ongoing[ongoing.clone()] = ongoing_
     else:
         logging.warning("some gmm clusters failed to converge after 1000 iterations")
 
-    return (mean, cov, eta), llh
+    return mean, cov, eta
 
 
 def _fit_n_clusters_serveral_steps_serveral_tries(
@@ -305,23 +298,21 @@ def _fit_n_clusters_serveral_steps_serveral_tries(
         weights = weights.unsqueeze(0).expand(nbr_tries, *batch, n_obs)
 
     # run em on each cluster and each tries
-    (mean, cov, eta), llh = _fit_n_clusters_serveral_steps(obs, weights, (mean, cov, eta))
+    mean, cov, eta = _fit_n_clusters_serveral_steps(obs, weights, (mean, cov, eta))
 
     # keep the best
-    if nbr_clusters == 1:
-        mean, cov, eta = mean.unsqueeze(0), cov.unsqueeze(0), eta.unsqueeze(0)
-    else:
-        llh, best = torch.max(llh, dim=0)
-        mean = mean[best, range(mean.shape[1])]
-        cov = cov[best, range(cov.shape[1])]
-        eta = eta[best, range(eta.shape[1])]
+    llh = log_likelihood(obs, weights, (mean.squeeze(-1), cov, eta))
+    llh, best = torch.max(llh, dim=0)
+    mean = mean[best, range(mean.shape[1])]
+    cov = cov[best, range(cov.shape[1])]
+    eta = eta[best, range(eta.shape[1])]
     return mean, cov, eta
 
 
 def fit_em(
     roi: torch.Tensor,
-    nbr_clusters: numbers.Integral = 1,
-    nbr_tries: numbers.Integral = 2,
+    nbr_clusters: numbers.Integral,
+    nbr_tries: numbers.Integral,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     r"""Implement a weighted version of the 2d EM algorithm.
 
@@ -329,9 +320,9 @@ def fit_em(
     ----------
     roi : torch.Tensor
         The picture of the roi, of shape (h, w).
-    nbr_clusters : int, default=1
+    nbr_clusters : int
         The number \(K\) of gaussians.
-    nbr_tries : int, default=2
+    nbr_tries : int
         The number of times that the algorithm converges
         in order to have the best possible solution.
         It is ignored in the case `nbr_clusters` = 1.
@@ -371,9 +362,8 @@ def fit_em(
     eta = torch.full((nbr_clusters,), 1.0/nbr_clusters, dtype=roi.dtype, device=roi.device)
 
     # fit
-    if nbr_clusters != 1:
-        mean, cov, eta = _fit_n_clusters_serveral_steps_serveral_tries(
-            nbr_tries, obs, weights, (mean, cov, eta)
-        )
+    mean, cov, eta = _fit_n_clusters_serveral_steps_serveral_tries(
+        nbr_tries, obs, weights, (mean, cov, eta)
+    )
 
     return mean.squeeze(-1), cov, eta

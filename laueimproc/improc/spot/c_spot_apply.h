@@ -57,6 +57,7 @@ int ApplyToRois(
             return 1;
         }
         if ((*func)(out, b, rawdata+shift, bbox)) {
+            fprintf(stderr, "the error comes from the bbox of index %ld\n", b);
             return 1;
         }
         shift += area;

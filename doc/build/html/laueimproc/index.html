@@ -351,11 +351,12 @@ For memory management, it is better to provide a pathlike rather than an array.<
     def fit_gaussians_em(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dict]:
         r&#34;&#34;&#34;Fit each roi by \(K\) gaussians using the EM algorithm.
 
-        See ``laueimproc.gmm`` for terminology and ``laueimproc.gmm.em`` for the algo description.
+        See ``laueimproc.gmm`` for terminology,
+        and ``laueimproc.gmm.fit.fit_em`` for the algo description.
 
         Parameters
         ----------
-        **kwargs : dict
+        nbr_clusters, nbr_tries, aic, bic, log_likelihood
             Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
 
         Returns
@@ -380,6 +381,9 @@ For memory management, it is better to provide a pathlike rather than an array.<
         (torch.Size([240, 3, 2]), torch.Size([240, 3, 2, 2]), torch.Size([240, 3]))
         &gt;&gt;&gt;
         &#34;&#34;&#34;
+        assert set(kwargs).issubset(
+            {&#34;nbr_clusters&#34;, &#34;nbr_tries&#34;, &#34;aic&#34;, &#34;bic&#34;, &#34;log_likelihood&#34;, &#34;_no_c&#34;}
+        ), kwargs
         from laueimproc.improc.spot.fit import fit_gaussians_em
         with self._rois_lock:
             data, bboxes = self._rois
@@ -879,10 +883,11 @@ def compute_rois_sum(self, **_kwargs) -&gt; torch.Tensor:
 </code></dt>
 <dd>
 <div class="desc"><p>Fit each roi by <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span> gaussians using the EM algorithm.</p>
-<p>See <code><a title="laueimproc.gmm" href="gmm/index.html">laueimproc.gmm</a></code> for terminology and <code>laueimproc.gmm.em</code> for the algo description.</p>
+<p>See <code><a title="laueimproc.gmm" href="gmm/index.html">laueimproc.gmm</a></code> for terminology,
+and <code><a title="laueimproc.gmm.fit.fit_em" href="gmm/fit.html#laueimproc.gmm.fit.fit_em">fit_em()</a></code> for the algo description.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>
+<dt><strong><code>nbr_clusters</code></strong>, <strong><code>nbr_tries</code></strong>, <strong><code>aic</code></strong>, <strong><code>bic</code></strong>, <strong><code>log_likelihood</code></strong></dt>
 <dd>Transmitted to <code><a title="laueimproc.improc.spot.fit.fit_gaussians_em" href="improc/spot/fit.html#laueimproc.improc.spot.fit.fit_gaussians_em">fit_gaussians_em()</a></code>.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -915,11 +920,12 @@ def compute_rois_sum(self, **_kwargs) -&gt; torch.Tensor:
 def fit_gaussians_em(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dict]:
     r&#34;&#34;&#34;Fit each roi by \(K\) gaussians using the EM algorithm.
 
-    See ``laueimproc.gmm`` for terminology and ``laueimproc.gmm.em`` for the algo description.
+    See ``laueimproc.gmm`` for terminology,
+    and ``laueimproc.gmm.fit.fit_em`` for the algo description.
 
     Parameters
     ----------
-    **kwargs : dict
+    nbr_clusters, nbr_tries, aic, bic, log_likelihood
         Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_em``.
 
     Returns
@@ -944,6 +950,9 @@ def fit_gaussians_em(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, dic
     (torch.Size([240, 3, 2]), torch.Size([240, 3, 2, 2]), torch.Size([240, 3]))
     &gt;&gt;&gt;
     &#34;&#34;&#34;
+    assert set(kwargs).issubset(
+        {&#34;nbr_clusters&#34;, &#34;nbr_tries&#34;, &#34;aic&#34;, &#34;bic&#34;, &#34;log_likelihood&#34;, &#34;_no_c&#34;}
+    ), kwargs
     from laueimproc.improc.spot.fit import fit_gaussians_em
     with self._rois_lock:
         data, bboxes = self._rois

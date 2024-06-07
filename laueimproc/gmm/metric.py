@@ -11,7 +11,7 @@ from .check import check_gmm, check_infit
 from .gauss import gauss
 
 
-def aic_bic(
+def aic(
     obs: torch.Tensor,
     weights: typing.Optional[torch.Tensor],
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
@@ -29,7 +29,7 @@ def aic_bic(
         The duplication weights of shape (..., \(N\)).
     gmm : tuple of torch.Tensor
         * mean : torch.Tensor
-            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
         * cov : torch.Tensor
             The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
         * eta : torch.Tensor
@@ -41,6 +41,48 @@ def aic_bic(
         Akaike Information Criterion
         \(aic = 2p-2\log(L_{\alpha,\omega})\),
         \(p\) is the number of free parameters and \(L_{\alpha,\omega}\) the log likelihood.
+    """
+    if _check:
+        check_infit(obs, weights)
+        check_gmm(gmm)
+
+    free_parameters: int = (
+        (obs.shape[-1] * (obs.shape[-1]+1))**2 // 2  # nbr of parameters in cov matrix
+        + obs.shape[-1]  # nbr of parameters in mean vector
+        + 1  # eta
+    ) * gmm[2].shape[-1]  # nbr of gaussians
+    m2llh = log_likelihood(obs, weights, gmm, _check=False) if _llh is None else _llh.clone()
+    m2llh *= -2.0
+    aic = m2llh + 2*float(free_parameters)
+    return aic
+
+
+def bic(
+    obs: torch.Tensor,
+    weights: typing.Optional[torch.Tensor],
+    gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+    *,
+    _llh: typing.Optional[torch.Tensor] = None,
+    _check: bool = True,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    r"""Compute the Akaike Information Criterion and the Bayesian Information Criterion.
+
+    Parameters
+    ----------
+    obs : torch.Tensor
+        The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
+    weights : torch.Tensor, optional
+        The duplication weights of shape (..., \(N\)).
+    gmm : tuple of torch.Tensor
+        * mean : torch.Tensor
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
+        * cov : torch.Tensor
+            The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
+        * eta : torch.Tensor
+            The relative mass \(\eta_j\) of shape (..., \(K\)).
+
+    Returns
+    -------
     bic : torch.Tensor
         Bayesian Information Criterion
         \(bic = \log(N)p-2\log(L_{\alpha,\omega})\),
@@ -58,16 +100,13 @@ def aic_bic(
     m2llh = log_likelihood(obs, weights, gmm, _check=False) if _llh is None else _llh.clone()
     m2llh *= -2.0
 
-    aic = m2llh + 2*float(free_parameters)
-
     if weights is None:
         log_n_obs = math.log(obs.shape[-2])
     else:
         log_n_obs = torch.sum(weights, axis=-1, keepdim=False)
         log_n_obs = torch.log(log_n_obs, out=log_n_obs)
     bic = m2llh + log_n_obs*float(free_parameters)
-
-    return aic, bic
+    return bic
 
 
 def log_likelihood(
@@ -86,7 +125,7 @@ def log_likelihood(
         The duplication weights of shape (..., \(N\)).
     gmm : tuple of torch.Tensor
         * mean : torch.Tensor
-            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\), 1).
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
         * cov : torch.Tensor
             The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
         * eta : torch.Tensor
@@ -110,7 +149,7 @@ def log_likelihood(
         check_gmm(gmm)
 
     mean, cov, eta = gmm
-    prob = gauss(obs, mean.squeeze(-1), cov, _check=False)  # (..., n_clu, n_obs)
+    prob = gauss(obs, mean, cov, _check=False)  # (..., n_clu, n_obs)
     prob **= weights.unsqueeze(-2)
     prob *= eta.unsqueeze(-1)
     ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)

@@ -7,8 +7,125 @@
 #include <stdio.h>
 
 
+
+int GMM(
+    const long anchor_i, const long anchor_j, const long height, const long width,
+    npy_float32* mean, npy_float32* cov, npy_float32* mag, const long n_clu,
+    npy_float32* predictions
+) {
+    /*
+        Compute the proba of each pixel, set the result in predictions.
+    */
+    npy_float32* fact_const;  // contains the value independent of i
+    const long area = height * width;
+
+    // precompute const values, i loop invariant
+    fact_const = malloc(2 * n_clu * sizeof(*fact_const));
+    if (fact_const == NULL) {
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+    #pragma omp simd safelen(1)
+    for (long k = 0; k < n_clu; ++k) {
+        npy_float32 sigma_d0 = cov[4 * k], corr = cov[4 * k + 1], sigma_d1 = cov[4 * k + 3];
+        npy_float32 inv_det = 1.0 / (sigma_d0 * sigma_d1 - corr * corr);
+        fact_const[2 * k] = inv_det;
+        fact_const[2 * k + 1] = sqrtf(inv_det);
+    }
+
+    // compute proba
+    for (long i = 0; i < area; ++i) {
+        npy_float32 roi_pred = 0.0;  // the predicted pixel value (proba density)
+        npy_float32 pos_i, pos_j;  // the positions
+        pos_i = (npy_float32)(i / width + anchor_i) + 0.5, pos_j = (npy_float32)(i % width + anchor_j) + 0.5;
+        #pragma omp simd reduction(+:roi_pred) safelen(1)
+        for (long k = 0; k < n_clu; ++k) {
+            // compute the proba
+            npy_float32 mu_d0 = mean[2 * k], mu_d1 = mean[2 * k + 1];
+            npy_float32 sigma_d0 = cov[4 * k], corr = cov[4 * k + 1], sigma_d1 = cov[4 * k + 3];
+
+            // weighted gmm direct evaluation
+            npy_float32 inv_det = fact_const[2 * k];
+            npy_float32 sqrt_inv_det = fact_const[2 * k + 1];
+            npy_float32 pos_i_cent = pos_i - mu_d0, pos_j_cent = pos_j - mu_d1;
+            npy_float32 x1 = inv_det * pos_i_cent, x2 = inv_det * pos_j_cent;
+            npy_float32 x3 = sigma_d0 * x2 - corr * x1, x4 = sigma_d1 * x1 - corr * x2;
+            x1 = -0.5 * pos_i_cent, x2 = -0.5 * pos_j_cent;
+            npy_float32 prob = expf(x4 * x1 + x3 * x2) / M_PI;
+            prob *= 0.5 * mag[k] * sqrt_inv_det;
+
+            // sum of the gaussians contribution
+            roi_pred += prob;
+        }
+        predictions[i] = roi_pred;
+    }
+    free(fact_const);
+    return 0;
+}
+
+
+int LogLikelihood(
+    const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
+    npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu,
+    npy_float32* log_likelihood
+) {
+    /*
+        Compute the Log Likelihood of the gmm.
+    */
+    npy_float32* fact_const;
+    const long area = height * width;
+    npy_float32 sub_log_likelihood;
+
+    // precompute const values, i loop invariant
+    fact_const = malloc(2 * n_clu * sizeof(*fact_const));
+    if (fact_const == NULL) {
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+    #pragma omp simd safelen(1)
+    for (long k = 0; k < n_clu; ++k) {
+        npy_float32 sigma_d0 = cov[4 * k], corr = cov[4 * k + 1], sigma_d1 = cov[4 * k + 3];
+        npy_float32 inv_det = 1.0 / (sigma_d0 * sigma_d1 - corr * corr);
+        fact_const[2 * k] = inv_det;
+        fact_const[2 * k + 1] = sqrtf(inv_det);
+    }
+
+    // compute proba
+    for (long i = 0; i < area; ++i) {
+        sub_log_likelihood = 0.0;
+        npy_float32 pos_i = (npy_float32)(i / width + anchor_i) + 0.5, pos_j = (npy_float32)(i % width + anchor_j) + 0.5;
+        #pragma omp simd reduction(+:sub_log_likelihood) safelen(1)
+        for (long k = 0; k < n_clu; ++k) {
+            // compute the proba
+            npy_float32 mu_d0 = mean[2 * k], mu_d1 = mean[2 * k + 1];
+            npy_float32 sigma_d0 = cov[4 * k], corr = cov[4 * k + 1], sigma_d1 = cov[4 * k + 3];
+
+            // gmm direct evaluation
+            npy_float32 inv_det = fact_const[2 * k];
+            npy_float32 sqrt_inv_det = fact_const[2 * k + 1];
+            npy_float32 pos_i_cent = pos_i - mu_d0, pos_j_cent = pos_j - mu_d1;
+            npy_float32 x1 = inv_det * pos_i_cent, x2 = inv_det * pos_j_cent;
+            npy_float32 x3 = sigma_d0 * x2 - corr * x1, x4 = sigma_d1 * x1 - corr * x2;
+            x1 = -0.5 * pos_i_cent, x2 = -0.5 * pos_j_cent;
+            npy_float32 prob = expf(x4 * x1 + x3 * x2) / M_PI;
+            prob *= 0.5 * sqrt_inv_det;
+
+            // likelihood
+            prob = powf(prob, roi[i]);
+            prob *= eta[k];
+            sub_log_likelihood += prob;
+        }
+        // sum(log) more accurate than log(prod), (even if computing less efficient)
+        sub_log_likelihood = logf(sub_log_likelihood);
+        *log_likelihood += sub_log_likelihood;
+    }
+    free(fact_const);
+    return 0;
+}
+
+
 int MSECost(
-    npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
+    const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
     npy_float32* mean, npy_float32* cov, npy_float32* mag, const long n_clu,
     npy_float32* cost
 ) {
@@ -54,7 +171,7 @@ int MSECost(
             npy_float32 mu_d0 = mean[2 * k], mu_d1 = mean[2 * k + 1];
             npy_float32 sigma_d0 = cov[4 * k], corr = cov[4 * k + 1], sigma_d1 = cov[4 * k + 3];
 
-            // gmm direct evaluation
+            // weighted gmm direct evaluation
             npy_float32 inv_det = fact_const[2 * k];
             npy_float32 sqrt_inv_det = fact_const[2 * k + 1];
             npy_float32 pos_i_cent = pos_i - mu_d0, pos_j_cent = pos_j - mu_d1;
@@ -78,7 +195,7 @@ int MSECost(
 
 
 int MSECostAndGrad(
-    npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
+    const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
     npy_float32* mean, npy_float32* cov, npy_float32* mag, const long n_clu,
     npy_float32* cost, npy_float32* mean_grad, npy_float32* cov_grad, npy_float32* mag_grad
 ) {
@@ -140,7 +257,7 @@ int MSECostAndGrad(
             npy_float32 mu_d0 = mean[2 * k], mu_d1 = mean[2 * k + 1];
             npy_float32 sigma_d0 = cov[4 * k], corr = cov[4 * k + 1], sigma_d1 = cov[4 * k + 3];
 
-            // gmm direct evaluation
+            // weighted gmm direct evaluation
             npy_float32 inv_det = fact_const[7 * k + 2];
             npy_float32 sqrt_inv_det = fact_const[7 * k + 4];
             npy_float32 pos_i_cent = pos_i - mu_d0, pos_j_cent = pos_j - mu_d1;

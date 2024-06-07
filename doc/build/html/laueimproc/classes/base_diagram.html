@@ -730,14 +730,16 @@ class BaseDiagram:
                 &#34;left&#34;, functions=(lambda y: y-.5, lambda i: i+.5)
             ).set_ylabel(&#34;i (first dim in &#39;ij&#39; conv)&#34;)
         if kwargs.get(&#34;show_image&#34;, True):
-
-            axes.imshow(
-                image.numpy(force=True),
-                aspect=&#34;equal&#34;,
-                extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
-                interpolation=None,  # antialiasing is True
-                norm=Normalize(vmin, vmax),
-                cmap=&#34;plasma&#34;,  # or gray
+            axes.get_figure().colorbar(
+                axes.imshow(
+                    image.numpy(force=True),
+                    aspect=&#34;equal&#34;,
+                    extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
+                    interpolation=None,  # antialiasing is True
+                    norm=Normalize(vmin, vmax),
+                    cmap=&#34;plasma&#34;,  # or gray
+                ),
+                ax=axes,
             )
         if kwargs.get(&#34;show_boxes&#34;, True) and len(self):
             bboxes = self.bboxes.numpy(force=True).astype(np.float32)
@@ -1669,14 +1671,16 @@ For memory management, it is better to provide a pathlike rather than an array.<
                 &#34;left&#34;, functions=(lambda y: y-.5, lambda i: i+.5)
             ).set_ylabel(&#34;i (first dim in &#39;ij&#39; conv)&#34;)
         if kwargs.get(&#34;show_image&#34;, True):
-
-            axes.imshow(
-                image.numpy(force=True),
-                aspect=&#34;equal&#34;,
-                extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
-                interpolation=None,  # antialiasing is True
-                norm=Normalize(vmin, vmax),
-                cmap=&#34;plasma&#34;,  # or gray
+            axes.get_figure().colorbar(
+                axes.imshow(
+                    image.numpy(force=True),
+                    aspect=&#34;equal&#34;,
+                    extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
+                    interpolation=None,  # antialiasing is True
+                    norm=Normalize(vmin, vmax),
+                    cmap=&#34;plasma&#34;,  # or gray
+                ),
+                ax=axes,
             )
         if kwargs.get(&#34;show_boxes&#34;, True) and len(self):
             bboxes = self.bboxes.numpy(force=True).astype(np.float32)
@@ -2011,19 +2015,15 @@ PosixPath('/.../laueimproc/io/ge.jp2')
         raise TypeError(msg) from None
     val = cache.get(self.attrname, _NOT_FOUND)
     if val is _NOT_FOUND:
-        with self.lock:
-            # check if another thread filled cache while we awaited lock
-            val = cache.get(self.attrname, _NOT_FOUND)
-            if val is _NOT_FOUND:
-                val = self.func(instance)
-                try:
-                    cache[self.attrname] = val
-                except TypeError:
-                    msg = (
-                        f&#34;The &#39;__dict__&#39; attribute on {type(instance).__name__!r} instance &#34;
-                        f&#34;does not support item assignment for caching {self.attrname!r} property.&#34;
-                    )
-                    raise TypeError(msg) from None
+        val = self.func(instance)
+        try:
+            cache[self.attrname] = val
+        except TypeError:
+            msg = (
+                f&#34;The &#39;__dict__&#39; attribute on {type(instance).__name__!r} instance &#34;
+                f&#34;does not support item assignment for caching {self.attrname!r} property.&#34;
+            )
+            raise TypeError(msg) from None
     return val</code></pre>
 </details>
 </dd>
@@ -2793,14 +2793,16 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
             &#34;left&#34;, functions=(lambda y: y-.5, lambda i: i+.5)
         ).set_ylabel(&#34;i (first dim in &#39;ij&#39; conv)&#34;)
     if kwargs.get(&#34;show_image&#34;, True):
-
-        axes.imshow(
-            image.numpy(force=True),
-            aspect=&#34;equal&#34;,
-            extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
-            interpolation=None,  # antialiasing is True
-            norm=Normalize(vmin, vmax),
-            cmap=&#34;plasma&#34;,  # or gray
+        axes.get_figure().colorbar(
+            axes.imshow(
+                image.numpy(force=True),
+                aspect=&#34;equal&#34;,
+                extent=(.5, self.image.shape[1]+.5, self.image.shape[0]+.5, .5),
+                interpolation=None,  # antialiasing is True
+                norm=Normalize(vmin, vmax),
+                cmap=&#34;plasma&#34;,  # or gray
+            ),
+            ax=axes,
         )
     if kwargs.get(&#34;show_boxes&#34;, True) and len(self):
         bboxes = self.bboxes.numpy(force=True).astype(np.float32)

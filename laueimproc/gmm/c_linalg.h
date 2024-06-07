@@ -1,5 +1,6 @@
 /* Simple linear algebra tools. */
 
+#define EPS 1.19209e-7
 #define PY_SSIZE_T_CLEAN
 #include <math.h>
 #include <numpy/arrayobject.h>
@@ -7,11 +8,8 @@
 #include <stdio.h>
 
 
-#define EPS 1.1920929e-7
-
-
 int ObsToMeanCov(const npy_float32* roi, const npy_int16 bbox[4], npy_float32* mean, npy_float32* cov) {
-    // Compute the barycenter and the covariance cov [sigma1**2, sigma2**2, corr].
+    // Compute the barycenter and the biaised covariance cov [sigma1**2, sigma2**2, corr].
     long shift;
     npy_float32 weight, norm = 0.0;
     npy_float32 pos[2];
@@ -75,8 +73,8 @@ int Cov2dToEigtheta(npy_float32* sigma1_std1, npy_float32* sigma2_std2, npy_floa
     *sigma2_std2 = buff1 - (*sigma1_std1);  // s1 + s2 - sqrt((2*c)**2 + (s2-s1)**2)
     *sigma1_std1 += buff1;  // s1 + s2 + sqrt((2*c)**2 + (s2-s1)**2)
     *sigma1_std1 *= 0.5, *sigma2_std2 *= 0.5;  // lambda_1, lambda_2
-    if (*sigma1_std1 <= 0.0 || *sigma2_std2 <= 0.0) {
-        fprintf(stderr, "the covariance matrix is not diagonalisable, (eig values <= 0)\n");
+    if (*sigma1_std1 < 0.0 || *sigma2_std2 < 0.0) {
+        fprintf(stderr, "the covariance matrix is not diagonalisable, (eig values < 0)\n");
         return 1;
     }
     *sigma1_std1 = sqrtf(*sigma1_std1), *sigma2_std2 = sqrtf(*sigma2_std2);  // std1, std2

@@ -36,6 +36,18 @@ point_t RandomNormal() {
 }
 
 
+npy_float32 MaxAbsDiff(const npy_float32* x, const npy_float32* y, const long n) {
+    npy_float32 diff = fabsf(x[0] - y[0]), diff_;
+    for (long i = 1; i < n; ++i) {
+        diff_ = fabsf(x[i] - y[i]);
+        if (diff_ > diff) {
+            diff = diff_;
+        }
+    }
+    return diff;
+}
+
+
 int FitInit(
     const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
     npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu
@@ -79,23 +91,238 @@ int FitInit(
 }
 
 
-int FitEM(
+int FitEMOneStep(
     const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
     npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu
 ) {
+    /*
+        Implements one step of the Espectation Maximization algorithm.
+    */
+    const long area = height * width;
+    npy_float32* post;
+    npy_float32 norm, sum;
+    long shift;
+
+    // posterior probability that observation i belongs to cluster j.
+    post = malloc(n_clu * area * sizeof(*post));
+    if (post == NULL) {
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+    for (long j = 0; j < n_clu; ++j) {  // compute each gaussian separately
+        GMM(
+            anchor_i, anchor_j, height, width,
+            mean + 2 * j, cov + 4 * j, eta + j, 1,
+            post + j * area
+        );
+    }
+    for (long i = 0; i < area; ++i) {  // normalize contributions
+        norm = 0.0;
+        #pragma omp simd reduction(+:norm) safelen(1)
+        for (long j = 0; j < n_clu; ++j) {
+            post[i + j * area] += EPS;  // against div by 0 and more stability
+            norm += post[i + j * area];
+        }
+        norm = 1.0 / norm;
+        #pragma omp simd safelen(1)
+        for (long j = 0; j < n_clu; ++j) {
+            post[i + j * area] *= norm;
+        }
+    }
+
+    // posterior -> alpha_i * p_ij
+    #pragma omp simd collapse(2)
+    for (long j = 0; j < n_clu; ++j) {
+        for (long i = 0; i < area; ++i) {
+            post[i + j * area] *= roi[i];
+        }
+    }
+
+    // the relative weight of each gaussian
+    norm = 0.0;
+    #pragma omp simd reduction(+:norm)
+    for (long i = 0; i < area; ++i) {
+        norm += roi[i];
+    }
+    norm = 1.0 / norm;
+    for (long j = 0; j < n_clu; ++j) {
+        shift = j * area;
+        sum = 0.0;
+        #pragma omp simd reduction(+:sum)
+        for (long i = 0; i < area; ++i) {
+            sum += post[i + shift];
+        }
+        eta[j] = sum * norm;
+
+        // the mean of each gaussian
+        mean[2 * j] = 0.0;
+        mean[2 * j + 1] = 0.0;
+        for (long i = 0; i < area; ++i) {
+            npy_float32 pos_i = (npy_float32)(i / width), pos_j = (npy_float32)(i % width);
+            mean[2 * j] += post[i + shift] * pos_i;
+            mean[2 * j + 1] += post[i + shift] * pos_j;
+        }
+        mean[2 * j] /= sum;
+        mean[2 * j + 1] /= sum;
+        mean[2 * j] += (npy_float32)anchor_i + 0.5;
+        mean[2 * j + 1] += (npy_float32)anchor_j + 0.5;
+
+        // the cov of each gaussian
+        cov[4 * j] = 0.0;
+        cov[4 * j + 1] = 0.0;
+        cov[4 * j + 3] = 0.0;
+        for (long i = 0; i < area; ++i) {
+            npy_float32 pos_i = (npy_float32)(i / width), pos_j = (npy_float32)(i % width);
+            pos_i += (npy_float32)anchor_i + 0.5, pos_j += (npy_float32)anchor_j + 0.5;
+            pos_i -= mean[2 * j], pos_j -= mean[2 * j + 1];
+
+            npy_float32 weight = post[i + shift];
+            cov[4 * j] += weight * pos_i * pos_i;
+            cov[4 * j + 1] += weight * pos_i * pos_j;
+            cov[4 * j + 3] += weight * pos_j * pos_j;
+        }
+        cov[4 * j] /= sum;
+        cov[4 * j + 1] /= sum;
+        cov[4 * j + 2] = cov[4 * j + 1];
+        cov[4 * j + 3] /= sum;
+    }
+
+    free(post);
+    return 0;
+}
+
+
+int FitEMMultiSteps(
+    const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
+    npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu
+) {
+    /*
+        Implement the Espectation Maximization algorithm.
+        Assume that the Gaussians parameters have already been correctly initialized.
+        Performs a single training, if serveral tries must be pefrormed, it is done above.
+    */
+    npy_float32* prev_mean;
+    prev_mean = malloc(2 * n_clu * sizeof(*prev_mean));
+    if (prev_mean == NULL) {
+        free(prev_mean);
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+    do {
+        memcpy(prev_mean, mean, 2 * n_clu * sizeof(*prev_mean));
+        if (
+            FitEMOneStep(
+                roi, anchor_i, anchor_j, height, width,
+                mean, cov, eta, n_clu
+            )
+        ) {
+            free(prev_mean);
+            return 1;
+        }
+    } while (MaxAbsDiff(mean, prev_mean, 2 * n_clu) > 0.01);
+    free(prev_mean);
+    return 0;
+}
+
+
+int FitEM(
+    const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
+    npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu, const long n_tries
+) {
+    /*
+        Implement the Espectation Maximization algorithm.
+        Assume that the Gaussians parameters have already been correctl initialized.
+        Performs a single training, il serveral tries must be pefrormed, it is done above.
+    */
+    if (
+        FitInit(
+            roi, anchor_i, anchor_j, height, width,
+            mean, cov, eta, n_clu
+        )
+        ||
+        FitEMMultiSteps(
+            roi, anchor_i, anchor_j, height, width,
+            mean, cov, eta, n_clu
+        )
+    ) {
+        return 1;
+    }
+    if (n_tries > 1) {
+        npy_float32 best_llh, llh;
+        if (
+            LogLikelihood(
+                roi, anchor_i, anchor_j, height, width,
+                mean, cov, eta, n_clu,
+                &best_llh
+            )
+        ) {
+            return 1;
+        }
+        npy_float32 *curr_mean, *curr_cov, *curr_eta;
+        curr_mean = malloc(2 * n_clu * sizeof(*curr_mean));
+        if (curr_mean == NULL) {
+            fprintf(stderr, "failed to malloc\n");
+            return 1;
+        }
+        curr_cov = malloc(4 * n_clu * sizeof(*curr_cov));
+        if (curr_cov == NULL) {
+            free(curr_mean);
+            fprintf(stderr, "failed to malloc\n");
+            return 1;
+        }
+        curr_eta = malloc(n_clu * sizeof(*curr_eta));
+        if (curr_eta == NULL) {
+            free(curr_mean);
+            free(curr_cov);
+            fprintf(stderr, "failed to malloc\n");
+            return 1;
+        }
+        for (long i = 1; i < n_tries; ++i) {
+            if (
+                FitInit(
+                    roi, anchor_i, anchor_j, height, width,
+                    curr_mean, curr_cov, curr_eta, n_clu
+                )
+                ||
+                FitEMMultiSteps(
+                    roi, anchor_i, anchor_j, height, width,
+                    curr_mean, curr_cov, curr_eta, n_clu
+                )
+                ||
+                LogLikelihood(
+                    roi, anchor_i, anchor_j, height, width,
+                    curr_mean, curr_cov, curr_eta, n_clu,
+                    &llh
+                )
+            ) {
+                free(curr_mean);
+                free(curr_cov);
+                free(curr_eta);
+                return 1;
+            }
+            if (llh > best_llh) {
+                memcpy(mean, curr_mean, 2 * n_clu * sizeof(*curr_mean));
+                memcpy(cov, curr_cov, 4 * n_clu * sizeof(*curr_cov));
+                memcpy(eta, curr_eta, n_clu * sizeof(*curr_eta));
+            }
+        }
+        free(curr_mean);
+        free(curr_cov);
+        free(curr_eta);
+    }
     return 0;
 }
 
 
 int BatchedFit(
     PyByteArrayObject* data, PyArrayObject* bboxes,
-    npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu,
+    npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu, const long n_tries,
     int (*func)(
         const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
-        npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu
+        npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu, const long n_tries
     )
 ) {
-    /* Apply the function CostAndGrad on each roi. */
+    /* Apply the function func on each roi. */
     npy_float32* rawdata;
     npy_intp datalen = (npy_intp)PyByteArray_Size((PyObject *)data), shift = 0, area;
     const npy_intp n = PyArray_DIM(bboxes, 0);
@@ -128,14 +355,9 @@ int BatchedFit(
             return 1;
         }
         if (
-            FitInit(
-                rawdata + shift, anchor_i, anchor_j, height, width,
-                mean + 2 * n_clu * i, cov + 4 * n_clu * i, eta + n_clu * i, n_clu
-            )
-            ||
             func(
                 rawdata + shift, anchor_i, anchor_j, height, width,
-                mean + 2 * n_clu * i, cov + 4 * n_clu * i, eta + n_clu * i, n_clu
+                mean + 2 * n_clu * i, cov + 4 * n_clu * i, eta + n_clu * i, n_clu, n_tries
             )
         ) {
             fprintf(stderr, "the error comes for the roi %ld\n", i);
@@ -155,7 +377,7 @@ static PyObject* FitEmParser(PyObject* self, PyObject* args, PyObject* kwargs) {
     // Compute the grad of the mse loss between the predicted gmm and the rois
     static char *kwlist[] = {"data", "bboxes", "nbr_clusters", "nbr_tries", NULL};
     int error;
-    long nbr_clu = 1, nbr_tries = 2;
+    long nbr_clu, nbr_tries;
     npy_intp shape[4];
     PyArrayObject *bboxes, *mean, *cov, *eta;
     PyByteArrayObject* data;
@@ -163,7 +385,7 @@ static PyObject* FitEmParser(PyObject* self, PyObject* args, PyObject* kwargs) {
 
     // parse and check
     if (!PyArg_ParseTupleAndKeywords(
-        args, kwargs, "YO!|ll", kwlist,
+        args, kwargs, "YO!ll", kwlist,
         &data, &PyArray_Type, &bboxes, &nbr_clu, &nbr_tries)
     ) {
         return NULL;
@@ -201,7 +423,7 @@ static PyObject* FitEmParser(PyObject* self, PyObject* args, PyObject* kwargs) {
     Py_BEGIN_ALLOW_THREADS
     error = BatchedFit(
         data, bboxes,
-        (npy_float32 *)PyArray_DATA(mean), (npy_float32 *)PyArray_DATA(cov), (npy_float32 *)PyArray_DATA(eta), nbr_clu,
+        (npy_float32 *)PyArray_DATA(mean), (npy_float32 *)PyArray_DATA(cov), (npy_float32 *)PyArray_DATA(eta), nbr_clu, nbr_tries,
         &FitEM
     );
     Py_END_ALLOW_THREADS
