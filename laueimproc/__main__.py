@@ -7,8 +7,9 @@ import sys
 import click
 
 from laueimproc import __version__
-from laueimproc.testing.__main__ import main as main_test
 from laueimproc.common import get_project_root
+from laueimproc.io.__main__ import main as main_convert
+from laueimproc.testing.__main__ import main as main_test
 
 
 @click.group(invoke_without_command=True)
@@ -30,6 +31,7 @@ def main(ctx=None, version: bool = False):
 
 
 main.add_command(main_test, "test")
+main.add_command(main_convert, "convert")
 
 
 if __name__ == "__main__":
