@@ -7,8 +7,10 @@ import multiprocessing.pool
 import pathlib
 import typing
 
-import cv2
 from tqdm.autonotebook import tqdm
+
+from laueimproc.io.read import read_image
+from laueimproc.io.write import write_jp2
 
 
 PATHLIKE = typing.Union[pathlib.Path, str]
@@ -37,6 +39,7 @@ def converter_decorator(func: typing.Callable):
     def batch_converter(
         src: typing.Union[PATHLIKE, typing.Iterable[PATHLIKE]],
         dst_dir: typing.Optional[PATHLIKE] = None,
+        metadata: bool = True,
     ):
         """Decorate an image converter.
 
@@ -46,7 +49,11 @@ def converter_decorator(func: typing.Callable):
             The files to be converted.
         dst_dir : dirlike, optional
             The output directory. By default the same directory as the input file is used.
+        metadata : boolean, default=True
+            If True, copy the exif metadata as well,
+            overwise convert only the image, it is faster and more compact.
         """
+        assert isinstance(metadata, bool), metadata.__class__.__name__
         if isinstance(src, str):
             src = pathlib.Path(src)
         if isinstance(src, pathlib.Path):
@@ -61,9 +68,9 @@ def converter_decorator(func: typing.Callable):
             assert dst_dir.is_dir(), f"the output directpty {dst_dir} has to exists"
 
         file_log = tqdm(total=0, position=1, bar_format="{desc}")
-        with multiprocessing.pool.ThreadPool() as pool:
+        with multiprocessing.pool.ThreadPool() as pool:  # ThreadPool is not cv2 compatible
             for dst_file in tqdm(
-                pool.imap_unordered(lambda s: func(s, dst_dir), src),
+                pool.imap_unordered(lambda s: func(s, dst_dir or s.parent, metadata), src),
                 total=len(src),
                 desc="convert",
                 unit="img",
@@ -73,7 +80,7 @@ def converter_decorator(func: typing.Callable):
 
 
 @converter_decorator
-def to_jp2(src_file: pathlib.Path, dst_dir: typing.Optional[pathlib.Path] = None) -> pathlib.Path:
+def to_jp2(src_file: pathlib.Path, dst_dir: pathlib.Path, metadata: bool) -> pathlib.Path:
     """Convert a file into jpeg2000 format.
 
     Parameters
@@ -82,18 +89,19 @@ def to_jp2(src_file: pathlib.Path, dst_dir: typing.Optional[pathlib.Path] = None
         The input filename.
     dst_dir : pathlib.Path
         The output directory.
+    metadata : boolean
+        Flag to allow the copy of metadata.
 
     Returns
     -------
     abs_out_path : pathlib.Path
         The absolute filename of the created image.
     """
-    if (img_np := cv2.imread(str(src_file), cv2.IMREAD_UNCHANGED)) is None:
-        raise ValueError(f"failed to decode image {src_file} with cv2")
-    if dst_dir is None:
-        dst_file = src_file.with_suffix(".jp2").resolve()
-    else:
-        dst_file = (dst_dir / src_file.with_suffix(".jp2").name).resolve()
-    if not cv2.imwrite(str(dst_file), img_np, (cv2.IMWRITE_JPEG2000_COMPRESSION_X1000, 1000)):
-        raise ValueError(f"failed to encode image {dst_file} with cv2")
+    dst_file = (dst_dir / src_file.with_suffix(".jp2").name).resolve()
+
+    image, exif = read_image(src_file)
+    if not metadata:
+        exif = None
+    write_jp2(dst_file, image, exif)
+
     return dst_file

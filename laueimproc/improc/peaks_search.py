@@ -121,7 +121,7 @@ def peaks_search(
     ...     area = float((bboxes[:, 2]*bboxes[:, 3]).to(float).mean())
     ...     print(f"{len(rois)} bytes, {len(bboxes)} bboxes with average area of {area:.1f} pxl**2")
     ...
-    >>> img = read_image(get_sample())
+    >>> img, _ = read_image(get_sample())
     >>> print_stats(*peaks_search(img))
     89576 bytes, 240 bboxes with average area of 93.3 pxl**2
     >>>

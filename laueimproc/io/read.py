@@ -2,17 +2,79 @@
 
 """Read an image of laue diagram."""
 
+import io
+import logging
+import lzma
 import pathlib
 import typing
 import warnings
 
 import cv2
-import fabio
 import numpy as np
+import PIL.ExifTags
+import PIL.Image
+import PIL.ImageOps
 import torch
+import yaml
 
 
-def read_image(filename: typing.Union[str, pathlib.Path]) -> torch.Tensor:
+def extract_metadata(data: bytes) -> dict:
+    """Extract the metadata of the file content.
+
+    Parameters
+    ----------
+    data : bytes
+        The raw image file content.
+
+    Returns
+    -------
+    metadata : dict
+        The metadata of the file.
+    """
+    assert isinstance(data, bytes), data.__class__.__name__
+
+    # extract
+    metadata = {}
+    if (
+        data[4:8] in {b"jP  ", b"jP2 "}
+        and (index := data.rfind(b"laueimproc_exif:")) != -1
+    ):  # case jpeg2000, own safe and stable protocol
+        try:
+            metadata = lzma.decompress(data[index+16:])
+        except lzma.LZMAError:
+            logging.warning("failed to extract metadata of a jp2 file")
+        else:
+            metadata = yaml.safe_load(metadata)  # pickle is not security safe
+            if not isinstance(metadata, dict):
+                logging.warning("metadata of jp2 file is corrupted")
+                metadata = {}
+    else:
+        try:
+            img_pillow = PIL.Image.open(io.BytesIO(data))
+        except PIL.UnidentifiedImageError:
+            logging.warning("failed to extract metadata")
+        else:
+            metadata = {PIL.ExifTags.TAGS.get(k, k): v for k, v in img_pillow.getexif().items()}
+
+    # filter
+    for prop in (
+        "ImageWidth",
+        "ImageLength",
+        "BitsPerSample",
+        "Compression",
+        "SamplesPerPixel",
+        "TileWidth",
+        "TileLength",
+        "ColorMatrix1",
+        "ColorMatrix2",
+    ):
+        if prop in metadata:
+            del metadata[prop]
+
+    return metadata
+
+
+def read_image(filename: typing.Union[str, pathlib.Path]) -> tuple[torch.Tensor, dict]:
     """Read and decode a grayscale image into a numpy array.
 
     Use cv2 as possible, and fabio if cv2 failed.
@@ -26,6 +88,8 @@ def read_image(filename: typing.Union[str, pathlib.Path]) -> torch.Tensor:
     -------
     image : torch.Tensor
         The grayscale laue image matrix in float between with value range in [0, 1].
+    metadata : dict
+        The file metadata.
 
     Raises
     ------
@@ -37,14 +101,23 @@ def read_image(filename: typing.Union[str, pathlib.Path]) -> torch.Tensor:
     if not filename.is_file():
         raise OSError(f"the filename {filename} is not a file")
 
-    if (image := cv2.imread(str(filename), cv2.IMREAD_ANYDEPTH | cv2.IMREAD_GRAYSCALE)) is not None:
-        return to_floattensor(image)  # cv2 9% faster than fabio on .mccd files
-    try:
-        with fabio.open(filename) as raw:
-            image = raw.data
-    except KeyError as err:
-        raise OSError(f"failed to read {filename} with cv2 and fabio") from err
-    return to_floattensor(image)
+    # read image
+    with open(filename, "rb") as stream:
+        img_bytes = stream.read()
+    buffer = np.asarray(bytearray(img_bytes), dtype=np.uint8)
+    if (image := cv2.imdecode(buffer, cv2.IMREAD_ANYDEPTH | cv2.IMREAD_GRAYSCALE)) is None:
+        try:
+            img_pillow = PIL.Image.open(io.BytesIO(img_bytes))
+        except PIL.UnidentifiedImageError as err:
+            raise OSError(f"failed to read {filename} with cv2 and pillow") from err
+        image = np.asarray(img_pillow)
+        if image.ndim != 2:
+            image = np.asarray(PIL.ImageOps.grayscale(img_pillow))
+
+    image = to_floattensor(image)
+    metadata = extract_metadata(img_bytes)
+
+    return image, metadata
 
 
 def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
@@ -84,4 +157,4 @@ def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -> torch.Tensor
     warnings.warn(
         "to instanciate a image from a non arraylike data will be forbiden", DeprecationWarning
     )
-    return torch.tensor(data)  # copy
+    return torch.asarray(data).clone()

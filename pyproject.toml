@@ -10,10 +10,11 @@ requires-python = ">=3.9"
 dependencies = [
   "click",
   "cloudpickle",
-  "fabio",
   "numpy",
   "opencv-contrib-python-headless",
+  "pillow",
   "psutil",
+  "pyyaml",
   "torch",
   "tqdm",
 ]

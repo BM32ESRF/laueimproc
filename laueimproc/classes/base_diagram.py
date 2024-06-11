@@ -19,7 +19,7 @@ import torch
 
 from laueimproc.common import bytes2human
 from laueimproc.improc.peaks_search import peaks_search
-from laueimproc.io.read import read_image, to_floattensor
+from laueimproc.io.read import extract_metadata, read_image, to_floattensor
 from laueimproc.opti.cache import CacheManager, getsizeof
 from laueimproc.opti.rois import filter_by_indices
 from laueimproc.opti.rois import imgbboxes2raw
@@ -395,10 +395,6 @@ class BaseDiagram:
                         continue
                     if match["state"] != state:
                         removed += sys.getsizeof(key) + getsizeof(self._cache[1].pop(key))
-                # for key in list(self._properties):
-                #     match = self._properties[key][0]
-                #     if match is not None and match != state:
-                #         removed += sys.getsizeof(key) + getsizeof(self._properties.pop(key))
 
         # delete valid cache
         if 1 in _levels:
@@ -515,8 +511,31 @@ class BaseDiagram:
         kwargs_str = ", ".join(f"{k}={repr(v)}" for k, v in kwargs.items())
         self._history = [f"{len(self)} spots from self.find_spots({kwargs_str})"]
 
+    def get_properties(self) -> dict[str]:
+        """Return all the available properties."""
+        extract = False
+        with self._cache[0]:
+            if (metadata := self._cache[1].get("metadata", None)) is None:
+                extract = isinstance(self._file_or_data, pathlib.Path)
+
+        if extract:  # way to realease the lock
+            with open(self.file, "rb") as raw:
+                data = raw.read()
+            metadata = extract_metadata(data)
+            with self._cache[0]:
+                self._cache[1]["metadata"] = metadata
+            CacheManager().track(self)
+
+        properties = {k: (None, v) for k, v in metadata.items()}
+        with self._cache[0]:
+            properties |= self._properties
+            state = self.state
+            properties = {k: v for k, (s, v) in properties.items() if s is None or s == state}
+
+        return properties
+
     def get_property(self, name: str) -> object:
-        """Return the property associated to te given id.
+        """Return the property associated to the given id.
 
         Parameters
         ----------
@@ -562,19 +581,16 @@ class BaseDiagram:
         >>>
         """
         assert isinstance(name, str), name.__class__.__name__
-        with self._cache[0]:
-            try:
-                state, value = self._properties[name]
-            except KeyError as err:
+        available_properties = self.get_properties()
+        try:
+            return available_properties[name]
+        except KeyError as err:
+            if name not in self._properties:  # lock unescessary
                 raise KeyError(f"the property {repr(name)} does no exist") from err
-        if state is not None and state != self.state:
-            # with self._lock:
-            #     self._properties[name] = (state, None)
             raise KeyError(
                 f"the property {repr(name)} is no longer valid "
                 "because the state of the diagram has changed"
-            )
-        return value
+            ) from err
 
     @property
     def history(self) -> list[str]:
@@ -615,15 +631,18 @@ class BaseDiagram:
         tensor(True)
         >>>
         """
+        extract = False
         with self._cache[0]:
-            if "image" not in self._cache[1]:  # no auto ache because it is state invariant
-                self._cache[1]["image"] = (
-                    read_image(self._file_or_data)
-                    if isinstance(self._file_or_data, pathlib.Path) else
-                    self._file_or_data
-                )
-            image = self._cache[1]["image"]
-        CacheManager().track(self)
+            if (image := self._cache[1].get("image", None)) is None:
+                extract = isinstance(self._file_or_data, pathlib.Path)
+
+        if extract:  # way to realease the lock
+            image, metadata = read_image(self.file)
+            with self._cache[0]:
+                self._cache[1]["image"] = image
+                self._cache[1]["metadata"] = metadata
+            CacheManager().track(self)
+
         return image
 
     def plot(
