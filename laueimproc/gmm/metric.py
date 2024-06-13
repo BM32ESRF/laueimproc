@@ -156,3 +156,51 @@ def log_likelihood(
     ind_prob += torch.finfo(torch.float32).eps  # for stability
     ind_prob = torch.log(ind_prob, out=None if ind_prob.requires_grad else ind_prob)
     return torch.sum(ind_prob, axis=-1, keepdim=False)  # (...,)
+
+
+def mse(
+    obs: torch.Tensor,
+    weights: typing.Optional[torch.Tensor],
+    gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+    *, _check: bool = True,
+) -> torch.Tensor:
+    r"""Compute the mean square error.
+
+    Parameters
+    ----------
+    obs : torch.Tensor
+        The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
+    weights : torch.Tensor, optional
+        The duplication weights of shape (..., \(N\)).
+    gmm : tuple of torch.Tensor
+        * mean : torch.Tensor
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
+        * cov : torch.Tensor
+            The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
+        * mag : torch.Tensor
+            The relative mass \(\eta_j\) of shape (..., \(K\)).
+
+    Returns
+    -------
+    mse : torch.Tensor
+        The mean square error of shape (...,).
+        \(
+            mse = \frac{1}{N}\sum\limits_{i=1}^N
+                \left(\left(\sum\limits_{j=1}^K
+                \eta_j \left(
+                    \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+                \right)\right) - \alpha_i\right)^2
+        \)
+    """
+    if _check:
+        check_infit(obs, weights)
+        check_gmm(gmm)
+
+    mean, cov, eta = gmm
+    prob = gauss(obs, mean, cov, _check=False)  # (..., n_clu, n_obs)
+    prob **= weights.unsqueeze(-2)
+    prob *= eta.unsqueeze(-1)
+    ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)
+    ind_prob += torch.finfo(torch.float32).eps  # for stability
+    ind_prob = torch.log(ind_prob, out=None if ind_prob.requires_grad else ind_prob)
+    return torch.sum(ind_prob, axis=-1, keepdim=False)  # (...,)

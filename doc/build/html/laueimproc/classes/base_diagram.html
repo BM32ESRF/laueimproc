@@ -49,7 +49,7 @@ import torch
 
 from laueimproc.common import bytes2human
 from laueimproc.improc.peaks_search import peaks_search
-from laueimproc.io.read import read_image, to_floattensor
+from laueimproc.io.read import extract_metadata, read_image, to_floattensor
 from laueimproc.opti.cache import CacheManager, getsizeof
 from laueimproc.opti.rois import filter_by_indices
 from laueimproc.opti.rois import imgbboxes2raw
@@ -118,7 +118,7 @@ class BaseDiagram:
         self._cache: tuple[threading.Lock, dict[str]] = (  # contains the optional cached data
             threading.Lock(), {}
         )
-        self._file_or_data: typing.Union[pathlib.Path, torch.Tensor]  # the path to the image file
+        self._file_or_image: typing.Union[pathlib.Path, torch.Tensor]  # the path to the image file
         self._history: list[str] = []  # the history of the actions performed
         self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
         self._rois: typing.Optional[tuple[bytearray, torch.Tensor]] = None  # datarois, bboxes
@@ -126,14 +126,14 @@ class BaseDiagram:
 
         # initialisation
         if isinstance(data, (str, pathlib.Path)):
-            self._file_or_data = data
+            self._file_or_image = data
             if _check:
-                self._file_or_data = pathlib.Path(self._file_or_data).expanduser().resolve()
-                assert self._file_or_data.is_file(), self._file_or_data
+                self._file_or_image = pathlib.Path(self._file_or_image).expanduser().resolve()
+                assert self._file_or_image.is_file(), self._file_or_image
         else:
             warnings.warn(&#34;please provide a path rather than an array&#34;, RuntimeWarning)
-            self._file_or_data = to_floattensor(data)
-            assert self._file_or_data.ndim == 2, self._file_or_data.shape
+            self._file_or_image = to_floattensor(data)
+            assert self._file_or_image.ndim == 2, self._file_or_image.shape
 
     def __getstate__(self, cache: bool = False):
         &#34;&#34;&#34;Make the diagram pickleable.&#34;&#34;&#34;
@@ -142,14 +142,14 @@ class BaseDiagram:
         if cache:
             with self._cache[0]:
                 return (
-                    self._file_or_data,
+                    self._file_or_image,
                     self._history,
                     self._properties,
                     rois,
                     self._cache[1].copy(),
                 )
         return (
-            self._file_or_data,
+            self._file_or_image,
             self._history,
             self._properties,
             rois,
@@ -213,7 +213,7 @@ class BaseDiagram:
         # not verification for thread safe
         # because this method is never meant to be call from a thread.
         (
-            self._file_or_data,
+            self._file_or_image,
             self._history,
             self._properties,
             self._rois,
@@ -240,9 +240,9 @@ class BaseDiagram:
         &#34;&#34;&#34;
         # title
         text = (
-            f&#34;Diagram from {self._file_or_data.name}:&#34;
-            if isinstance(self._file_or_data, pathlib.Path) else
-            f&#34;Diagram from Tensor of id {id(self._file_or_data)}:&#34;
+            f&#34;Diagram from {self._file_or_image.name}:&#34;
+            if isinstance(self._file_or_image, pathlib.Path) else
+            f&#34;Diagram from Tensor of id {id(self._file_or_image)}:&#34;
         )
 
         # history
@@ -425,10 +425,6 @@ class BaseDiagram:
                         continue
                     if match[&#34;state&#34;] != state:
                         removed += sys.getsizeof(key) + getsizeof(self._cache[1].pop(key))
-                # for key in list(self._properties):
-                #     match = self._properties[key][0]
-                #     if match is not None and match != state:
-                #         removed += sys.getsizeof(key) + getsizeof(self._properties.pop(key))
 
         # delete valid cache
         if 1 in _levels:
@@ -454,7 +450,7 @@ class BaseDiagram:
         PosixPath(&#39;/.../laueimproc/io/ge.jp2&#39;)
         &gt;&gt;&gt;
         &#34;&#34;&#34;
-        return self._file_or_data if isinstance(self._file_or_data, pathlib.Path) else None
+        return self._file_or_image if isinstance(self._file_or_image, pathlib.Path) else None
 
     @check_init
     def filter_spots(
@@ -545,8 +541,32 @@ class BaseDiagram:
         kwargs_str = &#34;, &#34;.join(f&#34;{k}={repr(v)}&#34; for k, v in kwargs.items())
         self._history = [f&#34;{len(self)} spots from self.find_spots({kwargs_str})&#34;]
 
+    def get_properties(self) -&gt; dict[str]:
+        &#34;&#34;&#34;Return all the available properties.&#34;&#34;&#34;
+        # no autocache because not state dependent
+        extract = False
+        with self._cache[0]:
+            if (metadata := self._cache[1].get(&#34;metadata&#34;, None)) is None:
+                extract = isinstance(self._file_or_image, pathlib.Path)
+
+        if extract:  # way to realease the lock
+            with open(self.file, &#34;rb&#34;) as raw:
+                data = raw.read()
+            metadata = extract_metadata(data)
+            with self._cache[0]:
+                self._cache[1][&#34;metadata&#34;] = metadata
+            CacheManager().track(self)
+
+        properties = {k: (None, v) for k, v in metadata.items()}
+        with self._cache[0]:
+            properties |= self._properties
+            state = self.state
+            properties = {k: v for k, (s, v) in properties.items() if s is None or s == state}
+
+        return properties
+
     def get_property(self, name: str) -&gt; object:
-        &#34;&#34;&#34;Return the property associated to te given id.
+        &#34;&#34;&#34;Return the property associated to the given id.
 
         Parameters
         ----------
@@ -592,19 +612,16 @@ class BaseDiagram:
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         assert isinstance(name, str), name.__class__.__name__
-        with self._cache[0]:
-            try:
-                state, value = self._properties[name]
-            except KeyError as err:
+        available_properties = self.get_properties()
+        try:
+            return available_properties[name]
+        except KeyError as err:
+            if name not in self._properties:  # lock unescessary
                 raise KeyError(f&#34;the property {repr(name)} does no exist&#34;) from err
-        if state is not None and state != self.state:
-            # with self._lock:
-            #     self._properties[name] = (state, None)
             raise KeyError(
                 f&#34;the property {repr(name)} is no longer valid &#34;
                 &#34;because the state of the diagram has changed&#34;
-            )
-        return value
+            ) from err
 
     @property
     def history(self) -&gt; list[str]:
@@ -645,15 +662,21 @@ class BaseDiagram:
         tensor(True)
         &gt;&gt;&gt;
         &#34;&#34;&#34;
+        if not isinstance(self._file_or_image, pathlib.Path):
+            return self._file_or_image
+
+        extract = False
         with self._cache[0]:
-            if &#34;image&#34; not in self._cache[1]:  # no auto ache because it is state invariant
-                self._cache[1][&#34;image&#34;] = (
-                    read_image(self._file_or_data)
-                    if isinstance(self._file_or_data, pathlib.Path) else
-                    self._file_or_data
-                )
-            image = self._cache[1][&#34;image&#34;]
-        CacheManager().track(self)
+            if (image := self._cache[1].get(&#34;image&#34;, None)) is None:
+                extract = isinstance(self._file_or_image, pathlib.Path)
+
+        if extract:  # way to realease the lock
+            image, metadata = read_image(self.file)
+            with self._cache[0]:
+                self._cache[1][&#34;image&#34;] = image
+                self._cache[1][&#34;metadata&#34;] = metadata
+            CacheManager().track(self)
+
         return image
 
     def plot(
@@ -710,10 +733,10 @@ class BaseDiagram:
         axes = disp  # is gonna changed
         disp = disp or Figure(layout=&#34;tight&#34;)
         if isinstance(disp, Figure):
-            if isinstance(self._file_or_data, pathlib.Path):
-                disp.suptitle(f&#34;Diagram {self._file_or_data.name}&#34;)
+            if isinstance(self._file_or_image, pathlib.Path):
+                disp.suptitle(f&#34;Diagram {self._file_or_image.name}&#34;)
             else:
-                disp.suptitle(f&#34;Diagram from Tensor of id {id(self._file_or_data)}&#34;)
+                disp.suptitle(f&#34;Diagram from Tensor of id {id(self._file_or_image)}&#34;)
             axes = disp.add_subplot()
 
         # fill axes
@@ -927,10 +950,10 @@ class BaseDiagram:
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         hasher = hashlib.md5(usedforsecurity=False)
-        if isinstance(self._file_or_data, pathlib.Path):
-            hasher.update(str(self._file_or_data.name).encode())
+        if isinstance(self._file_or_image, pathlib.Path):
+            hasher.update(str(self._file_or_image.name).encode())
         else:
-            hasher.update(id(self._file_or_data).to_bytes(8, &#34;big&#34;))
+            hasher.update(id(self._file_or_image).to_bytes(8, &#34;big&#34;))
         hasher.update(&#34;\n&#34;.join(self._history).encode())
         return hasher.hexdigest()</code></pre>
 </details>
@@ -1060,7 +1083,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         self._cache: tuple[threading.Lock, dict[str]] = (  # contains the optional cached data
             threading.Lock(), {}
         )
-        self._file_or_data: typing.Union[pathlib.Path, torch.Tensor]  # the path to the image file
+        self._file_or_image: typing.Union[pathlib.Path, torch.Tensor]  # the path to the image file
         self._history: list[str] = []  # the history of the actions performed
         self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
         self._rois: typing.Optional[tuple[bytearray, torch.Tensor]] = None  # datarois, bboxes
@@ -1068,14 +1091,14 @@ For memory management, it is better to provide a pathlike rather than an array.<
 
         # initialisation
         if isinstance(data, (str, pathlib.Path)):
-            self._file_or_data = data
+            self._file_or_image = data
             if _check:
-                self._file_or_data = pathlib.Path(self._file_or_data).expanduser().resolve()
-                assert self._file_or_data.is_file(), self._file_or_data
+                self._file_or_image = pathlib.Path(self._file_or_image).expanduser().resolve()
+                assert self._file_or_image.is_file(), self._file_or_image
         else:
             warnings.warn(&#34;please provide a path rather than an array&#34;, RuntimeWarning)
-            self._file_or_data = to_floattensor(data)
-            assert self._file_or_data.ndim == 2, self._file_or_data.shape
+            self._file_or_image = to_floattensor(data)
+            assert self._file_or_image.ndim == 2, self._file_or_image.shape
 
     def __getstate__(self, cache: bool = False):
         &#34;&#34;&#34;Make the diagram pickleable.&#34;&#34;&#34;
@@ -1084,14 +1107,14 @@ For memory management, it is better to provide a pathlike rather than an array.<
         if cache:
             with self._cache[0]:
                 return (
-                    self._file_or_data,
+                    self._file_or_image,
                     self._history,
                     self._properties,
                     rois,
                     self._cache[1].copy(),
                 )
         return (
-            self._file_or_data,
+            self._file_or_image,
             self._history,
             self._properties,
             rois,
@@ -1155,7 +1178,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         # not verification for thread safe
         # because this method is never meant to be call from a thread.
         (
-            self._file_or_data,
+            self._file_or_image,
             self._history,
             self._properties,
             self._rois,
@@ -1182,9 +1205,9 @@ For memory management, it is better to provide a pathlike rather than an array.<
         &#34;&#34;&#34;
         # title
         text = (
-            f&#34;Diagram from {self._file_or_data.name}:&#34;
-            if isinstance(self._file_or_data, pathlib.Path) else
-            f&#34;Diagram from Tensor of id {id(self._file_or_data)}:&#34;
+            f&#34;Diagram from {self._file_or_image.name}:&#34;
+            if isinstance(self._file_or_image, pathlib.Path) else
+            f&#34;Diagram from Tensor of id {id(self._file_or_image)}:&#34;
         )
 
         # history
@@ -1367,10 +1390,6 @@ For memory management, it is better to provide a pathlike rather than an array.<
                         continue
                     if match[&#34;state&#34;] != state:
                         removed += sys.getsizeof(key) + getsizeof(self._cache[1].pop(key))
-                # for key in list(self._properties):
-                #     match = self._properties[key][0]
-                #     if match is not None and match != state:
-                #         removed += sys.getsizeof(key) + getsizeof(self._properties.pop(key))
 
         # delete valid cache
         if 1 in _levels:
@@ -1396,7 +1415,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         PosixPath(&#39;/.../laueimproc/io/ge.jp2&#39;)
         &gt;&gt;&gt;
         &#34;&#34;&#34;
-        return self._file_or_data if isinstance(self._file_or_data, pathlib.Path) else None
+        return self._file_or_image if isinstance(self._file_or_image, pathlib.Path) else None
 
     @check_init
     def filter_spots(
@@ -1487,8 +1506,32 @@ For memory management, it is better to provide a pathlike rather than an array.<
         kwargs_str = &#34;, &#34;.join(f&#34;{k}={repr(v)}&#34; for k, v in kwargs.items())
         self._history = [f&#34;{len(self)} spots from self.find_spots({kwargs_str})&#34;]
 
+    def get_properties(self) -&gt; dict[str]:
+        &#34;&#34;&#34;Return all the available properties.&#34;&#34;&#34;
+        # no autocache because not state dependent
+        extract = False
+        with self._cache[0]:
+            if (metadata := self._cache[1].get(&#34;metadata&#34;, None)) is None:
+                extract = isinstance(self._file_or_image, pathlib.Path)
+
+        if extract:  # way to realease the lock
+            with open(self.file, &#34;rb&#34;) as raw:
+                data = raw.read()
+            metadata = extract_metadata(data)
+            with self._cache[0]:
+                self._cache[1][&#34;metadata&#34;] = metadata
+            CacheManager().track(self)
+
+        properties = {k: (None, v) for k, v in metadata.items()}
+        with self._cache[0]:
+            properties |= self._properties
+            state = self.state
+            properties = {k: v for k, (s, v) in properties.items() if s is None or s == state}
+
+        return properties
+
     def get_property(self, name: str) -&gt; object:
-        &#34;&#34;&#34;Return the property associated to te given id.
+        &#34;&#34;&#34;Return the property associated to the given id.
 
         Parameters
         ----------
@@ -1534,19 +1577,16 @@ For memory management, it is better to provide a pathlike rather than an array.<
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         assert isinstance(name, str), name.__class__.__name__
-        with self._cache[0]:
-            try:
-                state, value = self._properties[name]
-            except KeyError as err:
+        available_properties = self.get_properties()
+        try:
+            return available_properties[name]
+        except KeyError as err:
+            if name not in self._properties:  # lock unescessary
                 raise KeyError(f&#34;the property {repr(name)} does no exist&#34;) from err
-        if state is not None and state != self.state:
-            # with self._lock:
-            #     self._properties[name] = (state, None)
             raise KeyError(
                 f&#34;the property {repr(name)} is no longer valid &#34;
                 &#34;because the state of the diagram has changed&#34;
-            )
-        return value
+            ) from err
 
     @property
     def history(self) -&gt; list[str]:
@@ -1587,15 +1627,21 @@ For memory management, it is better to provide a pathlike rather than an array.<
         tensor(True)
         &gt;&gt;&gt;
         &#34;&#34;&#34;
+        if not isinstance(self._file_or_image, pathlib.Path):
+            return self._file_or_image
+
+        extract = False
         with self._cache[0]:
-            if &#34;image&#34; not in self._cache[1]:  # no auto ache because it is state invariant
-                self._cache[1][&#34;image&#34;] = (
-                    read_image(self._file_or_data)
-                    if isinstance(self._file_or_data, pathlib.Path) else
-                    self._file_or_data
-                )
-            image = self._cache[1][&#34;image&#34;]
-        CacheManager().track(self)
+            if (image := self._cache[1].get(&#34;image&#34;, None)) is None:
+                extract = isinstance(self._file_or_image, pathlib.Path)
+
+        if extract:  # way to realease the lock
+            image, metadata = read_image(self.file)
+            with self._cache[0]:
+                self._cache[1][&#34;image&#34;] = image
+                self._cache[1][&#34;metadata&#34;] = metadata
+            CacheManager().track(self)
+
         return image
 
     def plot(
@@ -1652,10 +1698,10 @@ For memory management, it is better to provide a pathlike rather than an array.<
         axes = disp  # is gonna changed
         disp = disp or Figure(layout=&#34;tight&#34;)
         if isinstance(disp, Figure):
-            if isinstance(self._file_or_data, pathlib.Path):
-                disp.suptitle(f&#34;Diagram {self._file_or_data.name}&#34;)
+            if isinstance(self._file_or_image, pathlib.Path):
+                disp.suptitle(f&#34;Diagram {self._file_or_image.name}&#34;)
             else:
-                disp.suptitle(f&#34;Diagram from Tensor of id {id(self._file_or_data)}&#34;)
+                disp.suptitle(f&#34;Diagram from Tensor of id {id(self._file_or_image)}&#34;)
             axes = disp.add_subplot()
 
         # fill axes
@@ -1869,10 +1915,10 @@ For memory management, it is better to provide a pathlike rather than an array.<
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         hasher = hashlib.md5(usedforsecurity=False)
-        if isinstance(self._file_or_data, pathlib.Path):
-            hasher.update(str(self._file_or_data.name).encode())
+        if isinstance(self._file_or_image, pathlib.Path):
+            hasher.update(str(self._file_or_image.name).encode())
         else:
-            hasher.update(id(self._file_or_data).to_bytes(8, &#34;big&#34;))
+            hasher.update(id(self._file_or_image).to_bytes(8, &#34;big&#34;))
         hasher.update(&#34;\n&#34;.join(self._history).encode())
         return hasher.hexdigest()</code></pre>
 </details>
@@ -2078,15 +2124,21 @@ def image(self) -&gt; torch.Tensor:
     tensor(True)
     &gt;&gt;&gt;
     &#34;&#34;&#34;
+    if not isinstance(self._file_or_image, pathlib.Path):
+        return self._file_or_image
+
+    extract = False
     with self._cache[0]:
-        if &#34;image&#34; not in self._cache[1]:  # no auto ache because it is state invariant
-            self._cache[1][&#34;image&#34;] = (
-                read_image(self._file_or_data)
-                if isinstance(self._file_or_data, pathlib.Path) else
-                self._file_or_data
-            )
-        image = self._cache[1][&#34;image&#34;]
-    CacheManager().track(self)
+        if (image := self._cache[1].get(&#34;image&#34;, None)) is None:
+            extract = isinstance(self._file_or_image, pathlib.Path)
+
+    if extract:  # way to realease the lock
+        image, metadata = read_image(self.file)
+        with self._cache[0]:
+            self._cache[1][&#34;image&#34;] = image
+            self._cache[1][&#34;metadata&#34;] = metadata
+        CacheManager().track(self)
+
     return image</code></pre>
 </details>
 </dd>
@@ -2194,10 +2246,10 @@ def state(self) -&gt; str:
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     hasher = hashlib.md5(usedforsecurity=False)
-    if isinstance(self._file_or_data, pathlib.Path):
-        hasher.update(str(self._file_or_data.name).encode())
+    if isinstance(self._file_or_image, pathlib.Path):
+        hasher.update(str(self._file_or_image.name).encode())
     else:
-        hasher.update(id(self._file_or_data).to_bytes(8, &#34;big&#34;))
+        hasher.update(id(self._file_or_image).to_bytes(8, &#34;big&#34;))
     hasher.update(&#34;\n&#34;.join(self._history).encode())
     return hasher.hexdigest()</code></pre>
 </details>
@@ -2370,10 +2422,6 @@ The quantity of bytes to remove from the cache.</p>
                     continue
                 if match[&#34;state&#34;] != state:
                     removed += sys.getsizeof(key) + getsizeof(self._cache[1].pop(key))
-            # for key in list(self._properties):
-            #     match = self._properties[key][0]
-            #     if match is not None and match != state:
-            #         removed += sys.getsizeof(key) + getsizeof(self._properties.pop(key))
 
     # delete valid cache
     if 1 in _levels:
@@ -2539,11 +2587,45 @@ def filter_spots(
     self._history = [f&#34;{len(self)} spots from self.find_spots({kwargs_str})&#34;]</code></pre>
 </details>
 </dd>
+<dt id="laueimproc.classes.base_diagram.BaseDiagram.get_properties"><code class="name flex">
+<span>def <span class="ident">get_properties</span></span>(<span>self) ‑> dict[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return all the available properties.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_properties(self) -&gt; dict[str]:
+    &#34;&#34;&#34;Return all the available properties.&#34;&#34;&#34;
+    # no autocache because not state dependent
+    extract = False
+    with self._cache[0]:
+        if (metadata := self._cache[1].get(&#34;metadata&#34;, None)) is None:
+            extract = isinstance(self._file_or_image, pathlib.Path)
+
+    if extract:  # way to realease the lock
+        with open(self.file, &#34;rb&#34;) as raw:
+            data = raw.read()
+        metadata = extract_metadata(data)
+        with self._cache[0]:
+            self._cache[1][&#34;metadata&#34;] = metadata
+        CacheManager().track(self)
+
+    properties = {k: (None, v) for k, v in metadata.items()}
+    with self._cache[0]:
+        properties |= self._properties
+        state = self.state
+        properties = {k: v for k, (s, v) in properties.items() if s is None or s == state}
+
+    return properties</code></pre>
+</details>
+</dd>
 <dt id="laueimproc.classes.base_diagram.BaseDiagram.get_property"><code class="name flex">
 <span>def <span class="ident">get_property</span></span>(<span>self, name: str) ‑> object</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Return the property associated to te given id.</p>
+<div class="desc"><p>Return the property associated to the given id.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
@@ -2591,7 +2673,7 @@ def filter_spots(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_property(self, name: str) -&gt; object:
-    &#34;&#34;&#34;Return the property associated to te given id.
+    &#34;&#34;&#34;Return the property associated to the given id.
 
     Parameters
     ----------
@@ -2637,19 +2719,16 @@ def filter_spots(
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     assert isinstance(name, str), name.__class__.__name__
-    with self._cache[0]:
-        try:
-            state, value = self._properties[name]
-        except KeyError as err:
+    available_properties = self.get_properties()
+    try:
+        return available_properties[name]
+    except KeyError as err:
+        if name not in self._properties:  # lock unescessary
             raise KeyError(f&#34;the property {repr(name)} does no exist&#34;) from err
-    if state is not None and state != self.state:
-        # with self._lock:
-        #     self._properties[name] = (state, None)
         raise KeyError(
             f&#34;the property {repr(name)} is no longer valid &#34;
             &#34;because the state of the diagram has changed&#34;
-        )
-    return value</code></pre>
+        ) from err</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.classes.base_diagram.BaseDiagram.is_init"><code class="name flex">
@@ -2776,10 +2855,10 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
     axes = disp  # is gonna changed
     disp = disp or Figure(layout=&#34;tight&#34;)
     if isinstance(disp, Figure):
-        if isinstance(self._file_or_data, pathlib.Path):
-            disp.suptitle(f&#34;Diagram {self._file_or_data.name}&#34;)
+        if isinstance(self._file_or_image, pathlib.Path):
+            disp.suptitle(f&#34;Diagram {self._file_or_image.name}&#34;)
         else:
-            disp.suptitle(f&#34;Diagram from Tensor of id {id(self._file_or_data)}&#34;)
+            disp.suptitle(f&#34;Diagram from Tensor of id {id(self._file_or_image)}&#34;)
         axes = disp.add_subplot()
 
     # fill axes
@@ -3013,6 +3092,7 @@ It can also be a combination of the above elements to unite the spots.</p>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.file" href="#laueimproc.classes.base_diagram.BaseDiagram.file">file</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.filter_spots" href="#laueimproc.classes.base_diagram.BaseDiagram.filter_spots">filter_spots</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.find_spots" href="#laueimproc.classes.base_diagram.BaseDiagram.find_spots">find_spots</a></code></li>
+<li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.get_properties" href="#laueimproc.classes.base_diagram.BaseDiagram.get_properties">get_properties</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.get_property" href="#laueimproc.classes.base_diagram.BaseDiagram.get_property">get_property</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.history" href="#laueimproc.classes.base_diagram.BaseDiagram.history">history</a></code></li>
 <li><code><a title="laueimproc.classes.base_diagram.BaseDiagram.image" href="#laueimproc.classes.base_diagram.BaseDiagram.image">image</a></code></li>

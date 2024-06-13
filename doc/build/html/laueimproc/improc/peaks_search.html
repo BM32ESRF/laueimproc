@@ -151,7 +151,7 @@ def peaks_search(
     ...     area = float((bboxes[:, 2]*bboxes[:, 3]).to(float).mean())
     ...     print(f&#34;{len(rois)} bytes, {len(bboxes)} bboxes with average area of {area:.1f} pxl**2&#34;)
     ...
-    &gt;&gt;&gt; img = read_image(get_sample())
+    &gt;&gt;&gt; img, _ = read_image(get_sample())
     &gt;&gt;&gt; print_stats(*peaks_search(img))
     89576 bytes, 240 bboxes with average area of 93.3 pxl**2
     &gt;&gt;&gt;
@@ -309,7 +309,7 @@ The shape is (n, 4) and the type is int.</dd>
 ...     area = float((bboxes[:, 2]*bboxes[:, 3]).to(float).mean())
 ...     print(f&quot;{len(rois)} bytes, {len(bboxes)} bboxes with average area of {area:.1f} pxl**2&quot;)
 ...
-&gt;&gt;&gt; img = read_image(get_sample())
+&gt;&gt;&gt; img, _ = read_image(get_sample())
 &gt;&gt;&gt; print_stats(*peaks_search(img))
 89576 bytes, 240 bboxes with average area of 93.3 pxl**2
 &gt;&gt;&gt;
@@ -382,7 +382,7 @@ The shape is (n, 4) and the type is int.</dd>
     ...     area = float((bboxes[:, 2]*bboxes[:, 3]).to(float).mean())
     ...     print(f&#34;{len(rois)} bytes, {len(bboxes)} bboxes with average area of {area:.1f} pxl**2&#34;)
     ...
-    &gt;&gt;&gt; img = read_image(get_sample())
+    &gt;&gt;&gt; img, _ = read_image(get_sample())
     &gt;&gt;&gt; print_stats(*peaks_search(img))
     89576 bytes, 240 bboxes with average area of 93.3 pxl**2
     &gt;&gt;&gt;

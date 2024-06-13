@@ -32,17 +32,79 @@
 
 &#34;&#34;&#34;Read an image of laue diagram.&#34;&#34;&#34;
 
+import io
+import logging
+import lzma
 import pathlib
 import typing
 import warnings
 
 import cv2
-import fabio
 import numpy as np
+import PIL.ExifTags
+import PIL.Image
+import PIL.ImageOps
 import torch
+import yaml
 
 
-def read_image(filename: typing.Union[str, pathlib.Path]) -&gt; torch.Tensor:
+def extract_metadata(data: bytes) -&gt; dict:
+    &#34;&#34;&#34;Extract the metadata of the file content.
+
+    Parameters
+    ----------
+    data : bytes
+        The raw image file content.
+
+    Returns
+    -------
+    metadata : dict
+        The metadata of the file.
+    &#34;&#34;&#34;
+    assert isinstance(data, bytes), data.__class__.__name__
+
+    # extract
+    metadata = {}
+    if (
+        data[4:8] in {b&#34;jP  &#34;, b&#34;jP2 &#34;}
+        and (index := data.rfind(b&#34;laueimproc_exif:&#34;)) != -1
+    ):  # case jpeg2000, own safe and stable protocol
+        try:
+            metadata = lzma.decompress(data[index+16:])
+        except lzma.LZMAError:
+            logging.warning(&#34;failed to extract metadata of a jp2 file&#34;)
+        else:
+            metadata = yaml.safe_load(metadata)  # pickle is not security safe
+            if not isinstance(metadata, dict):
+                logging.warning(&#34;metadata of jp2 file is corrupted&#34;)
+                metadata = {}
+    else:
+        try:
+            img_pillow = PIL.Image.open(io.BytesIO(data))
+        except PIL.UnidentifiedImageError:
+            logging.warning(&#34;failed to extract metadata&#34;)
+        else:
+            metadata = {PIL.ExifTags.TAGS.get(k, k): v for k, v in img_pillow.getexif().items()}
+
+    # filter
+    for prop in (
+        &#34;ImageWidth&#34;,
+        &#34;ImageLength&#34;,
+        &#34;BitsPerSample&#34;,
+        &#34;Compression&#34;,
+        &#34;SamplesPerPixel&#34;,
+        &#34;TileWidth&#34;,
+        &#34;TileLength&#34;,
+        &#34;ColorMatrix1&#34;,
+        &#34;ColorMatrix2&#34;,
+    ):
+        if prop in metadata:
+            del metadata[prop]
+
+    return metadata
+
+
+def read_image(filename: typing.Union[str, pathlib.Path]) -&gt; tuple[torch.Tensor, dict]:
     &#34;&#34;&#34;Read and decode a grayscale image into a numpy array.
 
     Use cv2 as possible, and fabio if cv2 failed.
@@ -56,6 +118,8 @@ def read_image(filename: typing.Union[str, pathlib.Path]) -&gt; torch.Tensor:
     -------
     image : torch.Tensor
         The grayscale laue image matrix in float between with value range in [0, 1].
+    metadata : dict
+        The file metadata.
 
     Raises
     ------
@@ -67,14 +131,23 @@ def read_image(filename: typing.Union[str, pathlib.Path]) -&gt; torch.Tensor:
     if not filename.is_file():
         raise OSError(f&#34;the filename {filename} is not a file&#34;)
 
-    if (image := cv2.imread(str(filename), cv2.IMREAD_ANYDEPTH | cv2.IMREAD_GRAYSCALE)) is not None:
-        return to_floattensor(image)  # cv2 9% faster than fabio on .mccd files
-    try:
-        with fabio.open(filename) as raw:
-            image = raw.data
-    except KeyError as err:
-        raise OSError(f&#34;failed to read {filename} with cv2 and fabio&#34;) from err
-    return to_floattensor(image)
+    # read image
+    with open(filename, &#34;rb&#34;) as stream:
+        img_bytes = stream.read()
+    buffer = np.asarray(bytearray(img_bytes), dtype=np.uint8)
+    if (image := cv2.imdecode(buffer, cv2.IMREAD_ANYDEPTH | cv2.IMREAD_GRAYSCALE)) is None:
+        try:
+            img_pillow = PIL.Image.open(io.BytesIO(img_bytes))
+        except PIL.UnidentifiedImageError as err:
+            raise OSError(f&#34;failed to read {filename} with cv2 and pillow&#34;) from err
+        image = np.asarray(img_pillow)
+        if image.ndim != 2:
+            image = np.asarray(PIL.ImageOps.grayscale(img_pillow))
+
+    image = to_floattensor(image)
+    metadata = extract_metadata(img_bytes)
+
+    return image, metadata
 
 
 def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -&gt; torch.Tensor:
@@ -114,7 +187,7 @@ def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -&gt; torch.Ten
     warnings.warn(
         &#34;to instanciate a image from a non arraylike data will be forbiden&#34;, DeprecationWarning
     )
-    return torch.tensor(data)  # copy</code></pre>
+    return torch.asarray(data).clone()</code></pre>
 </details>
 </section>
 <section>
@@ -124,8 +197,83 @@ def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -&gt; torch.Ten
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="laueimproc.io.read.extract_metadata"><code class="name flex">
+<span>def <span class="ident">extract_metadata</span></span>(<span>data: bytes) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Extract the metadata of the file content.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>The raw image file content.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>metadata</code></strong> :&ensp;<code>dict</code></dt>
+<dd>The metadata of the file.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extract_metadata(data: bytes) -&gt; dict:
+    &#34;&#34;&#34;Extract the metadata of the file content.
+
+    Parameters
+    ----------
+    data : bytes
+        The raw image file content.
+
+    Returns
+    -------
+    metadata : dict
+        The metadata of the file.
+    &#34;&#34;&#34;
+    assert isinstance(data, bytes), data.__class__.__name__
+
+    # extract
+    metadata = {}
+    if (
+        data[4:8] in {b&#34;jP  &#34;, b&#34;jP2 &#34;}
+        and (index := data.rfind(b&#34;laueimproc_exif:&#34;)) != -1
+    ):  # case jpeg2000, own safe and stable protocol
+        try:
+            metadata = lzma.decompress(data[index+16:])
+        except lzma.LZMAError:
+            logging.warning(&#34;failed to extract metadata of a jp2 file&#34;)
+        else:
+            metadata = yaml.safe_load(metadata)  # pickle is not security safe
+            if not isinstance(metadata, dict):
+                logging.warning(&#34;metadata of jp2 file is corrupted&#34;)
+                metadata = {}
+    else:
+        try:
+            img_pillow = PIL.Image.open(io.BytesIO(data))
+        except PIL.UnidentifiedImageError:
+            logging.warning(&#34;failed to extract metadata&#34;)
+        else:
+            metadata = {PIL.ExifTags.TAGS.get(k, k): v for k, v in img_pillow.getexif().items()}
+
+    # filter
+    for prop in (
+        &#34;ImageWidth&#34;,
+        &#34;ImageLength&#34;,
+        &#34;BitsPerSample&#34;,
+        &#34;Compression&#34;,
+        &#34;SamplesPerPixel&#34;,
+        &#34;TileWidth&#34;,
+        &#34;TileLength&#34;,
+        &#34;ColorMatrix1&#34;,
+        &#34;ColorMatrix2&#34;,
+    ):
+        if prop in metadata:
+            del metadata[prop]
+
+    return metadata</code></pre>
+</details>
+</dd>
 <dt id="laueimproc.io.read.read_image"><code class="name flex">
-<span>def <span class="ident">read_image</span></span>(<span>filename: Union[str, pathlib.Path]) ‑> torch.Tensor</span>
+<span>def <span class="ident">read_image</span></span>(<span>filename: Union[str, pathlib.Path]) ‑> tuple[torch.Tensor, dict]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read and decode a grayscale image into a numpy array.</p>
@@ -139,6 +287,8 @@ def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -&gt; torch.Ten
 <dl>
 <dt><strong><code>image</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The grayscale laue image matrix in float between with value range in [0, 1].</dd>
+<dt><strong><code>metadata</code></strong> :&ensp;<code>dict</code></dt>
+<dd>The file metadata.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
@@ -149,7 +299,7 @@ def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -&gt; torch.Ten
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def read_image(filename: typing.Union[str, pathlib.Path]) -&gt; torch.Tensor:
+<pre><code class="python">def read_image(filename: typing.Union[str, pathlib.Path]) -&gt; tuple[torch.Tensor, dict]:
     &#34;&#34;&#34;Read and decode a grayscale image into a numpy array.
 
     Use cv2 as possible, and fabio if cv2 failed.
@@ -163,6 +313,8 @@ def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -&gt; torch.Ten
     -------
     image : torch.Tensor
         The grayscale laue image matrix in float between with value range in [0, 1].
+    metadata : dict
+        The file metadata.
 
     Raises
     ------
@@ -174,14 +326,23 @@ def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -&gt; torch.Ten
     if not filename.is_file():
         raise OSError(f&#34;the filename {filename} is not a file&#34;)
 
-    if (image := cv2.imread(str(filename), cv2.IMREAD_ANYDEPTH | cv2.IMREAD_GRAYSCALE)) is not None:
-        return to_floattensor(image)  # cv2 9% faster than fabio on .mccd files
-    try:
-        with fabio.open(filename) as raw:
-            image = raw.data
-    except KeyError as err:
-        raise OSError(f&#34;failed to read {filename} with cv2 and fabio&#34;) from err
-    return to_floattensor(image)</code></pre>
+    # read image
+    with open(filename, &#34;rb&#34;) as stream:
+        img_bytes = stream.read()
+    buffer = np.asarray(bytearray(img_bytes), dtype=np.uint8)
+    if (image := cv2.imdecode(buffer, cv2.IMREAD_ANYDEPTH | cv2.IMREAD_GRAYSCALE)) is None:
+        try:
+            img_pillow = PIL.Image.open(io.BytesIO(img_bytes))
+        except PIL.UnidentifiedImageError as err:
+            raise OSError(f&#34;failed to read {filename} with cv2 and pillow&#34;) from err
+        image = np.asarray(img_pillow)
+        if image.ndim != 2:
+            image = np.asarray(PIL.ImageOps.grayscale(img_pillow))
+
+    image = to_floattensor(image)
+    metadata = extract_metadata(img_bytes)
+
+    return image, metadata</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.io.read.to_floattensor"><code class="name flex">
@@ -242,7 +403,7 @@ and the value range is set beetweeen 0 and 1.</p>
     warnings.warn(
         &#34;to instanciate a image from a non arraylike data will be forbiden&#34;, DeprecationWarning
     )
-    return torch.tensor(data)  # copy</code></pre>
+    return torch.asarray(data).clone()</code></pre>
 </details>
 </dd>
 </dl>
@@ -263,6 +424,7 @@ and the value range is set beetweeen 0 and 1.</p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="laueimproc.io.read.extract_metadata" href="#laueimproc.io.read.extract_metadata">extract_metadata</a></code></li>
 <li><code><a title="laueimproc.io.read.read_image" href="#laueimproc.io.read.read_image">read_image</a></code></li>
 <li><code><a title="laueimproc.io.read.to_floattensor" href="#laueimproc.io.read.to_floattensor">to_floattensor</a></code></li>
 </ul>

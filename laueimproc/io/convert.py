@@ -68,7 +68,7 @@ def converter_decorator(func: typing.Callable):
             assert dst_dir.is_dir(), f"the output directpty {dst_dir} has to exists"
 
         file_log = tqdm(total=0, position=1, bar_format="{desc}")
-        with multiprocessing.pool.ThreadPool() as pool:  # ThreadPool is not cv2 compatible
+        with multiprocessing.pool.ThreadPool() as pool:
             for dst_file in tqdm(
                 pool.imap_unordered(lambda s: func(s, dst_dir or s.parent, metadata), src),
                 total=len(src),

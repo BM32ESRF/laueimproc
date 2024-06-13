@@ -132,7 +132,7 @@ def fit_gaussians_em(
     &gt;&gt;&gt; rois = obs[:, 0]*width + obs[:, 1]
     &gt;&gt;&gt; rois = rois[torch.logical_and(rois &gt;= 0, rois &lt; height * width)]
     &gt;&gt;&gt; rois = torch.bincount(rois, minlength=height*width).to(torch.float32)
-    &gt;&gt;&gt; rois = rois.reshape(1, height, width)
+    &gt;&gt;&gt; rois = rois.reshape(1, height, width) / rois.max()
     &gt;&gt;&gt;
     &gt;&gt;&gt; data = bytearray(rois.to(torch.float32).numpy().tobytes())
     &gt;&gt;&gt; bboxes = torch.asarray([[0, 0, height, width]], dtype=torch.int16)
@@ -217,109 +217,133 @@ def fit_gaussians_em(
     return mean, cov, eta, infodict
 
 
-# def fit_gaussians(
-#     data: bytearray, shapes: np.ndarray[np.int32], **kwargs
-# ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-#     r&#34;&#34;&#34;Fit each roi by \(K\) gaussians.
+def fit_gaussians_mse(
+    data: bytearray, bboxes: torch.Tensor, **kwargs
+) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    r&#34;&#34;&#34;Fit each roi by \(K\) gaussians by minimising the mean square error.
 
-#     See ``laueimproc.gmm`` for terminology.
+    See ``laueimproc.gmm`` for terminology.
 
-#     Parameters
-#     ----------
-#     data : bytearray
-#         The raw data of the concatenated not padded float32 rois.
-#     shapes : np.ndarray[np.int32]
-#         Contains the information of the bboxes shapes.
-#         heights = shapes[:, 0] and widths = shapes[:, 1].
-#         It doesn&#39;t have to be c contiguous.
-#     **kwargs : dict
-#         Transmitted to ``laueimproc.gmm.em``, used for initialisation.
+    Parameters
+    ----------
+    data : bytearray
+        The raw data \(\alpha_i\) of the concatenated not padded float32 rois.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4). It doesn&#39;t have to be c contiguous.
+    nbr_clusters, nbr_tries : int
+        Transmitted to ``laueimproc.gmm.fit.fit_mse``.
+    mse : boolean, default=False
+        If set to True, the metric is happend into `infodict`.
+        The metrics are computed in the ``laueimproc.gmm.metric`` module.
 
-#     Returns
-#     -------
-#     mean : torch.Tensor
-#         The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the relative rois base.
-#     cov : torch.Tensor
-#         The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
-#     mass : torch.Tensor
-#         The absolute mass \(\theta.\eta\). Shape (n, \(K\)).
-#     infodict : dict[str]
+        * mse: Mean Square Error of shape (...,). \(
+            mse = \frac{1}{N}\sum\limits_{i=1}^N
+                \left(\left(\sum\limits_{j=1}^K
+                \eta_j \left(
+                    \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+                \right)\right) - \alpha_i\right)^2
+        \)
 
-#         * &#34;loss&#34; : torch.Tensor
-#             The vector of loss. Shape (n,).
-#         * &#34;pred&#34; : torch.Tensor
-#             The predicted rois tensor. Shape(n, h, w)
-#     &#34;&#34;&#34;
-#     # verification
-#     assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__
+    Returns
+    -------
+    mean : torch.Tensor
+        The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2). In the absolute diagram base.
+    cov : torch.Tensor
+        The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
+    mag : torch.Tensor
+        The absolute magnitude \(\eta\). Shape (n, \(K\)).
+    infodict : dict[str]
+        A dictionary of optional outputs.
 
-#     rois = rawshapes2rois(data, shapes.numpy(force=True))
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.gmm.linalg import multivariate_normal
+    &gt;&gt;&gt; from laueimproc.improc.spot.fit import fit_gaussians_mse
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; cov_ref = torch.asarray([[[2, 1], [1, 4]], [[3, -3], [-3, 9]], [[4, 0], [0, 4]]])
+    &gt;&gt;&gt; cov_ref = cov_ref.to(torch.float32)
+    &gt;&gt;&gt; mean_ref = torch.asarray([[[10.0, 15.0], [20.0, 15.0], [15.0, 20.0]]])
+    &gt;&gt;&gt; obs = multivariate_normal(cov_ref, 3_000_000) + mean_ref
+    &gt;&gt;&gt; obs = obs.to(torch.int32).reshape(-1, 2)
+    &gt;&gt;&gt; height, width = 35, 35
+    &gt;&gt;&gt; rois = obs[:, 0]*width + obs[:, 1]
+    &gt;&gt;&gt; rois = rois[torch.logical_and(rois &gt;= 0, rois &lt; height * width)]
+    &gt;&gt;&gt; rois = torch.bincount(rois, minlength=height*width).to(torch.float32)
+    &gt;&gt;&gt; rois = rois.reshape(1, height, width) / rois.max()
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; data = bytearray(rois.to(torch.float32).numpy().tobytes())
+    &gt;&gt;&gt; bboxes = torch.asarray([[0, 0, height, width]], dtype=torch.int16)
+    &gt;&gt;&gt; mean, cov, mag, _ = fit_gaussians_mse(data, bboxes, nbr_clusters=3)
+    &gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 0], atol=0.5) for mu in mean[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 1], atol=0.5) for mu in mean[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 2], atol=0.5) for mu in mean[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(c, cov_ref[0], atol=1.0) for c in cov[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(c, cov_ref[1], atol=1.0) for c in cov[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(c, cov_ref[2], atol=1.0) for c in cov[0])
+    True
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; # import matplotlib.pyplot as plt
+    &gt;&gt;&gt; # _ = plt.imshow(rois[0], extent=(0, width, height, 0))
+    &gt;&gt;&gt; # _ = plt.scatter(mean[..., 1].ravel(), mean[..., 0].ravel())
+    &gt;&gt;&gt; # plt.show()
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    # compute gmm
+    if not kwargs.get(&#34;_no_c&#34;, False) and c_fit is not None:
+        mean, cov, mag = c_fit.fit_mse(
+            data, bboxes.numpy(force=True),
+            nbr_clusters=kwargs.get(&#34;nbr_clusters&#34;, 3),
+            nbr_tries=kwargs.get(&#34;nbr_tries&#34;, 4),
+        )
+        mean = torch.from_numpy(mean)
+        cov = torch.from_numpy(cov)
+        mag = torch.from_numpy(mag)
+    else:
+        from laueimproc.gmm import fit
+        rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=kwargs.get(&#34;_no_c&#34;, False))
+        rois = [rois[i, :h, :w] for i, (h, w) in enumerate(bboxes[:, 2:].tolist())]
+        mean, cov, mag = [], [], []
+        for roi in rois:
+            mean_, cov_, mag_ = fit.fit_mse(
+                roi,
+                nbr_clusters=kwargs.get(&#34;nbr_clusters&#34;, 3),
+                nbr_tries=kwargs.get(&#34;nbr_tries&#34;, 4),
+            )
+            mean.append(mean_.unsqueeze(0))
+            cov.append(cov_.unsqueeze(0))
+            mag.append(mag_.unsqueeze(0))
+        if len(bboxes) == 0:
+            nbr_clusters = kwargs.get(&#34;nbr_clusters&#34;, 1)
+            assert isinstance(nbr_clusters, numbers.Integral), nbr_clusters.__class__.__name__
+            assert nbr_clusters &gt; 0, nbr_clusters
+            mean = torch.empty((0, nbr_clusters, 2), dtype=torch.float32)
+            cov = torch.empty((0, nbr_clusters, 2, 2), dtype=torch.float32)
+            mag = torch.empty((0, nbr_clusters), dtype=torch.float32)
+        else:
+            mean = torch.cat(mean)
+            cov = torch.cat(cov)
+            mag = torch.cat(mag)
+        mean += bboxes[:, :2].unsqueeze(1)  # relative to absolute
 
-#     # initial guess
-#     obs = torch.meshgrid(
-#         torch.arange(0.5, rois.shape[1]+0.5, dtype=rois.dtype, device=rois.device),
-#         torch.arange(0.5, rois.shape[2]+0.5, dtype=rois.dtype, device=rois.device),
-#         indexing=&#34;ij&#34;,
-#     )
-#     obs = (obs[0].ravel(), obs[1].ravel())
-#     obs = torch.cat([obs[0].unsqueeze(-1), obs[1].unsqueeze(-1)], dim=1)
-#     obs = obs.expand(rois.shape[0], -1, -1)  # (n_spots, n_obs, n_var)
-#     mean, cov, mag = em(
-#         obs, torch.reshape(rois, (rois.shape[0], rois.shape[1]*rois.shape[2])), **kwargs
-#     )
-#     infodict = {}
-#     mag *= torch.amax(rois, dim=(-1, -2))
-#     init = (mean.clone(), cov.clone(), mag.clone())
+    # cast output
+    mean = mean.to(bboxes.device)
+    cov = cov.to(bboxes.device)
+    mag = mag.to(bboxes.device)
 
-#     # overfit
-#     for i, (height, width) in enumerate(shapes.tolist()):
-#         mean[i], cov[i], mag[i] = _fit_gaussians_no_batch(
-#             rois[i, :height, :width], mean[i], cov[i], mag[i]
-#         )
+    # fill infodict
+    infodict = {}
+    if kwargs.get(&#34;mse&#34;, False):
+        from laueimproc.gmm import metric
+        infodict[&#34;mse&#34;] = _apply_to_metric(metric.mse, data, bboxes, (mean, cov, eta))
 
-#     # solve cabbages
-#     mean[mean.isnan()] = init[0][mean.isnan()]
-#     cov[cov.isnan()] = init[1][cov.isnan()]
-#     mag[mag.isnan()] = init[2][mag.isnan()]
-
-#     return mean, cov, mag, infodict
-
-
-# def _fit_gaussians_no_batch(
-#     roi: torch.Tensor, mean: torch.Tensor, cov: torch.Tensor, mag: torch.Tensor
-# ):
-#     &#34;&#34;&#34;Help ``fit_gaussians``.&#34;&#34;&#34;
-#     optimizer = torch.optim.LBFGS(
-#         [mean, cov, mag],
-#         max_iter=100,
-#         history_size=6*mag.shape[-1],
-#         # max_eval=60*mag.shape[-1],  # for case of optimal step only
-#         tolerance_change=1e-9,
-#         tolerance_grad=1e-7,
-#         line_search_fn=None,  # not &#34;strong_wolfe&#34; beacause it is not grad efficient,
-#     )
-#     shapes = torch.tensor([[roi.shape[0], roi.shape[1]]], dtype=torch.int32, device=roi.device)
-
-#     def closure():
-#         objective, mean_grad, cov_grad, mag_grad = cost_and_grad(
-#             roi.unsqueeze(0), shapes, mean.unsqueeze(0), cov.unsqueeze(0), mag.unsqueeze(0)
-#         )
-#         mean.grad = mean_grad.squeeze(0)
-#         cov.grad = cov_grad.squeeze(0)
-#         mag.grad = mag_grad.squeeze(0)
-#         return objective.mean()
-
-#     optimizer.step(closure)
-
-#     # print(mean_ := mean.ravel().clone())
-#     # orig_loss = optimizer.step(closure)
-#     # print(&#34;-----------------------&#34;, roi.shape)
-#     # print(&#34;orig loss&#34;, optimizer.step(closure))
-#     # print(&#34;n iter:&#34;, optimizer.state_dict()[&#34;state&#34;][0][&#34;n_iter&#34;])
-#     # print(optimizer.state_dict()[&#34;state&#34;][0].get(&#34;prev_loss&#34;))  # can be nan
-#     # print(&#34;:&#34;, (mean.ravel()-mean_).tolist())
-
-#     return mean, cov, mag</code></pre>
+    return mean, cov, mag, infodict</code></pre>
 </details>
 </section>
 <section>
@@ -397,7 +421,7 @@ The metrics are computed in the <code><a title="laueimproc.gmm.metric" href="../
 &gt;&gt;&gt; rois = obs[:, 0]*width + obs[:, 1]
 &gt;&gt;&gt; rois = rois[torch.logical_and(rois &gt;= 0, rois &lt; height * width)]
 &gt;&gt;&gt; rois = torch.bincount(rois, minlength=height*width).to(torch.float32)
-&gt;&gt;&gt; rois = rois.reshape(1, height, width)
+&gt;&gt;&gt; rois = rois.reshape(1, height, width) / rois.max()
 &gt;&gt;&gt;
 &gt;&gt;&gt; data = bytearray(rois.to(torch.float32).numpy().tobytes())
 &gt;&gt;&gt; bboxes = torch.asarray([[0, 0, height, width]], dtype=torch.int16)
@@ -487,7 +511,7 @@ True
     &gt;&gt;&gt; rois = obs[:, 0]*width + obs[:, 1]
     &gt;&gt;&gt; rois = rois[torch.logical_and(rois &gt;= 0, rois &lt; height * width)]
     &gt;&gt;&gt; rois = torch.bincount(rois, minlength=height*width).to(torch.float32)
-    &gt;&gt;&gt; rois = rois.reshape(1, height, width)
+    &gt;&gt;&gt; rois = rois.reshape(1, height, width) / rois.max()
     &gt;&gt;&gt;
     &gt;&gt;&gt; data = bytearray(rois.to(torch.float32).numpy().tobytes())
     &gt;&gt;&gt; bboxes = torch.asarray([[0, 0, height, width]], dtype=torch.int16)
@@ -572,6 +596,224 @@ True
     return mean, cov, eta, infodict</code></pre>
 </details>
 </dd>
+<dt id="laueimproc.improc.spot.fit.fit_gaussians_mse"><code class="name flex">
+<span>def <span class="ident">fit_gaussians_mse</span></span>(<span>data: bytearray, bboxes: torch.Tensor, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fit each roi by <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span> gaussians by minimising the mean square error.</p>
+<p>See <code><a title="laueimproc.gmm" href="../../gmm/index.html">laueimproc.gmm</a></code> for terminology.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytearray</code></dt>
+<dd>The raw data <span><span class="MathJax_Preview">\alpha_i</span><script type="math/tex">\alpha_i</script></span> of the concatenated not padded float32 rois.</dd>
+<dt><strong><code>bboxes</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+for each spots, of shape (n, 4). It doesn't have to be c contiguous.</dd>
+<dt><strong><code>nbr_clusters</code></strong>, <strong><code>nbr_tries</code></strong> :&ensp;<code>int</code></dt>
+<dd>Transmitted to <code>laueimproc.gmm.fit.fit_mse</code>.</dd>
+<dt><strong><code>mse</code></strong> :&ensp;<code>boolean</code>, default=<code>False</code></dt>
+<dd>
+<p>If set to True, the metric is happend into <code>infodict</code>.
+The metrics are computed in the <code><a title="laueimproc.gmm.metric" href="../../gmm/metric.html">laueimproc.gmm.metric</a></code> module.</p>
+<ul>
+<li>mse: Mean Square Error of shape (&hellip;,). <span><span class="MathJax_Preview">
+mse = \frac{1}{N}\sum\limits_{i=1}^N
+\left(\left(\sum\limits_{j=1}^K
+\eta_j \left(
+\mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+\right)\right) - \alpha_i\right)^2
+</span><script type="math/tex">
+mse = \frac{1}{N}\sum\limits_{i=1}^N
+\left(\left(\sum\limits_{j=1}^K
+\eta_j \left(
+\mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+\right)\right) - \alpha_i\right)^2
+</script></span></li>
+</ul>
+</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>mean</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The vectors <span><span class="MathJax_Preview">\mathbf{\mu}</span><script type="math/tex">\mathbf{\mu}</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2). In the absolute diagram base.</dd>
+<dt><strong><code>cov</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The matrices <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, 2, 2).</dd>
+<dt><strong><code>mag</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The absolute magnitude <span><span class="MathJax_Preview">\eta</span><script type="math/tex">\eta</script></span>. Shape (n, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</dd>
+<dt><strong><code>infodict</code></strong> :&ensp;<code>dict[str]</code></dt>
+<dd>A dictionary of optional outputs.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.gmm.linalg import multivariate_normal
+&gt;&gt;&gt; from laueimproc.improc.spot.fit import fit_gaussians_mse
+&gt;&gt;&gt;
+&gt;&gt;&gt; cov_ref = torch.asarray([[[2, 1], [1, 4]], [[3, -3], [-3, 9]], [[4, 0], [0, 4]]])
+&gt;&gt;&gt; cov_ref = cov_ref.to(torch.float32)
+&gt;&gt;&gt; mean_ref = torch.asarray([[[10.0, 15.0], [20.0, 15.0], [15.0, 20.0]]])
+&gt;&gt;&gt; obs = multivariate_normal(cov_ref, 3_000_000) + mean_ref
+&gt;&gt;&gt; obs = obs.to(torch.int32).reshape(-1, 2)
+&gt;&gt;&gt; height, width = 35, 35
+&gt;&gt;&gt; rois = obs[:, 0]*width + obs[:, 1]
+&gt;&gt;&gt; rois = rois[torch.logical_and(rois &gt;= 0, rois &lt; height * width)]
+&gt;&gt;&gt; rois = torch.bincount(rois, minlength=height*width).to(torch.float32)
+&gt;&gt;&gt; rois = rois.reshape(1, height, width) / rois.max()
+&gt;&gt;&gt;
+&gt;&gt;&gt; data = bytearray(rois.to(torch.float32).numpy().tobytes())
+&gt;&gt;&gt; bboxes = torch.asarray([[0, 0, height, width]], dtype=torch.int16)
+&gt;&gt;&gt; mean, cov, mag, _ = fit_gaussians_mse(data, bboxes, nbr_clusters=3)
+&gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 0], atol=0.5) for mu in mean[0])
+True
+&gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 1], atol=0.5) for mu in mean[0])
+True
+&gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 2], atol=0.5) for mu in mean[0])
+True
+&gt;&gt;&gt; any(torch.allclose(c, cov_ref[0], atol=1.0) for c in cov[0])
+True
+&gt;&gt;&gt; any(torch.allclose(c, cov_ref[1], atol=1.0) for c in cov[0])
+True
+&gt;&gt;&gt; any(torch.allclose(c, cov_ref[2], atol=1.0) for c in cov[0])
+True
+&gt;&gt;&gt;
+&gt;&gt;&gt; # import matplotlib.pyplot as plt
+&gt;&gt;&gt; # _ = plt.imshow(rois[0], extent=(0, width, height, 0))
+&gt;&gt;&gt; # _ = plt.scatter(mean[..., 1].ravel(), mean[..., 0].ravel())
+&gt;&gt;&gt; # plt.show()
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fit_gaussians_mse(
+    data: bytearray, bboxes: torch.Tensor, **kwargs
+) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+    r&#34;&#34;&#34;Fit each roi by \(K\) gaussians by minimising the mean square error.
+
+    See ``laueimproc.gmm`` for terminology.
+
+    Parameters
+    ----------
+    data : bytearray
+        The raw data \(\alpha_i\) of the concatenated not padded float32 rois.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4). It doesn&#39;t have to be c contiguous.
+    nbr_clusters, nbr_tries : int
+        Transmitted to ``laueimproc.gmm.fit.fit_mse``.
+    mse : boolean, default=False
+        If set to True, the metric is happend into `infodict`.
+        The metrics are computed in the ``laueimproc.gmm.metric`` module.
+
+        * mse: Mean Square Error of shape (...,). \(
+            mse = \frac{1}{N}\sum\limits_{i=1}^N
+                \left(\left(\sum\limits_{j=1}^K
+                \eta_j \left(
+                    \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+                \right)\right) - \alpha_i\right)^2
+        \)
+
+    Returns
+    -------
+    mean : torch.Tensor
+        The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2). In the absolute diagram base.
+    cov : torch.Tensor
+        The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
+    mag : torch.Tensor
+        The absolute magnitude \(\eta\). Shape (n, \(K\)).
+    infodict : dict[str]
+        A dictionary of optional outputs.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.gmm.linalg import multivariate_normal
+    &gt;&gt;&gt; from laueimproc.improc.spot.fit import fit_gaussians_mse
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; cov_ref = torch.asarray([[[2, 1], [1, 4]], [[3, -3], [-3, 9]], [[4, 0], [0, 4]]])
+    &gt;&gt;&gt; cov_ref = cov_ref.to(torch.float32)
+    &gt;&gt;&gt; mean_ref = torch.asarray([[[10.0, 15.0], [20.0, 15.0], [15.0, 20.0]]])
+    &gt;&gt;&gt; obs = multivariate_normal(cov_ref, 3_000_000) + mean_ref
+    &gt;&gt;&gt; obs = obs.to(torch.int32).reshape(-1, 2)
+    &gt;&gt;&gt; height, width = 35, 35
+    &gt;&gt;&gt; rois = obs[:, 0]*width + obs[:, 1]
+    &gt;&gt;&gt; rois = rois[torch.logical_and(rois &gt;= 0, rois &lt; height * width)]
+    &gt;&gt;&gt; rois = torch.bincount(rois, minlength=height*width).to(torch.float32)
+    &gt;&gt;&gt; rois = rois.reshape(1, height, width) / rois.max()
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; data = bytearray(rois.to(torch.float32).numpy().tobytes())
+    &gt;&gt;&gt; bboxes = torch.asarray([[0, 0, height, width]], dtype=torch.int16)
+    &gt;&gt;&gt; mean, cov, mag, _ = fit_gaussians_mse(data, bboxes, nbr_clusters=3)
+    &gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 0], atol=0.5) for mu in mean[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 1], atol=0.5) for mu in mean[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(mu, mean_ref[0, 2], atol=0.5) for mu in mean[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(c, cov_ref[0], atol=1.0) for c in cov[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(c, cov_ref[1], atol=1.0) for c in cov[0])
+    True
+    &gt;&gt;&gt; any(torch.allclose(c, cov_ref[2], atol=1.0) for c in cov[0])
+    True
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; # import matplotlib.pyplot as plt
+    &gt;&gt;&gt; # _ = plt.imshow(rois[0], extent=(0, width, height, 0))
+    &gt;&gt;&gt; # _ = plt.scatter(mean[..., 1].ravel(), mean[..., 0].ravel())
+    &gt;&gt;&gt; # plt.show()
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    # compute gmm
+    if not kwargs.get(&#34;_no_c&#34;, False) and c_fit is not None:
+        mean, cov, mag = c_fit.fit_mse(
+            data, bboxes.numpy(force=True),
+            nbr_clusters=kwargs.get(&#34;nbr_clusters&#34;, 3),
+            nbr_tries=kwargs.get(&#34;nbr_tries&#34;, 4),
+        )
+        mean = torch.from_numpy(mean)
+        cov = torch.from_numpy(cov)
+        mag = torch.from_numpy(mag)
+    else:
+        from laueimproc.gmm import fit
+        rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=kwargs.get(&#34;_no_c&#34;, False))
+        rois = [rois[i, :h, :w] for i, (h, w) in enumerate(bboxes[:, 2:].tolist())]
+        mean, cov, mag = [], [], []
+        for roi in rois:
+            mean_, cov_, mag_ = fit.fit_mse(
+                roi,
+                nbr_clusters=kwargs.get(&#34;nbr_clusters&#34;, 3),
+                nbr_tries=kwargs.get(&#34;nbr_tries&#34;, 4),
+            )
+            mean.append(mean_.unsqueeze(0))
+            cov.append(cov_.unsqueeze(0))
+            mag.append(mag_.unsqueeze(0))
+        if len(bboxes) == 0:
+            nbr_clusters = kwargs.get(&#34;nbr_clusters&#34;, 1)
+            assert isinstance(nbr_clusters, numbers.Integral), nbr_clusters.__class__.__name__
+            assert nbr_clusters &gt; 0, nbr_clusters
+            mean = torch.empty((0, nbr_clusters, 2), dtype=torch.float32)
+            cov = torch.empty((0, nbr_clusters, 2, 2), dtype=torch.float32)
+            mag = torch.empty((0, nbr_clusters), dtype=torch.float32)
+        else:
+            mean = torch.cat(mean)
+            cov = torch.cat(cov)
+            mag = torch.cat(mag)
+        mean += bboxes[:, :2].unsqueeze(1)  # relative to absolute
+
+    # cast output
+    mean = mean.to(bboxes.device)
+    cov = cov.to(bboxes.device)
+    mag = mag.to(bboxes.device)
+
+    # fill infodict
+    infodict = {}
+    if kwargs.get(&#34;mse&#34;, False):
+        from laueimproc.gmm import metric
+        infodict[&#34;mse&#34;] = _apply_to_metric(metric.mse, data, bboxes, (mean, cov, eta))
+
+    return mean, cov, mag, infodict</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -591,6 +833,7 @@ True
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="laueimproc.improc.spot.fit.fit_gaussians_em" href="#laueimproc.improc.spot.fit.fit_gaussians_em">fit_gaussians_em</a></code></li>
+<li><code><a title="laueimproc.improc.spot.fit.fit_gaussians_mse" href="#laueimproc.improc.spot.fit.fit_gaussians_mse">fit_gaussians_mse</a></code></li>
 </ul>
 </li>
 </ul>

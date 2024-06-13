@@ -62,10 +62,11 @@ int FitInit(
         return 1;
     }
     for (long j = 0; j < n_clu; ++j) {
-        cov[4 * j] = std1_std2_theta[0];
-        cov[4 * j + 1] = std1_std2_theta[2];
-        cov[4 * j + 2] = std1_std2_theta[2];
-        cov[4 * j + 3] = std1_std2_theta[1];
+        npy_float32 inv_nclu2 = 1.0 / (n_clu * n_clu);
+        cov[4 * j] = std1_std2_theta[0] * inv_nclu2;
+        cov[4 * j + 1] = std1_std2_theta[2] * inv_nclu2;
+        cov[4 * j + 2] = std1_std2_theta[2] * inv_nclu2;
+        cov[4 * j + 3] = std1_std2_theta[1] * inv_nclu2;
     }
 
     // init mean
@@ -203,7 +204,6 @@ int FitEMMultiSteps(
     npy_float32* prev_mean;
     prev_mean = malloc(2 * n_clu * sizeof(*prev_mean));
     if (prev_mean == NULL) {
-        free(prev_mean);
         fprintf(stderr, "failed to malloc\n");
         return 1;
     }
@@ -224,15 +224,219 @@ int FitEMMultiSteps(
 }
 
 
+int GradStep(
+    npy_float32* ref_mean, npy_float32* ref_cov, npy_float32* ref_mag,
+    npy_float32* mean_grad, npy_float32* cov_grad, npy_float32* mag_grad,
+    npy_float32 lr, const long n_clu,
+    npy_float32* mean, npy_float32* cov, npy_float32* mag
+) {
+    #pragma omp simd safelen(1)
+    for (long k = 0; k < n_clu; ++k) {
+        mean[2 * k] = ref_mean[2 * k] - lr * mean_grad[2 * k];
+        mean[2 * k + 1] = ref_mean[2 * k + 1] - lr * mean_grad[2 * k + 1];
+        cov[4 * k] = ref_cov[4 * k] - lr * cov_grad[4 * k];
+        cov[4 * k + 1] = ref_cov[4 * k + 1] - lr * cov_grad[4 * k + 1];
+        cov[4 * k + 2] = ref_cov[4 * k + 2] - lr * cov_grad[4 * k + 2];
+        cov[4 * k + 3] = ref_cov[4 * k + 3] - lr * cov_grad[4 * k + 3];
+        mag[k] = ref_mag[k] - lr * mag_grad[k];
+    }
+    return 0;
+}
+
+
+int FitMSEOptimalStep(
+    const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
+    npy_float32* mean, npy_float32* cov, npy_float32* mag, const long n_clu,
+    npy_float32* lr, npy_float32* cost, npy_float32* mean_grad, npy_float32* cov_grad, npy_float32* mag_grad
+) {
+    /*
+        Find the step that minimise the loss in the oposit direction of the gradient.
+        Performs a dichotomy search.
+    */
+    npy_float32 left_lr = 0.0, right_lr = *lr * 8.0;
+    npy_float32 left_cost = *cost, right_cost;
+    npy_float32 *initial_mean, *initial_cov, *initial_mag;
+
+    // find right boundary
+    long count = 0;
+    for (long k = 0; k < n_clu; ++k) {
+        while (  // det(cov) <= 0
+            (cov[4 * k] - right_lr * cov_grad[4 * k]) * (cov[4 * k + 3] - right_lr * cov_grad[4 * k + 3])
+            - (cov_grad[4 * k + 1] - right_lr * cov_grad[4 * k + 1]) * (cov[4 * k + 2] - right_lr * cov_grad[4 * k + 2])
+            <= 0
+        ) {
+            right_lr *= 0.5;
+            if (count++ == 16) {  // failed to converge
+                fprintf(stderr, "the det of covariance matrix is <= 0\n");
+                *lr = left_lr;
+                return 0;
+            }
+        }
+    }
+
+    // alloc for ref
+    initial_mean = malloc(2 * n_clu * sizeof(*initial_mean));
+    if (initial_mean == NULL) {
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+    initial_cov = malloc(4 * n_clu * sizeof(*initial_cov));
+    if (initial_cov == NULL) {
+        free(initial_mean);
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+    initial_mag = malloc(n_clu * sizeof(*initial_mag));
+    if (initial_mag == NULL) {
+        free(initial_mean);
+        free(initial_cov);
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+    memcpy(initial_mean, mean, 2 * n_clu * sizeof(*mean));
+    memcpy(initial_cov, cov, 4 * n_clu * sizeof(*cov));
+    memcpy(initial_mag, mag, n_clu * sizeof(*mag));
+
+    // compute border costs
+    GradStep(
+        initial_mean, initial_cov, initial_mag,
+        mean_grad, cov_grad, mag_grad,
+        right_lr, n_clu,
+        mean, cov, mag
+    );
+    if (
+        MSECost(
+            roi, anchor_i, anchor_j, height, width,
+            mean, cov, mag, n_clu,
+            &right_cost
+        )
+    ) {
+        free(initial_mean);
+        free(initial_cov);
+        free(initial_mag);
+        return 1;
+    }
+
+    // dichotomy
+    for (long i = 0; i < 16; ++i) {
+        *lr = 0.5 * (left_lr + right_lr);
+        GradStep(
+            initial_mean, initial_cov, initial_mag,
+            mean_grad, cov_grad, mag_grad,
+            *lr, n_clu,
+            mean, cov, mag
+        );
+        if (
+            MSECost(
+                roi, anchor_i, anchor_j, height, width,
+                mean, cov, mag, n_clu,
+                cost
+            )
+        ) {
+            free(initial_mean);
+            free(initial_cov);
+            free(initial_mag);
+            return 1;
+        }
+
+        if (*cost <= left_cost) {
+            left_cost = *cost;
+            left_lr = *lr;
+        } else {
+            right_cost = *cost;
+            right_lr = *lr;
+        }
+        // fprintf(stdout, "        lr=%f\n", *lr);
+    }
+
+    free(initial_mean);
+    free(initial_cov);
+    free(initial_mag);
+    return 0;
+}
+
+
+int FitMSEMultiSteps(
+    const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
+    npy_float32* mean, npy_float32* cov, npy_float32* mag, const long n_clu
+) {
+    /*
+        Minimise the mean square error between a 2d gaussian mixture model and an image.
+        Assume that the Gaussians parameters have already been correctly initialized.
+        Performs a single training, if serveral tries must be pefrormed, it is done above.
+    */
+    long i = 0;
+    npy_float32 cost, lr = 1.0;
+    npy_float32 *mean_grad, *cov_grad, *mag_grad, *prev_mean;
+
+    mean_grad = malloc(2 * n_clu * sizeof(*mean_grad));
+    if (mean_grad == NULL) {
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+    cov_grad = malloc(4 * n_clu * sizeof(*cov_grad));
+    if (cov_grad == NULL) {
+        free(mean_grad);
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+    mag_grad = malloc(n_clu * sizeof(*mag_grad));
+    if (mag_grad == NULL) {
+        free(mean_grad);
+        free(cov_grad);
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+
+    prev_mean = malloc(2 * n_clu * sizeof(*prev_mean));
+    if (prev_mean == NULL) {
+        free(mean_grad);
+        free(cov_grad);
+        free(mag_grad);
+        fprintf(stderr, "failed to malloc\n");
+        return 1;
+    }
+    // fprintf(stdout, "new training...\n");
+    do {
+        memcpy(prev_mean, mean, 2 * n_clu * sizeof(*prev_mean));
+        if (  // find new direction
+            MSECostAndGrad(
+                roi, anchor_i, anchor_j, height, width,
+                mean, cov, mag, n_clu,
+                &cost, mean_grad, cov_grad, mag_grad
+            )
+            ||
+            FitMSEOptimalStep(
+                roi, anchor_i, anchor_j, height, width,
+                mean, cov, mag, n_clu,
+                &lr, &cost, mean_grad, cov_grad, mag_grad
+            )
+        ) {
+            free(mean_grad);
+            free(cov_grad);
+            free(mag_grad);
+            free(prev_mean);
+            return 1;
+        }
+        // fprintf(stdout, "    mse=%f, lr=%f\n", cost, lr);
+        if (i > 2048) {
+            fprintf(stderr, "too slow 2d gmm training, exit prematurely\n");
+            break;
+        }
+    } while (i++ < 32 || MaxAbsDiff(mean, prev_mean, 2 * n_clu) > 0.01);
+    free(mean_grad);
+    free(cov_grad);
+    free(mag_grad);
+    free(prev_mean);
+    return 0;
+}
+
+
 int FitEM(
     const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
     npy_float32* mean, npy_float32* cov, npy_float32* eta, const long n_clu, const long n_tries
 ) {
-    /*
-        Implement the Espectation Maximization algorithm.
-        Assume that the Gaussians parameters have already been correctl initialized.
-        Performs a single training, il serveral tries must be pefrormed, it is done above.
-    */
+    /* Implement the Espectation Maximization algorithm. */
     if (
         FitInit(
             roi, anchor_i, anchor_j, height, width,
@@ -300,6 +504,7 @@ int FitEM(
                 return 1;
             }
             if (llh > best_llh) {
+                best_llh = llh;
                 memcpy(mean, curr_mean, 2 * n_clu * sizeof(*curr_mean));
                 memcpy(cov, curr_cov, 4 * n_clu * sizeof(*curr_cov));
                 memcpy(eta, curr_eta, n_clu * sizeof(*curr_eta));
@@ -308,6 +513,92 @@ int FitEM(
         free(curr_mean);
         free(curr_cov);
         free(curr_eta);
+    }
+    return 0;
+}
+
+
+int FitMSE(
+    const npy_float32* roi, const long anchor_i, const long anchor_j, const long height, const long width,
+    npy_float32* mean, npy_float32* cov, npy_float32* mag, const long n_clu, const long n_tries
+) {
+    /* Minimise the mean square error between a 2d gaussian mixture model and an image. */
+    if (
+        FitInit(
+            roi, anchor_i, anchor_j, height, width,
+            mean, cov, mag, n_clu
+        )
+        ||
+        FitMSEMultiSteps(
+            roi, anchor_i, anchor_j, height, width,
+            mean, cov, mag, n_clu
+        )
+    ) {
+        return 1;
+    }
+    if (n_tries > 1) {
+        npy_float32 best_mse, mse;
+        if (
+            MSECost(
+                roi, anchor_i, anchor_j, height, width,
+                mean, cov, mag, n_clu,
+                &best_mse
+            )
+        ) {
+            return 1;
+        }
+        npy_float32 *curr_mean, *curr_cov, *curr_mag;
+        curr_mean = malloc(2 * n_clu * sizeof(*curr_mean));
+        if (curr_mean == NULL) {
+            fprintf(stderr, "failed to malloc\n");
+            return 1;
+        }
+        curr_cov = malloc(4 * n_clu * sizeof(*curr_cov));
+        if (curr_cov == NULL) {
+            free(curr_mean);
+            fprintf(stderr, "failed to malloc\n");
+            return 1;
+        }
+        curr_mag = malloc(n_clu * sizeof(*curr_mag));
+        if (curr_mag == NULL) {
+            free(curr_mean);
+            free(curr_cov);
+            fprintf(stderr, "failed to malloc\n");
+            return 1;
+        }
+        for (long i = 1; i < n_tries; ++i) {
+            if (
+                FitInit(
+                    roi, anchor_i, anchor_j, height, width,
+                    curr_mean, curr_cov, curr_mag, n_clu
+                )
+                ||
+                FitMSEMultiSteps(
+                    roi, anchor_i, anchor_j, height, width,
+                    curr_mean, curr_cov, curr_mag, n_clu
+                )
+                ||
+                MSECost(
+                    roi, anchor_i, anchor_j, height, width,
+                    curr_mean, curr_cov, curr_mag, n_clu,
+                    &mse
+                )
+            ) {
+                free(curr_mean);
+                free(curr_cov);
+                free(curr_mag);
+                return 1;
+            }
+            if (mse < best_mse) {
+                best_mse = mse;
+                memcpy(mean, curr_mean, 2 * n_clu * sizeof(*curr_mean));
+                memcpy(cov, curr_cov, 4 * n_clu * sizeof(*curr_cov));
+                memcpy(mag, curr_mag, n_clu * sizeof(*curr_mag));
+            }
+        }
+        free(curr_mean);
+        free(curr_cov);
+        free(curr_mag);
     }
     return 0;
 }
@@ -518,8 +809,80 @@ static PyObject* FitEmParser(PyObject* self, PyObject* args, PyObject* kwargs) {
 }
 
 
+static PyObject* FitMSEParser(PyObject* self, PyObject* args, PyObject* kwargs) {
+    // Compute the grad of the mse loss between the predicted gmm and the rois
+    static char *kwlist[] = {"data", "bboxes", "nbr_clusters", "nbr_tries", NULL};
+    int error;
+    long nbr_clu, nbr_tries;
+    npy_intp shape[4];
+    PyArrayObject *bboxes, *mean, *cov, *mag;
+    PyByteArrayObject* data;
+    PyObject* out;
+
+    // parse and check
+    if (!PyArg_ParseTupleAndKeywords(
+        args, kwargs, "YO!ll", kwlist,
+        &data, &PyArray_Type, &bboxes, &nbr_clu, &nbr_tries)
+    ) {
+        return NULL;
+    }
+    if (CheckBBoxes(bboxes)) {
+        return NULL;
+    }
+    if (nbr_clu < 1 || nbr_tries < 1) {
+        PyErr_SetString(PyExc_ValueError, "'nbr_clusters' and 'nbr_tries' must be >= 1");
+        return NULL;
+    }
+
+    // alloc result
+    shape[0] = PyArray_DIM(bboxes, 0);
+    shape[1] = (npy_intp)nbr_clu;
+    shape[2] = 2;
+    shape[3] = 2;
+    mean = (PyArrayObject *)PyArray_EMPTY(3, shape, NPY_FLOAT32, 0);  // c contiguous
+    if (mean == NULL) {
+        return PyErr_NoMemory();
+    }
+    cov = (PyArrayObject *)PyArray_EMPTY(4, shape, NPY_FLOAT32, 0);  // c contiguous
+    if (cov == NULL) {
+        Py_DECREF(mean);
+        return PyErr_NoMemory();
+    }
+    mag = (PyArrayObject *)PyArray_EMPTY(2, shape, NPY_FLOAT32, 0);  // c contiguous
+    if (mag == NULL) {
+        Py_DECREF(mean);
+        Py_DECREF(cov);
+        return PyErr_NoMemory();
+    }
+
+    // fit em
+    Py_BEGIN_ALLOW_THREADS
+    error = BatchedFit(
+        data, bboxes,
+        (npy_float32 *)PyArray_DATA(mean), (npy_float32 *)PyArray_DATA(cov), (npy_float32 *)PyArray_DATA(mag), nbr_clu, nbr_tries,
+        &FitMSE
+    );
+    Py_END_ALLOW_THREADS
+    if (error) {
+        Py_DECREF(mean);
+        Py_DECREF(cov);
+        Py_DECREF(mag);
+        PyErr_SetString(PyExc_RuntimeError, "failed to fit em on each roi");
+        return NULL;
+    }
+
+    // pack result
+    out = PyTuple_Pack(3, mean, cov, mag);  // it doesn't steal reference
+    Py_DECREF(mean);
+    Py_DECREF(cov);
+    Py_DECREF(mag);
+    return out;
+}
+
+
 static PyMethodDef fitMethods[] = {
     {"fit_em", (PyCFunction)FitEmParser,  METH_VARARGS | METH_KEYWORDS, "Weighted version of the 2d EM algorithm."},
+    {"fit_mse", (PyCFunction)FitMSEParser,  METH_VARARGS | METH_KEYWORDS, "Minimise the mse of 2d gmm."},
     {NULL, NULL, 0, NULL}
 };
 

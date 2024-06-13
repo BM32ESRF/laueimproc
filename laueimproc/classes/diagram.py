@@ -220,7 +220,7 @@ class Diagram(BaseDiagram):
 
     @auto_cache
     @check_init
-    def fit_gaussians_em(self, **kwargs) -> tuple[torch.Tensor, torch.Tensor, dict]:
+    def fit_gaussians_em(self, **kwargs) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
         r"""Fit each roi by \(K\) gaussians using the EM algorithm.
 
         See ``laueimproc.gmm`` for terminology,
@@ -261,6 +261,49 @@ class Diagram(BaseDiagram):
             data, bboxes = self._rois
         return fit_gaussians_em(data, bboxes, **kwargs)
 
+    @auto_cache
+    @check_init
+    def fit_gaussians_mse(self, **kwargs) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
+        r"""Fit each roi by \(K\) gaussians by minimising the mean square error.
+
+        See ``laueimproc.gmm`` for terminology,
+        and ``laueimproc.gmm.fit.fit_mse`` for the algo description.
+
+        Parameters
+        ----------
+        nbr_clusters, nbr_tries, mse
+            Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians_mse``.
+
+        Returns
+        -------
+        mean : torch.Tensor
+            The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2). In the absolute diagram base.
+        cov : torch.Tensor
+            The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
+        mag : torch.Tensor
+            The absolute magnitude \(\eta\). Shape (n, \(K\)).
+        infodict : dict[str]
+            A dictionary of optional outputs.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.diagram import Diagram
+        >>> from laueimproc.io import get_sample
+        >>> diagram = Diagram(get_sample())
+        >>> diagram.find_spots()
+        >>> mean, cov, mag, _ = diagram.fit_gaussians_mse(nbr_clusters=3, nbr_tries=4)
+        >>> mean.shape, cov.shape, mag.shape
+        (torch.Size([240, 3, 2]), torch.Size([240, 3, 2, 2]), torch.Size([240, 3]))
+        >>>
+        """
+        assert set(kwargs).issubset(
+            {"nbr_clusters", "nbr_tries", "mse", "_no_c"}
+        ), kwargs
+        from laueimproc.improc.spot.fit import fit_gaussians_mse
+        with self._rois_lock:
+            data, bboxes = self._rois
+        return fit_gaussians_mse(data, bboxes, **kwargs)
+
     # def fit_gaussian(
     #     self, *args, **kwargs
     # ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
@@ -273,71 +316,4 @@ class Diagram(BaseDiagram):
     #     if "eigtheta" in infodict:
     #         infodict = infodict.copy()  # to avoid insane cache reference error
     #         infodict["eigtheta"] = infodict["eigtheta"].squeeze(1)
-    #     return mean, cov, magnitude, infodict
-
-    # @auto_cache
-    # @check_init
-    # def fit_gaussians(
-    #     self, loss: str = "mse", indexing: str = "ij", **kwargs
-    # ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-    #     r"""Fit each roi by \(K\) gaussians.
-
-    #     See ``laueimproc.gmm`` for terminology.
-
-    #     Parameters
-    #     ----------
-    #     loss : str, default="mse"
-    #         Quantify the difference between ``self.rois`` and estimated rois from the gmm.
-    #         The possible values are:
-
-    #         * "l1" (absolute difference): \(
-    #             \frac{1}{H.W}
-    #             \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-    #             | rois_{k,i,j} - rois\_pred_{k,i,j} |
-    #         \)
-
-    #         * "mse" (mean square error): \(
-    #             \frac{1}{H.W}
-    #             \sum\limits_{i=0}^{H-1} \sum\limits_{j=0}^{W-1}
-    #             \left( rois_{k,i,j} - rois\_pred_{k,i,j} \right)^2
-    #         \)
-    #     indexing : str, default="ij"
-    #         The convention used for the returned positions values. Can be "ij" or "xy".
-    #     **kwargs : dict
-    #         Transmitted to ``laueimproc.improc.spot.fit.fit_gaussians``.
-
-    #     Returns
-    #     -------
-    #     mean : torch.Tensor
-    #         The vectors \(\mathbf{\mu}\). Shape (n, \(K\), 2, 1). In the absolute diagram base.
-    #     cov : torch.Tensor
-    #         The matrices \(\mathbf{\Sigma}\). Shape (n, \(K\), 2, 2).
-    #     magnitude : torch.Tensor
-    #         The absolute magnitude \(\theta.\eta\). Shape (n, \(K\)).
-    #     infodict : dict[str]
-    #         See ``laueimproc.improc.spot.fit.fit_gaussians``.
-    #     """
-    #     assert loss == "mse", "only mse is implemented"
-
-    #     # preparation
-    #     with self._rois_lock:
-    #         data = self._rois[0]
-    #         shapes = self._rois[1][:, 2:]
-    #         shift = self._rois[1][:, :2]
-
-    #     # main fit
-    #     mean, cov, magnitude, infodict = fit_gaussians(data, shapes, **kwargs)
-
-    #     # spot base to diagram base
-    #     if mean.requires_grad:
-    #         mean = mean + shift.reshape(-1, 1, 2, 1)
-    #     else:
-    #         mean += shift.reshape(-1, 1, 2, 1)
-
-    #     assert isinstance(indexing, str), indexing.__class__.__name__
-    #     assert indexing in {"ij", "xy"}, indexing
-    #     if indexing == "xy":
-    #         mean = torch.flip(mean, 2)
-    #         mean += 0.5
-
     #     return mean, cov, magnitude, infodict

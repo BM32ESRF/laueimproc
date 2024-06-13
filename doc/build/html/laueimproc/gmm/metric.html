@@ -185,6 +185,54 @@ def log_likelihood(
     ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)
     ind_prob += torch.finfo(torch.float32).eps  # for stability
     ind_prob = torch.log(ind_prob, out=None if ind_prob.requires_grad else ind_prob)
+    return torch.sum(ind_prob, axis=-1, keepdim=False)  # (...,)
+
+
+def mse(
+    obs: torch.Tensor,
+    weights: typing.Optional[torch.Tensor],
+    gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+    *, _check: bool = True,
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Compute the mean square error.
+
+    Parameters
+    ----------
+    obs : torch.Tensor
+        The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
+    weights : torch.Tensor, optional
+        The duplication weights of shape (..., \(N\)).
+    gmm : tuple of torch.Tensor
+        * mean : torch.Tensor
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
+        * cov : torch.Tensor
+            The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
+        * mag : torch.Tensor
+            The relative mass \(\eta_j\) of shape (..., \(K\)).
+
+    Returns
+    -------
+    mse : torch.Tensor
+        The mean square error of shape (...,).
+        \(
+            mse = \frac{1}{N}\sum\limits_{i=1}^N
+                \left(\left(\sum\limits_{j=1}^K
+                \eta_j \left(
+                    \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+                \right)\right) - \alpha_i\right)^2
+        \)
+    &#34;&#34;&#34;
+    if _check:
+        check_infit(obs, weights)
+        check_gmm(gmm)
+
+    mean, cov, eta = gmm
+    prob = gauss(obs, mean, cov, _check=False)  # (..., n_clu, n_obs)
+    prob **= weights.unsqueeze(-2)
+    prob *= eta.unsqueeze(-1)
+    ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)
+    ind_prob += torch.finfo(torch.float32).eps  # for stability
+    ind_prob = torch.log(ind_prob, out=None if ind_prob.requires_grad else ind_prob)
     return torch.sum(ind_prob, axis=-1, keepdim=False)  # (...,)</code></pre>
 </details>
 </section>
@@ -457,6 +505,99 @@ L_{\alpha,\omega} = \log\left(
     return torch.sum(ind_prob, axis=-1, keepdim=False)  # (...,)</code></pre>
 </details>
 </dd>
+<dt id="laueimproc.gmm.metric.mse"><code class="name flex">
+<span>def <span class="ident">mse</span></span>(<span>obs: torch.Tensor, weights: Optional[None], gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the mean square error.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>obs</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The observations <span><span class="MathJax_Preview">\mathbf{x}_i</span><script type="math/tex">\mathbf{x}_i</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</dd>
+<dt><strong><code>weights</code></strong> :&ensp;<code>torch.Tensor</code>, optional</dt>
+<dd>The duplication weights of shape (&hellip;, <span><span class="MathJax_Preview">N</span><script type="math/tex">N</script></span>).</dd>
+<dt><strong><code>gmm</code></strong> :&ensp;<code>tuple</code> of <code>torch.Tensor</code></dt>
+<dd>
+<ul>
+<li>mean : torch.Tensor
+The column mean vector <span><span class="MathJax_Preview">\mathbf{\mu}_j</span><script type="math/tex">\mathbf{\mu}_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</li>
+<li>cov : torch.Tensor
+The covariance matrix <span><span class="MathJax_Preview">\mathbf{\Sigma}</span><script type="math/tex">\mathbf{\Sigma}</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</li>
+<li>mag : torch.Tensor
+The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type="math/tex">\eta_j</script></span> of shape (&hellip;, <span><span class="MathJax_Preview">K</span><script type="math/tex">K</script></span>).</li>
+</ul>
+</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>mse</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The mean square error of shape (&hellip;,).
+<span><span class="MathJax_Preview">
+mse = \frac{1}{N}\sum\limits_{i=1}^N
+\left(\left(\sum\limits_{j=1}^K
+\eta_j \left(
+\mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+\right)\right) - \alpha_i\right)^2
+</span><script type="math/tex">
+mse = \frac{1}{N}\sum\limits_{i=1}^N
+\left(\left(\sum\limits_{j=1}^K
+\eta_j \left(
+\mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+\right)\right) - \alpha_i\right)^2
+</script></span></dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mse(
+    obs: torch.Tensor,
+    weights: typing.Optional[torch.Tensor],
+    gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+    *, _check: bool = True,
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Compute the mean square error.
+
+    Parameters
+    ----------
+    obs : torch.Tensor
+        The observations \(\mathbf{x}_i\) of shape (..., \(N\), \(D\)).
+    weights : torch.Tensor, optional
+        The duplication weights of shape (..., \(N\)).
+    gmm : tuple of torch.Tensor
+        * mean : torch.Tensor
+            The column mean vector \(\mathbf{\mu}_j\) of shape (..., \(K\), \(D\)).
+        * cov : torch.Tensor
+            The covariance matrix \(\mathbf{\Sigma}\) of shape (..., \(K\), \(D\), \(D\)).
+        * mag : torch.Tensor
+            The relative mass \(\eta_j\) of shape (..., \(K\)).
+
+    Returns
+    -------
+    mse : torch.Tensor
+        The mean square error of shape (...,).
+        \(
+            mse = \frac{1}{N}\sum\limits_{i=1}^N
+                \left(\left(\sum\limits_{j=1}^K
+                \eta_j \left(
+                    \mathcal{N}_{(\mathbf{\mu}_j,\frac{1}{\omega_i}\mathbf{\Sigma}_j)}(\mathbf{x}_i)
+                \right)\right) - \alpha_i\right)^2
+        \)
+    &#34;&#34;&#34;
+    if _check:
+        check_infit(obs, weights)
+        check_gmm(gmm)
+
+    mean, cov, eta = gmm
+    prob = gauss(obs, mean, cov, _check=False)  # (..., n_clu, n_obs)
+    prob **= weights.unsqueeze(-2)
+    prob *= eta.unsqueeze(-1)
+    ind_prob = torch.sum(prob, axis=-2, keepdim=False)  # (..., n_obs)
+    ind_prob += torch.finfo(torch.float32).eps  # for stability
+    ind_prob = torch.log(ind_prob, out=None if ind_prob.requires_grad else ind_prob)
+    return torch.sum(ind_prob, axis=-1, keepdim=False)  # (...,)</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -478,6 +619,7 @@ L_{\alpha,\omega} = \log\left(
 <li><code><a title="laueimproc.gmm.metric.aic" href="#laueimproc.gmm.metric.aic">aic</a></code></li>
 <li><code><a title="laueimproc.gmm.metric.bic" href="#laueimproc.gmm.metric.bic">bic</a></code></li>
 <li><code><a title="laueimproc.gmm.metric.log_likelihood" href="#laueimproc.gmm.metric.log_likelihood">log_likelihood</a></code></li>
+<li><code><a title="laueimproc.gmm.metric.mse" href="#laueimproc.gmm.metric.mse">mse</a></code></li>
 </ul>
 </li>
 </ul>

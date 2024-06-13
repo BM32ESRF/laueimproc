@@ -88,7 +88,7 @@ class BaseDiagram:
         self._cache: tuple[threading.Lock, dict[str]] = (  # contains the optional cached data
             threading.Lock(), {}
         )
-        self._file_or_data: typing.Union[pathlib.Path, torch.Tensor]  # the path to the image file
+        self._file_or_image: typing.Union[pathlib.Path, torch.Tensor]  # the path to the image file
         self._history: list[str] = []  # the history of the actions performed
         self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
         self._rois: typing.Optional[tuple[bytearray, torch.Tensor]] = None  # datarois, bboxes
@@ -96,14 +96,14 @@ class BaseDiagram:
 
         # initialisation
         if isinstance(data, (str, pathlib.Path)):
-            self._file_or_data = data
+            self._file_or_image = data
             if _check:
-                self._file_or_data = pathlib.Path(self._file_or_data).expanduser().resolve()
-                assert self._file_or_data.is_file(), self._file_or_data
+                self._file_or_image = pathlib.Path(self._file_or_image).expanduser().resolve()
+                assert self._file_or_image.is_file(), self._file_or_image
         else:
             warnings.warn("please provide a path rather than an array", RuntimeWarning)
-            self._file_or_data = to_floattensor(data)
-            assert self._file_or_data.ndim == 2, self._file_or_data.shape
+            self._file_or_image = to_floattensor(data)
+            assert self._file_or_image.ndim == 2, self._file_or_image.shape
 
     def __getstate__(self, cache: bool = False):
         """Make the diagram pickleable."""
@@ -112,14 +112,14 @@ class BaseDiagram:
         if cache:
             with self._cache[0]:
                 return (
-                    self._file_or_data,
+                    self._file_or_image,
                     self._history,
                     self._properties,
                     rois,
                     self._cache[1].copy(),
                 )
         return (
-            self._file_or_data,
+            self._file_or_image,
             self._history,
             self._properties,
             rois,
@@ -183,7 +183,7 @@ class BaseDiagram:
         # not verification for thread safe
         # because this method is never meant to be call from a thread.
         (
-            self._file_or_data,
+            self._file_or_image,
             self._history,
             self._properties,
             self._rois,
@@ -210,9 +210,9 @@ class BaseDiagram:
         """
         # title
         text = (
-            f"Diagram from {self._file_or_data.name}:"
-            if isinstance(self._file_or_data, pathlib.Path) else
-            f"Diagram from Tensor of id {id(self._file_or_data)}:"
+            f"Diagram from {self._file_or_image.name}:"
+            if isinstance(self._file_or_image, pathlib.Path) else
+            f"Diagram from Tensor of id {id(self._file_or_image)}:"
         )
 
         # history
@@ -420,7 +420,7 @@ class BaseDiagram:
         PosixPath('/.../laueimproc/io/ge.jp2')
         >>>
         """
-        return self._file_or_data if isinstance(self._file_or_data, pathlib.Path) else None
+        return self._file_or_image if isinstance(self._file_or_image, pathlib.Path) else None
 
     @check_init
     def filter_spots(
@@ -513,10 +513,11 @@ class BaseDiagram:
 
     def get_properties(self) -> dict[str]:
         """Return all the available properties."""
+        # no autocache because not state dependent
         extract = False
         with self._cache[0]:
             if (metadata := self._cache[1].get("metadata", None)) is None:
-                extract = isinstance(self._file_or_data, pathlib.Path)
+                extract = isinstance(self._file_or_image, pathlib.Path)
 
         if extract:  # way to realease the lock
             with open(self.file, "rb") as raw:
@@ -631,10 +632,13 @@ class BaseDiagram:
         tensor(True)
         >>>
         """
+        if not isinstance(self._file_or_image, pathlib.Path):
+            return self._file_or_image
+
         extract = False
         with self._cache[0]:
             if (image := self._cache[1].get("image", None)) is None:
-                extract = isinstance(self._file_or_data, pathlib.Path)
+                extract = isinstance(self._file_or_image, pathlib.Path)
 
         if extract:  # way to realease the lock
             image, metadata = read_image(self.file)
@@ -699,10 +703,10 @@ class BaseDiagram:
         axes = disp  # is gonna changed
         disp = disp or Figure(layout="tight")
         if isinstance(disp, Figure):
-            if isinstance(self._file_or_data, pathlib.Path):
-                disp.suptitle(f"Diagram {self._file_or_data.name}")
+            if isinstance(self._file_or_image, pathlib.Path):
+                disp.suptitle(f"Diagram {self._file_or_image.name}")
             else:
-                disp.suptitle(f"Diagram from Tensor of id {id(self._file_or_data)}")
+                disp.suptitle(f"Diagram from Tensor of id {id(self._file_or_image)}")
             axes = disp.add_subplot()
 
         # fill axes
@@ -916,9 +920,9 @@ class BaseDiagram:
         >>>
         """
         hasher = hashlib.md5(usedforsecurity=False)
-        if isinstance(self._file_or_data, pathlib.Path):
-            hasher.update(str(self._file_or_data.name).encode())
+        if isinstance(self._file_or_image, pathlib.Path):
+            hasher.update(str(self._file_or_image.name).encode())
         else:
-            hasher.update(id(self._file_or_data).to_bytes(8, "big"))
+            hasher.update(id(self._file_or_image).to_bytes(8, "big"))
         hasher.update("\n".join(self._history).encode())
         return hasher.hexdigest()
