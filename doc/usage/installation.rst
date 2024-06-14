@@ -20,6 +20,83 @@ LaueImproc supports these versions.
 .. _Windows Installation:
 
 
+Virtual Environement
+--------------------
+
+It is preferable to install laueimproc in a virtual environment. Please refer to the `pyenv main page <https://github.com/pyenv/pyenv>`_. It is possible to use ``python3-venv`` or ``conda`` as well.
+
+Install pyenv
+^^^^^^^^^^^^^
+
+First install the `python dependencies <https://github.com/pyenv/pyenv/wiki#suggested-build-environment>`_ then install pyenv.
+
+.. tab:: Linux
+
+    .. tab:: Debian Ubuntu Mint System
+
+        .. code-block:: shell
+
+            sudo apt update
+            sudo apt install libedit-dev libncurses5-dev
+            sudo apt install build-essential libssl-dev zlib1g-dev \
+            libbz2-dev libreadline-dev libsqlite3-dev curl git \
+            libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+
+    .. tab:: RHEL CentOS Fedora System
+
+        .. code-block:: shell
+
+            sudo yum install openssl11-devel --allowerasing
+            yum install gcc make patch zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel tk-devel libffi-devel xz-devel
+
+    .. tab:: Arch Manjaro System
+
+        .. code-block:: shell
+
+            yay -S ncurses5-compat-libs
+
+    .. code-block:: shell
+
+        curl https://pyenv.run | bash
+        echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+        echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+        echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+        source ~/.bashrc
+
+.. tab:: macOS
+
+    You could install dependencies by using `Homebrew <https://brew.sh/>`_.
+
+    .. code-block:: shell
+
+        brew install ncurses
+        brew install openssl readline sqlite3 xz zlib tcl-tk
+        brew install pyenv
+
+If it fails, `this debug link <https://github.com/pyenv/pyenv/wiki/Common-build-problems>`_ may help you.
+
+Configure pyenv
+^^^^^^^^^^^^^^^
+
+Create the virtual environement.
+
+.. code-block:: shell
+
+    pyenv update
+    env PYTHON_CONFIGURE_OPTS="--enable-shared --enable-optimizations --with-lto" PYTHON_CFLAGS='-march=native -mtune=native' \
+    pyenv install -v 3.12
+    pyenv virtualenv 3.12 laueenv
+    pyenv activate laueenv
+
+Install jupyter notebook
+
+.. code-block:: shell
+
+    pip install ipython jupyter notebook
+    pip install ipympl  # for matplotlib
+    # jupyter-notebook
+
+
 Dependencies (Optional)
 -----------------------
 
@@ -109,83 +186,6 @@ As part of laueimproc is written in C, **gcc** must be installed. You can test t
     .. warning:: I see that you insist on using Windows, this step is the most critical, good luck! Without gcc, some functions of laueimproc will be around **1000 times slowler**.
 
     It is not too late to listen the voice of reason! You can `install ubuntu <https://lecrabeinfo.net/installer-ubuntu-22-04-lts-le-guide-complet.html>`_ for example.
-
-
-Virtual Environement
---------------------
-
-It is preferable to install laueimproc in a virtual environment. Please refer to the `pyenv main page <https://github.com/pyenv/pyenv>`_. It is possible to use ``python3-venv`` or ``conda`` as well.
-
-Install pyenv
-^^^^^^^^^^^^^
-
-First install the `python dependencies <https://github.com/pyenv/pyenv/wiki#suggested-build-environment>`_ then install pyenv.
-
-.. tab:: Linux
-
-    .. tab:: Debian Ubuntu Mint System
-
-        .. code-block:: shell
-
-            sudo apt update
-            sudo apt install libedit-dev libncurses5-dev
-            sudo apt install build-essential libssl-dev zlib1g-dev \
-            libbz2-dev libreadline-dev libsqlite3-dev curl git \
-            libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
-
-    .. tab:: RHEL CentOS Fedora System
-
-        .. code-block:: shell
-
-            sudo yum install openssl11-devel --allowerasing
-            yum install gcc make patch zlib-devel bzip2 bzip2-devel readline-devel sqlite sqlite-devel openssl-devel tk-devel libffi-devel xz-devel
-
-    .. tab:: Arch Manjaro System
-
-        .. code-block:: shell
-
-            yay -S ncurses5-compat-libs
-
-    .. code-block:: shell
-
-        curl https://pyenv.run | bash
-        echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-        echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-        echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-        source ~/.bashrc
-
-.. tab:: macOS
-
-    You could install dependencies by using `Homebrew <https://brew.sh/>`_.
-
-    .. code-block:: shell
-
-        brew install ncurses
-        brew install openssl readline sqlite3 xz zlib tcl-tk
-        brew install pyenv
-
-If it fails, `this debug link <https://github.com/pyenv/pyenv/wiki/Common-build-problems>`_ may help you.
-
-Configure pyenv
-^^^^^^^^^^^^^^^
-
-Create the virtual environement.
-
-.. code-block:: shell
-
-    pyenv update
-    env PYTHON_CONFIGURE_OPTS="--enable-shared --enable-optimizations --with-lto" PYTHON_CFLAGS='-march=native -mtune=native' \
-    pyenv install -v 3.12
-    pyenv virtualenv 3.12 laueenv
-    pyenv activate laueenv
-
-Install jupyter notebook
-
-.. code-block:: shell
-
-    pip install ipython jupyter notebook
-    pip install ipympl  # for matplotlib
-    # jupyter-notebook
 
 
 Installation with pip

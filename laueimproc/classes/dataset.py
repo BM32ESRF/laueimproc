@@ -2,7 +2,6 @@
 
 """Link serveral diagrams together."""
 
-import multiprocessing.pool
 import numbers
 import typing
 
@@ -19,25 +18,44 @@ class DiagramsDataset(BaseDiagramsDataset):
     def compute_mean_image(self) -> torch.Tensor:
         """Compute the average image.
 
+        Based on ``laueimproc.immix.mean.mean_stack``.
+
         Returns
         -------
         torch.Tensor
             The average image of all the images contained in this dataset.
         """
-        assert len(self) > 0, "impossible to compute the mean image of an empty dataset"
-        img = None
-        count = 0.0
-        with multiprocessing.pool.ThreadPool() as pool:
-            for loc_img in pool.imap_unordered(lambda d: d.image, self):
-                if img is None:
-                    img = loc_img.clone()
-                else:
-                    assert img.shape == loc_img.shape, \
-                        f"all images have be of same shape ({img.shape} vs {loc_img.shape})"
-                img += loc_img
-                count += 1.0
-        img /= count
-        return img
+        from laueimproc.immix.mean import mean_stack
+        return mean_stack(self)
+
+    def compute_inter_image(self, *args, method: str = "snowflake", **kwargs) -> torch.Tensor:
+        """Compute the median, first quartile, third quartile or everything in between.
+
+        Parameters
+        ----------
+        *args, **kwargs
+            Transmitted to ``laueimproc.immix.inter.sort_stack``
+            or ``laueimproc.immix.inter.snowflake_stack``.
+        method : str
+            The algorithm used.
+            It can be `sort` for the naive accurate algorithm,
+            or `snowflake` for a faster algorithm on big dataset, but less accurate.
+
+        Returns
+        -------
+        torch.Tensor
+            The 2d float32 grayscale image.
+        """
+        assert isinstance(method, str), method.__class__.__name__
+        match method:
+            case "snowflake":
+                from laueimproc.immix.inter import snowflake_stack
+                return snowflake_stack(self, *args, **kwargs)
+            case "sort":
+                from laueimproc.immix.inter import sort_stack
+                return sort_stack(self, *args, **kwargs)
+            case _:
+                raise ValueError(f"method can only be 'snowflake' or 'sort', not {method}")
 
     def select_closest(
         self, *args, no_raise: bool = False, **kwargs

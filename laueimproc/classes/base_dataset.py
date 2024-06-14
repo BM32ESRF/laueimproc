@@ -114,7 +114,7 @@ class BaseDiagramsDataset(threading.Thread):
         ----------
         *diagram_refs : tuple
             The diagram references, transmitted to ``add_diagrams``.
-        diag2ind : callable, default=laueimproc.classses.base_dataset.default_diag2ind
+        diag2ind : callable, default=laueimproc.classes.base_dataset.default_diag2ind
             The function to associate an index to a diagram.
             If provided, this function has to be pickleable.
             It has to take only one positional argument (a simple Diagram instance)

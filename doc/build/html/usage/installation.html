@@ -6,16 +6,16 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="usage/installation.html" />
 <meta property="og:site_name" content="laueimproc" />
-<meta property="og:description" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.3.1,, Yes, Yes, Yes, Yes,, LaueImproc 0.0.0 - 1.2.1,,, Yes..." />
+<meta property="og:description" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.4.0,, Yes, Yes, Yes,,, LaueImproc 1.3.0 - 1.3.2,, Yes, Yes..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="/_images/social_previews/summary_usage_installation_a4b27c74.png" />
-<meta property="og:image:alt" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.3.1,, Yes, Yes, Ye..." />
-<meta name="description" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.3.1,, Yes, Yes, Yes, Yes,, LaueImproc 0.0.0 - 1.2.1,,, Yes..." />
+<meta property="og:image" content="/_images/social_previews/summary_usage_installation_a7ea894e.png" />
+<meta property="og:image:alt" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.4.0,, Yes, Yes, Ye..." />
+<meta name="description" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.4.0,, Yes, Yes, Yes,,, LaueImproc 1.3.0 - 1.3.2,, Yes, Yes..." />
 <meta name="twitter:card" content="summary_large_image" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; laueimproc 1.3.2 documentation</title>
+  <title>Installation &mdash; laueimproc 1.4.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -28,7 +28,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=8ca9e7a0"></script>
+        <script src="../_static/documentation_options.js?v=9172181d"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -53,7 +53,7 @@
             laueimproc
           </a>
               <div class="version">
-                1.3.2
+                1.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -66,12 +66,12 @@
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#python-and-pytorch-support">Python and PyTorch Support</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dependencies-optional">Dependencies (Optional)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#virtual-environement">Virtual Environement</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#install-pyenv">Install pyenv</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#configure-pyenv">Configure pyenv</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies-optional">Dependencies (Optional)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-with-pip">Installation with pip</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#building-from-source">Building From Source</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building-documentation">Building Documentation</a></li>
@@ -125,14 +125,21 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>LaueImproc 1.3.1</p></td>
+<tr class="row-even"><td><p>LaueImproc 1.4.0</p></td>
+<td></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>LaueImproc 1.3.0 - 1.3.2</p></td>
 <td></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p>LaueImproc 0.0.0 - 1.2.1</p></td>
+<tr class="row-even"><td><p>LaueImproc 0.0.0 - 1.2.1</p></td>
 <td></td>
 <td></td>
 <td><p>Yes</p></td>
@@ -142,101 +149,16 @@
 </tbody>
 </table>
 </section>
-<section id="dependencies-optional">
-<span id="windows-installation"></span><span id="macos-installation"></span><span id="freebsd-installation"></span><span id="linux-installation"></span><span id="opensuse-system"></span><span id="arch-manjaro-system"></span><span id="rhel-centos-fedora-system"></span><span id="debian-ubuntu-mint-system"></span><h2>Dependencies (Optional)<a class="headerlink" href="#dependencies-optional" title="Link to this heading"></a></h2>
-<p>If you have a GPU, please install CUDA or ROC then follow the <a class="reference external" href="https://pytorch.org/">PyTorch installation guide</a>. Without CUDA or ROC, the software is not able to use the GPU (CPU only).</p>
-<div class="tab-set docutils container">
-<input checked="True" class="tab-input" id="tab-set--0-input--1" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--1">Linux</label><div class="tab-content docutils container">
-<p>Follow the official <a class="reference external" href="https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html">NVIDIA CUDA Installation Guide for Linux</a>.</p>
-</div>
-<input class="tab-input" id="tab-set--0-input--2" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--2">FreeBSD</label><div class="tab-content docutils container">
-<p>It is not well supproted, you can try to follow <a class="reference external" href="https://gist.github.com/Mostly-BSD/4d3cacc0ee2f045ed8505005fd664c6e">this bsd link</a>.</p>
-</div>
-<input class="tab-input" id="tab-set--0-input--3" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--3">macOS</label><div class="tab-content docutils container">
-<p>Follow the <a class="reference external" href="https://docs.nvidia.com/cuda/archive/10.2/cuda-installation-guide-mac-os-x/index.html">NVIDIA CUDA Installation Guide for Mac OS X</a>.</p>
-</div>
-<input class="tab-input" id="tab-set--0-input--4" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--4">Windows</label><div class="tab-content docutils container">
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Windows is crap, so be prepared for a tedious and buggy installation! You should forget Microchiotte-Windaube and go straight to Linux before you pull out all your hair!</p>
-</div>
-<p>It is important to configure your environement variable to hook cuda to PyTorch.
-Good luck with the <a class="reference external" href="https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html">official guide</a>.</p>
-</div>
-</div>
-<p>As part of laueimproc is written in C, <strong>gcc</strong> must be installed. You can test the correct installation of gcc with the  <code class="docutils literal notranslate"><span class="pre">gcc</span> <span class="pre">--version</span></code> command.</p>
-<div class="tab-set docutils container">
-<input checked="True" class="tab-input" id="tab-set--2-input--1" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--1">Linux</label><div class="tab-content docutils container">
-<p>It is installed by default on many linux systems.</p>
-<div class="tab-set docutils container">
-<input checked="True" class="tab-input" id="tab-set--1-input--1" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--1">Debian Ubuntu Mint System</label><div class="tab-content docutils container">
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>update
-sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>build-essential
-sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>manpages-dev
-</pre></div>
-</div>
-</div>
-<input class="tab-input" id="tab-set--1-input--2" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--2">RHEL CentOS Fedora System</label><div class="tab-content docutils container">
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>yum<span class="w"> </span>group<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;Development Tools&quot;</span>
-sudo<span class="w"> </span>yum<span class="w"> </span>install<span class="w"> </span>man-pages
-</pre></div>
-</div>
-</div>
-<input class="tab-input" id="tab-set--1-input--3" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--3">Arch Manjaro System</label><div class="tab-content docutils container">
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>pacman<span class="w"> </span>-Syu
-sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>base-devel
-sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>gcc-multilib<span class="w"> </span>lib32-gcc-libs
-wget<span class="w"> </span>https://ftp.gnu.org/gnu/gcc/gcc-13.2.0/gcc-13.2.0.tar.gz
-tar<span class="w"> </span>-xzvf<span class="w"> </span>gcc-13.2.0.tar.gz
-<span class="nb">cd</span><span class="w"> </span>gcc-13.2.0
-mkdir<span class="w"> </span>build
-<span class="nb">cd</span><span class="w"> </span>build
-<span class="se">\.</span>./configure
-make<span class="w"> </span>-j4
-sudo<span class="w"> </span>make<span class="w"> </span>install
-</pre></div>
-</div>
-</div>
-<input class="tab-input" id="tab-set--1-input--4" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--4">OpenSUSE System</label><div class="tab-content docutils container">
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>zypper<span class="w"> </span>refresh
-sudo<span class="w"> </span>zypper<span class="w"> </span>update
-sudo<span class="w"> </span>zypper<span class="w"> </span>addrepo<span class="w"> </span>http://download.opensuse.org/distribution/leap/15.6/repo/oss/<span class="w"> </span>oss
-zypper<span class="w"> </span>search<span class="w"> </span>gcc
-sudo<span class="w"> </span>zypper<span class="w"> </span>install<span class="w"> </span>gcc
-sudo<span class="w"> </span>zypper<span class="w"> </span>install<span class="w"> </span>gcc-c++
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<input class="tab-input" id="tab-set--2-input--2" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--2">FreeBSD</label><div class="tab-content docutils container">
-<p>It is install by default on FreeBSD.</p>
-</div>
-<input class="tab-input" id="tab-set--2-input--3" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--3">macOS</label><div class="tab-content docutils container">
-<p>You could install gcc by using <a class="reference external" href="https://brew.sh/">Homebrew</a>.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>gcc
-</pre></div>
-</div>
-</div>
-<input class="tab-input" id="tab-set--2-input--4" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--4">Windows</label><div class="tab-content docutils container">
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>I see that you insist on using Windows, this step is the most critical, good luck! Without gcc, some functions of laueimproc will be around <strong>1000 times slowler</strong>.</p>
-</div>
-<p>It is not too late to listen the voice of reason! You can <a class="reference external" href="https://lecrabeinfo.net/installer-ubuntu-22-04-lts-le-guide-complet.html">install ubuntu</a> for example.</p>
-</div>
-</div>
-</section>
 <section id="virtual-environement">
-<h2>Virtual Environement<a class="headerlink" href="#virtual-environement" title="Link to this heading"></a></h2>
+<span id="windows-installation"></span><span id="macos-installation"></span><span id="freebsd-installation"></span><span id="linux-installation"></span><span id="opensuse-system"></span><span id="arch-manjaro-system"></span><span id="rhel-centos-fedora-system"></span><span id="debian-ubuntu-mint-system"></span><h2>Virtual Environement<a class="headerlink" href="#virtual-environement" title="Link to this heading"></a></h2>
 <p>It is preferable to install laueimproc in a virtual environment. Please refer to the <a class="reference external" href="https://github.com/pyenv/pyenv">pyenv main page</a>. It is possible to use <code class="docutils literal notranslate"><span class="pre">python3-venv</span></code> or <code class="docutils literal notranslate"><span class="pre">conda</span></code> as well.</p>
 <section id="install-pyenv">
 <h3>Install pyenv<a class="headerlink" href="#install-pyenv" title="Link to this heading"></a></h3>
 <p>First install the <a class="reference external" href="https://github.com/pyenv/pyenv/wiki#suggested-build-environment">python dependencies</a> then install pyenv.</p>
 <div class="tab-set docutils container">
-<input checked="True" class="tab-input" id="tab-set--4-input--1" name="tab-set--4" type="radio"><label class="tab-label" for="tab-set--4-input--1">Linux</label><div class="tab-content docutils container">
+<input checked="True" class="tab-input" id="tab-set--1-input--1" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--1">Linux</label><div class="tab-content docutils container">
 <div class="tab-set docutils container">
-<input checked="True" class="tab-input" id="tab-set--3-input--1" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--1">Debian Ubuntu Mint System</label><div class="tab-content docutils container">
+<input checked="True" class="tab-input" id="tab-set--0-input--1" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--1">Debian Ubuntu Mint System</label><div class="tab-content docutils container">
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>update
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>libedit-dev<span class="w"> </span>libncurses5-dev
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>build-essential<span class="w"> </span>libssl-dev<span class="w"> </span>zlib1g-dev<span class="w"> </span><span class="se">\</span>
@@ -245,13 +167,13 @@ libncursesw5-dev<span class="w"> </span>xz-utils<span class="w"> </span>tk-dev<s
 </pre></div>
 </div>
 </div>
-<input class="tab-input" id="tab-set--3-input--2" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--2">RHEL CentOS Fedora System</label><div class="tab-content docutils container">
+<input class="tab-input" id="tab-set--0-input--2" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--2">RHEL CentOS Fedora System</label><div class="tab-content docutils container">
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>yum<span class="w"> </span>install<span class="w"> </span>openssl11-devel<span class="w"> </span>--allowerasing
 yum<span class="w"> </span>install<span class="w"> </span>gcc<span class="w"> </span>make<span class="w"> </span>patch<span class="w"> </span>zlib-devel<span class="w"> </span>bzip2<span class="w"> </span>bzip2-devel<span class="w"> </span>readline-devel<span class="w"> </span>sqlite<span class="w"> </span>sqlite-devel<span class="w"> </span>openssl-devel<span class="w"> </span>tk-devel<span class="w"> </span>libffi-devel<span class="w"> </span>xz-devel
 </pre></div>
 </div>
 </div>
-<input class="tab-input" id="tab-set--3-input--3" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--3">Arch Manjaro System</label><div class="tab-content docutils container">
+<input class="tab-input" id="tab-set--0-input--3" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--3">Arch Manjaro System</label><div class="tab-content docutils container">
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>yay<span class="w"> </span>-S<span class="w"> </span>ncurses5-compat-libs
 </pre></div>
 </div>
@@ -265,7 +187,7 @@ yum<span class="w"> </span>install<span class="w"> </span>gcc<span class="w"> </
 </pre></div>
 </div>
 </div>
-<input class="tab-input" id="tab-set--4-input--2" name="tab-set--4" type="radio"><label class="tab-label" for="tab-set--4-input--2">macOS</label><div class="tab-content docutils container">
+<input class="tab-input" id="tab-set--1-input--2" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--2">macOS</label><div class="tab-content docutils container">
 <p>You could install dependencies by using <a class="reference external" href="https://brew.sh/">Homebrew</a>.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>ncurses
 brew<span class="w"> </span>install<span class="w"> </span>openssl<span class="w"> </span>readline<span class="w"> </span>sqlite3<span class="w"> </span>xz<span class="w"> </span>zlib<span class="w"> </span>tcl-tk
@@ -293,6 +215,91 @@ pip<span class="w"> </span>install<span class="w"> </span>ipympl<span class="w">
 </pre></div>
 </div>
 </section>
+</section>
+<section id="dependencies-optional">
+<h2>Dependencies (Optional)<a class="headerlink" href="#dependencies-optional" title="Link to this heading"></a></h2>
+<p>If you have a GPU, please install CUDA or ROC then follow the <a class="reference external" href="https://pytorch.org/">PyTorch installation guide</a>. Without CUDA or ROC, the software is not able to use the GPU (CPU only).</p>
+<div class="tab-set docutils container">
+<input checked="True" class="tab-input" id="tab-set--2-input--1" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--1">Linux</label><div class="tab-content docutils container">
+<p>Follow the official <a class="reference external" href="https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html">NVIDIA CUDA Installation Guide for Linux</a>.</p>
+</div>
+<input class="tab-input" id="tab-set--2-input--2" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--2">FreeBSD</label><div class="tab-content docutils container">
+<p>It is not well supproted, you can try to follow <a class="reference external" href="https://gist.github.com/Mostly-BSD/4d3cacc0ee2f045ed8505005fd664c6e">this bsd link</a>.</p>
+</div>
+<input class="tab-input" id="tab-set--2-input--3" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--3">macOS</label><div class="tab-content docutils container">
+<p>Follow the <a class="reference external" href="https://docs.nvidia.com/cuda/archive/10.2/cuda-installation-guide-mac-os-x/index.html">NVIDIA CUDA Installation Guide for Mac OS X</a>.</p>
+</div>
+<input class="tab-input" id="tab-set--2-input--4" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--4">Windows</label><div class="tab-content docutils container">
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Windows is crap, so be prepared for a tedious and buggy installation! You should forget Microchiotte-Windaube and go straight to Linux before you pull out all your hair!</p>
+</div>
+<p>It is important to configure your environement variable to hook cuda to PyTorch.
+Good luck with the <a class="reference external" href="https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html">official guide</a>.</p>
+</div>
+</div>
+<p>As part of laueimproc is written in C, <strong>gcc</strong> must be installed. You can test the correct installation of gcc with the  <code class="docutils literal notranslate"><span class="pre">gcc</span> <span class="pre">--version</span></code> command.</p>
+<div class="tab-set docutils container">
+<input checked="True" class="tab-input" id="tab-set--4-input--1" name="tab-set--4" type="radio"><label class="tab-label" for="tab-set--4-input--1">Linux</label><div class="tab-content docutils container">
+<p>It is installed by default on many linux systems.</p>
+<div class="tab-set docutils container">
+<input checked="True" class="tab-input" id="tab-set--3-input--1" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--1">Debian Ubuntu Mint System</label><div class="tab-content docutils container">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>build-essential
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>manpages-dev
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--3-input--2" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--2">RHEL CentOS Fedora System</label><div class="tab-content docutils container">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>yum<span class="w"> </span>group<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;Development Tools&quot;</span>
+sudo<span class="w"> </span>yum<span class="w"> </span>install<span class="w"> </span>man-pages
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--3-input--3" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--3">Arch Manjaro System</label><div class="tab-content docutils container">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>pacman<span class="w"> </span>-Syu
+sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>base-devel
+sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>gcc-multilib<span class="w"> </span>lib32-gcc-libs
+wget<span class="w"> </span>https://ftp.gnu.org/gnu/gcc/gcc-13.2.0/gcc-13.2.0.tar.gz
+tar<span class="w"> </span>-xzvf<span class="w"> </span>gcc-13.2.0.tar.gz
+<span class="nb">cd</span><span class="w"> </span>gcc-13.2.0
+mkdir<span class="w"> </span>build
+<span class="nb">cd</span><span class="w"> </span>build
+<span class="se">\.</span>./configure
+make<span class="w"> </span>-j4
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--3-input--4" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--4">OpenSUSE System</label><div class="tab-content docutils container">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>zypper<span class="w"> </span>refresh
+sudo<span class="w"> </span>zypper<span class="w"> </span>update
+sudo<span class="w"> </span>zypper<span class="w"> </span>addrepo<span class="w"> </span>http://download.opensuse.org/distribution/leap/15.6/repo/oss/<span class="w"> </span>oss
+zypper<span class="w"> </span>search<span class="w"> </span>gcc
+sudo<span class="w"> </span>zypper<span class="w"> </span>install<span class="w"> </span>gcc
+sudo<span class="w"> </span>zypper<span class="w"> </span>install<span class="w"> </span>gcc-c++
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--4-input--2" name="tab-set--4" type="radio"><label class="tab-label" for="tab-set--4-input--2">FreeBSD</label><div class="tab-content docutils container">
+<p>It is install by default on FreeBSD.</p>
+</div>
+<input class="tab-input" id="tab-set--4-input--3" name="tab-set--4" type="radio"><label class="tab-label" for="tab-set--4-input--3">macOS</label><div class="tab-content docutils container">
+<p>You could install gcc by using <a class="reference external" href="https://brew.sh/">Homebrew</a>.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>gcc
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--4-input--4" name="tab-set--4" type="radio"><label class="tab-label" for="tab-set--4-input--4">Windows</label><div class="tab-content docutils container">
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>I see that you insist on using Windows, this step is the most critical, good luck! Without gcc, some functions of laueimproc will be around <strong>1000 times slowler</strong>.</p>
+</div>
+<p>It is not too late to listen the voice of reason! You can <a class="reference external" href="https://lecrabeinfo.net/installer-ubuntu-22-04-lts-le-guide-complet.html">install ubuntu</a> for example.</p>
+</div>
+</div>
 </section>
 <section id="installation-with-pip">
 <h2>Installation with pip<a class="headerlink" href="#installation-with-pip" title="Link to this heading"></a></h2>
