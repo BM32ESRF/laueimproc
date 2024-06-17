@@ -6,6 +6,7 @@ import io
 import logging
 import lzma
 import pathlib
+import time
 import typing
 import warnings
 
@@ -113,7 +114,8 @@ def read_image(filename: typing.Union[str, pathlib.Path]) -> tuple[torch.Tensor,
         image = np.asarray(img_pillow)
         if image.ndim != 2:
             image = np.asarray(PIL.ImageOps.grayscale(img_pillow))
-
+    else:
+        time.sleep(0.1)  # solve gil deadlock assumed to be durty
     image = to_floattensor(image)
     metadata = extract_metadata(img_bytes)
 

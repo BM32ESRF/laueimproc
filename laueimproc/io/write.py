@@ -65,6 +65,7 @@ def write_jp2(
     succes, img_data = cv2.imencode(".jp2", img_np, (cv2.IMWRITE_JPEG2000_COMPRESSION_X1000, 1000))
     if not succes:
         raise ValueError(f"failed to encode image {filename} with cv2")
+    img_data = img_data.tobytes()
 
     # encode metadata
     if metadata:  # no test 'is None' to avoid encoding empty dict

@@ -352,7 +352,7 @@ class Decoder(torch.nn.Module):
 
     Attributes
     ----------
-    parent : laueimproc.nn.vae_spot_classifier.VAESpotsClassifier
+    parent : laueimproc.nn.vae_spot_classifier.VAESpotClassifier
         The main full auto encoder, containing this module.
     """
 
@@ -535,7 +535,7 @@ class Encoder(torch.nn.Module):
 
     Attributes
     ----------
-    parent : laueimproc.nn.vae_spot_classifier.VAESpotsClassifier
+    parent : laueimproc.nn.vae_spot_classifier.VAESpotClassifier
         The main full auto encoder, containing this module.
     """
 

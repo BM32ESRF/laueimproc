@@ -71,6 +71,7 @@ def converter_decorator(func: typing.Callable):
         with multiprocessing.pool.ThreadPool() as pool:
             for dst_file in tqdm(
                 pool.imap_unordered(lambda s: func(s, dst_dir or s.parent, metadata), src),
+                # map(lambda s: func(s, dst_dir or s.parent, metadata), src),
                 total=len(src),
                 desc="convert",
                 unit="img",
