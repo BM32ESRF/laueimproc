@@ -33,31 +33,17 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.coverage",
-    "sphinx.ext.extlinks", # in pillow conf
+    "sphinx.ext.extlinks",  # in pillow conf
     "sphinx.ext.githubpages",
     "sphinx.ext.ifconfig",
-    "sphinx.ext.intersphinx", # in pillow conf
+    "sphinx.ext.intersphinx",  # in pillow conf
     "sphinx.ext.mathjax",
     "sphinx.ext.todo",
-    "sphinx.ext.viewcode", # in pillow conf
-    "sphinx_copybutton", # in pillow conf
-    "sphinx_inline_tabs", # in pillow conf
+    "sphinx.ext.viewcode",  # in pillow conf
+    "sphinx_copybutton",  # in pillow conf
+    "sphinx_inline_tabs",  # in pillow conf
     "sphinx_rtd_theme",
-    "sphinxext.opengraph", # in pillow conf
+    "sphinxext.opengraph",  # in pillow conf
 ]
 todo_include_todos = True
 intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
-
-
-# -- Pdoc3 auto generation----------------------------------------------------
-import subprocess
-subprocess.run(  # build with pdoc3
-    [
-        "python", "-m", "pdoc",
-        "--html", "--force", "--config", "latex_math=True",
-        "--output-dir", str(pathlib.Path(__file__).resolve().parent / "build" / "html"),
-        str(pathlib.Path(__file__).resolve().parent.parent / "laueimproc"),
-    ],
-    shell=False,
-    check=True,
-)

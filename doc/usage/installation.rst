@@ -1,6 +1,7 @@
 Installation
 ============
 
+
 Python and PyTorch Support
 --------------------------
 
@@ -9,15 +10,6 @@ LaueImproc supports these versions.
 .. csv-table:: Python versions
     :file: supported-python-versions.csv
     :header-rows: 1
-
-.. _Debian Ubuntu Mint System:
-.. _RHEL CentOS Fedora System:
-.. _Arch Manjaro System:
-.. _OpenSUSE System:
-.. _Linux Installation:
-.. _FreeBSD Installation:
-.. _macOS Installation:
-.. _Windows Installation:
 
 
 Virtual Environement
@@ -94,7 +86,7 @@ Install jupyter notebook
 
     pip install ipython jupyter notebook
     pip install ipympl  # for matplotlib
-    # jupyter-notebook
+    # jupter-notebook
 
 
 Dependencies (Optional)
@@ -196,8 +188,6 @@ Building From Source
 
 To install the lastest development version from `GitHub <https://github.com/BM32ESRF/laueimproc>`_ source, clone laueimproc using ``git`` and install it using ``pip``:
 
-.. warning::
-    Make shure you are in a virtual environement ``pyenv activate laueenv`` before excecuting the next lines!
 
 .. note::
     It works for updating an already installed version as well.
@@ -212,32 +202,18 @@ To install the lastest development version from `GitHub <https://github.com/BM32
         cd ~/laueimproc_git/
         git pull
     fi
-    # pyenv activate laueenv  # be sure to be in a virtual env
+    pyenv activate laueenv  # be sure to be in a virtual env
     pip install --upgrade pip setuptools wheel
-    pip -v install --editable .[all]  # compilation and linkage
+    pip -v install --editable .  # compilation and linkage
 
-Building Documentation
-^^^^^^^^^^^^^^^^^^^^^^
+Open Documentation
+^^^^^^^^^^^^^^^^^^
 
-You can also compile documentation locally (after the previous step).
-
-.. code-block:: shell
-
-    cd ~/laueimproc_git/doc/ && make clean && make html && cd -
-    firefox ~/laueimproc_git/doc/build/html/index.html &
-
-
-Verification
-------------
-
-To check that everything is in order, you can run the test bench.
-For running tests, some dependencies are requiered, you can install it passing the option ``[all]`` to ``pip``.
+Once laueimproc has been installed correctly, simply type the next lines to open the documentation
 
 .. code-block:: shell
 
-    laueimproc test  # `laueimproc test --help` to see how to skip some tests
-
-If it segfault, maybe the problem comes from c-files, you can delete it with ``find laueimproc/ -name *.so -exec rm {} \;``.
+    laueimproc doc
 
 
 Platform Support

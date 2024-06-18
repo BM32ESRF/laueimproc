@@ -6,14 +6,21 @@ SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = laueimproc
 SOURCEDIR     = .
 BUILDDIR      = build
+TEMPLATEDIR   = template
 
-# Put it first so that "make" without argument is like "make help".
-help:
-	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+clean:
+	@echo "****************************************"
+	@echo "************* Remove Build *************"
+	@echo "****************************************"
+	@rm -rf "$(BUILDDIR)"
 
-.PHONY: help Makefile
+html:
+	@echo "****************************************"
+	@echo "************** Invoke Pdoc *************"
+	@echo "****************************************"
+	@pdoc --html --force --template-dir "$(TEMPLATEDIR)" --output-dir "$(BUILDDIR)" "../$(SPHINXPROJ)"
 
-# Catch-all target: route all unknown targets to Sphinx using the new
-# "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-%: Makefile
+	@echo "****************************************"
+	@echo "************* Invoke Sphinx ************"
+	@echo "****************************************"
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

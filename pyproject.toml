@@ -62,6 +62,8 @@ all = [
 
 [project.scripts]
 laueimproc = "laueimproc.__main__:main"
+laueimproc-convert = "laueimproc.io.__main__:main"
+laueimproc-doc = "laueimproc.__main__:main_doc"
 laueimproc-test = "laueimproc.testing.__main__:main"
 
 [project.urls]

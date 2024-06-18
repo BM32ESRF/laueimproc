@@ -1,3 +1,13 @@
+.. _Debian Ubuntu Mint System:
+.. _RHEL CentOS Fedora System:
+.. _Arch Manjaro System:
+.. _OpenSUSE System:
+.. _Linux Installation:
+.. _FreeBSD Installation:
+.. _macOS Installation:
+.. _Windows Installation:
+
+
 Welcome to LaueImProc's DOCUMENTATION!
 ======================================
 
@@ -26,20 +36,14 @@ You have a Laue data to analyse? You are at the right place! You can also contac
 Overview
 ========
 
-* `documentation <laueimproc/index.html>`_
+* `api documentation <../laueimproc/index.html>`_
 
 .. toctree::
     :maxdepth: 2
 
     usage/installation.rst
-    usage/quickstart.rst
+    usage/developer.rst
 
-
-This module enables you to:
-
-#. point 1
-#. point 2
-#. point 3
 
 .. image:: images/diag_06.avif
     :alt: An example of a laue diagram.

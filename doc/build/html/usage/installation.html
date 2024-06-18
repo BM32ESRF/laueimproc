@@ -9,13 +9,13 @@
 <meta property="og:description" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.4.0,, Yes, Yes, Yes,,, LaueImproc 1.3.0 - 1.3.2,, Yes, Yes..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="/_images/social_previews/summary_usage_installation_a7ea894e.png" />
+<meta property="og:image" content="/None" />
 <meta property="og:image:alt" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.4.0,, Yes, Yes, Ye..." />
 <meta name="description" content="Python and PyTorch Support: LaueImproc supports these versions. Python versions:,,,,,, Python, 3.13, 3.12, 3.11, 3.10, 3.9,,, LaueImproc 1.4.0,, Yes, Yes, Yes,,, LaueImproc 1.3.0 - 1.3.2,, Yes, Yes..." />
 <meta name="twitter:card" content="summary_large_image" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; laueimproc 1.4.0 documentation</title>
+  <title>Installation &mdash; laueimproc 1.4.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -28,7 +28,7 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=9172181d"></script>
+        <script src="../_static/documentation_options.js?v=350a9c04"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -37,7 +37,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="What a super Quick Start!" href="quickstart.html" />
+    <link rel="next" title="Developer’s Guide" href="developer.html" />
     <link rel="prev" title="Welcome to LaueImProc’s DOCUMENTATION!" href="../index.html" /> 
 </head>
 
@@ -53,7 +53,7 @@
             laueimproc
           </a>
               <div class="version">
-                1.4.0
+                1.4.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -74,14 +74,13 @@
 <li class="toctree-l2"><a class="reference internal" href="#dependencies-optional">Dependencies (Optional)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-with-pip">Installation with pip</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#building-from-source">Building From Source</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#building-documentation">Building Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#open-documentation">Open Documentation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#verification">Verification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#platform-support">Platform Support</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">What a super Quick Start!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer’s Guide</a></li>
 </ul>
 
         </div>
@@ -150,7 +149,7 @@
 </table>
 </section>
 <section id="virtual-environement">
-<span id="windows-installation"></span><span id="macos-installation"></span><span id="freebsd-installation"></span><span id="linux-installation"></span><span id="opensuse-system"></span><span id="arch-manjaro-system"></span><span id="rhel-centos-fedora-system"></span><span id="debian-ubuntu-mint-system"></span><h2>Virtual Environement<a class="headerlink" href="#virtual-environement" title="Link to this heading"></a></h2>
+<h2>Virtual Environement<a class="headerlink" href="#virtual-environement" title="Link to this heading"></a></h2>
 <p>It is preferable to install laueimproc in a virtual environment. Please refer to the <a class="reference external" href="https://github.com/pyenv/pyenv">pyenv main page</a>. It is possible to use <code class="docutils literal notranslate"><span class="pre">python3-venv</span></code> or <code class="docutils literal notranslate"><span class="pre">conda</span></code> as well.</p>
 <section id="install-pyenv">
 <h3>Install pyenv<a class="headerlink" href="#install-pyenv" title="Link to this heading"></a></h3>
@@ -211,7 +210,7 @@ pyenv<span class="w"> </span>activate<span class="w"> </span>laueenv
 <p>Install jupyter notebook</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>ipython<span class="w"> </span>jupyter<span class="w"> </span>notebook
 pip<span class="w"> </span>install<span class="w"> </span>ipympl<span class="w">  </span><span class="c1"># for matplotlib</span>
-<span class="c1"># jupyter-notebook</span>
+<span class="c1"># jupter-notebook</span>
 </pre></div>
 </div>
 </section>
@@ -306,10 +305,6 @@ sudo<span class="w"> </span>zypper<span class="w"> </span>install<span class="w"
 <section id="building-from-source">
 <h3>Building From Source<a class="headerlink" href="#building-from-source" title="Link to this heading"></a></h3>
 <p>To install the lastest development version from <a class="reference external" href="https://github.com/BM32ESRF/laueimproc">GitHub</a> source, clone laueimproc using <code class="docutils literal notranslate"><span class="pre">git</span></code> and install it using <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Make shure you are in a virtual environement <code class="docutils literal notranslate"><span class="pre">pyenv</span> <span class="pre">activate</span> <span class="pre">laueenv</span></code> before excecuting the next lines!</p>
-</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>It works for updating an already installed version as well.</p>
@@ -322,29 +317,19 @@ sudo<span class="w"> </span>zypper<span class="w"> </span>install<span class="w"
 <span class="w">    </span><span class="nb">cd</span><span class="w"> </span>~/laueimproc_git/
 <span class="w">    </span>git<span class="w"> </span>pull
 <span class="k">fi</span>
-<span class="c1"># pyenv activate laueenv  # be sure to be in a virtual env</span>
+pyenv<span class="w"> </span>activate<span class="w"> </span>laueenv<span class="w">  </span><span class="c1"># be sure to be in a virtual env</span>
 pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip<span class="w"> </span>setuptools<span class="w"> </span>wheel
-pip<span class="w"> </span>-v<span class="w"> </span>install<span class="w"> </span>--editable<span class="w"> </span>.<span class="o">[</span>all<span class="o">]</span><span class="w">  </span><span class="c1"># compilation and linkage</span>
+pip<span class="w"> </span>-v<span class="w"> </span>install<span class="w"> </span>--editable<span class="w"> </span>.<span class="w">  </span><span class="c1"># compilation and linkage</span>
 </pre></div>
 </div>
 </section>
-<section id="building-documentation">
-<h3>Building Documentation<a class="headerlink" href="#building-documentation" title="Link to this heading"></a></h3>
-<p>You can also compile documentation locally (after the previous step).</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/laueimproc_git/doc/<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>clean<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>html<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>-
-firefox<span class="w"> </span>~/laueimproc_git/doc/build/html/index.html<span class="w"> </span><span class="p">&amp;</span>
+<section id="open-documentation">
+<h3>Open Documentation<a class="headerlink" href="#open-documentation" title="Link to this heading"></a></h3>
+<p>Once laueimproc has been installed correctly, simply type the next lines to open the documentation</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>laueimproc<span class="w"> </span>doc
 </pre></div>
 </div>
 </section>
-</section>
-<section id="verification">
-<h2>Verification<a class="headerlink" href="#verification" title="Link to this heading"></a></h2>
-<p>To check that everything is in order, you can run the test bench.
-For running tests, some dependencies are requiered, you can install it passing the option <code class="docutils literal notranslate"><span class="pre">[all]</span></code> to <code class="docutils literal notranslate"><span class="pre">pip</span></code>.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>laueimproc<span class="w"> </span><span class="nb">test</span><span class="w">  </span><span class="c1"># `laueimproc test --help` to see how to skip some tests</span>
-</pre></div>
-</div>
-<p>If it segfault, maybe the problem comes from c-files, you can delete it with <code class="docutils literal notranslate"><span class="pre">find</span> <span class="pre">laueimproc/</span> <span class="pre">-name</span> <span class="pre">*.so</span> <span class="pre">-exec</span> <span class="pre">rm</span> <span class="pre">{}</span> <span class="pre">\;</span></code>.</p>
 </section>
 <section id="platform-support">
 <h2>Platform Support<a class="headerlink" href="#platform-support" title="Link to this heading"></a></h2>
@@ -379,7 +364,7 @@ For running tests, some dependencies are requiered, you can install it passing t
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to LaueImProc’s DOCUMENTATION!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="quickstart.html" class="btn btn-neutral float-right" title="What a super Quick Start!" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="developer.html" class="btn btn-neutral float-right" title="Developer’s Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

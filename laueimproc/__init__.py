@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
-"""Group some image processing tools to annalyse Laue diagrams."""
+"""Group some image processing tools to annalyse Laue diagrams.
+
+[main documentation](../html/index.html)
+"""
 
 from .classes import Diagram, DiagramsDataset
 from .opti import collect
