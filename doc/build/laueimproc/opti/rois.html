@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>laueimproc.opti.rois API documentation</title>
+<meta name="description" content="Manage a compact representation of the rois." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}#lunr-search{width:100%;font-size:1em;padding:6px 9px 5px 9px;border:1px solid silver}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>laueimproc.opti.rois</code></h1>
+</header>
+<section id="section-intro">
+<p>Manage a compact representation of the rois.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+&#34;&#34;&#34;Manage a compact representation of the rois.&#34;&#34;&#34;
+
+import logging
+
+import torch
+
+try:
+    from laueimproc.opti import c_rois
+except ImportError:
+    logging.warning(
+        &#34;failed to import laueimproc.opti.c_rois, a slow python version is used instead&#34;
+    )
+    c_rois = None
+
+
+def filter_by_indices(
+    indices: torch.Tensor, data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False
+) -&gt; tuple[bytearray, torch.Tensor]:
+    &#34;&#34;&#34;Select the rois of the given indices.
+
+    Parameters
+    ----------
+    indices : torch.Tensor
+        The 1d int64 list of the rois index to keep. Negative indexing is allow.
+    data : bytearray
+        The raw data of the concatenated not padded float32 rois.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4).
+        It doesn&#39;t have to be c contiguous.
+
+    Returns
+    -------
+    filtered_data : bytearray
+        The new flatten rois sorted according the provided indices.
+    filtered_bboxes : bytearray
+        The new reorganized bboxes.
+
+    Notes
+    -----
+    When using the c backend, the negative indices of `indices` are set inplace as positive value.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import numpy as np
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.opti.rois import filter_by_indices
+    &gt;&gt;&gt; indices = torch.tensor([1, 1, 0, -1, -2, *range(100, 1000)])
+    &gt;&gt;&gt; bboxes = torch.zeros((1000, 4), dtype=torch.int16)
+    &gt;&gt;&gt; bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
+    &gt;&gt;&gt; data = bytearray(
+    ...     np.linspace(0, 1, (bboxes[:, 2]*bboxes[:, 3]).sum(), dtype=np.float32).tobytes()
+    ... )
+    &gt;&gt;&gt; new_data, new_bboxes = filter_by_indices(indices, data, bboxes)
+    &gt;&gt;&gt; new_bboxes.shape
+    torch.Size([905, 4])
+    &gt;&gt;&gt; assert new_data == filter_by_indices(indices, data, bboxes, _no_c=True)[0]
+    &gt;&gt;&gt; assert torch.all(new_bboxes == filter_by_indices(indices, data, bboxes, _no_c=True)[1])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not _no_c and c_rois is not None:
+        indices_np = indices.numpy(force=True)
+        bboxes_np = bboxes.numpy(force=True)
+        new_data, new_bboxes_np = c_rois.filter_by_indices(indices_np, data, bboxes_np)
+        return new_data, torch.from_numpy(new_bboxes_np).to(bboxes.device)
+
+    assert isinstance(indices, torch.Tensor), indices.__class__.__name__
+    assert indices.ndim == 1, indices.shape
+    assert indices.dtype == torch.int64, indices.__class__.__name__
+    assert isinstance(data, bytearray), data.__class__.__name__
+    assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
+    assert bboxes.ndim == 2, bboxes.shape
+    assert bboxes.shape[1] == 4, bboxes.shape
+    assert bboxes.dtype == torch.int16, bboxes.dtype
+    assert torch.all(bboxes[:, 2:] &gt;= 1), &#34;some bboxes have area of zero&#34;
+    assert len(data) == torch.float32.itemsize*(bboxes[:, 2]*bboxes[:, 3]).sum(), \
+        &#34;data length dosen&#39;t match rois area&#34;
+
+    rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=_no_c)
+    new_rois, new_bboxes = rois[indices], bboxes[indices]
+    new_data = roisshapes2raw(new_rois, new_bboxes[:, 2:], _no_c=_no_c)
+    return new_data, new_bboxes
+
+
+def imgbboxes2raw(img: torch.Tensor, bboxes: torch.Tensor, *, _no_c: bool = False) -&gt; bytearray:
+    &#34;&#34;&#34;Extract the rois from the image.
+
+    Parameters
+    ----------
+    img : torch.Tensor
+        The float32 grayscale image of a laue diagram of shape (h, w).
+        It doesn&#39;t have to be c contiguous but it is faster if it is the case.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4).
+        It doesn&#39;t have to be c contiguous.
+
+    Returns
+    -------
+    data : bytearray
+        The raw data of the concatenated not padded float32 rois.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.opti.rois import imgbboxes2raw
+    &gt;&gt;&gt; img = torch.rand((2000, 2000))
+    &gt;&gt;&gt; bboxes = torch.zeros((1000, 4), dtype=torch.int16)
+    &gt;&gt;&gt; bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
+    &gt;&gt;&gt; data = imgbboxes2raw(img, bboxes)
+    &gt;&gt;&gt; len(data)
+    2200000
+    &gt;&gt;&gt; assert data == imgbboxes2raw(img, bboxes, _no_c=True)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not _no_c and c_rois is not None:
+        img_np = img.numpy(force=True)
+        bboxes_np = bboxes.numpy(force=True)
+        return c_rois.imgbboxes2raw(img_np, bboxes_np)
+
+    assert isinstance(img, torch.Tensor), img.__class__.__name__
+    assert img.ndim == 2, img.shape
+    assert img.dtype == torch.float32, img.dtype
+    assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
+    assert bboxes.ndim == 2, bboxes.shape
+    assert bboxes.shape[1] == 4, bboxes.shape
+    assert bboxes.dtype == torch.int16, bboxes.dtype
+    assert torch.all(bboxes[:, 2:] &gt;= 1), &#34;some bboxes have area of zero&#34;
+    assert torch.all(bboxes[:, :2] &gt;= 0), &#34;some bboxes come out of the picture&#34;
+    assert torch.all(bboxes[:, 0] + bboxes[:, 2] &lt;= img.shape[0]), \
+        &#34;some bboxes come out of the picture&#34;
+    assert torch.all(bboxes[:, 1] + bboxes[:, 3] &lt;= img.shape[1]), \
+        &#34;some bboxes come out of the picture&#34;
+
+    if len(bboxes) == 0:
+        return bytearray(b&#34;&#34;)
+    flat_rois = torch.cat(
+        [img[a_h:a_h+s_h, a_w:a_w+s_w].ravel() for a_h, a_w, s_h, s_w in bboxes.tolist()]
+    )
+    data = bytearray(flat_rois.numpy(force=True).tobytes())
+    return data
+
+
+def rawshapes2rois(
+    data: bytearray, shapes: torch.Tensor, *, _no_c: bool = False
+) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Unfold and pad the flatten rois data into a tensor.
+
+    Parameters
+    ----------
+    data : bytearray
+        The raw data of the concatenated not padded float32 rois.
+    shapes : torch.Tensor
+        The int16 tensor that contains the information of the bboxes shapes.
+        heights = shapes[:, 0] and widths = shapes[:, 1].
+        It doesn&#39;t have to be c contiguous.
+
+    Returns
+    -------
+    rois : torch.Tensor
+        The unfolded and padded rois of dtype torch.float32 and shape (n, h, w).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import numpy as np
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.opti.rois import rawshapes2rois
+    &gt;&gt;&gt; shapes = torch.zeros((1000, 2), dtype=torch.int16)
+    &gt;&gt;&gt; shapes[::2, 0], shapes[1::2, 0], shapes[::2, 1], shapes[1::2, 1] = 10, 20, 30, 40
+    &gt;&gt;&gt; data = bytearray(
+    ...     np.linspace(0, 1, (shapes[:, 0]*shapes[:, 1]).sum(), dtype=np.float32).tobytes()
+    ... )
+    &gt;&gt;&gt; rois = rawshapes2rois(data, shapes)
+    &gt;&gt;&gt; rois.shape
+    torch.Size([1000, 20, 40])
+    &gt;&gt;&gt; assert np.array_equal(rois, rawshapes2rois(data, shapes, _no_c=True))
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not _no_c and c_rois is not None:
+        shapes_np = shapes.numpy(force=True)
+        rois_np = c_rois.rawshapes2rois(data, shapes_np)
+        return torch.from_numpy(rois_np).to(shapes.device)
+
+    assert isinstance(data, bytearray), data.__class__.__name__
+    assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__
+    assert shapes.ndim == 2, shapes.shape
+    assert shapes.shape[1] == 2, shapes.shape
+    assert shapes.dtype == torch.int16, shapes.dtype
+    assert torch.all(shapes &gt;= 1), &#34;some bboxes have area of zero&#34;
+    shapes_32 = shapes.to(torch.int32)  # for overflow
+    assert len(data) == torch.float32.itemsize*(shapes_32[:, 0]*shapes_32[:, 1]).sum(), \
+        &#34;data length dosen&#39;t match rois area&#34;
+
+    if not data:
+        return torch.empty((0, 1, 1), dtype=torch.float32, device=shapes.device)
+    flat_rois = torch.frombuffer(data, dtype=torch.float32).to(shapes.device)
+    rois = torch.zeros(
+        (len(shapes), shapes[:, 0].max(), shapes[:, 1].max()),
+        dtype=torch.float32, device=shapes.device,
+    )
+    ptr = 0
+    for i, (height, width) in enumerate(shapes.tolist()):
+        next_ptr = ptr + height*width
+        rois[i, :height, :width] = flat_rois[ptr:next_ptr].reshape(height, width)
+        ptr = next_ptr
+    return rois
+
+
+def roisshapes2raw(
+    rois: torch.Tensor, shapes: torch.Tensor, *, _no_c: bool = False
+) -&gt; bytearray:
+    &#34;&#34;&#34;Compress the rois into a flatten no padded respresentation.
+
+    Parameters
+    ----------
+    rois : torch.Tensor
+        The unfolded and padded rois of dtype torch.float32 and shape (n, h, w).
+    shapes : torch.Tensor
+        The int16 tensor that contains the information of the bboxes shapes.
+        heights = shapes[:, 0] and widths = shapes[:, 1].
+        It doesn&#39;t have to be c contiguous.
+
+    Returns
+    -------
+    data : bytearray
+        The raw data of the concatenated not padded float32 rois.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.opti.rois import roisshapes2raw
+    &gt;&gt;&gt; shapes = torch.zeros((1000, 2), dtype=torch.int16)
+    &gt;&gt;&gt; shapes[::2, 0], shapes[1::2, 0], shapes[::2, 1], shapes[1::2, 1] = 10, 20, 30, 40
+    &gt;&gt;&gt; rois = torch.zeros((1000, 20, 40), dtype=torch.float32)
+    &gt;&gt;&gt; for i, (h, w) in enumerate(shapes.tolist()):
+    ...     rois[i, :h, :w] = (i+1)/1000
+    ...
+    &gt;&gt;&gt; data = roisshapes2raw(rois, shapes)
+    &gt;&gt;&gt; len(data)
+    2200000
+    &gt;&gt;&gt; assert data == roisshapes2raw(rois, shapes, _no_c=True)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not _no_c and c_rois is not None:
+        rois_np = rois.numpy(force=True)
+        shapes_np = shapes.numpy(force=True)
+        return c_rois.roisshapes2raw(rois_np, shapes_np)
+
+    assert isinstance(rois, torch.Tensor), rois.__class__.__name__
+    assert rois.ndim == 3, rois.shape
+    assert rois.shape[1:] &gt;= (1, 1), rois.shape
+    assert rois.dtype == torch.float32, rois.dtype
+    assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__
+    assert shapes.ndim == 2, shapes.shape
+    assert shapes.shape[1] == 2, shapes.shape
+    assert shapes.dtype == torch.int16, shapes.dtype
+    assert torch.all(shapes &gt;= 1), &#34;some bboxes have area of zero&#34;
+    assert len(rois) == len(shapes), (rois.shape, shapes.shape)
+
+    if len(shapes) == 0:  # torch.cat dosen&#39;t support empty list
+        return bytearray(b&#34;&#34;)
+    flat_rois = torch.cat(  # rois is float32
+        [rois[i, :h, :w].ravel() for i, (h, w) in enumerate(shapes.tolist())]
+    )
+    data = bytearray(flat_rois.numpy(force=True).tobytes())
+    return data</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="laueimproc.opti.rois.filter_by_indices"><code class="name flex">
+<span>def <span class="ident">filter_by_indices</span></span>(<span>indices: torch.Tensor, data: bytearray, bboxes: torch.Tensor) ‑> tuple[bytearray, torch.Tensor]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Select the rois of the given indices.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>indices</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 1d int64 list of the rois index to keep. Negative indexing is allow.</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytearray</code></dt>
+<dd>The raw data of the concatenated not padded float32 rois.</dd>
+<dt><strong><code>bboxes</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+for each spots, of shape (n, 4).
+It doesn't have to be c contiguous.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>filtered_data</code></strong> :&ensp;<code>bytearray</code></dt>
+<dd>The new flatten rois sorted according the provided indices.</dd>
+<dt><strong><code>filtered_bboxes</code></strong> :&ensp;<code>bytearray</code></dt>
+<dd>The new reorganized bboxes.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>When using the c backend, the negative indices of <code>indices</code> are set inplace as positive value.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.opti.rois import filter_by_indices
+&gt;&gt;&gt; indices = torch.tensor([1, 1, 0, -1, -2, *range(100, 1000)])
+&gt;&gt;&gt; bboxes = torch.zeros((1000, 4), dtype=torch.int16)
+&gt;&gt;&gt; bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
+&gt;&gt;&gt; data = bytearray(
+...     np.linspace(0, 1, (bboxes[:, 2]*bboxes[:, 3]).sum(), dtype=np.float32).tobytes()
+... )
+&gt;&gt;&gt; new_data, new_bboxes = filter_by_indices(indices, data, bboxes)
+&gt;&gt;&gt; new_bboxes.shape
+torch.Size([905, 4])
+&gt;&gt;&gt; assert new_data == filter_by_indices(indices, data, bboxes, _no_c=True)[0]
+&gt;&gt;&gt; assert torch.all(new_bboxes == filter_by_indices(indices, data, bboxes, _no_c=True)[1])
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def filter_by_indices(
+    indices: torch.Tensor, data: bytearray, bboxes: torch.Tensor, *, _no_c: bool = False
+) -&gt; tuple[bytearray, torch.Tensor]:
+    &#34;&#34;&#34;Select the rois of the given indices.
+
+    Parameters
+    ----------
+    indices : torch.Tensor
+        The 1d int64 list of the rois index to keep. Negative indexing is allow.
+    data : bytearray
+        The raw data of the concatenated not padded float32 rois.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4).
+        It doesn&#39;t have to be c contiguous.
+
+    Returns
+    -------
+    filtered_data : bytearray
+        The new flatten rois sorted according the provided indices.
+    filtered_bboxes : bytearray
+        The new reorganized bboxes.
+
+    Notes
+    -----
+    When using the c backend, the negative indices of `indices` are set inplace as positive value.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import numpy as np
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.opti.rois import filter_by_indices
+    &gt;&gt;&gt; indices = torch.tensor([1, 1, 0, -1, -2, *range(100, 1000)])
+    &gt;&gt;&gt; bboxes = torch.zeros((1000, 4), dtype=torch.int16)
+    &gt;&gt;&gt; bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
+    &gt;&gt;&gt; data = bytearray(
+    ...     np.linspace(0, 1, (bboxes[:, 2]*bboxes[:, 3]).sum(), dtype=np.float32).tobytes()
+    ... )
+    &gt;&gt;&gt; new_data, new_bboxes = filter_by_indices(indices, data, bboxes)
+    &gt;&gt;&gt; new_bboxes.shape
+    torch.Size([905, 4])
+    &gt;&gt;&gt; assert new_data == filter_by_indices(indices, data, bboxes, _no_c=True)[0]
+    &gt;&gt;&gt; assert torch.all(new_bboxes == filter_by_indices(indices, data, bboxes, _no_c=True)[1])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not _no_c and c_rois is not None:
+        indices_np = indices.numpy(force=True)
+        bboxes_np = bboxes.numpy(force=True)
+        new_data, new_bboxes_np = c_rois.filter_by_indices(indices_np, data, bboxes_np)
+        return new_data, torch.from_numpy(new_bboxes_np).to(bboxes.device)
+
+    assert isinstance(indices, torch.Tensor), indices.__class__.__name__
+    assert indices.ndim == 1, indices.shape
+    assert indices.dtype == torch.int64, indices.__class__.__name__
+    assert isinstance(data, bytearray), data.__class__.__name__
+    assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
+    assert bboxes.ndim == 2, bboxes.shape
+    assert bboxes.shape[1] == 4, bboxes.shape
+    assert bboxes.dtype == torch.int16, bboxes.dtype
+    assert torch.all(bboxes[:, 2:] &gt;= 1), &#34;some bboxes have area of zero&#34;
+    assert len(data) == torch.float32.itemsize*(bboxes[:, 2]*bboxes[:, 3]).sum(), \
+        &#34;data length dosen&#39;t match rois area&#34;
+
+    rois = rawshapes2rois(data, bboxes[:, 2:], _no_c=_no_c)
+    new_rois, new_bboxes = rois[indices], bboxes[indices]
+    new_data = roisshapes2raw(new_rois, new_bboxes[:, 2:], _no_c=_no_c)
+    return new_data, new_bboxes</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.opti.rois.imgbboxes2raw"><code class="name flex">
+<span>def <span class="ident">imgbboxes2raw</span></span>(<span>img: torch.Tensor, bboxes: torch.Tensor) ‑> bytearray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Extract the rois from the image.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>img</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The float32 grayscale image of a laue diagram of shape (h, w).
+It doesn't have to be c contiguous but it is faster if it is the case.</dd>
+<dt><strong><code>bboxes</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+for each spots, of shape (n, 4).
+It doesn't have to be c contiguous.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytearray</code></dt>
+<dd>The raw data of the concatenated not padded float32 rois.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.opti.rois import imgbboxes2raw
+&gt;&gt;&gt; img = torch.rand((2000, 2000))
+&gt;&gt;&gt; bboxes = torch.zeros((1000, 4), dtype=torch.int16)
+&gt;&gt;&gt; bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
+&gt;&gt;&gt; data = imgbboxes2raw(img, bboxes)
+&gt;&gt;&gt; len(data)
+2200000
+&gt;&gt;&gt; assert data == imgbboxes2raw(img, bboxes, _no_c=True)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def imgbboxes2raw(img: torch.Tensor, bboxes: torch.Tensor, *, _no_c: bool = False) -&gt; bytearray:
+    &#34;&#34;&#34;Extract the rois from the image.
+
+    Parameters
+    ----------
+    img : torch.Tensor
+        The float32 grayscale image of a laue diagram of shape (h, w).
+        It doesn&#39;t have to be c contiguous but it is faster if it is the case.
+    bboxes : torch.Tensor
+        The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
+        for each spots, of shape (n, 4).
+        It doesn&#39;t have to be c contiguous.
+
+    Returns
+    -------
+    data : bytearray
+        The raw data of the concatenated not padded float32 rois.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.opti.rois import imgbboxes2raw
+    &gt;&gt;&gt; img = torch.rand((2000, 2000))
+    &gt;&gt;&gt; bboxes = torch.zeros((1000, 4), dtype=torch.int16)
+    &gt;&gt;&gt; bboxes[::2, 2], bboxes[1::2, 2], bboxes[::2, 3], bboxes[1::2, 3] = 10, 20, 30, 40
+    &gt;&gt;&gt; data = imgbboxes2raw(img, bboxes)
+    &gt;&gt;&gt; len(data)
+    2200000
+    &gt;&gt;&gt; assert data == imgbboxes2raw(img, bboxes, _no_c=True)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not _no_c and c_rois is not None:
+        img_np = img.numpy(force=True)
+        bboxes_np = bboxes.numpy(force=True)
+        return c_rois.imgbboxes2raw(img_np, bboxes_np)
+
+    assert isinstance(img, torch.Tensor), img.__class__.__name__
+    assert img.ndim == 2, img.shape
+    assert img.dtype == torch.float32, img.dtype
+    assert isinstance(bboxes, torch.Tensor), bboxes.__class__.__name__
+    assert bboxes.ndim == 2, bboxes.shape
+    assert bboxes.shape[1] == 4, bboxes.shape
+    assert bboxes.dtype == torch.int16, bboxes.dtype
+    assert torch.all(bboxes[:, 2:] &gt;= 1), &#34;some bboxes have area of zero&#34;
+    assert torch.all(bboxes[:, :2] &gt;= 0), &#34;some bboxes come out of the picture&#34;
+    assert torch.all(bboxes[:, 0] + bboxes[:, 2] &lt;= img.shape[0]), \
+        &#34;some bboxes come out of the picture&#34;
+    assert torch.all(bboxes[:, 1] + bboxes[:, 3] &lt;= img.shape[1]), \
+        &#34;some bboxes come out of the picture&#34;
+
+    if len(bboxes) == 0:
+        return bytearray(b&#34;&#34;)
+    flat_rois = torch.cat(
+        [img[a_h:a_h+s_h, a_w:a_w+s_w].ravel() for a_h, a_w, s_h, s_w in bboxes.tolist()]
+    )
+    data = bytearray(flat_rois.numpy(force=True).tobytes())
+    return data</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.opti.rois.rawshapes2rois"><code class="name flex">
+<span>def <span class="ident">rawshapes2rois</span></span>(<span>data: bytearray, shapes: torch.Tensor) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Unfold and pad the flatten rois data into a tensor.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytearray</code></dt>
+<dd>The raw data of the concatenated not padded float32 rois.</dd>
+<dt><strong><code>shapes</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The int16 tensor that contains the information of the bboxes shapes.
+heights = shapes[:, 0] and widths = shapes[:, 1].
+It doesn't have to be c contiguous.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>rois</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The unfolded and padded rois of dtype torch.float32 and shape (n, h, w).</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.opti.rois import rawshapes2rois
+&gt;&gt;&gt; shapes = torch.zeros((1000, 2), dtype=torch.int16)
+&gt;&gt;&gt; shapes[::2, 0], shapes[1::2, 0], shapes[::2, 1], shapes[1::2, 1] = 10, 20, 30, 40
+&gt;&gt;&gt; data = bytearray(
+...     np.linspace(0, 1, (shapes[:, 0]*shapes[:, 1]).sum(), dtype=np.float32).tobytes()
+... )
+&gt;&gt;&gt; rois = rawshapes2rois(data, shapes)
+&gt;&gt;&gt; rois.shape
+torch.Size([1000, 20, 40])
+&gt;&gt;&gt; assert np.array_equal(rois, rawshapes2rois(data, shapes, _no_c=True))
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rawshapes2rois(
+    data: bytearray, shapes: torch.Tensor, *, _no_c: bool = False
+) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Unfold and pad the flatten rois data into a tensor.
+
+    Parameters
+    ----------
+    data : bytearray
+        The raw data of the concatenated not padded float32 rois.
+    shapes : torch.Tensor
+        The int16 tensor that contains the information of the bboxes shapes.
+        heights = shapes[:, 0] and widths = shapes[:, 1].
+        It doesn&#39;t have to be c contiguous.
+
+    Returns
+    -------
+    rois : torch.Tensor
+        The unfolded and padded rois of dtype torch.float32 and shape (n, h, w).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import numpy as np
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.opti.rois import rawshapes2rois
+    &gt;&gt;&gt; shapes = torch.zeros((1000, 2), dtype=torch.int16)
+    &gt;&gt;&gt; shapes[::2, 0], shapes[1::2, 0], shapes[::2, 1], shapes[1::2, 1] = 10, 20, 30, 40
+    &gt;&gt;&gt; data = bytearray(
+    ...     np.linspace(0, 1, (shapes[:, 0]*shapes[:, 1]).sum(), dtype=np.float32).tobytes()
+    ... )
+    &gt;&gt;&gt; rois = rawshapes2rois(data, shapes)
+    &gt;&gt;&gt; rois.shape
+    torch.Size([1000, 20, 40])
+    &gt;&gt;&gt; assert np.array_equal(rois, rawshapes2rois(data, shapes, _no_c=True))
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not _no_c and c_rois is not None:
+        shapes_np = shapes.numpy(force=True)
+        rois_np = c_rois.rawshapes2rois(data, shapes_np)
+        return torch.from_numpy(rois_np).to(shapes.device)
+
+    assert isinstance(data, bytearray), data.__class__.__name__
+    assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__
+    assert shapes.ndim == 2, shapes.shape
+    assert shapes.shape[1] == 2, shapes.shape
+    assert shapes.dtype == torch.int16, shapes.dtype
+    assert torch.all(shapes &gt;= 1), &#34;some bboxes have area of zero&#34;
+    shapes_32 = shapes.to(torch.int32)  # for overflow
+    assert len(data) == torch.float32.itemsize*(shapes_32[:, 0]*shapes_32[:, 1]).sum(), \
+        &#34;data length dosen&#39;t match rois area&#34;
+
+    if not data:
+        return torch.empty((0, 1, 1), dtype=torch.float32, device=shapes.device)
+    flat_rois = torch.frombuffer(data, dtype=torch.float32).to(shapes.device)
+    rois = torch.zeros(
+        (len(shapes), shapes[:, 0].max(), shapes[:, 1].max()),
+        dtype=torch.float32, device=shapes.device,
+    )
+    ptr = 0
+    for i, (height, width) in enumerate(shapes.tolist()):
+        next_ptr = ptr + height*width
+        rois[i, :height, :width] = flat_rois[ptr:next_ptr].reshape(height, width)
+        ptr = next_ptr
+    return rois</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.opti.rois.roisshapes2raw"><code class="name flex">
+<span>def <span class="ident">roisshapes2raw</span></span>(<span>rois: torch.Tensor, shapes: torch.Tensor) ‑> bytearray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compress the rois into a flatten no padded respresentation.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>rois</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The unfolded and padded rois of dtype torch.float32 and shape (n, h, w).</dd>
+<dt><strong><code>shapes</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The int16 tensor that contains the information of the bboxes shapes.
+heights = shapes[:, 0] and widths = shapes[:, 1].
+It doesn't have to be c contiguous.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytearray</code></dt>
+<dd>The raw data of the concatenated not padded float32 rois.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.opti.rois import roisshapes2raw
+&gt;&gt;&gt; shapes = torch.zeros((1000, 2), dtype=torch.int16)
+&gt;&gt;&gt; shapes[::2, 0], shapes[1::2, 0], shapes[::2, 1], shapes[1::2, 1] = 10, 20, 30, 40
+&gt;&gt;&gt; rois = torch.zeros((1000, 20, 40), dtype=torch.float32)
+&gt;&gt;&gt; for i, (h, w) in enumerate(shapes.tolist()):
+...     rois[i, :h, :w] = (i+1)/1000
+...
+&gt;&gt;&gt; data = roisshapes2raw(rois, shapes)
+&gt;&gt;&gt; len(data)
+2200000
+&gt;&gt;&gt; assert data == roisshapes2raw(rois, shapes, _no_c=True)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def roisshapes2raw(
+    rois: torch.Tensor, shapes: torch.Tensor, *, _no_c: bool = False
+) -&gt; bytearray:
+    &#34;&#34;&#34;Compress the rois into a flatten no padded respresentation.
+
+    Parameters
+    ----------
+    rois : torch.Tensor
+        The unfolded and padded rois of dtype torch.float32 and shape (n, h, w).
+    shapes : torch.Tensor
+        The int16 tensor that contains the information of the bboxes shapes.
+        heights = shapes[:, 0] and widths = shapes[:, 1].
+        It doesn&#39;t have to be c contiguous.
+
+    Returns
+    -------
+    data : bytearray
+        The raw data of the concatenated not padded float32 rois.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.opti.rois import roisshapes2raw
+    &gt;&gt;&gt; shapes = torch.zeros((1000, 2), dtype=torch.int16)
+    &gt;&gt;&gt; shapes[::2, 0], shapes[1::2, 0], shapes[::2, 1], shapes[1::2, 1] = 10, 20, 30, 40
+    &gt;&gt;&gt; rois = torch.zeros((1000, 20, 40), dtype=torch.float32)
+    &gt;&gt;&gt; for i, (h, w) in enumerate(shapes.tolist()):
+    ...     rois[i, :h, :w] = (i+1)/1000
+    ...
+    &gt;&gt;&gt; data = roisshapes2raw(rois, shapes)
+    &gt;&gt;&gt; len(data)
+    2200000
+    &gt;&gt;&gt; assert data == roisshapes2raw(rois, shapes, _no_c=True)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not _no_c and c_rois is not None:
+        rois_np = rois.numpy(force=True)
+        shapes_np = shapes.numpy(force=True)
+        return c_rois.roisshapes2raw(rois_np, shapes_np)
+
+    assert isinstance(rois, torch.Tensor), rois.__class__.__name__
+    assert rois.ndim == 3, rois.shape
+    assert rois.shape[1:] &gt;= (1, 1), rois.shape
+    assert rois.dtype == torch.float32, rois.dtype
+    assert isinstance(shapes, torch.Tensor), shapes.__class__.__name__
+    assert shapes.ndim == 2, shapes.shape
+    assert shapes.shape[1] == 2, shapes.shape
+    assert shapes.dtype == torch.int16, shapes.dtype
+    assert torch.all(shapes &gt;= 1), &#34;some bboxes have area of zero&#34;
+    assert len(rois) == len(shapes), (rois.shape, shapes.shape)
+
+    if len(shapes) == 0:  # torch.cat dosen&#39;t support empty list
+        return bytearray(b&#34;&#34;)
+    flat_rois = torch.cat(  # rois is float32
+        [rois[i, :h, :w].ravel() for i, (h, w) in enumerate(shapes.tolist())]
+    )
+    data = bytearray(flat_rois.numpy(force=True).tobytes())
+    return data</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<form>
+<input id="lunr-search" name="q" placeholder="🔎 Search ..." aria-label="Search"
+disabled minlength="2">
+</form>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.css" integrity="sha512-j1u8eUJ4f23xPPxwOrLUPQaCD2dwzNqqmDDcWS4deWsMv2ohLqmXXuP3hU7g8TyzbMSakP/mMqoNBYWj8AEIFg==" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.js" integrity="sha512-plGUER9JkeEWPPqQBE4sdLqBoQug5Ap+BCGMc7bJ8BXkm+VVj6QzkpBz5Yv2yPkkq+cqg9IpkBaGCas6uDbW8g==" crossorigin></script>
+<style>
+.modal-dialog iframe {
+width: 100vw;
+height: calc(100vh - 80px);
+}
+@media screen and (min-width: 700px) {
+.modal-dialog iframe {
+width: 70vw;
+height: 80vh;
+}
+}
+.modal-dialog .tingle-modal-box {width: auto;}
+.modal-dialog .tingle-modal-box__content {padding: 0;}
+</style>
+<script>
+const input = document.getElementById('lunr-search');
+input.disabled = false;
+input.form.addEventListener('submit', (ev) => {
+ev.preventDefault();
+const url = new URL(window.location);
+url.searchParams.set('q', input.value);
+history.replaceState({}, null, url.toString());
+search(input.value);
+});
+const query = new URL(window.location).searchParams.get('q');
+if (query)
+search(query);
+function search(query) {
+const url = '../../doc-search.html#' + encodeURIComponent(query);
+new tingle.modal({
+cssClass: ['modal-dialog'],
+onClose: () => {
+const url = new URL(window.location);
+url.searchParams.delete('q');
+history.replaceState({}, null, url.toString());
+setTimeout(() => input.focus(), 100);
+}
+}).setContent('<iframe src="' + url + '"></iframe>').open();
+}
+</script>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="laueimproc.opti" href="index.html">laueimproc.opti</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="laueimproc.opti.rois.filter_by_indices" href="#laueimproc.opti.rois.filter_by_indices">filter_by_indices</a></code></li>
+<li><code><a title="laueimproc.opti.rois.imgbboxes2raw" href="#laueimproc.opti.rois.imgbboxes2raw">imgbboxes2raw</a></code></li>
+<li><code><a title="laueimproc.opti.rois.rawshapes2rois" href="#laueimproc.opti.rois.rawshapes2rois">rawshapes2rois</a></code></li>
+<li><code><a title="laueimproc.opti.rois.roisshapes2raw" href="#laueimproc.opti.rois.roisshapes2raw">roisshapes2raw</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

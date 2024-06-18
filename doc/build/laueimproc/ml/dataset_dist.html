@@ -1,0 +1,1142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>laueimproc.ml.dataset_dist API documentation</title>
+<meta name="description" content="Manage the diagams positioning inside a dataset." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}#lunr-search{width:100%;font-size:1em;padding:6px 9px 5px 9px;border:1px solid silver}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>laueimproc.ml.dataset_dist</code></h1>
+</header>
+<section id="section-intro">
+<p>Manage the diagams positioning inside a dataset.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+&#34;&#34;&#34;Manage the diagams positioning inside a dataset.&#34;&#34;&#34;
+
+import inspect
+import logging
+import numbers
+import typing
+import warnings
+
+import torch
+
+try:
+    from laueimproc.ml import c_dist
+except ImportError:
+    logging.warning(
+        &#34;failed to import laueimproc.ml.c_dist, a slow python version is used instead&#34;
+    )
+    c_dist = None
+
+
+SCALS_TYPE = typing.Union[dict[int, tuple[float, ...]], tuple[torch.Tensor, torch.Tensor]]
+DIAG2SCALS_TYPE = typing.Callable[[int], typing.Union[numbers.Real, tuple[numbers.Real, ...]]]
+
+
+def _add_pos(pos: SCALS_TYPE, index: int, coords: tuple[float, ...]) -&gt; SCALS_TYPE:
+    &#34;&#34;&#34;Append a nez position to the positions.
+
+    Notes
+    -----
+    No check for performance reason.
+    &#34;&#34;&#34;
+    pos = _to_dict(pos)
+    pos[index] = coords
+    return pos
+
+
+def _copy_pos(pos: SCALS_TYPE) -&gt; SCALS_TYPE:
+    &#34;&#34;&#34;Deep copy of the position.
+
+    Notes
+    -----
+    No check for performance reason.
+    &#34;&#34;&#34;
+    # Convert in tensor because it is more compact in memory
+    # and this function is inderectly used for serialization.
+    if isinstance(pos, dict):
+        pos = _to_torch(pos)
+    return (pos[0].clone(), pos[1].clone())
+
+
+def _filter_pos(pos: SCALS_TYPE, indices: typing.Iterable[int]) -&gt; SCALS_TYPE:
+    &#34;&#34;&#34;Select only some positions.
+
+    Notes
+    -----
+    No check for performance reason.
+    indicies are assumed to be in pos.
+    &#34;&#34;&#34;
+    pos = _to_dict(pos)
+    pos = {i: pos[i] for i in indices}
+    return pos
+
+
+def _to_dict(pos: SCALS_TYPE) -&gt; dict[int, tuple[float, ...]]:
+    &#34;&#34;&#34;Convert the general position into a dictionary form.
+
+    Notes
+    -----
+    No check for performance reason.
+    &#34;&#34;&#34;
+    if isinstance(pos, dict):
+        return pos
+    indices, coords = pos
+    return {i: c for i, *c in zip(indices.tolist(), coords.tolist())}
+
+
+def _to_torch(pos: SCALS_TYPE) -&gt; tuple[torch.Tensor, torch.Tensor]:
+    &#34;&#34;&#34;Convert the general position into the torch form.
+
+    Notes
+    -----
+    No check for performance reason.
+    &#34;&#34;&#34;
+    if isinstance(pos, tuple):
+        return pos
+    indices, coords = zip(*pos.items())
+    indices_torch = torch.asarray(indices, dtype=torch.int32)
+    coords_torch = torch.asarray(coords, dtype=torch.float32)
+    return (indices_torch, coords_torch)
+
+
+def call_diag2scalars(pos_func: DIAG2SCALS_TYPE, index: int) -&gt; tuple[float, ...]:
+    &#34;&#34;&#34;Call the function, check, cast and return the output.
+
+    The function typing is assumed to be checked.
+
+    Parameters
+    ----------
+    pos_func : callable
+        The function that associate a space position to a diagram index.
+    index : int
+        The argument value of the function.
+
+    Returns
+    -------
+    position : tuple[float, ...]
+        The scalar vector as a tuple of float.
+    &#34;&#34;&#34;
+    out = pos_func(index)
+    if isinstance(out, numbers.Real):
+        out = (out,)
+    else:
+        assert isinstance(out, tuple), \
+            f&#34;the function {pos_func} has to return a scalar or a tuple of scalars, not {out}&#34;
+    for i, item in enumerate(out):
+        assert isinstance(item, numbers.Real), f&#34;the coordinate of index {i} is not a scalar {item}&#34;
+    out = tuple(map(float, out))
+    return out
+
+
+def check_diag2scalars_typing(pos_func: DIAG2SCALS_TYPE):
+    &#34;&#34;&#34;Ensure that the position function has the right type of input / outputs.
+
+    Parameters
+    ----------
+    pos_func : callable
+        A function supposed to take a diagram index as input
+        and that return a scalar vector in a space of n dimensions.
+
+    Raises
+    ------
+    AssertionError
+        If something wrong is detected.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import pytest
+    &gt;&gt;&gt; from laueimproc.ml.dataset_dist import check_diag2scalars_typing
+    &gt;&gt;&gt; def ok_1(index: int) -&gt; float:
+    ...     return float(index)
+    ...
+    &gt;&gt;&gt; def ok_2(index: int) -&gt; tuple[float]:
+    ...     return (float(index),)
+    ...
+    &gt;&gt;&gt; def ok_3(index: int) -&gt; tuple[float, float]:
+    ...     return (float(index), 0.0)
+    ...
+    &gt;&gt;&gt; def warn_1(index):
+    ...     return float(index)
+    ...
+    &gt;&gt;&gt; def warn_2(index: int):
+    ...     return float(index)
+    ...
+    &gt;&gt;&gt; def warn_3(index) -&gt; float:
+    ...     return float(index)
+    ...
+    &gt;&gt;&gt; def warn_4(index: int) -&gt; tuple:
+    ...     return float(index)
+    ...
+    &gt;&gt;&gt; error_1 = &#34;this is not a function&#34;
+    &gt;&gt;&gt; def error_2(file: str) -&gt; float:  # bad input type
+    ...     return float(file)
+    ...
+    &gt;&gt;&gt; def error_3(index: int) -&gt; list:  # bad output type
+    ...     return [float(index)]
+    ...
+    &gt;&gt;&gt; def error_4(index: int, cam: str) -&gt; tuple:  # bag input arguments
+    ...     return float(index)
+    ...
+    &gt;&gt;&gt; check_diag2scalars_typing(ok_1)
+    &gt;&gt;&gt; check_diag2scalars_typing(ok_2)
+    &gt;&gt;&gt; check_diag2scalars_typing(ok_3)
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; with pytest.warns(SyntaxWarning):
+    ...     check_diag2scalars_typing(warn_1)
+    ...
+    &gt;&gt;&gt; with pytest.warns(SyntaxWarning):
+    ...     check_diag2scalars_typing(warn_2)
+    ...
+    &gt;&gt;&gt; with pytest.warns(SyntaxWarning):
+    ...     check_diag2scalars_typing(warn_3)
+    ...
+    &gt;&gt;&gt; with pytest.warns(SyntaxWarning):
+    ...     check_diag2scalars_typing(warn_4)
+    ...
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; with pytest.raises(AssertionError):
+    ...     check_diag2scalars_typing(error_1)
+    ...
+    &gt;&gt;&gt; with pytest.raises(AssertionError):
+    ...     check_diag2scalars_typing(error_2)
+    ...
+    &gt;&gt;&gt; with pytest.raises(AssertionError):
+    ...     check_diag2scalars_typing(error_3)
+    ...
+    &gt;&gt;&gt; with pytest.raises(AssertionError):
+    ...     check_diag2scalars_typing(error_4)
+    ...
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert callable(pos_func), f&#34;{pos_func} has to be callable, not {pos_func.__class__.__name__}&#34;
+    signature = inspect.signature(pos_func)
+    assert len(signature.parameters) == 1, \
+        f&#34;the function {pos_func} has to take exactely 1 parameter, not {signature.parameters}&#34;
+    parameter = next(iter(signature.parameters.values()))
+    if parameter.annotation is parameter.empty:
+        warnings.warn(f&#34;please specify the input type of {pos_func}&#34;, SyntaxWarning)
+    elif parameter.annotation is not int:
+        raise AssertionError(
+            f&#34;the function {pos_func} has to get a int as input, not {parameter.annotation}&#34;
+        )
+    if not (
+        inspect.isclass(signature.return_annotation)
+        and issubclass(signature.return_annotation, numbers.Real)
+    ):
+        if signature.return_annotation is parameter.empty:
+            warnings.warn(f&#34;please specify the return type of {pos_func}&#34;, SyntaxWarning)
+            return
+        if issubclass(signature.return_annotation, tuple):
+            warnings.warn(
+                f&#34;please specify the number of scalars returned by {pos_func}&#34;, SyntaxWarning
+            )
+            return
+        origin = typing.get_origin(signature.return_annotation)
+        assert origin is not None and issubclass(origin, tuple), (
+            f&#34;the function {pos_func} has to return a tuple or a scalar real number, &#34;
+            f&#34;not {signature.return_annotation}&#34;
+        )
+        return_args = typing.get_args(signature.return_annotation)
+        assert return_args, f&#34;the function {pos_func} has to return at leat one element&#34;
+        for i, return_arg in enumerate(return_args):
+            assert issubclass(return_arg, numbers.Real), \
+                f&#34;returned element {i} of {pos_func} has to be a real number, not a {return_arg}&#34;
+
+
+def select_closest(
+    coords: torch.Tensor,
+    point: tuple[float, ...],
+    tol: typing.Optional[tuple[float, ...]] = None,
+    scale: typing.Optional[tuple[float, ...]] = None,
+    *, _no_c: bool = False,
+) -&gt; int:
+    r&#34;&#34;&#34;Select the closest point.
+
+    Find the index i such as \(d_i\) is minimum, using the following formalism:
+    \(\begin{cases}
+        d_i = \sqrt{\sum\limits_{j=0}^{D-1}\left(\kappa_j(p_j-x_{ij}))^2\right)} \\
+        \left|p_j-x_{ij}\right| \le \epsilon_j, \forall j \in [\![0;D-1]\!] \\
+    \end{cases}\)
+
+    * \(D\), the number of dimensions of the space used.
+    * \(\kappa_j\), a scalar inversely homogeneous has the unit used by the quantity of index \(j\).
+    * \(p_j\), the coordinate \(j\) of the point of reference.
+    * \(x_{ij}\), the \(i\)-th point of comparaison, coordinate \(j\).
+
+    Parameters
+    ----------
+    coords : torch.Tensor
+        The float32 points of each individual \(\text{coords[i, j]} = x_{ij}\), of shape (n, \(D\)).
+    point : tuple[float, ...]
+        The point of reference in the destination space \(point[j] = p_j\).
+    tol : tuple[float, ...], default inf
+        The absolute tolerence value for each component (kind of manhattan distance).
+        Such as \(\text{tol[j]} = \epsilon_j\).
+    scale : tuple[float, ...], optional
+        \(\text{scale[j]} = \kappa_j\),
+        used for rescale each axis before to compute the euclidian distance.
+        By default \(\kappa_j = 1, \forall j \in [\![0;D-1]\!]\).
+
+    Returns
+    -------
+    index: int
+        The index \(i\) of the closest item \(\underset{i}{\operatorname{argmin}}\left(d\right)\).
+
+    Raises
+    ------
+    LookupError
+        If no points match the criteria.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.ml.dataset_dist import select_closest
+    &gt;&gt;&gt; coords = torch.empty((1000, 3), dtype=torch.float32)
+    &gt;&gt;&gt; coords[:, 0] = torch.linspace(-1, 1, 1000)
+    &gt;&gt;&gt; coords[:, 1] = torch.linspace(-10, 10, 1000)
+    &gt;&gt;&gt; coords[:, 2] = torch.arange(1000) % 2
+    &gt;&gt;&gt; select_closest(coords, (0.0, 0.0, 0.1))
+    500
+    &gt;&gt;&gt; select_closest(coords, (0.0, 0.0, 0.9))
+    499
+    &gt;&gt;&gt; select_closest(coords, (0.5, 5.0, 0.1))
+    750
+    &gt;&gt;&gt; select_closest(coords, (0.5, 5.0, 0.1), scale=(10, 1, 0.01))
+    749
+    &gt;&gt;&gt; select_closest(coords, (0.0, 0.0, 0.1), tol=(4/1000, 40/1000, 0.2))
+    500
+    &gt;&gt;&gt; try:
+    ...    select_closest(coords, (0.0, 0.0, 0.1), tol=(1/1000, 10/1000, 0.05))
+    ... except LookupError as err:
+    ...     print(err)
+    ...
+    no point match
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not _no_c and c_dist is not None:
+        coords_np = coords.numpy(force=True)
+        kwargs = ({} if tol is None else {&#34;tol&#34;: tol}) | ({} if scale is None else {&#34;scale&#34;: scale})
+        return c_dist.select_closest_point(coords_np, point, **kwargs)
+
+    assert isinstance(coords, torch.Tensor), coords.__class__.__name__
+    assert coords.dtype == torch.float32, coords.dtype
+    assert coords.ndim == 2, coords.shape
+    assert isinstance(point, tuple), point.__class__.__name__
+    assert point, &#34;at least dimension 1, not 0&#34;
+    assert all(isinstance(c, numbers.Real) for c in point), point
+    assert len(point) == coords.shape[1], (point, coords.shape)
+    if tol is not None:
+        assert isinstance(tol, tuple), tol.__class__.__name__
+        assert all(isinstance(e, numbers.Real) for e in tol), tol
+        assert len(tol) == coords.shape[1], (tol, coords.shape)
+    if scale is not None:
+        assert isinstance(scale, tuple), scale.__class__.__name__
+        assert all(isinstance(k, numbers.Real) for k in scale), scale
+        assert len(scale) == coords.shape[1], (scale, coords.shape)
+
+    # preparation
+    indices = torch.arange(len(coords), dtype=torch.int32, device=coords.device)
+
+    # reject items
+    if tol is not None:
+        for i, (point_c, tol_c) in enumerate(zip(point, tol)):
+            if tol is not None:
+                keep = coords[:, i] &gt;= point_c - tol_c
+                indices, coords = indices[keep], coords[keep]
+                keep = coords[:, i] &lt;= point_c + tol_c
+                indices, coords = indices[keep], coords[keep]
+    if not indices.shape[0]:
+        raise LookupError(&#34;no point match&#34;)
+
+    # compute dist
+    dist = coords - torch.asarray(point, dtype=coords.dtype, device=coords.device).unsqueeze(0)
+    if scale is not None:
+        dist *= torch.asarray(scale, dtype=coords.dtype, device=coords.device).unsqueeze(0)
+    dist *= dist
+    dist = torch.sum(dist, dim=1)
+
+    # keep closet
+    index = int(torch.argmin(dist))
+    index = int(indices[index])
+    return index
+
+
+def select_closests(
+    coords: torch.Tensor,
+    point: typing.Optional[tuple[float, ...]] = None,
+    tol: typing.Optional[tuple[float, ...]] = None,
+    scale: typing.Optional[tuple[float, ...]] = None,
+    *, _no_c: bool = False,
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Select the closest points.
+
+    Find all the indices i such as:
+    \(\left|p_j-x_{ij}\right| \le \epsilon_j, \forall j \in [\![0;D-1]\!]\)
+
+    Sorted the results byt increasing \(d_i\) such as:
+    \(d_i = \sqrt{\sum\limits_{j=0}^{D-1}\left(\kappa_j(p_j-x_{ij}))^2\right)}\)
+
+    * \(D\), the number of dimensions of the space used.
+    * \(\kappa_j\), a scalar inversely homogeneous has the unit used by the quantity of index \(j\).
+    * \(p_j\), the coordinate \(j\) of the point of reference.
+    * \(x_{ij}\), the \(i\)-th point of comparaison, coordinate \(j\).
+
+    Parameters
+    ----------
+    coords : torch.Tensor
+        The float32 points of each individual \(\text{coords[i, j]} = x_{ij}\), of shape (n, \(D\)).
+    point : tuple[float, ...], optional
+        If provided, the point \(point[j] = p_j\) is used to calculate the distance
+        and sort the results.
+        By default, the point taken is equal to the average of the tol.
+    tol : tuple[float | tuple[float, float], ...], default inf
+        The absolute tolerence value for each component (kind of manhattan distance).
+        Such as \(\text{tol[j][0]} = \epsilon_{j-min}, \text{tol[j][1]} = \epsilon_{j-max}\).
+    scale : tuple[float, ...], optional
+        \(\text{scale[j]} = \kappa_j\),
+        used for rescale each axis before to compute the euclidian distance.
+        By default \(\kappa_j = 1, \forall j \in [\![0;D-1]\!]\).
+
+    Returns
+    -------
+    indices : torch.Tensor
+        The int32 list of the sorted coords indices.
+    &#34;&#34;&#34;
+    if point is not None:
+        assert isinstance(coords, torch.Tensor), coords.__class__.__name__
+        assert coords.dtype == torch.float32, coords.dtype
+        assert coords.ndim == 2, coords.shape
+        assert isinstance(point, tuple), point.__class__.__name__
+        assert point, &#34;at least dimension 1, not 0&#34;
+        assert all(isinstance(c, numbers.Real) for c in point), point
+        assert len(point) == coords.shape[1], (point, coords.shape)
+    if tol is not None:
+        assert isinstance(tol, tuple), tol.__class__.__name__
+        assert (
+            all(isinstance(e, numbers.Real) for e in tol)
+            or (
+                all(isinstance(e, tuple) for e in tol)
+                and all(len(e) == 2 for e in tol)
+                and all(
+                    isinstance(e[0], numbers.Real) and isinstance(e[1], numbers.Real) for e in tol
+                )
+            )
+        ), tol
+        assert len(tol) == coords.shape[1], (tol, coords.shape)
+    if scale is not None:
+        assert isinstance(scale, tuple), scale.__class__.__name__
+        assert all(isinstance(k, numbers.Real) for k in scale), scale
+        assert len(scale) == coords.shape[1], (scale, coords.shape)
+    assert point is not None or (tol is not None and isinstance(tol[0], tuple))
+
+    # preparation
+    if point is None and tol is not None and isinstance(tol[0], tuple):
+        point = tuple(0.5 * (e[0] + e[1]) for e in tol)
+    if tol is not None and isinstance(tol[0], numbers.Real):  # points assumed to be not None
+        tol = tuple((p-e, p+e) for p, e in zip(point, tol))
+    indices = torch.arange(len(coords), dtype=torch.int32, device=coords.device)
+
+    # reject items
+    if tol is not None and len(indices):
+        for i, (tol_c_min, tol_c_max) in enumerate(tol):
+            keep = coords[:, i] &gt;= tol_c_min
+            indices, coords = indices[keep], coords[keep]
+            keep = coords[:, i] &lt;= tol_c_max
+            indices, coords = indices[keep], coords[keep]
+
+    # compute dist and sorted
+    if point is not None:
+        dist = coords - torch.asarray(point, dtype=coords.dtype, device=coords.device).unsqueeze(0)
+        if scale is not None:
+            dist *= torch.asarray(scale, dtype=coords.dtype, device=coords.device).unsqueeze(0)
+        dist *= dist
+        dist = torch.sum(dist, dim=1)
+        indices = indices[torch.argsort(dist)]
+
+    # keep closet
+    return indices</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="laueimproc.ml.dataset_dist.call_diag2scalars"><code class="name flex">
+<span>def <span class="ident">call_diag2scalars</span></span>(<span>pos_func: Callable[[int], Union[numbers.Real, tuple[numbers.Real, ...]]], index: int) ‑> tuple[float, ...]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Call the function, check, cast and return the output.</p>
+<p>The function typing is assumed to be checked.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>pos_func</code></strong> :&ensp;<code>callable</code></dt>
+<dd>The function that associate a space position to a diagram index.</dd>
+<dt><strong><code>index</code></strong> :&ensp;<code>int</code></dt>
+<dd>The argument value of the function.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>position</code></strong> :&ensp;<code>tuple[float, &hellip;]</code></dt>
+<dd>The scalar vector as a tuple of float.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def call_diag2scalars(pos_func: DIAG2SCALS_TYPE, index: int) -&gt; tuple[float, ...]:
+    &#34;&#34;&#34;Call the function, check, cast and return the output.
+
+    The function typing is assumed to be checked.
+
+    Parameters
+    ----------
+    pos_func : callable
+        The function that associate a space position to a diagram index.
+    index : int
+        The argument value of the function.
+
+    Returns
+    -------
+    position : tuple[float, ...]
+        The scalar vector as a tuple of float.
+    &#34;&#34;&#34;
+    out = pos_func(index)
+    if isinstance(out, numbers.Real):
+        out = (out,)
+    else:
+        assert isinstance(out, tuple), \
+            f&#34;the function {pos_func} has to return a scalar or a tuple of scalars, not {out}&#34;
+    for i, item in enumerate(out):
+        assert isinstance(item, numbers.Real), f&#34;the coordinate of index {i} is not a scalar {item}&#34;
+    out = tuple(map(float, out))
+    return out</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.ml.dataset_dist.check_diag2scalars_typing"><code class="name flex">
+<span>def <span class="ident">check_diag2scalars_typing</span></span>(<span>pos_func: Callable[[int], Union[numbers.Real, tuple[numbers.Real, ...]]])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Ensure that the position function has the right type of input / outputs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>pos_func</code></strong> :&ensp;<code>callable</code></dt>
+<dd>A function supposed to take a diagram index as input
+and that return a scalar vector in a space of n dimensions.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>AssertionError</code></dt>
+<dd>If something wrong is detected.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import pytest
+&gt;&gt;&gt; from laueimproc.ml.dataset_dist import check_diag2scalars_typing
+&gt;&gt;&gt; def ok_1(index: int) -&gt; float:
+...     return float(index)
+...
+&gt;&gt;&gt; def ok_2(index: int) -&gt; tuple[float]:
+...     return (float(index),)
+...
+&gt;&gt;&gt; def ok_3(index: int) -&gt; tuple[float, float]:
+...     return (float(index), 0.0)
+...
+&gt;&gt;&gt; def warn_1(index):
+...     return float(index)
+...
+&gt;&gt;&gt; def warn_2(index: int):
+...     return float(index)
+...
+&gt;&gt;&gt; def warn_3(index) -&gt; float:
+...     return float(index)
+...
+&gt;&gt;&gt; def warn_4(index: int) -&gt; tuple:
+...     return float(index)
+...
+&gt;&gt;&gt; error_1 = &quot;this is not a function&quot;
+&gt;&gt;&gt; def error_2(file: str) -&gt; float:  # bad input type
+...     return float(file)
+...
+&gt;&gt;&gt; def error_3(index: int) -&gt; list:  # bad output type
+...     return [float(index)]
+...
+&gt;&gt;&gt; def error_4(index: int, cam: str) -&gt; tuple:  # bag input arguments
+...     return float(index)
+...
+&gt;&gt;&gt; check_diag2scalars_typing(ok_1)
+&gt;&gt;&gt; check_diag2scalars_typing(ok_2)
+&gt;&gt;&gt; check_diag2scalars_typing(ok_3)
+&gt;&gt;&gt;
+&gt;&gt;&gt; with pytest.warns(SyntaxWarning):
+...     check_diag2scalars_typing(warn_1)
+...
+&gt;&gt;&gt; with pytest.warns(SyntaxWarning):
+...     check_diag2scalars_typing(warn_2)
+...
+&gt;&gt;&gt; with pytest.warns(SyntaxWarning):
+...     check_diag2scalars_typing(warn_3)
+...
+&gt;&gt;&gt; with pytest.warns(SyntaxWarning):
+...     check_diag2scalars_typing(warn_4)
+...
+&gt;&gt;&gt;
+&gt;&gt;&gt; with pytest.raises(AssertionError):
+...     check_diag2scalars_typing(error_1)
+...
+&gt;&gt;&gt; with pytest.raises(AssertionError):
+...     check_diag2scalars_typing(error_2)
+...
+&gt;&gt;&gt; with pytest.raises(AssertionError):
+...     check_diag2scalars_typing(error_3)
+...
+&gt;&gt;&gt; with pytest.raises(AssertionError):
+...     check_diag2scalars_typing(error_4)
+...
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_diag2scalars_typing(pos_func: DIAG2SCALS_TYPE):
+    &#34;&#34;&#34;Ensure that the position function has the right type of input / outputs.
+
+    Parameters
+    ----------
+    pos_func : callable
+        A function supposed to take a diagram index as input
+        and that return a scalar vector in a space of n dimensions.
+
+    Raises
+    ------
+    AssertionError
+        If something wrong is detected.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import pytest
+    &gt;&gt;&gt; from laueimproc.ml.dataset_dist import check_diag2scalars_typing
+    &gt;&gt;&gt; def ok_1(index: int) -&gt; float:
+    ...     return float(index)
+    ...
+    &gt;&gt;&gt; def ok_2(index: int) -&gt; tuple[float]:
+    ...     return (float(index),)
+    ...
+    &gt;&gt;&gt; def ok_3(index: int) -&gt; tuple[float, float]:
+    ...     return (float(index), 0.0)
+    ...
+    &gt;&gt;&gt; def warn_1(index):
+    ...     return float(index)
+    ...
+    &gt;&gt;&gt; def warn_2(index: int):
+    ...     return float(index)
+    ...
+    &gt;&gt;&gt; def warn_3(index) -&gt; float:
+    ...     return float(index)
+    ...
+    &gt;&gt;&gt; def warn_4(index: int) -&gt; tuple:
+    ...     return float(index)
+    ...
+    &gt;&gt;&gt; error_1 = &#34;this is not a function&#34;
+    &gt;&gt;&gt; def error_2(file: str) -&gt; float:  # bad input type
+    ...     return float(file)
+    ...
+    &gt;&gt;&gt; def error_3(index: int) -&gt; list:  # bad output type
+    ...     return [float(index)]
+    ...
+    &gt;&gt;&gt; def error_4(index: int, cam: str) -&gt; tuple:  # bag input arguments
+    ...     return float(index)
+    ...
+    &gt;&gt;&gt; check_diag2scalars_typing(ok_1)
+    &gt;&gt;&gt; check_diag2scalars_typing(ok_2)
+    &gt;&gt;&gt; check_diag2scalars_typing(ok_3)
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; with pytest.warns(SyntaxWarning):
+    ...     check_diag2scalars_typing(warn_1)
+    ...
+    &gt;&gt;&gt; with pytest.warns(SyntaxWarning):
+    ...     check_diag2scalars_typing(warn_2)
+    ...
+    &gt;&gt;&gt; with pytest.warns(SyntaxWarning):
+    ...     check_diag2scalars_typing(warn_3)
+    ...
+    &gt;&gt;&gt; with pytest.warns(SyntaxWarning):
+    ...     check_diag2scalars_typing(warn_4)
+    ...
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; with pytest.raises(AssertionError):
+    ...     check_diag2scalars_typing(error_1)
+    ...
+    &gt;&gt;&gt; with pytest.raises(AssertionError):
+    ...     check_diag2scalars_typing(error_2)
+    ...
+    &gt;&gt;&gt; with pytest.raises(AssertionError):
+    ...     check_diag2scalars_typing(error_3)
+    ...
+    &gt;&gt;&gt; with pytest.raises(AssertionError):
+    ...     check_diag2scalars_typing(error_4)
+    ...
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert callable(pos_func), f&#34;{pos_func} has to be callable, not {pos_func.__class__.__name__}&#34;
+    signature = inspect.signature(pos_func)
+    assert len(signature.parameters) == 1, \
+        f&#34;the function {pos_func} has to take exactely 1 parameter, not {signature.parameters}&#34;
+    parameter = next(iter(signature.parameters.values()))
+    if parameter.annotation is parameter.empty:
+        warnings.warn(f&#34;please specify the input type of {pos_func}&#34;, SyntaxWarning)
+    elif parameter.annotation is not int:
+        raise AssertionError(
+            f&#34;the function {pos_func} has to get a int as input, not {parameter.annotation}&#34;
+        )
+    if not (
+        inspect.isclass(signature.return_annotation)
+        and issubclass(signature.return_annotation, numbers.Real)
+    ):
+        if signature.return_annotation is parameter.empty:
+            warnings.warn(f&#34;please specify the return type of {pos_func}&#34;, SyntaxWarning)
+            return
+        if issubclass(signature.return_annotation, tuple):
+            warnings.warn(
+                f&#34;please specify the number of scalars returned by {pos_func}&#34;, SyntaxWarning
+            )
+            return
+        origin = typing.get_origin(signature.return_annotation)
+        assert origin is not None and issubclass(origin, tuple), (
+            f&#34;the function {pos_func} has to return a tuple or a scalar real number, &#34;
+            f&#34;not {signature.return_annotation}&#34;
+        )
+        return_args = typing.get_args(signature.return_annotation)
+        assert return_args, f&#34;the function {pos_func} has to return at leat one element&#34;
+        for i, return_arg in enumerate(return_args):
+            assert issubclass(return_arg, numbers.Real), \
+                f&#34;returned element {i} of {pos_func} has to be a real number, not a {return_arg}&#34;</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.ml.dataset_dist.select_closest"><code class="name flex">
+<span>def <span class="ident">select_closest</span></span>(<span>coords: torch.Tensor, point: tuple[float, ...], tol: Optional[tuple[float, ...]] = None, scale: Optional[tuple[float, ...]] = None) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Select the closest point.</p>
+<p>Find the index i such as <span><span class="MathJax_Preview">d_i</span><script type="math/tex">d_i</script></span> is minimum, using the following formalism:
+<span><span class="MathJax_Preview">\begin{cases}
+d_i = \sqrt{\sum\limits_{j=0}^{D-1}\left(\kappa_j(p_j-x_{ij}))^2\right)} \\
+\left|p_j-x_{ij}\right| \le \epsilon_j, \forall j \in [\![0;D-1]\!] \\
+\end{cases}</span><script type="math/tex">\begin{cases}
+d_i = \sqrt{\sum\limits_{j=0}^{D-1}\left(\kappa_j(p_j-x_{ij}))^2\right)} \\
+\left|p_j-x_{ij}\right| \le \epsilon_j, \forall j \in [\![0;D-1]\!] \\
+\end{cases}</script></span></p>
+<ul>
+<li><span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, the number of dimensions of the space used.</li>
+<li><span><span class="MathJax_Preview">\kappa_j</span><script type="math/tex">\kappa_j</script></span>, a scalar inversely homogeneous has the unit used by the quantity of index <span><span class="MathJax_Preview">j</span><script type="math/tex">j</script></span>.</li>
+<li><span><span class="MathJax_Preview">p_j</span><script type="math/tex">p_j</script></span>, the coordinate <span><span class="MathJax_Preview">j</span><script type="math/tex">j</script></span> of the point of reference.</li>
+<li><span><span class="MathJax_Preview">x_{ij}</span><script type="math/tex">x_{ij}</script></span>, the <span><span class="MathJax_Preview">i</span><script type="math/tex">i</script></span>-th point of comparaison, coordinate <span><span class="MathJax_Preview">j</span><script type="math/tex">j</script></span>.</li>
+</ul>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>coords</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The float32 points of each individual <span><span class="MathJax_Preview">\text{coords[i, j]} = x_{ij}</span><script type="math/tex">\text{coords[i, j]} = x_{ij}</script></span>, of shape (n, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</dd>
+<dt><strong><code>point</code></strong> :&ensp;<code>tuple[float, &hellip;]</code></dt>
+<dd>The point of reference in the destination space <span><span class="MathJax_Preview">point[j] = p_j</span><script type="math/tex">point[j] = p_j</script></span>.</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>tuple[float, &hellip;]</code>, default <code>inf</code></dt>
+<dd>The absolute tolerence value for each component (kind of manhattan distance).
+Such as <span><span class="MathJax_Preview">\text{tol[j]} = \epsilon_j</span><script type="math/tex">\text{tol[j]} = \epsilon_j</script></span>.</dd>
+<dt><strong><code>scale</code></strong> :&ensp;<code>tuple[float, &hellip;]</code>, optional</dt>
+<dd><span><span class="MathJax_Preview">\text{scale[j]} = \kappa_j</span><script type="math/tex">\text{scale[j]} = \kappa_j</script></span>,
+used for rescale each axis before to compute the euclidian distance.
+By default <span><span class="MathJax_Preview">\kappa_j = 1, \forall j \in [\![0;D-1]\!]</span><script type="math/tex">\kappa_j = 1, \forall j \in [\![0;D-1]\!]</script></span>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>index</code></strong> :&ensp;<code>int</code></dt>
+<dd>The index <span><span class="MathJax_Preview">i</span><script type="math/tex">i</script></span> of the closest item <span><span class="MathJax_Preview">\underset{i}{\operatorname{argmin}}\left(d\right)</span><script type="math/tex">\underset{i}{\operatorname{argmin}}\left(d\right)</script></span>.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>LookupError</code></dt>
+<dd>If no points match the criteria.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.ml.dataset_dist import select_closest
+&gt;&gt;&gt; coords = torch.empty((1000, 3), dtype=torch.float32)
+&gt;&gt;&gt; coords[:, 0] = torch.linspace(-1, 1, 1000)
+&gt;&gt;&gt; coords[:, 1] = torch.linspace(-10, 10, 1000)
+&gt;&gt;&gt; coords[:, 2] = torch.arange(1000) % 2
+&gt;&gt;&gt; select_closest(coords, (0.0, 0.0, 0.1))
+500
+&gt;&gt;&gt; select_closest(coords, (0.0, 0.0, 0.9))
+499
+&gt;&gt;&gt; select_closest(coords, (0.5, 5.0, 0.1))
+750
+&gt;&gt;&gt; select_closest(coords, (0.5, 5.0, 0.1), scale=(10, 1, 0.01))
+749
+&gt;&gt;&gt; select_closest(coords, (0.0, 0.0, 0.1), tol=(4/1000, 40/1000, 0.2))
+500
+&gt;&gt;&gt; try:
+...    select_closest(coords, (0.0, 0.0, 0.1), tol=(1/1000, 10/1000, 0.05))
+... except LookupError as err:
+...     print(err)
+...
+no point match
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def select_closest(
+    coords: torch.Tensor,
+    point: tuple[float, ...],
+    tol: typing.Optional[tuple[float, ...]] = None,
+    scale: typing.Optional[tuple[float, ...]] = None,
+    *, _no_c: bool = False,
+) -&gt; int:
+    r&#34;&#34;&#34;Select the closest point.
+
+    Find the index i such as \(d_i\) is minimum, using the following formalism:
+    \(\begin{cases}
+        d_i = \sqrt{\sum\limits_{j=0}^{D-1}\left(\kappa_j(p_j-x_{ij}))^2\right)} \\
+        \left|p_j-x_{ij}\right| \le \epsilon_j, \forall j \in [\![0;D-1]\!] \\
+    \end{cases}\)
+
+    * \(D\), the number of dimensions of the space used.
+    * \(\kappa_j\), a scalar inversely homogeneous has the unit used by the quantity of index \(j\).
+    * \(p_j\), the coordinate \(j\) of the point of reference.
+    * \(x_{ij}\), the \(i\)-th point of comparaison, coordinate \(j\).
+
+    Parameters
+    ----------
+    coords : torch.Tensor
+        The float32 points of each individual \(\text{coords[i, j]} = x_{ij}\), of shape (n, \(D\)).
+    point : tuple[float, ...]
+        The point of reference in the destination space \(point[j] = p_j\).
+    tol : tuple[float, ...], default inf
+        The absolute tolerence value for each component (kind of manhattan distance).
+        Such as \(\text{tol[j]} = \epsilon_j\).
+    scale : tuple[float, ...], optional
+        \(\text{scale[j]} = \kappa_j\),
+        used for rescale each axis before to compute the euclidian distance.
+        By default \(\kappa_j = 1, \forall j \in [\![0;D-1]\!]\).
+
+    Returns
+    -------
+    index: int
+        The index \(i\) of the closest item \(\underset{i}{\operatorname{argmin}}\left(d\right)\).
+
+    Raises
+    ------
+    LookupError
+        If no points match the criteria.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.ml.dataset_dist import select_closest
+    &gt;&gt;&gt; coords = torch.empty((1000, 3), dtype=torch.float32)
+    &gt;&gt;&gt; coords[:, 0] = torch.linspace(-1, 1, 1000)
+    &gt;&gt;&gt; coords[:, 1] = torch.linspace(-10, 10, 1000)
+    &gt;&gt;&gt; coords[:, 2] = torch.arange(1000) % 2
+    &gt;&gt;&gt; select_closest(coords, (0.0, 0.0, 0.1))
+    500
+    &gt;&gt;&gt; select_closest(coords, (0.0, 0.0, 0.9))
+    499
+    &gt;&gt;&gt; select_closest(coords, (0.5, 5.0, 0.1))
+    750
+    &gt;&gt;&gt; select_closest(coords, (0.5, 5.0, 0.1), scale=(10, 1, 0.01))
+    749
+    &gt;&gt;&gt; select_closest(coords, (0.0, 0.0, 0.1), tol=(4/1000, 40/1000, 0.2))
+    500
+    &gt;&gt;&gt; try:
+    ...    select_closest(coords, (0.0, 0.0, 0.1), tol=(1/1000, 10/1000, 0.05))
+    ... except LookupError as err:
+    ...     print(err)
+    ...
+    no point match
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    if not _no_c and c_dist is not None:
+        coords_np = coords.numpy(force=True)
+        kwargs = ({} if tol is None else {&#34;tol&#34;: tol}) | ({} if scale is None else {&#34;scale&#34;: scale})
+        return c_dist.select_closest_point(coords_np, point, **kwargs)
+
+    assert isinstance(coords, torch.Tensor), coords.__class__.__name__
+    assert coords.dtype == torch.float32, coords.dtype
+    assert coords.ndim == 2, coords.shape
+    assert isinstance(point, tuple), point.__class__.__name__
+    assert point, &#34;at least dimension 1, not 0&#34;
+    assert all(isinstance(c, numbers.Real) for c in point), point
+    assert len(point) == coords.shape[1], (point, coords.shape)
+    if tol is not None:
+        assert isinstance(tol, tuple), tol.__class__.__name__
+        assert all(isinstance(e, numbers.Real) for e in tol), tol
+        assert len(tol) == coords.shape[1], (tol, coords.shape)
+    if scale is not None:
+        assert isinstance(scale, tuple), scale.__class__.__name__
+        assert all(isinstance(k, numbers.Real) for k in scale), scale
+        assert len(scale) == coords.shape[1], (scale, coords.shape)
+
+    # preparation
+    indices = torch.arange(len(coords), dtype=torch.int32, device=coords.device)
+
+    # reject items
+    if tol is not None:
+        for i, (point_c, tol_c) in enumerate(zip(point, tol)):
+            if tol is not None:
+                keep = coords[:, i] &gt;= point_c - tol_c
+                indices, coords = indices[keep], coords[keep]
+                keep = coords[:, i] &lt;= point_c + tol_c
+                indices, coords = indices[keep], coords[keep]
+    if not indices.shape[0]:
+        raise LookupError(&#34;no point match&#34;)
+
+    # compute dist
+    dist = coords - torch.asarray(point, dtype=coords.dtype, device=coords.device).unsqueeze(0)
+    if scale is not None:
+        dist *= torch.asarray(scale, dtype=coords.dtype, device=coords.device).unsqueeze(0)
+    dist *= dist
+    dist = torch.sum(dist, dim=1)
+
+    # keep closet
+    index = int(torch.argmin(dist))
+    index = int(indices[index])
+    return index</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.ml.dataset_dist.select_closests"><code class="name flex">
+<span>def <span class="ident">select_closests</span></span>(<span>coords: torch.Tensor, point: Optional[tuple[float, ...]] = None, tol: Optional[tuple[float, ...]] = None, scale: Optional[tuple[float, ...]] = None) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Select the closest points.</p>
+<p>Find all the indices i such as:
+<span><span class="MathJax_Preview">\left|p_j-x_{ij}\right| \le \epsilon_j, \forall j \in [\![0;D-1]\!]</span><script type="math/tex">\left|p_j-x_{ij}\right| \le \epsilon_j, \forall j \in [\![0;D-1]\!]</script></span></p>
+<p>Sorted the results byt increasing <span><span class="MathJax_Preview">d_i</span><script type="math/tex">d_i</script></span> such as:
+<span><span class="MathJax_Preview">d_i = \sqrt{\sum\limits_{j=0}^{D-1}\left(\kappa_j(p_j-x_{ij}))^2\right)}</span><script type="math/tex">d_i = \sqrt{\sum\limits_{j=0}^{D-1}\left(\kappa_j(p_j-x_{ij}))^2\right)}</script></span></p>
+<ul>
+<li><span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>, the number of dimensions of the space used.</li>
+<li><span><span class="MathJax_Preview">\kappa_j</span><script type="math/tex">\kappa_j</script></span>, a scalar inversely homogeneous has the unit used by the quantity of index <span><span class="MathJax_Preview">j</span><script type="math/tex">j</script></span>.</li>
+<li><span><span class="MathJax_Preview">p_j</span><script type="math/tex">p_j</script></span>, the coordinate <span><span class="MathJax_Preview">j</span><script type="math/tex">j</script></span> of the point of reference.</li>
+<li><span><span class="MathJax_Preview">x_{ij}</span><script type="math/tex">x_{ij}</script></span>, the <span><span class="MathJax_Preview">i</span><script type="math/tex">i</script></span>-th point of comparaison, coordinate <span><span class="MathJax_Preview">j</span><script type="math/tex">j</script></span>.</li>
+</ul>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>coords</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The float32 points of each individual <span><span class="MathJax_Preview">\text{coords[i, j]} = x_{ij}</span><script type="math/tex">\text{coords[i, j]} = x_{ij}</script></span>, of shape (n, <span><span class="MathJax_Preview">D</span><script type="math/tex">D</script></span>).</dd>
+<dt><strong><code>point</code></strong> :&ensp;<code>tuple[float, &hellip;]</code>, optional</dt>
+<dd>If provided, the point <span><span class="MathJax_Preview">point[j] = p_j</span><script type="math/tex">point[j] = p_j</script></span> is used to calculate the distance
+and sort the results.
+By default, the point taken is equal to the average of the tol.</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>tuple[float | tuple[float, float], ...]</code>, default <code>inf</code></dt>
+<dd>The absolute tolerence value for each component (kind of manhattan distance).
+Such as <span><span class="MathJax_Preview">\text{tol[j][0]} = \epsilon_{j-min}, \text{tol[j][1]} = \epsilon_{j-max}</span><script type="math/tex">\text{tol[j][0]} = \epsilon_{j-min}, \text{tol[j][1]} = \epsilon_{j-max}</script></span>.</dd>
+<dt><strong><code>scale</code></strong> :&ensp;<code>tuple[float, &hellip;]</code>, optional</dt>
+<dd><span><span class="MathJax_Preview">\text{scale[j]} = \kappa_j</span><script type="math/tex">\text{scale[j]} = \kappa_j</script></span>,
+used for rescale each axis before to compute the euclidian distance.
+By default <span><span class="MathJax_Preview">\kappa_j = 1, \forall j \in [\![0;D-1]\!]</span><script type="math/tex">\kappa_j = 1, \forall j \in [\![0;D-1]\!]</script></span>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>indices</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The int32 list of the sorted coords indices.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def select_closests(
+    coords: torch.Tensor,
+    point: typing.Optional[tuple[float, ...]] = None,
+    tol: typing.Optional[tuple[float, ...]] = None,
+    scale: typing.Optional[tuple[float, ...]] = None,
+    *, _no_c: bool = False,
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Select the closest points.
+
+    Find all the indices i such as:
+    \(\left|p_j-x_{ij}\right| \le \epsilon_j, \forall j \in [\![0;D-1]\!]\)
+
+    Sorted the results byt increasing \(d_i\) such as:
+    \(d_i = \sqrt{\sum\limits_{j=0}^{D-1}\left(\kappa_j(p_j-x_{ij}))^2\right)}\)
+
+    * \(D\), the number of dimensions of the space used.
+    * \(\kappa_j\), a scalar inversely homogeneous has the unit used by the quantity of index \(j\).
+    * \(p_j\), the coordinate \(j\) of the point of reference.
+    * \(x_{ij}\), the \(i\)-th point of comparaison, coordinate \(j\).
+
+    Parameters
+    ----------
+    coords : torch.Tensor
+        The float32 points of each individual \(\text{coords[i, j]} = x_{ij}\), of shape (n, \(D\)).
+    point : tuple[float, ...], optional
+        If provided, the point \(point[j] = p_j\) is used to calculate the distance
+        and sort the results.
+        By default, the point taken is equal to the average of the tol.
+    tol : tuple[float | tuple[float, float], ...], default inf
+        The absolute tolerence value for each component (kind of manhattan distance).
+        Such as \(\text{tol[j][0]} = \epsilon_{j-min}, \text{tol[j][1]} = \epsilon_{j-max}\).
+    scale : tuple[float, ...], optional
+        \(\text{scale[j]} = \kappa_j\),
+        used for rescale each axis before to compute the euclidian distance.
+        By default \(\kappa_j = 1, \forall j \in [\![0;D-1]\!]\).
+
+    Returns
+    -------
+    indices : torch.Tensor
+        The int32 list of the sorted coords indices.
+    &#34;&#34;&#34;
+    if point is not None:
+        assert isinstance(coords, torch.Tensor), coords.__class__.__name__
+        assert coords.dtype == torch.float32, coords.dtype
+        assert coords.ndim == 2, coords.shape
+        assert isinstance(point, tuple), point.__class__.__name__
+        assert point, &#34;at least dimension 1, not 0&#34;
+        assert all(isinstance(c, numbers.Real) for c in point), point
+        assert len(point) == coords.shape[1], (point, coords.shape)
+    if tol is not None:
+        assert isinstance(tol, tuple), tol.__class__.__name__
+        assert (
+            all(isinstance(e, numbers.Real) for e in tol)
+            or (
+                all(isinstance(e, tuple) for e in tol)
+                and all(len(e) == 2 for e in tol)
+                and all(
+                    isinstance(e[0], numbers.Real) and isinstance(e[1], numbers.Real) for e in tol
+                )
+            )
+        ), tol
+        assert len(tol) == coords.shape[1], (tol, coords.shape)
+    if scale is not None:
+        assert isinstance(scale, tuple), scale.__class__.__name__
+        assert all(isinstance(k, numbers.Real) for k in scale), scale
+        assert len(scale) == coords.shape[1], (scale, coords.shape)
+    assert point is not None or (tol is not None and isinstance(tol[0], tuple))
+
+    # preparation
+    if point is None and tol is not None and isinstance(tol[0], tuple):
+        point = tuple(0.5 * (e[0] + e[1]) for e in tol)
+    if tol is not None and isinstance(tol[0], numbers.Real):  # points assumed to be not None
+        tol = tuple((p-e, p+e) for p, e in zip(point, tol))
+    indices = torch.arange(len(coords), dtype=torch.int32, device=coords.device)
+
+    # reject items
+    if tol is not None and len(indices):
+        for i, (tol_c_min, tol_c_max) in enumerate(tol):
+            keep = coords[:, i] &gt;= tol_c_min
+            indices, coords = indices[keep], coords[keep]
+            keep = coords[:, i] &lt;= tol_c_max
+            indices, coords = indices[keep], coords[keep]
+
+    # compute dist and sorted
+    if point is not None:
+        dist = coords - torch.asarray(point, dtype=coords.dtype, device=coords.device).unsqueeze(0)
+        if scale is not None:
+            dist *= torch.asarray(scale, dtype=coords.dtype, device=coords.device).unsqueeze(0)
+        dist *= dist
+        dist = torch.sum(dist, dim=1)
+        indices = indices[torch.argsort(dist)]
+
+    # keep closet
+    return indices</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<form>
+<input id="lunr-search" name="q" placeholder="🔎 Search ..." aria-label="Search"
+disabled minlength="2">
+</form>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.css" integrity="sha512-j1u8eUJ4f23xPPxwOrLUPQaCD2dwzNqqmDDcWS4deWsMv2ohLqmXXuP3hU7g8TyzbMSakP/mMqoNBYWj8AEIFg==" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.js" integrity="sha512-plGUER9JkeEWPPqQBE4sdLqBoQug5Ap+BCGMc7bJ8BXkm+VVj6QzkpBz5Yv2yPkkq+cqg9IpkBaGCas6uDbW8g==" crossorigin></script>
+<style>
+.modal-dialog iframe {
+width: 100vw;
+height: calc(100vh - 80px);
+}
+@media screen and (min-width: 700px) {
+.modal-dialog iframe {
+width: 70vw;
+height: 80vh;
+}
+}
+.modal-dialog .tingle-modal-box {width: auto;}
+.modal-dialog .tingle-modal-box__content {padding: 0;}
+</style>
+<script>
+const input = document.getElementById('lunr-search');
+input.disabled = false;
+input.form.addEventListener('submit', (ev) => {
+ev.preventDefault();
+const url = new URL(window.location);
+url.searchParams.set('q', input.value);
+history.replaceState({}, null, url.toString());
+search(input.value);
+});
+const query = new URL(window.location).searchParams.get('q');
+if (query)
+search(query);
+function search(query) {
+const url = '../../doc-search.html#' + encodeURIComponent(query);
+new tingle.modal({
+cssClass: ['modal-dialog'],
+onClose: () => {
+const url = new URL(window.location);
+url.searchParams.delete('q');
+history.replaceState({}, null, url.toString());
+setTimeout(() => input.focus(), 100);
+}
+}).setContent('<iframe src="' + url + '"></iframe>').open();
+}
+</script>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="laueimproc.ml" href="index.html">laueimproc.ml</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="laueimproc.ml.dataset_dist.call_diag2scalars" href="#laueimproc.ml.dataset_dist.call_diag2scalars">call_diag2scalars</a></code></li>
+<li><code><a title="laueimproc.ml.dataset_dist.check_diag2scalars_typing" href="#laueimproc.ml.dataset_dist.check_diag2scalars_typing">check_diag2scalars_typing</a></code></li>
+<li><code><a title="laueimproc.ml.dataset_dist.select_closest" href="#laueimproc.ml.dataset_dist.select_closest">select_closest</a></code></li>
+<li><code><a title="laueimproc.ml.dataset_dist.select_closests" href="#laueimproc.ml.dataset_dist.select_closests">select_closests</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
