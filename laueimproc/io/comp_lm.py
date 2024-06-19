@@ -276,7 +276,7 @@ class LMCodec(torch.nn.Module):
         >>> img = np.random.randint(0, 65536, (1000, 1000), dtype=np.uint16)
         >>> data = codec.encode(img)
         >>> decoded = codec.decode(data)
-        >>> (img == decoded).all()
+        >>> bool((img == decoded).all())
         True
         >>>
         """

@@ -7,7 +7,7 @@ import typing
 
 import torch
 
-from laueimproc.ml.dataset_dist import select_closest
+from laueimproc.ml.dataset_dist import select_closest, select_closests
 from .base_dataset import BaseDiagramsDataset
 from .diagram import Diagram
 
@@ -95,6 +95,35 @@ class DiagramsDataset(BaseDiagramsDataset):
                 return None
             raise err
         return self._get_diagram_from_index(int(indices[index]))
+
+    def select_closests(self, *args, **kwargs) -> typing.Self:
+        """Select the diagrams matching a given interval of phisical parameters.
+
+        Parameters
+        ----------
+        point, tol, scale
+            Transmitted to ``laueimproc.ml.dataset_dist.select_closests``.
+
+        Returns
+        -------
+        sub_dataset : ``laueimproc.classes.dataset.DiagramsDataset``
+            The frozen view of this dataset containing only the diagram matching the constraints.
+
+        Examples
+        --------
+        >>> from laueimproc.classes.dataset import DiagramsDataset
+        >>> from laueimproc.io import get_samples
+        >>> def position(index: int) -> tuple[int, int]:
+        ...     return divmod(index, 10)
+        ...
+        >>> dataset = DiagramsDataset(get_samples(), diag2scalars=position)
+        >>> dataset.select_closests((4.1, 4.9), tol=(1.2, 1.2))
+        <DiagramsDataset with 9 diagrams>
+        >>>
+        """
+        indices, coords = self.get_scalars(as_dict=False, copy=False)
+        rel_indices = select_closests(coords, *args, **kwargs)
+        return self._get_diagrams_from_indices(indices[rel_indices])
 
     def track_spots(self):
         """Find the apparition of the same spots in differents diagrams."""

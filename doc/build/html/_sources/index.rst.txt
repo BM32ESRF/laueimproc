@@ -42,10 +42,10 @@ Overview
     :maxdepth: 2
 
     usage/installation.rst
+    usage/conventions.rst
     usage/developer.rst
 
-
-.. image:: images/diag_06.avif
+.. image:: media/diag_06.avif
     :alt: An example of a laue diagram.
 
 

@@ -350,3 +350,99 @@ def select_closest(
     index = int(torch.argmin(dist))
     index = int(indices[index])
     return index
+
+
+def select_closests(
+    coords: torch.Tensor,
+    point: typing.Optional[tuple[float, ...]] = None,
+    tol: typing.Optional[tuple[float, ...]] = None,
+    scale: typing.Optional[tuple[float, ...]] = None,
+    *, _no_c: bool = False,
+) -> torch.Tensor:
+    r"""Select the closest points.
+
+    Find all the indices i such as:
+    \(\left|p_j-x_{ij}\right| \le \epsilon_j, \forall j \in [\![0;D-1]\!]\)
+
+    Sorted the results byt increasing \(d_i\) such as:
+    \(d_i = \sqrt{\sum\limits_{j=0}^{D-1}\left(\kappa_j(p_j-x_{ij}))^2\right)}\)
+
+    * \(D\), the number of dimensions of the space used.
+    * \(\kappa_j\), a scalar inversely homogeneous has the unit used by the quantity of index \(j\).
+    * \(p_j\), the coordinate \(j\) of the point of reference.
+    * \(x_{ij}\), the \(i\)-th point of comparaison, coordinate \(j\).
+
+    Parameters
+    ----------
+    coords : torch.Tensor
+        The float32 points of each individual \(\text{coords[i, j]} = x_{ij}\), of shape (n, \(D\)).
+    point : tuple[float, ...], optional
+        If provided, the point \(point[j] = p_j\) is used to calculate the distance
+        and sort the results.
+        By default, the point taken is equal to the average of the tol.
+    tol : tuple[float | tuple[float, float], ...], default inf
+        The absolute tolerence value for each component (kind of manhattan distance).
+        Such as \(\text{tol[j][0]} = \epsilon_{j-min}, \text{tol[j][1]} = \epsilon_{j-max}\).
+    scale : tuple[float, ...], optional
+        \(\text{scale[j]} = \kappa_j\),
+        used for rescale each axis before to compute the euclidian distance.
+        By default \(\kappa_j = 1, \forall j \in [\![0;D-1]\!]\).
+
+    Returns
+    -------
+    indices : torch.Tensor
+        The int32 list of the sorted coords indices.
+    """
+    if point is not None:
+        assert isinstance(coords, torch.Tensor), coords.__class__.__name__
+        assert coords.dtype == torch.float32, coords.dtype
+        assert coords.ndim == 2, coords.shape
+        assert isinstance(point, tuple), point.__class__.__name__
+        assert point, "at least dimension 1, not 0"
+        assert all(isinstance(c, numbers.Real) for c in point), point
+        assert len(point) == coords.shape[1], (point, coords.shape)
+    if tol is not None:
+        assert isinstance(tol, tuple), tol.__class__.__name__
+        assert (
+            all(isinstance(e, numbers.Real) for e in tol)
+            or (
+                all(isinstance(e, tuple) for e in tol)
+                and all(len(e) == 2 for e in tol)
+                and all(
+                    isinstance(e[0], numbers.Real) and isinstance(e[1], numbers.Real) for e in tol
+                )
+            )
+        ), tol
+        assert len(tol) == coords.shape[1], (tol, coords.shape)
+    if scale is not None:
+        assert isinstance(scale, tuple), scale.__class__.__name__
+        assert all(isinstance(k, numbers.Real) for k in scale), scale
+        assert len(scale) == coords.shape[1], (scale, coords.shape)
+    assert point is not None or (tol is not None and isinstance(tol[0], tuple))
+
+    # preparation
+    if point is None and tol is not None and isinstance(tol[0], tuple):
+        point = tuple(0.5 * (e[0] + e[1]) for e in tol)
+    if tol is not None and isinstance(tol[0], numbers.Real):  # points assumed to be not None
+        tol = tuple((p-e, p+e) for p, e in zip(point, tol))
+    indices = torch.arange(len(coords), dtype=torch.int32, device=coords.device)
+
+    # reject items
+    if tol is not None and len(indices):
+        for i, (tol_c_min, tol_c_max) in enumerate(tol):
+            keep = coords[:, i] >= tol_c_min
+            indices, coords = indices[keep], coords[keep]
+            keep = coords[:, i] <= tol_c_max
+            indices, coords = indices[keep], coords[keep]
+
+    # compute dist and sorted
+    if point is not None:
+        dist = coords - torch.asarray(point, dtype=coords.dtype, device=coords.device).unsqueeze(0)
+        if scale is not None:
+            dist *= torch.asarray(scale, dtype=coords.dtype, device=coords.device).unsqueeze(0)
+        dist *= dist
+        dist = torch.sum(dist, dim=1)
+        indices = indices[torch.argsort(dist)]
+
+    # keep closet
+    return indices

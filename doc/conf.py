@@ -43,6 +43,7 @@ extensions = [
     "sphinx_copybutton",  # in pillow conf
     "sphinx_inline_tabs",  # in pillow conf
     "sphinx_rtd_theme",
+    "sphinxcontrib.video",  # for video insertion in doc
     "sphinxext.opengraph",  # in pillow conf
 ]
 todo_include_todos = True

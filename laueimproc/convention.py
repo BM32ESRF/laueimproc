@@ -12,6 +12,9 @@ It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2)
 * `xy`: A transposition and a translation of the origin of the `ij` convention.
 The first axis iterates on columns from left to right, the second on lines from top to bottom.
 In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.
+
+.. image:: ../../build/media/IMGConvIJXY.avif
+    :width: 256
 """
 
 import functools

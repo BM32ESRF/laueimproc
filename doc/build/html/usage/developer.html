@@ -6,12 +6,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="usage/developer.html" />
 <meta property="og:site_name" content="laueimproc" />
-<meta property="og:description" content="Prerequistes: In developer mode, more dependencies are required. You can install them by adding the[all] option to pip. To build the documentation, you need ffmpeg >= 5.1.5. You should install it, ..." />
+<meta property="og:description" content="Install system libraries: To build the documentation, you need ffmpeg >= 5.1.5. You should install it, please refer to the FFmpeg download page. Linux Debian Ubuntu Mint RHEL CentOS Fedora Arch Man..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="/_images/social_previews/summary_usage_developer_37e16e15.png" />
-<meta property="og:image:alt" content="Prerequistes: In developer mode, more dependencies are required. You can install them by adding the[all] option to pip. To build the documentation, you need..." />
-<meta name="description" content="Prerequistes: In developer mode, more dependencies are required. You can install them by adding the[all] option to pip. To build the documentation, you need ffmpeg >= 5.1.5. You should install it, ..." />
+<meta property="og:image" content="/None" />
+<meta property="og:image:alt" content="Install system libraries: To build the documentation, you need ffmpeg >= 5.1.5. You should install it, please refer to the FFmpeg download page. Linux Debian..." />
+<meta name="description" content="Install system libraries: To build the documentation, you need ffmpeg >= 5.1.5. You should install it, please refer to the FFmpeg download page. Linux Debian Ubuntu Mint RHEL CentOS Fedora Arch Man..." />
 <meta name="twitter:card" content="summary_large_image" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -37,7 +37,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="Installation" href="installation.html" /> 
+    <link rel="prev" title="Conventions" href="conventions.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -64,8 +64,10 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="conventions.html">Conventions</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Developer’s Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#prerequistes">Prerequistes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-system-libraries">Install system libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-all-dependencies">Install all dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#building-documentation">Building Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#test-bench">Test Bench</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#trash">Trash</a></li>
@@ -99,24 +101,14 @@
              
   <section id="developer-s-guide">
 <h1>Developer’s Guide<a class="headerlink" href="#developer-s-guide" title="Link to this heading"></a></h1>
-<section id="prerequistes">
-<h2>Prerequistes<a class="headerlink" href="#prerequistes" title="Link to this heading"></a></h2>
-<p>In developer mode, more dependencies are required. You can install them by adding the <code class="docutils literal notranslate"><span class="pre">[all]</span></code> option to <code class="docutils literal notranslate"><span class="pre">pip</span></code>.</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Make shure you are in a virtual environement <code class="docutils literal notranslate"><span class="pre">pyenv</span> <span class="pre">activate</span> <span class="pre">laueenv</span></code> before excecuting the next lines!</p>
-</div>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/laueimproc_git/
-pip<span class="w"> </span>-v<span class="w"> </span>install<span class="w"> </span>--editable<span class="w"> </span>.<span class="o">[</span>all<span class="o">]</span>
-</pre></div>
-</div>
+<section id="install-system-libraries">
+<h2>Install system libraries<a class="headerlink" href="#install-system-libraries" title="Link to this heading"></a></h2>
 <p>To build the documentation, you need <code class="docutils literal notranslate"><span class="pre">ffmpeg</span> <span class="pre">&gt;=</span> <span class="pre">5.1.5</span></code>. You should install it, please refer to the <a class="reference external" href="https://ffmpeg.org/download.html">FFmpeg download page</a>.</p>
 <div class="tab-set docutils container">
 <input checked="True" class="tab-input" id="tab-set--1-input--1" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--1">Linux</label><div class="tab-content docutils container">
 <div class="tab-set docutils container">
 <input checked="True" class="tab-input" id="tab-set--0-input--1" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--1">Debian Ubuntu Mint</label><div class="tab-content docutils container">
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>update
-sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>ffmpeg
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>ffmpeg
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python-dev<span class="w"> </span>pkg-config
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>libavformat-dev<span class="w"> </span>libavcodec-dev<span class="w"> </span>libavdevice-dev<span class="w"> </span>libavutil-dev<span class="w"> </span>libswscale-dev<span class="w"> </span>libswresample-dev<span class="w"> </span>libavfilter-dev
 </pre></div>
@@ -156,6 +148,54 @@ brew<span class="w"> </span>install<span class="w"> </span>ffmpeg<span class="w"
 <p>It is important to configure your environement variable to hook ffmpeg to LaueImProc. You can follow <a class="reference external" href="https://www.geeksforgeeks.org/how-to-install-ffmpeg-on-windows/">this guide</a> for example.</p>
 </div>
 </div>
+<p>To build the documentation, you need <code class="docutils literal notranslate"><span class="pre">manim</span></code> as well. You should install it, please refer to the <a class="reference external" href="https://docs.manim.community/en/stable/installation.html">manim installation page</a>.</p>
+<div class="tab-set docutils container">
+<input checked="True" class="tab-input" id="tab-set--3-input--1" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--1">Linux</label><div class="tab-content docutils container">
+<div class="tab-set docutils container">
+<input checked="True" class="tab-input" id="tab-set--2-input--1" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--1">Debian Ubuntu Mint</label><div class="tab-content docutils container">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>build-essential<span class="w"> </span>python3-dev<span class="w"> </span>libcairo2-dev<span class="w"> </span>libpango1.0-dev
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>texlive<span class="w"> </span>texlive-latex-extra
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--2-input--2" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--2">RHEL CentOS Fedora</label><div class="tab-content docutils container">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>python3-devel
+sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>cairo-devel<span class="w"> </span>pango-devel
+sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>texlive-scheme-full
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--2-input--3" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--3">Arch Manjaro</label><div class="tab-content docutils container">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>pacman<span class="w"> </span>-Syu
+sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>cairo<span class="w"> </span>pango
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--3-input--2" name="tab-set--3" type="radio"><label class="tab-label" for="tab-set--3-input--2">macOS</label><div class="tab-content docutils container">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>py3cairo
+brew<span class="w"> </span>install<span class="w"> </span>pango<span class="w"> </span>pkg-config
+brew<span class="w"> </span>install<span class="w"> </span>--cask<span class="w"> </span>mactex-no-gui
+</pre></div>
+</div>
+</div>
+</div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>manim
+</pre></div>
+</div>
+</section>
+<section id="install-all-dependencies">
+<h2>Install all dependencies<a class="headerlink" href="#install-all-dependencies" title="Link to this heading"></a></h2>
+<p>In developer mode, more dependencies are required. You can install them by adding the <code class="docutils literal notranslate"><span class="pre">[all]</span></code> option to <code class="docutils literal notranslate"><span class="pre">pip</span></code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Make shure you are in a virtual environement <code class="docutils literal notranslate"><span class="pre">pyenv</span> <span class="pre">activate</span> <span class="pre">laueenv</span></code> before excecuting the next lines!</p>
+</div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/laueimproc_git/
+pip<span class="w"> </span>-v<span class="w"> </span>install<span class="w"> </span>--editable<span class="w"> </span>.<span class="o">[</span>all<span class="o">]</span>
+</pre></div>
+</div>
 </section>
 <section id="building-documentation">
 <h2>Building Documentation<a class="headerlink" href="#building-documentation" title="Link to this heading"></a></h2>
@@ -190,7 +230,7 @@ sont utiles, adapter la commande git à <a class="reference external" href="http
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="conventions.html" class="btn btn-neutral float-left" title="Conventions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

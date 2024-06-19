@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Conventions" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="usage/conventions.html" />
+<meta property="og:site_name" content="laueimproc" />
+<meta property="og:description" content="Pixel Coordinates: The origin is set at the corner of a pixel as shown in the figure below for a simple 4×4 pixel matrix. image convention `&quot;ij&quot;` and `&quot;xy&quot;` Each pixel n starts at the coordinated n..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="/None" />
+<meta property="og:image:alt" content="Pixel Coordinates: The origin is set at the corner of a pixel as shown in the figure below for a simple 4×4 pixel matrix. image convention `&quot;ij&quot;` and `&quot;xy&quot;`..." />
+<meta name="description" content="Pixel Coordinates: The origin is set at the corner of a pixel as shown in the figure below for a simple 4×4 pixel matrix. image convention `&quot;ij&quot;` and `&quot;xy&quot;` Each pixel n starts at the coordinated n..." />
+<meta name="twitter:card" content="summary_large_image" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conventions &mdash; laueimproc 1.4.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=02f2166e"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script src="../_static/tabs.js?v=3ee01567"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Developer’s Guide" href="developer.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            laueimproc
+          </a>
+              <div class="version">
+                1.4.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Conventions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pixel-coordinates">Pixel Coordinates</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#motivation">Motivation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#convertion-ij-xy">Convertion <cite>“ij”</cite> &lt;=&gt; <cite>“xy”</cite></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer’s Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">laueimproc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Conventions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/usage/conventions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="conventions">
+<h1>Conventions<a class="headerlink" href="#conventions" title="Link to this heading"></a></h1>
+<section id="pixel-coordinates">
+<h2>Pixel Coordinates<a class="headerlink" href="#pixel-coordinates" title="Link to this heading"></a></h2>
+<p>The origin is set at the corner of a pixel as shown in the figure below for a simple 4×4 pixel matrix.</p>
+<a class="reference internal image-reference" href="../_images/IMGConvIJXY.avif"><img alt="image convention `&quot;ij&quot;` and `&quot;xy&quot;`" src="../_images/IMGConvIJXY.avif" style="width: 512px;" /></a>
+<ul class="simple">
+<li><p>Each pixel n starts at the coordinated n (included) and goes to the coordinate n+1 (excluded). The center of any pixel is at half integer pixel coordinate.</p></li>
+<li><p>The default convention is called <cite>“ij”</cite> and the <cite>LaueTools convention &lt;https://lauetools.readthedocs.io/en/latest/conventions.html&gt;_</cite> is called <cite>“xy”</cite>.</p></li>
+<li><p>In the <cite>“ij”</cite> convention, the orgin (i=0, j=0) corresponds to the top left corner of the to left pixel of the image.</p></li>
+<li><p>In the <cite>“xy”</cite> convention, the orgin (x=1, y=1) corresponds to the center of the to left pixel of the image.</p></li>
+</ul>
+<section id="motivation">
+<h3>Motivation<a class="headerlink" href="#motivation" title="Link to this heading"></a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The convention <cite>“ij”</cite> is the extension by continuity of the numpy and torch convention, as shown in the below animation.</p>
+</div>
+<video controls="True" preload="auto" width="512"><source src="../_images/ANIMConvIJNumpyContinuity.webm" type="video/webm">continuity numpy to `"ij"`</video></section>
+<section id="convertion-ij-xy">
+<h3>Convertion <cite>“ij”</cite> &lt;=&gt; <cite>“xy”</cite><a class="headerlink" href="#convertion-ij-xy" title="Link to this heading"></a></h3>
+<p>Most of the proposed methods support the <cite>conv</cite> argument:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">laueimproc</span>
+
+<span class="n">diagram</span> <span class="o">=</span> <span class="n">laueimproc</span><span class="o">.</span><span class="n">Diagam</span><span class="p">(</span><span class="n">laueimproc</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">get_sample</span><span class="p">())</span>
+<span class="n">diagram</span><span class="o">.</span><span class="n">find_spots</span><span class="p">()</span>
+<span class="n">pos_ij</span> <span class="o">=</span> <span class="n">diagram</span><span class="o">.</span><span class="n">compute_rois_centroid</span><span class="p">(</span><span class="n">conv</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+<span class="n">pos_xy</span> <span class="o">=</span> <span class="n">diagram</span><span class="o">.</span><span class="n">compute_rois_centroid</span><span class="p">(</span><span class="n">conv</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In a more general case, you can use the function <a class="reference external" href="../../laueimproc/convention.html#laueimproc.convention.ij_to_xy">ij_to_xy</a>.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="developer.html" class="btn btn-neutral float-right" title="Developer’s Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2024, J.S. Micha, O. Robach., S. Tardif, R. Richard.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

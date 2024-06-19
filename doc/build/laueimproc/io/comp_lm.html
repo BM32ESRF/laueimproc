@@ -306,7 +306,7 @@ class LMCodec(torch.nn.Module):
         &gt;&gt;&gt; img = np.random.randint(0, 65536, (1000, 1000), dtype=np.uint16)
         &gt;&gt;&gt; data = codec.encode(img)
         &gt;&gt;&gt; decoded = codec.decode(data)
-        &gt;&gt;&gt; (img == decoded).all()
+        &gt;&gt;&gt; bool((img == decoded).all())
         True
         &gt;&gt;&gt;
         &#34;&#34;&#34;
@@ -711,7 +711,7 @@ torch.Size([5, 1, 160, 224])
         &gt;&gt;&gt; img = np.random.randint(0, 65536, (1000, 1000), dtype=np.uint16)
         &gt;&gt;&gt; data = codec.encode(img)
         &gt;&gt;&gt; decoded = codec.decode(data)
-        &gt;&gt;&gt; (img == decoded).all()
+        &gt;&gt;&gt; bool((img == decoded).all())
         True
         &gt;&gt;&gt;
         &#34;&#34;&#34;
@@ -887,7 +887,7 @@ torch.Size([5, 1, 160, 224])
 &gt;&gt;&gt; img = np.random.randint(0, 65536, (1000, 1000), dtype=np.uint16)
 &gt;&gt;&gt; data = codec.encode(img)
 &gt;&gt;&gt; decoded = codec.decode(data)
-&gt;&gt;&gt; (img == decoded).all()
+&gt;&gt;&gt; bool((img == decoded).all())
 True
 &gt;&gt;&gt;
 </code></pre></div>
@@ -913,7 +913,7 @@ True
     &gt;&gt;&gt; img = np.random.randint(0, 65536, (1000, 1000), dtype=np.uint16)
     &gt;&gt;&gt; data = codec.encode(img)
     &gt;&gt;&gt; decoded = codec.decode(data)
-    &gt;&gt;&gt; (img == decoded).all()
+    &gt;&gt;&gt; bool((img == decoded).all())
     True
     &gt;&gt;&gt;
     &#34;&#34;&#34;

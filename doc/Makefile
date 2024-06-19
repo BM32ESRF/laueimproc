@@ -6,7 +6,7 @@ SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = laueimproc
 SOURCEDIR     = .
 BUILDDIR      = build
-TEMPLATEDIR   = template
+TEMPLATEDIR   = config
 
 clean:
 	@echo "****************************************"
@@ -15,6 +15,11 @@ clean:
 	@rm -rf "$(BUILDDIR)"
 
 html:
+	@echo "****************************************"
+	@echo "******** Invoke Manim and FFmpeg *******"
+	@echo "****************************************"
+	@bash ./build_media.sh
+
 	@echo "****************************************"
 	@echo "************** Invoke Pdoc *************"
 	@echo "****************************************"
