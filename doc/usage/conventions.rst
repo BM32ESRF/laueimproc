@@ -41,3 +41,36 @@ Most of the proposed methods support the `conv` argument:
     pos_xy = diagram.compute_rois_centroid(conv="xy")
 
 In a more general case, you can use the function `ij_to_xy <../../laueimproc/convention.html#laueimproc.convention.ij_to_xy>`_.
+
+
+Crystalography
+--------------
+
+All functions are available in the `laueimproc.diffraction <../../laueimproc/diffraction.html>`_ module.
+
+Lattice parameters
+^^^^^^^^^^^^^^^^^^
+
+As shown in the figure below, the parameters a, b, c, alpha, gamma and beta are such that:
+
+* $<e_1, e_2> = cos(\alpha)$
+* $<e_1, e_3> = cos(\beta)$
+* $<e_1, e_2> = cos(\gamma)$
+
+.. image:: /build/media/IMGLattice.avif
+    :alt: lattice parameters
+    :width: 512
+
+Projection in cristal base
+--------------------------
+
+Here is the convention adopted for projecting the primitive vectors $e_1$, $e_2$ and $e_3$
+into the orthonormal base of the christal $C_1$, $C_2$ and $C_3$.
+The matrix of the primitive vectors is called $\mathbf{A}$ and the base $\mathcal{B^c}$.
+
+.. video:: /build/media/ANIMLatticeBc.webm
+    :alt: projection of lattice in cristal base
+    :width: 512
+
+* $e_1$ is collinear with $C_1$.
+* $e_2$ in in the plane $C_1, C_2$.

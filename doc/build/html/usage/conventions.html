@@ -9,7 +9,7 @@
 <meta property="og:description" content="Pixel Coordinates: The origin is set at the corner of a pixel as shown in the figure below for a simple 4×4 pixel matrix. image convention `&quot;ij&quot;` and `&quot;xy&quot;` Each pixel n starts at the coordinated n..." />
 <meta property="og:image:width" content="1146" />
 <meta property="og:image:height" content="600" />
-<meta property="og:image" content="/None" />
+<meta property="og:image" content="/_images/social_previews/summary_usage_conventions_f97e8c37.png" />
 <meta property="og:image:alt" content="Pixel Coordinates: The origin is set at the corner of a pixel as shown in the figure below for a simple 4×4 pixel matrix. image convention `&quot;ij&quot;` and `&quot;xy&quot;`..." />
 <meta name="description" content="Pixel Coordinates: The origin is set at the corner of a pixel as shown in the figure below for a simple 4×4 pixel matrix. image convention `&quot;ij&quot;` and `&quot;xy&quot;` Each pixel n starts at the coordinated n..." />
 <meta name="twitter:card" content="summary_large_image" />
@@ -71,6 +71,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#convertion-ij-xy">Convertion <cite>“ij”</cite> &lt;=&gt; <cite>“xy”</cite></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#crystalography">Crystalography</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#lattice-parameters">Lattice parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#projection-in-cristal-base">Projection in cristal base</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="developer.html">Developer’s Guide</a></li>
@@ -132,6 +137,29 @@
 </div>
 <p>In a more general case, you can use the function <a class="reference external" href="../../laueimproc/convention.html#laueimproc.convention.ij_to_xy">ij_to_xy</a>.</p>
 </section>
+</section>
+<section id="crystalography">
+<h2>Crystalography<a class="headerlink" href="#crystalography" title="Link to this heading"></a></h2>
+<section id="lattice-parameters">
+<h3>Lattice parameters<a class="headerlink" href="#lattice-parameters" title="Link to this heading"></a></h3>
+<p>As shown in the figure below, the parameters a, b, c, alpha, gamma and beta are such that:</p>
+<ul class="simple">
+<li><p>$&lt;e_1, e_2&gt; = cos(alpha)$</p></li>
+<li><p>$&lt;e_1, e_3&gt; = cos(beta)$</p></li>
+<li><p>$&lt;e_1, e_2&gt; = cos(gamma)$</p></li>
+</ul>
+<a class="reference internal image-reference" href="../_images/IMGLattice.avif"><img alt="lattice parameters" src="../_images/IMGLattice.avif" style="width: 512px;" /></a>
+</section>
+</section>
+<section id="projection-in-cristal-base">
+<h2>Projection in cristal base<a class="headerlink" href="#projection-in-cristal-base" title="Link to this heading"></a></h2>
+<p>Here is the convention adopted for projecting the primitive vectors $e_1$, $e_2$ and $e_3$
+into the orthonormal base of the christal $C_1$, $C_2$ and $C_3$.
+The matrix of the primitive vectors is called $mathbf{A}$ and the base $mathcal{B^c}$.</p>
+<video controls="True" preload="auto" width="512"><source src="../_images/ANIMLatticeBc.webm" type="video/webm">projection of lattice in cristal base</video><ul class="simple">
+<li><p>$e_1$ is collinear with $C_1$.</p></li>
+<li><p>$e_2$ in in the plane $C_1, C_2$.</p></li>
+</ul>
 </section>
 </section>
 

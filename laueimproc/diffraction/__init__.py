@@ -20,8 +20,15 @@ Lattice parameters
 https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png
 
 * \([a, b, c, \alpha, \beta, \gamma]\): The latice parameters.
-* \(\mathbf{A_0}\): The vectors \([\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]\)
+* \(\mathbf{A}\): The column vectors \([\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]\)
     in the base \(\mathcal{B^c}\).
-* \(\mathbf{B_0}\): The vectors \([\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]\)
+* \(\mathbf{B}\): The column vectors \([\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]\)
     in the base \(\mathcal{B^c}\).
 """
+
+from .lattice import lattice_to_primitive, primitive_to_lattice
+
+
+__all__ = [
+    lattice_to_primitive, primitive_to_lattice
+]

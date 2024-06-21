@@ -38,9 +38,9 @@
 <p><a href="https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png">https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png</a></p>
 <ul>
 <li><span><span class="MathJax_Preview">[a, b, c, \alpha, \beta, \gamma]</span><script type="math/tex">[a, b, c, \alpha, \beta, \gamma]</script></span>: The latice parameters.</li>
-<li><span><span class="MathJax_Preview">\mathbf{A_0}</span><script type="math/tex">\mathbf{A_0}</script></span>: The vectors <span><span class="MathJax_Preview">[\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]</span><script type="math/tex">[\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]</script></span>
+<li><span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span>: The column vectors <span><span class="MathJax_Preview">[\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]</span><script type="math/tex">[\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]</script></span>
 in the base <span><span class="MathJax_Preview">\mathcal{B^c}</span><script type="math/tex">\mathcal{B^c}</script></span>.</li>
-<li><span><span class="MathJax_Preview">\mathbf{B_0}</span><script type="math/tex">\mathbf{B_0}</script></span>: The vectors <span><span class="MathJax_Preview">[\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]</span><script type="math/tex">[\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]</script></span>
+<li><span><span class="MathJax_Preview">\mathbf{B}</span><script type="math/tex">\mathbf{B}</script></span>: The column vectors <span><span class="MathJax_Preview">[\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]</span><script type="math/tex">[\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]</script></span>
 in the base <span><span class="MathJax_Preview">\mathcal{B^c}</span><script type="math/tex">\mathcal{B^c}</script></span>.</li>
 </ul>
 <details class="source">
@@ -69,9 +69,9 @@ Lattice parameters
 https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png
 
 * \([a, b, c, \alpha, \beta, \gamma]\): The latice parameters.
-* \(\mathbf{A_0}\): The vectors \([\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]\)
+* \(\mathbf{A}\): The column vectors \([\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]\)
     in the base \(\mathcal{B^c}\).
-* \(\mathbf{B_0}\): The vectors \([\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]\)
+* \(\mathbf{B}\): The column vectors \([\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]\)
     in the base \(\mathcal{B^c}\).
 &#34;&#34;&#34;</code></pre>
 </details>
@@ -79,6 +79,10 @@ https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
+<dt><code class="name"><a title="laueimproc.diffraction.lattice" href="lattice.html">laueimproc.diffraction.lattice</a></code></dt>
+<dd>
+<div class="desc"><p>Link the lattice parameters and the primitive vectors <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span>.</p></div>
+</dd>
 <dt><code class="name"><a title="laueimproc.diffraction.reciprocal" href="reciprocal.html">laueimproc.diffraction.reciprocal</a></code></dt>
 <dd>
 <div class="desc"><p>Functions to compute reciprocical lattice.</p></div>
@@ -154,6 +158,7 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
+<li><code><a title="laueimproc.diffraction.lattice" href="lattice.html">laueimproc.diffraction.lattice</a></code></li>
 <li><code><a title="laueimproc.diffraction.reciprocal" href="reciprocal.html">laueimproc.diffraction.reciprocal</a></code></li>
 </ul>
 </li>

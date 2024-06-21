@@ -32,11 +32,29 @@
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="basic.compute_rois_nb_peaks"><code class="name flex">
-<span>def <span class="ident">compute_rois_nb_peaks</span></span>(<span>...)</span>
+<dt id="basic.compute_rois_centroid"><code class="name flex">
+<span>def <span class="ident">compute_rois_centroid</span></span>(<span>...)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compute the number of extremums of each roi.</p></div>
+<div class="desc"><p>Compute the weighted barycenter of each roi.</p></div>
+</dd>
+<dt id="basic.compute_rois_inertia"><code class="name flex">
+<span>def <span class="ident">compute_rois_inertia</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the order 2 momentum centered along the barycenter.</p></div>
+</dd>
+<dt id="basic.compute_rois_max"><code class="name flex">
+<span>def <span class="ident">compute_rois_max</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the argmax of the intensity and the intensity max of each roi.</p></div>
+</dd>
+<dt id="basic.compute_rois_sum"><code class="name flex">
+<span>def <span class="ident">compute_rois_sum</span></span>(<span>...)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the sum of the intensities of each roi.</p></div>
 </dd>
 </dl>
 </section>
@@ -102,7 +120,10 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="basic.compute_rois_nb_peaks" href="#basic.compute_rois_nb_peaks">compute_rois_nb_peaks</a></code></li>
+<li><code><a title="basic.compute_rois_centroid" href="#basic.compute_rois_centroid">compute_rois_centroid</a></code></li>
+<li><code><a title="basic.compute_rois_inertia" href="#basic.compute_rois_inertia">compute_rois_inertia</a></code></li>
+<li><code><a title="basic.compute_rois_max" href="#basic.compute_rois_max">compute_rois_max</a></code></li>
+<li><code><a title="basic.compute_rois_sum" href="#basic.compute_rois_sum">compute_rois_sum</a></code></li>
 </ul>
 </li>
 </ul>

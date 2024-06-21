@@ -1,4 +1,4 @@
-# clear && manim -p -a images/conv_ij_xy.py
+# clear && manim -p -a --media_dir /tmp conv_ij_xy.py
 from manim import *
 
 config.frame_width = 5

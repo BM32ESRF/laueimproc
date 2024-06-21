@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>laueimproc.testing.tests.reciprocal API documentation</title>
-<meta name="description" content="Test the convertion between primitive and reciprocal space." />
+<title>laueimproc.testing.tests.lattice API documentation</title>
+<meta name="description" content="Test the convertion between lattice and primitive space." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -20,21 +20,21 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>laueimproc.testing.tests.reciprocal</code></h1>
+<h1 class="title">Module <code>laueimproc.testing.tests.lattice</code></h1>
 </header>
 <section id="section-intro">
-<p>Test the convertion between primitive and reciprocal space.</p>
+<p>Test the convertion between lattice and primitive space.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!/usr/bin/env python3
 
-&#34;&#34;&#34;Test the convertion between primitive and reciprocal space.&#34;&#34;&#34;
+&#34;&#34;&#34;Test the convertion between lattice and primitive space.&#34;&#34;&#34;
 
 import torch
 
-from laueimproc.diffraction.reciprocal import lattice_to_primitive, primitive_to_lattice
+from laueimproc.diffraction.lattice import lattice_to_primitive, primitive_to_lattice
 
 LATTICE = torch.tensor([1.0, 1.0, 1.0, torch.pi/2, torch.pi/2, torch.pi/2])  # cubic
 BATCH_LATTICE = (7, 8, 9)
@@ -46,6 +46,7 @@ BATCHED_PRIMITIVE = PRIMITIVE[None, None, None, :, :].expand(*BATCH_PRIMITIVE, -
 
 def test_batch_lattice_to_primitive():
     &#34;&#34;&#34;Tests batch dimension.&#34;&#34;&#34;
+    assert lattice_to_primitive(torch.empty(0, 6)).shape == (0, 3, 3)
     assert lattice_to_primitive(LATTICE).shape == (3, 3)
     assert lattice_to_primitive(BATCHED_LATTICE).shape == (*BATCH_LATTICE, 3, 3)
 
@@ -57,8 +58,32 @@ def test_jac_lattice_to_primitive():
 
 def test_batch_primitive_to_lattice():
     &#34;&#34;&#34;Tests batch dimension.&#34;&#34;&#34;
+    assert primitive_to_lattice(torch.empty(0, 3, 3)).shape == (0, 6)
     assert primitive_to_lattice(PRIMITIVE).shape == (6,)
-    assert primitive_to_lattice(BATCHED_PRIMITIVE).shape == (*BATCH_PRIMITIVE, 6)</code></pre>
+    assert primitive_to_lattice(BATCHED_PRIMITIVE).shape == (*BATCH_PRIMITIVE, 6)
+
+
+def test_jac_primitive_to_lattice():
+    &#34;&#34;&#34;Tests compute jacobian.&#34;&#34;&#34;
+    assert torch.func.jacrev(primitive_to_lattice)(PRIMITIVE).shape == (6, 3, 3)
+
+
+def test_bij_lattice_to_primitive_to_lattice():
+    &#34;&#34;&#34;Test is the transformation is reverible.&#34;&#34;&#34;
+    lattice = torch.empty(1000, 6)
+    lattice[..., :3] = (1.0 - 0.2) * torch.rand(len(lattice), 3) + 0.1
+    lattice[..., 4:] = (1.0 - 0.2) * torch.pi * torch.rand(len(lattice), 2) + 0.1
+    alpha_max = torch.acos(torch.cos(lattice[..., 4]) * torch.cos(lattice[..., 5]))
+    alpha_min = torch.acos(
+        torch.cos(lattice[..., 4]) * torch.cos(lattice[..., 5])
+        + torch.sin(lattice[..., 4]) * torch.sin(lattice[..., 5])
+    )
+    lattice[..., 3] = (
+        (1.0 - 0.2) * (alpha_max - alpha_min) * torch.rand(len(lattice))
+        + 0.1 + alpha_min
+    )
+    lattice_bis = primitive_to_lattice(lattice_to_primitive(lattice))
+    assert torch.allclose(lattice, lattice_bis)</code></pre>
 </details>
 </section>
 <section>
@@ -68,7 +93,7 @@ def test_batch_primitive_to_lattice():
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="laueimproc.testing.tests.reciprocal.test_batch_lattice_to_primitive"><code class="name flex">
+<dt id="laueimproc.testing.tests.lattice.test_batch_lattice_to_primitive"><code class="name flex">
 <span>def <span class="ident">test_batch_lattice_to_primitive</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -79,11 +104,12 @@ def test_batch_primitive_to_lattice():
 </summary>
 <pre><code class="python">def test_batch_lattice_to_primitive():
     &#34;&#34;&#34;Tests batch dimension.&#34;&#34;&#34;
+    assert lattice_to_primitive(torch.empty(0, 6)).shape == (0, 3, 3)
     assert lattice_to_primitive(LATTICE).shape == (3, 3)
     assert lattice_to_primitive(BATCHED_LATTICE).shape == (*BATCH_LATTICE, 3, 3)</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.testing.tests.reciprocal.test_batch_primitive_to_lattice"><code class="name flex">
+<dt id="laueimproc.testing.tests.lattice.test_batch_primitive_to_lattice"><code class="name flex">
 <span>def <span class="ident">test_batch_primitive_to_lattice</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -94,11 +120,39 @@ def test_batch_primitive_to_lattice():
 </summary>
 <pre><code class="python">def test_batch_primitive_to_lattice():
     &#34;&#34;&#34;Tests batch dimension.&#34;&#34;&#34;
+    assert primitive_to_lattice(torch.empty(0, 3, 3)).shape == (0, 6)
     assert primitive_to_lattice(PRIMITIVE).shape == (6,)
     assert primitive_to_lattice(BATCHED_PRIMITIVE).shape == (*BATCH_PRIMITIVE, 6)</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.testing.tests.reciprocal.test_jac_lattice_to_primitive"><code class="name flex">
+<dt id="laueimproc.testing.tests.lattice.test_bij_lattice_to_primitive_to_lattice"><code class="name flex">
+<span>def <span class="ident">test_bij_lattice_to_primitive_to_lattice</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test is the transformation is reverible.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_bij_lattice_to_primitive_to_lattice():
+    &#34;&#34;&#34;Test is the transformation is reverible.&#34;&#34;&#34;
+    lattice = torch.empty(1000, 6)
+    lattice[..., :3] = (1.0 - 0.2) * torch.rand(len(lattice), 3) + 0.1
+    lattice[..., 4:] = (1.0 - 0.2) * torch.pi * torch.rand(len(lattice), 2) + 0.1
+    alpha_max = torch.acos(torch.cos(lattice[..., 4]) * torch.cos(lattice[..., 5]))
+    alpha_min = torch.acos(
+        torch.cos(lattice[..., 4]) * torch.cos(lattice[..., 5])
+        + torch.sin(lattice[..., 4]) * torch.sin(lattice[..., 5])
+    )
+    lattice[..., 3] = (
+        (1.0 - 0.2) * (alpha_max - alpha_min) * torch.rand(len(lattice))
+        + 0.1 + alpha_min
+    )
+    lattice_bis = primitive_to_lattice(lattice_to_primitive(lattice))
+    assert torch.allclose(lattice, lattice_bis)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.testing.tests.lattice.test_jac_lattice_to_primitive"><code class="name flex">
 <span>def <span class="ident">test_jac_lattice_to_primitive</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -110,6 +164,20 @@ def test_batch_primitive_to_lattice():
 <pre><code class="python">def test_jac_lattice_to_primitive():
     &#34;&#34;&#34;Tests compute jacobian.&#34;&#34;&#34;
     assert torch.func.jacrev(lattice_to_primitive)(LATTICE).shape == (3, 3, 6)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.testing.tests.lattice.test_jac_primitive_to_lattice"><code class="name flex">
+<span>def <span class="ident">test_jac_primitive_to_lattice</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tests compute jacobian.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_jac_primitive_to_lattice():
+    &#34;&#34;&#34;Tests compute jacobian.&#34;&#34;&#34;
+    assert torch.func.jacrev(primitive_to_lattice)(PRIMITIVE).shape == (6, 3, 3)</code></pre>
 </details>
 </dd>
 </dl>
@@ -176,9 +244,11 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.testing.tests.reciprocal.test_batch_lattice_to_primitive" href="#laueimproc.testing.tests.reciprocal.test_batch_lattice_to_primitive">test_batch_lattice_to_primitive</a></code></li>
-<li><code><a title="laueimproc.testing.tests.reciprocal.test_batch_primitive_to_lattice" href="#laueimproc.testing.tests.reciprocal.test_batch_primitive_to_lattice">test_batch_primitive_to_lattice</a></code></li>
-<li><code><a title="laueimproc.testing.tests.reciprocal.test_jac_lattice_to_primitive" href="#laueimproc.testing.tests.reciprocal.test_jac_lattice_to_primitive">test_jac_lattice_to_primitive</a></code></li>
+<li><code><a title="laueimproc.testing.tests.lattice.test_batch_lattice_to_primitive" href="#laueimproc.testing.tests.lattice.test_batch_lattice_to_primitive">test_batch_lattice_to_primitive</a></code></li>
+<li><code><a title="laueimproc.testing.tests.lattice.test_batch_primitive_to_lattice" href="#laueimproc.testing.tests.lattice.test_batch_primitive_to_lattice">test_batch_primitive_to_lattice</a></code></li>
+<li><code><a title="laueimproc.testing.tests.lattice.test_bij_lattice_to_primitive_to_lattice" href="#laueimproc.testing.tests.lattice.test_bij_lattice_to_primitive_to_lattice">test_bij_lattice_to_primitive_to_lattice</a></code></li>
+<li><code><a title="laueimproc.testing.tests.lattice.test_jac_lattice_to_primitive" href="#laueimproc.testing.tests.lattice.test_jac_lattice_to_primitive">test_jac_lattice_to_primitive</a></code></li>
+<li><code><a title="laueimproc.testing.tests.lattice.test_jac_primitive_to_lattice" href="#laueimproc.testing.tests.lattice.test_jac_primitive_to_lattice">test_jac_primitive_to_lattice</a></code></li>
 </ul>
 </li>
 </ul>

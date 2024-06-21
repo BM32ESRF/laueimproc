@@ -49,7 +49,7 @@ URLS=[
 "laueimproc/testing/tests/set_spots.html",
 "laueimproc/testing/tests/rois.html",
 "laueimproc/testing/tests/inter_batch.html",
-"laueimproc/testing/tests/reciprocal.html",
+"laueimproc/testing/tests/lattice.html",
 "laueimproc/testing/run.html",
 "laueimproc/nn/index.html",
 "laueimproc/nn/dataaug/index.html",
@@ -68,6 +68,7 @@ URLS=[
 "laueimproc/immix/inter.html",
 "laueimproc/diffraction/index.html",
 "laueimproc/diffraction/reciprocal.html",
+"laueimproc/diffraction/lattice.html",
 "laueimproc/convention.html"
 ];
 INDEX=[
@@ -616,6 +617,17 @@ INDEX=[
 "doc":"Simple independant functions on each roi."
 },
 {
+"ref":"basic.compute_rois_nb_peaks",
+"url":18,
+"doc":"Compute the number of extremums of each roi.",
+"func":1
+},
+{
+"ref":"basic",
+"url":18,
+"doc":"Simple independant functions on each roi."
+},
+{
 "ref":"basic.compute_rois_centroid",
 "url":18,
 "doc":"Compute the weighted barycenter of each roi.",
@@ -637,17 +649,6 @@ INDEX=[
 "ref":"basic.compute_rois_sum",
 "url":18,
 "doc":"Compute the sum of the intensities of each roi.",
-"func":1
-},
-{
-"ref":"basic",
-"url":18,
-"doc":"Simple independant functions on each roi."
-},
-{
-"ref":"basic.compute_rois_nb_peaks",
-"url":18,
-"doc":"Compute the number of extremums of each roi.",
 "func":1
 },
 {
@@ -2036,26 +2037,38 @@ INDEX=[
 "func":1
 },
 {
-"ref":"laueimproc.testing.tests.reciprocal",
+"ref":"laueimproc.testing.tests.lattice",
 "url":50,
-"doc":"Test the convertion between primitive and reciprocal space."
+"doc":"Test the convertion between lattice and primitive space."
 },
 {
-"ref":"laueimproc.testing.tests.reciprocal.test_batch_lattice_to_primitive",
+"ref":"laueimproc.testing.tests.lattice.test_batch_lattice_to_primitive",
 "url":50,
 "doc":"Tests batch dimension.",
 "func":1
 },
 {
-"ref":"laueimproc.testing.tests.reciprocal.test_jac_lattice_to_primitive",
+"ref":"laueimproc.testing.tests.lattice.test_jac_lattice_to_primitive",
 "url":50,
 "doc":"Tests compute jacobian.",
 "func":1
 },
 {
-"ref":"laueimproc.testing.tests.reciprocal.test_batch_primitive_to_lattice",
+"ref":"laueimproc.testing.tests.lattice.test_batch_primitive_to_lattice",
 "url":50,
 "doc":"Tests batch dimension.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.lattice.test_jac_primitive_to_lattice",
+"url":50,
+"doc":"Tests compute jacobian.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.lattice.test_bij_lattice_to_primitive_to_lattice",
+"url":50,
+"doc":"Test is the transformation is reverible.",
 "func":1
 },
 {
@@ -2390,24 +2403,12 @@ INDEX=[
 {
 "ref":"laueimproc.diffraction",
 "url":67,
-"doc":"Implement the Bragg diffraction rules. https: www.silx.org/doc/pyFAI/latest/geometry.html detector-position Bases   -  \\(\\mathcal{B^c}\\): The orthonormal base of the cristal \\([\\mathbf{C_1}, \\mathbf{C_2}, \\mathbf{C_3}]\\).  \\(\\mathcal{B^s}\\): The orthonormal base of the sample \\([\\mathbf{S_1}, \\mathbf{S_2}, \\mathbf{S_3}]\\).  \\(\\mathcal{B^l}\\): The orthonormal base of the lab \\([\\mathbf{X_1}, \\mathbf{X_2}, \\mathbf{X_3}]\\) in pyfai. Lattice parameters          https: en.wikipedia.org/wiki/Lattice_constant /media/File:UnitCell.png  \\([a, b, c, \\alpha, \\beta, \\gamma]\\): The latice parameters.  \\(\\mathbf{A_0}\\): The vectors \\([\\mathbf{e_1}, \\mathbf{e_2}, \\mathbf{e_3}]\\) in the base \\(\\mathcal{B^c}\\).  \\(\\mathbf{B_0}\\): The vectors \\([\\mathbf{e_1^ }, \\mathbf{e_2^ }, \\mathbf{e_3^ }]\\) in the base \\(\\mathcal{B^c}\\)."
+"doc":"Implement the Bragg diffraction rules. https: www.silx.org/doc/pyFAI/latest/geometry.html detector-position Bases   -  \\(\\mathcal{B^c}\\): The orthonormal base of the cristal \\([\\mathbf{C_1}, \\mathbf{C_2}, \\mathbf{C_3}]\\).  \\(\\mathcal{B^s}\\): The orthonormal base of the sample \\([\\mathbf{S_1}, \\mathbf{S_2}, \\mathbf{S_3}]\\).  \\(\\mathcal{B^l}\\): The orthonormal base of the lab \\([\\mathbf{X_1}, \\mathbf{X_2}, \\mathbf{X_3}]\\) in pyfai. Lattice parameters          https: en.wikipedia.org/wiki/Lattice_constant /media/File:UnitCell.png  \\([a, b, c, \\alpha, \\beta, \\gamma]\\): The latice parameters.  \\(\\mathbf{A}\\): The column vectors \\([\\mathbf{e_1}, \\mathbf{e_2}, \\mathbf{e_3}]\\) in the base \\(\\mathcal{B^c}\\).  \\(\\mathbf{B}\\): The column vectors \\([\\mathbf{e_1^ }, \\mathbf{e_2^ }, \\mathbf{e_3^ }]\\) in the base \\(\\mathcal{B^c}\\)."
 },
 {
 "ref":"laueimproc.diffraction.reciprocal",
 "url":68,
 "doc":"Functions to compute reciprocical lattice."
-},
-{
-"ref":"laueimproc.diffraction.reciprocal.lattice_to_primitive",
-"url":68,
-"doc":"Convert the lattice parameters into primitive vectors. Parameters      lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\). Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) of shape ( ., 3, 3) in the base \\(\\mathcal{B^c}\\).",
-"func":1
-},
-{
-"ref":"laueimproc.diffraction.reciprocal.primitive_to_lattice",
-"url":68,
-"doc":"Convert the primitive vectors to the lattice parameters. Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\). Notes   - We have  primitive_to_lattice(lattice_to_primitive(lattice  lattice , but it is not the case for the composition inverse because the numerical value of \\(\\mathbf{A}\\) is base dependent.",
-"func":1
 },
 {
 "ref":"laueimproc.diffraction.reciprocal.primitive_to_reciprocal",
@@ -2416,19 +2417,36 @@ INDEX=[
 "func":1
 },
 {
-"ref":"laueimproc.convention",
+"ref":"laueimproc.diffraction.lattice",
 "url":69,
+"doc":"Link the lattice parameters and the primitive vectors \\(\\mathbf{A}\\)."
+},
+{
+"ref":"laueimproc.diffraction.lattice.lattice_to_primitive",
+"url":69,
+"doc":"Convert the lattice parameters into primitive vectors.  image  / / /build/media/IMGLatticeBc.avif :width: 256 Parameters      lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\). Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) of shape ( ., 3, 3) in the base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.diffraction.lattice import lattice_to_primitive >>> lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2 torch.pi/3]) >>> lattice_to_primitive(lattice)  quartz lattice tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17], [ 0.0000e+00, 3.2909e-10, 8.6603e-10], [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>>",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.lattice.primitive_to_lattice",
+"url":69,
+"doc":"Convert the primitive vectors to the lattice parameters.  image  / / /build/media/IMGLattice.avif :width: 256 Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\). Notes   - We have  primitive_to_lattice(lattice_to_primitive(lattice  lattice , but it is not the case for the composition inverse because the numerical value of \\(\\mathbf{A}\\) is base dependent. Examples     >>> import torch >>> from laueimproc.diffraction.lattice import primitive_to_lattice >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_lattice(primitive)  quartz lattice tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00]) >>>",
+"func":1
+},
+{
+"ref":"laueimproc.convention",
+"url":70,
 "doc":"Provide tools for switching convention. The two conventions supported are:   ij : Extension by continuity (N -> R) of the numpy convention (height, width). The first axis iterates on lines from top to bottom, the second on columns from left to right. In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel. It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).   xy : A transposition and a translation of the origin of the  ij convention. The first axis iterates on columns from left to right, the second on lines from top to bottom. In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.  image  / /build/media/IMGConvIJXY.avif :width: 256"
 },
 {
 "ref":"laueimproc.convention.ij_to_xy",
-"url":69,
+"url":70,
 "doc":"Switch the axis i and j, and append 1/2 to all values. Parameters      array : torch.Tensor or np.ndarray The data in ij convention. i, j : tuple, int, slice or Ellipsis The indexing of the i subdata and j subdata. Returns    - array : torch.Tensor or np.ndarray A reference to the ij_array, with the axis converted in xy convention. Notes   - Input and output data are shared in place. Examples     >>> import torch >>> from laueimproc.convention import ij_to_xy >>> array = torch.zeros 10, 2 >>> array[:, 0] = torch.linspace(0, 1, 10)  i axis >>> array[:, 1] = torch.linspace(2, 1, 10)  j axis >>> array tensor( 0.0000, 2.0000], [0.1111, 1.8889], [0.2222, 1.7778], [0.3333, 1.6667], [0.4444, 1.5556], [0.5556, 1.4444], [0.6667, 1.3333], [0.7778, 1.2222], [0.8889, 1.1111], [1.0000, 1.0000 ) >>> ij_to_xy(array, i=( ., 0), j=( ., 1 tensor( 2.5000, 0.5000], [2.3889, 0.6111], [2.2778, 0.7222], [2.1667, 0.8333], [2.0556, 0.9444], [1.9444, 1.0556], [1.8333, 1.1667], [1.7222, 1.2778], [1.6111, 1.3889], [1.5000, 1.5000 ) >>> _ is array  inplace True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.convention.ij_to_xy_decorator",
-"url":69,
+"url":70,
 "doc":"Append the argument conv to a function to allow user switching convention.",
 "func":1
 }

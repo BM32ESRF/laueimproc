@@ -35,71 +35,6 @@
 import torch
 
 
-def lattice_to_primitive(lattice: torch.Tensor) -&gt; torch.Tensor:
-    r&#34;&#34;&#34;Convert the lattice parameters into primitive vectors.
-
-    Parameters
-    ----------
-    lattice : torch.Tensor
-        The array of lattice parameters of shape (..., 6).
-        Values are \([a, b, c, \alpha, \beta, \gamma]]\).
-
-    Returns
-    -------
-    primitive : torch.Tensor
-        Matrix \(\mathbf{A}\) of shape (..., 3, 3) in the base \(\mathcal{B^c}\).
-    &#34;&#34;&#34;
-    assert isinstance(lattice, torch.Tensor), lattice.__class__.__name__
-    assert lattice.shape[-1:] == (6,), lattice.shape
-
-    lat_a, lat_b, lat_c, alpha, beta, gamma = lattice.movedim(-1, 0)
-
-    zero = torch.zeros_like(lat_a)
-    e_1 = torch.cat([
-        (lat_a * torch.sin(gamma)).unsqueeze(-1),
-        (lat_a * torch.cos(gamma)).unsqueeze(-1),
-        zero.unsqueeze(-1),
-    ], dim=-1)
-    e_2 = torch.cat([
-        zero.unsqueeze(-1),
-        (lat_b).unsqueeze(-1),
-        zero.unsqueeze(-1),
-    ], dim=-1)
-    e_3 = torch.cat([
-        (lat_c * torch.cos(beta)).unsqueeze(-1),
-        (lat_c * torch.cos(alpha)).unsqueeze(-1),
-        (lat_c * torch.sqrt(torch.sin(alpha)**2 + torch.sin(beta)**2 - 1)).unsqueeze(-1),
-    ], dim=-1)
-    primitive = torch.cat([e_1.unsqueeze(-1), e_2.unsqueeze(-1), e_3.unsqueeze(-1)], dim=-1)
-    return primitive
-
-
-def primitive_to_lattice(primitive: torch.Tensor) -&gt; torch.Tensor:
-    r&#34;&#34;&#34;Convert the primitive vectors to the lattice parameters.
-
-    Parameters
-    ----------
-    primitive : torch.Tensor
-        Matrix \(\mathbf{A}\) in any orthonormal base.
-
-    Returns
-    -------
-    lattice : torch.Tensor
-        The array of lattice parameters of shape (..., 6).
-        Values are \([a, b, c, \alpha, \beta, \gamma]]\).
-
-    Notes
-    -----
-    We have `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
-    but it is not the case for the composition inverse because the numerical
-    value of \(\mathbf{A}\) is base dependent.
-    &#34;&#34;&#34;
-    assert isinstance(primitive, torch.Tensor), primitive.__class__.__name__
-    assert primitive.shape[-2:] == (3, 3), primitive.shape
-
-    raise NotImplementedError
-
-
 def primitive_to_reciprocal(primitive: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Convert the primitive vectors into the reciprocal base vectors.
 
@@ -135,115 +70,6 @@ def primitive_to_reciprocal(primitive: torch.Tensor) -&gt; torch.Tensor:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="laueimproc.diffraction.reciprocal.lattice_to_primitive"><code class="name flex">
-<span>def <span class="ident">lattice_to_primitive</span></span>(<span>lattice: torch.Tensor) ‑> torch.Tensor</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Convert the lattice parameters into primitive vectors.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>lattice</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The array of lattice parameters of shape (&hellip;, 6).
-Values are <span><span class="MathJax_Preview">[a, b, c, \alpha, \beta, \gamma]]</span><script type="math/tex">[a, b, c, \alpha, \beta, \gamma]]</script></span>.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>primitive</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>Matrix <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> of shape (&hellip;, 3, 3) in the base <span><span class="MathJax_Preview">\mathcal{B^c}</span><script type="math/tex">\mathcal{B^c}</script></span>.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def lattice_to_primitive(lattice: torch.Tensor) -&gt; torch.Tensor:
-    r&#34;&#34;&#34;Convert the lattice parameters into primitive vectors.
-
-    Parameters
-    ----------
-    lattice : torch.Tensor
-        The array of lattice parameters of shape (..., 6).
-        Values are \([a, b, c, \alpha, \beta, \gamma]]\).
-
-    Returns
-    -------
-    primitive : torch.Tensor
-        Matrix \(\mathbf{A}\) of shape (..., 3, 3) in the base \(\mathcal{B^c}\).
-    &#34;&#34;&#34;
-    assert isinstance(lattice, torch.Tensor), lattice.__class__.__name__
-    assert lattice.shape[-1:] == (6,), lattice.shape
-
-    lat_a, lat_b, lat_c, alpha, beta, gamma = lattice.movedim(-1, 0)
-
-    zero = torch.zeros_like(lat_a)
-    e_1 = torch.cat([
-        (lat_a * torch.sin(gamma)).unsqueeze(-1),
-        (lat_a * torch.cos(gamma)).unsqueeze(-1),
-        zero.unsqueeze(-1),
-    ], dim=-1)
-    e_2 = torch.cat([
-        zero.unsqueeze(-1),
-        (lat_b).unsqueeze(-1),
-        zero.unsqueeze(-1),
-    ], dim=-1)
-    e_3 = torch.cat([
-        (lat_c * torch.cos(beta)).unsqueeze(-1),
-        (lat_c * torch.cos(alpha)).unsqueeze(-1),
-        (lat_c * torch.sqrt(torch.sin(alpha)**2 + torch.sin(beta)**2 - 1)).unsqueeze(-1),
-    ], dim=-1)
-    primitive = torch.cat([e_1.unsqueeze(-1), e_2.unsqueeze(-1), e_3.unsqueeze(-1)], dim=-1)
-    return primitive</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.diffraction.reciprocal.primitive_to_lattice"><code class="name flex">
-<span>def <span class="ident">primitive_to_lattice</span></span>(<span>primitive: torch.Tensor) ‑> torch.Tensor</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Convert the primitive vectors to the lattice parameters.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>primitive</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>Matrix <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> in any orthonormal base.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>lattice</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The array of lattice parameters of shape (&hellip;, 6).
-Values are <span><span class="MathJax_Preview">[a, b, c, \alpha, \beta, \gamma]]</span><script type="math/tex">[a, b, c, \alpha, \beta, \gamma]]</script></span>.</dd>
-</dl>
-<h2 id="notes">Notes</h2>
-<p>We have <code>primitive_to_lattice(lattice_to_primitive(lattice)) == lattice</code>,
-but it is not the case for the composition inverse because the numerical
-value of <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> is base dependent.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def primitive_to_lattice(primitive: torch.Tensor) -&gt; torch.Tensor:
-    r&#34;&#34;&#34;Convert the primitive vectors to the lattice parameters.
-
-    Parameters
-    ----------
-    primitive : torch.Tensor
-        Matrix \(\mathbf{A}\) in any orthonormal base.
-
-    Returns
-    -------
-    lattice : torch.Tensor
-        The array of lattice parameters of shape (..., 6).
-        Values are \([a, b, c, \alpha, \beta, \gamma]]\).
-
-    Notes
-    -----
-    We have `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
-    but it is not the case for the composition inverse because the numerical
-    value of \(\mathbf{A}\) is base dependent.
-    &#34;&#34;&#34;
-    assert isinstance(primitive, torch.Tensor), primitive.__class__.__name__
-    assert primitive.shape[-2:] == (3, 3), primitive.shape
-
-    raise NotImplementedError</code></pre>
-</details>
-</dd>
 <dt id="laueimproc.diffraction.reciprocal.primitive_to_reciprocal"><code class="name flex">
 <span>def <span class="ident">primitive_to_reciprocal</span></span>(<span>primitive: torch.Tensor) ‑> torch.Tensor</span>
 </code></dt>
@@ -356,8 +182,6 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.diffraction.reciprocal.lattice_to_primitive" href="#laueimproc.diffraction.reciprocal.lattice_to_primitive">lattice_to_primitive</a></code></li>
-<li><code><a title="laueimproc.diffraction.reciprocal.primitive_to_lattice" href="#laueimproc.diffraction.reciprocal.primitive_to_lattice">primitive_to_lattice</a></code></li>
 <li><code><a title="laueimproc.diffraction.reciprocal.primitive_to_reciprocal" href="#laueimproc.diffraction.reciprocal.primitive_to_reciprocal">primitive_to_reciprocal</a></code></li>
 </ul>
 </li>
