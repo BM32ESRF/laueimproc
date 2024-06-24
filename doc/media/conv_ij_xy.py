@@ -13,10 +13,10 @@ class IMGConvIJXY(Scene):
     def get_base_ij(self):
         ij_dot = Dot([-2, 2, 0], color=GREEN)
         ij_text = MathTex("(0, 0)", color=GREEN, font_size=18).move_to([-2.1, 2.25, 0])
-        i_arrow = Arrow(ij_dot, [-2, 1, 0], buff=1, color=GREEN)
-        i_text = MathTex("i", color=GREEN, font_size=18).next_to(i_arrow, UR)
-        j_arrow = Arrow(ij_dot, [-1, 2, 0], buff=1, color=GREEN)
-        j_text = MathTex("j", color=GREEN, font_size=18).next_to(j_arrow, DL)
+        i_arrow = Arrow(ij_dot, [-1, 2, 0], buff=1, color=GREEN)
+        i_text = MathTex("i", color=GREEN, font_size=18).next_to(i_arrow, DL)
+        j_arrow = Arrow(ij_dot, [-2, 1, 0], buff=1, color=GREEN)
+        j_text = MathTex("j", color=GREEN, font_size=18).next_to(j_arrow, UR)
         base_ij = Group(i_arrow, i_text, j_arrow, j_text, ij_dot, ij_text)
         return base_ij
 
@@ -36,7 +36,7 @@ class IMGConvIJXY(Scene):
 
         point = Dot([0.2, 0.2, 0], color=YELLOW)
         point_text = MathTex("p", color=YELLOW, font_size=18).move_to([0.45, 0.45, 0])
-        point_coord = MathTex("p", " = ", "(2.2, 1.8)_{ij}", " = ", "(2.7, 2.3)_{xy}", font_size=18).move_to([0, -2.25, 0])
+        point_coord = MathTex("p", " = ", "(1.8, 2.2)_{ij}", " = ", "(2.7, 2.3)_{xy}", font_size=18).move_to([0, -2.25, 0])
         point_coord[0].set_color(YELLOW)
         point_coord[2].set_color(GREEN)
         point_coord[4].set_color(RED)
@@ -88,6 +88,6 @@ class ANIMConvIJNumpyContinuity(IMGConvIJXY):
         self.play(Write(p_text1), ReplacementTransform(slice3, slice4))
         point2 = point1.copy().move_to([0.2, 0.2, 0])
         p_text2 = p_text1.copy().move_to([0.45, 0.45, 0])
-        slice5 = MathTex("p = (2.2, 1.8)_{ij}", color=GREEN, font_size=18).move_to([0, -2.25, 0])
+        slice5 = MathTex("p = (1.8, 2.2)_{ij}", color=GREEN, font_size=18).move_to([0, -2.25, 0])
         self.play(ReplacementTransform(slice4, slice5), ReplacementTransform(point1, point2), ReplacementTransform(p_text1, p_text2))
         self.wait()

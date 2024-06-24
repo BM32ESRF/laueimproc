@@ -56,7 +56,7 @@ def test_jac_primitive_to_reciprocal():
 
 def test_bij():  # inv(f) = f, test only one direction
     &#34;&#34;&#34;Test is the transformation is reversible.&#34;&#34;&#34;
-    primitive = torch.randn(1000, 3, 3)
+    primitive = torch.eye(3, dtype=torch.float64) + torch.randn(1000, 3, 3, dtype=torch.float64) / 3
     primitive_bis = reciprocal_to_primitive(primitive_to_reciprocal(primitive))
     assert torch.allclose(primitive, primitive_bis)</code></pre>
 </details>
@@ -95,7 +95,7 @@ def test_bij():  # inv(f) = f, test only one direction
 </summary>
 <pre><code class="python">def test_bij():  # inv(f) = f, test only one direction
     &#34;&#34;&#34;Test is the transformation is reversible.&#34;&#34;&#34;
-    primitive = torch.randn(1000, 3, 3)
+    primitive = torch.eye(3, dtype=torch.float64) + torch.randn(1000, 3, 3, dtype=torch.float64) / 3
     primitive_bis = reciprocal_to_primitive(primitive_to_reciprocal(primitive))
     assert torch.allclose(primitive, primitive_bis)</code></pre>
 </details>

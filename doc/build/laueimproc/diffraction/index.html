@@ -32,7 +32,7 @@
 <li><span><span class="MathJax_Preview">\mathcal{B^s}</span><script type="math/tex">\mathcal{B^s}</script></span>: The orthonormal base of the sample
 <span><span class="MathJax_Preview">[\mathbf{S_1}, \mathbf{S_2}, \mathbf{S_3}]</span><script type="math/tex">[\mathbf{S_1}, \mathbf{S_2}, \mathbf{S_3}]</script></span>.</li>
 <li><span><span class="MathJax_Preview">\mathcal{B^l}</span><script type="math/tex">\mathcal{B^l}</script></span>: The orthonormal base of the lab
-<span><span class="MathJax_Preview">[\mathbf{X_1}, \mathbf{X_2}, \mathbf{X_3}]</span><script type="math/tex">[\mathbf{X_1}, \mathbf{X_2}, \mathbf{X_3}]</script></span> in pyfai.</li>
+<span><span class="MathJax_Preview">[\mathbf{L_1}, \mathbf{L_2}, \mathbf{L_3}]</span><script type="math/tex">[\mathbf{L_1}, \mathbf{L_2}, \mathbf{L_3}]</script></span> in pyfai.</li>
 </ul>
 <h2 id="lattice-parameters">Lattice Parameters</h2>
 <p><a href="https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png">https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png</a></p>
@@ -61,7 +61,7 @@ Bases
 * \(\mathcal{B^s}\): The orthonormal base of the sample
     \([\mathbf{S_1}, \mathbf{S_2}, \mathbf{S_3}]\).
 * \(\mathcal{B^l}\): The orthonormal base of the lab
-    \([\mathbf{X_1}, \mathbf{X_2}, \mathbf{X_3}]\) in pyfai.
+    \([\mathbf{L_1}, \mathbf{L_2}, \mathbf{L_3}]\) in pyfai.
 
 Lattice parameters
 ------------------
@@ -75,11 +75,17 @@ https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png
     in an orthonormal base.
 &#34;&#34;&#34;
 
+from .bragg import (
+    reciprocal_hkl_to_energy, reciprocal_hkl_to_uq, reciprocal_hkl_to_uq_energy,
+    uf_to_uq, uq_to_uf,
+)
 from .lattice import lattice_to_primitive, primitive_to_lattice
 from .reciprocal import primitive_to_reciprocal, reciprocal_to_primitive
 
 
 __all__ = [
+    &#34;reciprocal_hkl_to_energy&#34;, &#34;reciprocal_hkl_to_uq&#34;, &#34;reciprocal_hkl_to_uq_energy&#34;,
+    &#34;uf_to_uq&#34;, &#34;uq_to_uf&#34;,
     &#34;lattice_to_primitive&#34;, &#34;primitive_to_lattice&#34;,
     &#34;primitive_to_reciprocal&#34;, &#34;reciprocal_to_primitive&#34;,
 ]</code></pre>
@@ -340,6 +346,157 @@ tensor([[ 1.6667e+09,  0.0000e+00,  0.0000e+00],
     return reciprocal</code></pre>
 </details>
 </dd>
+<dt id="laueimproc.diffraction.reciprocal_hkl_to_energy"><code class="name flex">
+<span>def <span class="ident">reciprocal_hkl_to_energy</span></span>(<span>reciprocal: torch.Tensor, hkl: torch.Tensor) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Alias to <code><a title="laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy" href="bragg.html#laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy">reciprocal_hkl_to_uq_energy()</a></code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reciprocal_hkl_to_energy(reciprocal: torch.Tensor, hkl: torch.Tensor) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Alias to ``laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy``.&#34;&#34;&#34;
+    _, energy = reciprocal_hkl_to_uq_energy(reciprocal, hkl, _return_uq=False)
+    return energy</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.diffraction.reciprocal_hkl_to_uq"><code class="name flex">
+<span>def <span class="ident">reciprocal_hkl_to_uq</span></span>(<span>reciprocal: torch.Tensor, hkl: torch.Tensor) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Alias to <code><a title="laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy" href="bragg.html#laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy">reciprocal_hkl_to_uq_energy()</a></code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reciprocal_hkl_to_uq(reciprocal: torch.Tensor, hkl: torch.Tensor) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Alias to ``laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy``.&#34;&#34;&#34;
+    u_q, _ = reciprocal_hkl_to_uq_energy(reciprocal, hkl, _return_energy=False)
+    return u_q</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.diffraction.reciprocal_hkl_to_uq_energy"><code class="name flex">
+<span>def <span class="ident">reciprocal_hkl_to_uq_energy</span></span>(<span>reciprocal: torch.Tensor, hkl: torch.Tensor) ‑> tuple[torch.Tensor, torch.Tensor]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Thanks to the bragg relation, compute the energy of each diffracted ray.</p>
+<p>The incidient ray <span><span class="MathJax_Preview">u_i</span><script type="math/tex">u_i</script></span> is assumed to be <span><span class="MathJax_Preview">\mathbf{L_1}</span><script type="math/tex">\mathbf{L_1}</script></span>,
+ie <span><span class="MathJax_Preview">[0, 0, 1]</span><script type="math/tex">[0, 0, 1]</script></span> in the lab base <span><span class="MathJax_Preview">\mathcal{B^l}</span><script type="math/tex">\mathcal{B^l}</script></span>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>reciprocal</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Matrix <span><span class="MathJax_Preview">\mathbf{B}</span><script type="math/tex">\mathbf{B}</script></span> of shape (*r, 3, 3) in the lab base <span><span class="MathJax_Preview">\mathcal{B^l}</span><script type="math/tex">\mathcal{B^l}</script></span>.</dd>
+<dt><strong><code>hkl</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The h, k, l indices of shape (*n, 3) we want to mesure.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>uq</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>All the unitary diffracting plane normal vector of shape (<em>r, </em>n, 3).
+The vectors are expressed in the same base as the reciprocal space.</dd>
+<dt><strong><code>enery</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The energy of each ray in J as a tensor of shape (<em>r, </em>n).
+<span><span class="MathJax_Preview">\begin{cases}
+E = \frac{hc}{\lambda} \\
+\lambda = 2d\sin(\theta) \\
+\sin(\theta) = \left| \langle u_i, u_q \langle \right| \\
+\end{cases}</span><script type="math/tex">\begin{cases}
+E = \frac{hc}{\lambda} \\
+\lambda = 2d\sin(\theta) \\
+\sin(\theta) = \left| \langle u_i, u_q \langle \right| \\
+\end{cases}</script></span></dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.diffraction.bragg import reciprocal_hkl_to_uq_energy
+&gt;&gt;&gt; reciprocal = torch.torch.tensor([[ 1.6667e+09,  0.0000e+00,  0.0000e+00],
+...                                  [ 9.6225e+08,  3.0387e+09, -0.0000e+00],
+...                                  [-6.8044e+08, -2.1488e+09,  8.1653e+08]])
+&gt;&gt;&gt; hkl = torch.tensor([1, 2, -1])
+&gt;&gt;&gt; u_q, energy = reciprocal_hkl_to_uq_energy(reciprocal, hkl)
+&gt;&gt;&gt; u_q
+tensor([ 0.1798,  0.7595, -0.6252])
+&gt;&gt;&gt; 6.24e18 * energy  # convertion J -&gt; eV
+tensor(9200.6816)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reciprocal_hkl_to_uq_energy(
+    reciprocal: torch.Tensor, hkl: torch.Tensor,
+    *, _return_uq: bool = True, _return_energy: bool = True
+) -&gt; tuple[torch.Tensor, torch.Tensor]:
+    r&#34;&#34;&#34;Thanks to the bragg relation, compute the energy of each diffracted ray.
+
+    The incidient ray \(u_i\) is assumed to be \(\mathbf{L_1}\),
+    ie \([0, 0, 1]\) in the lab base \(\mathcal{B^l}\).
+
+    Parameters
+    ----------
+    reciprocal : torch.Tensor
+        Matrix \(\mathbf{B}\) of shape (*r, 3, 3) in the lab base \(\mathcal{B^l}\).
+    hkl : torch.Tensor
+        The h, k, l indices of shape (*n, 3) we want to mesure.
+
+    Returns
+    -------
+    uq : torch.Tensor
+        All the unitary diffracting plane normal vector of shape (*r, *n, 3).
+        The vectors are expressed in the same base as the reciprocal space.
+    enery : torch.Tensor
+        The energy of each ray in J as a tensor of shape (*r, *n).
+        \(\begin{cases}
+            E = \frac{hc}{\lambda} \\
+            \lambda = 2d\sin(\theta) \\
+            \sin(\theta) = \left| \langle u_i, u_q \langle \right| \\
+        \end{cases}\)
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.diffraction.bragg import reciprocal_hkl_to_uq_energy
+    &gt;&gt;&gt; reciprocal = torch.torch.tensor([[ 1.6667e+09,  0.0000e+00,  0.0000e+00],
+    ...                                  [ 9.6225e+08,  3.0387e+09, -0.0000e+00],
+    ...                                  [-6.8044e+08, -2.1488e+09,  8.1653e+08]])
+    &gt;&gt;&gt; hkl = torch.tensor([1, 2, -1])
+    &gt;&gt;&gt; u_q, energy = reciprocal_hkl_to_uq_energy(reciprocal, hkl)
+    &gt;&gt;&gt; u_q
+    tensor([ 0.1798,  0.7595, -0.6252])
+    &gt;&gt;&gt; 6.24e18 * energy  # convertion J -&gt; eV
+    tensor(9200.6816)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(reciprocal, torch.Tensor), reciprocal.__class__.__name__
+    assert reciprocal.shape[-2:] == (3, 3), reciprocal.shape
+    assert isinstance(hkl, torch.Tensor), hkl.__class__.__name__
+    assert hkl.shape[-1:] == (3,), hkl.shape
+    assert not hkl.dtype.is_complex and not hkl.dtype.is_floating_point, hkl.dtype
+
+    *batch_r, _, _ = reciprocal.shape
+    *batch_n, _ = hkl.shape
+
+    hkl = hkl[*((None,)*len(batch_r)), ..., None]  # (*r, *n, 3, 1)
+    reciprocal = reciprocal[..., *((None,)*len(batch_n)), :, :]  # (*r, *n, 3, 3)
+    u_q = reciprocal @ hkl.to(reciprocal.device, reciprocal.dtype)  # (*r, *n, 3, 1)
+    inv_d_square = u_q.mT @ u_q  # (*r, *n, 1, 1)
+    u_q = u_q.squeeze(-1)  # (*r, *n, 3)
+    inv_d_square = inv_d_square.squeeze(-1)  # (*r, *n, 1)
+
+    enery = None
+    if _return_energy:
+        ui_dot_uq = u_q[..., 2]  # (*r, *n)
+        inv_d_sin_theta = inv_d_square.squeeze(-1) / ui_dot_uq
+        enery = torch.abs((0.5 * PLANK_H * CELERITY_C) * inv_d_sin_theta)
+
+    if _return_uq:
+        u_q = u_q * torch.rsqrt(inv_d_square)
+
+    return u_q, enery</code></pre>
+</details>
+</dd>
 <dt id="laueimproc.diffraction.reciprocal_to_primitive"><code class="name flex">
 <span>def <span class="ident">reciprocal_to_primitive</span></span>(<span>reciprocal: torch.Tensor) ‑> torch.Tensor</span>
 </code></dt>
@@ -373,6 +530,121 @@ tensor([[ 1.6667e+09,  0.0000e+00,  0.0000e+00],
         Matrix \(\mathbf{A}\) in the same orthonormal base.
     &#34;&#34;&#34;
     return primitive_to_reciprocal(reciprocal)  # inv(f) = f</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.diffraction.uf_to_uq"><code class="name flex">
+<span>def <span class="ident">uf_to_uq</span></span>(<span>u_f: torch.Tensor) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the vector normal to the diffracting planes.</p>
+<p>Bijection of <code><a title="laueimproc.diffraction.uq_to_uf" href="#laueimproc.diffraction.uq_to_uf">uq_to_uf()</a></code>.</p>
+<p><span><span class="MathJax_Preview">u_q \propto u_f - u_i</span><script type="math/tex">u_q \propto u_f - u_i</script></span></p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>u_f</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The normalized diffracted rays of shape (&hellip;, 3).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>u_q</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The normalized normals of shape (&hellip;, 3).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def uf_to_uq(u_f: torch.Tensor) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Calculate the vector normal to the diffracting planes.
+
+    Bijection of ``uq_to_uf``.
+
+    \(u_q \propto u_f - u_i\)
+
+    Parameters
+    ----------
+    u_f : torch.Tensor
+        The normalized diffracted rays of shape (..., 3).
+
+    Returns
+    -------
+    u_q : torch.Tensor
+        The normalized normals of shape (..., 3).
+    &#34;&#34;&#34;
+    assert isinstance(u_f, torch.Tensor), u_f.__class__.__name__
+    assert u_f.shape[-1:] == (3,), u_f.shape
+
+    u_q = u_f.clone()
+    u_q[..., 2] -= 1.0  # uf - ui
+    norm = torch.sum(u_q * u_q, dim=-1, keepdim=True)
+    # eps = torch.finfo(u_q.dtype).eps  # to solve case no deviation
+    # norm[norm &lt;= eps] = torch.inf  # to solve case no deviation
+    u_q = u_q * torch.rsqrt(norm)
+    return u_q</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.diffraction.uq_to_uf"><code class="name flex">
+<span>def <span class="ident">uq_to_uf</span></span>(<span>u_q: torch.Tensor) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the diffracted ray from q vector.</p>
+<p>Bijection of <code><a title="laueimproc.diffraction.uf_to_uq" href="#laueimproc.diffraction.uf_to_uq">uf_to_uq()</a></code>.</p>
+<p><span><span class="MathJax_Preview">\begin{cases}
+u_f - u_i = \eta u_q \\
+\eta = 2 \langle u_q, -u_i \rightangle \\
+\end{cases}</span><script type="math/tex">\begin{cases}
+u_f - u_i = \eta u_q \\
+\eta = 2 \langle u_q, -u_i \rightangle \\
+\end{cases}</script></span></p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>u_q</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The normalized q vectors of shape (&hellip;, 3).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>u_f</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The normalized diffracted ray of shape (&hellip;, 3).</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<ul>
+<li><span><span class="MathJax_Preview">u_f</span><script type="math/tex">u_f</script></span> is not sensitive to the <span><span class="MathJax_Preview">u_q</span><script type="math/tex">u_q</script></span> orientation.</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def uq_to_uf(u_q: torch.Tensor) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Calculate the diffracted ray from q vector.
+
+    Bijection of ``uf_to_uq``.
+
+    \(\begin{cases}
+        u_f - u_i = \eta u_q \\
+        \eta = 2 \langle u_q, -u_i \rightangle \\
+    \end{cases}\)
+
+    Parameters
+    ----------
+    u_q : torch.Tensor
+        The normalized q vectors of shape (..., 3).
+
+    Returns
+    -------
+    u_f : torch.Tensor
+        The normalized diffracted ray of shape (..., 3).
+
+    Notes
+    -----
+    * \(u_f\) is not sensitive to the \(u_q\) orientation.
+    &#34;&#34;&#34;
+    assert isinstance(u_q, torch.Tensor), u_q.__class__.__name__
+    assert u_q.shape[-1:] == (3,), u_q.shape
+
+    uq_dot_ui = u_q[..., 2]  # -&lt;uq, -ui&gt;
+    q_norm = -2.0 * uq_dot_ui
+    u_f = q_norm.unsqueeze(-1) * u_q
+    u_f[..., 2] += 1.0  # eta * uq + ui
+    return u_f</code></pre>
 </details>
 </dd>
 </dl>
@@ -452,7 +724,12 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="laueimproc.diffraction.lattice_to_primitive" href="#laueimproc.diffraction.lattice_to_primitive">lattice_to_primitive</a></code></li>
 <li><code><a title="laueimproc.diffraction.primitive_to_lattice" href="#laueimproc.diffraction.primitive_to_lattice">primitive_to_lattice</a></code></li>
 <li><code><a title="laueimproc.diffraction.primitive_to_reciprocal" href="#laueimproc.diffraction.primitive_to_reciprocal">primitive_to_reciprocal</a></code></li>
+<li><code><a title="laueimproc.diffraction.reciprocal_hkl_to_energy" href="#laueimproc.diffraction.reciprocal_hkl_to_energy">reciprocal_hkl_to_energy</a></code></li>
+<li><code><a title="laueimproc.diffraction.reciprocal_hkl_to_uq" href="#laueimproc.diffraction.reciprocal_hkl_to_uq">reciprocal_hkl_to_uq</a></code></li>
+<li><code><a title="laueimproc.diffraction.reciprocal_hkl_to_uq_energy" href="#laueimproc.diffraction.reciprocal_hkl_to_uq_energy">reciprocal_hkl_to_uq_energy</a></code></li>
 <li><code><a title="laueimproc.diffraction.reciprocal_to_primitive" href="#laueimproc.diffraction.reciprocal_to_primitive">reciprocal_to_primitive</a></code></li>
+<li><code><a title="laueimproc.diffraction.uf_to_uq" href="#laueimproc.diffraction.uf_to_uq">uf_to_uq</a></code></li>
+<li><code><a title="laueimproc.diffraction.uq_to_uf" href="#laueimproc.diffraction.uq_to_uf">uq_to_uf</a></code></li>
 </ul>
 </li>
 </ul>

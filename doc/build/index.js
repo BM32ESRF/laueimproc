@@ -5,11 +5,11 @@ URLS=[
 "laueimproc/io/index.html",
 "laueimproc/io/save_dataset.html",
 "laueimproc/io/download.html",
-"laueimproc/io/write_dat.html",
 "laueimproc/io/convert.html",
 "laueimproc/io/read.html",
 "laueimproc/io/write.html",
 "laueimproc/io/comp_lm.html",
+"laueimproc/io/write_dat.html",
 "laueimproc/improc/index.html",
 "laueimproc/improc/spot/index.html",
 "laueimproc/improc/spot/rot_sym.html",
@@ -37,9 +37,9 @@ URLS=[
 "laueimproc/gmm/check.html",
 "laueimproc/gmm/gmm.html",
 "laueimproc/gmm/gauss.html",
-"laueimproc/gmm/linalg.html",
 "laueimproc/gmm/fit.html",
 "laueimproc/gmm/metric.html",
+"laueimproc/gmm/linalg.html",
 "fit.html",
 "gmm.html",
 "laueimproc/testing/index.html",
@@ -49,8 +49,9 @@ URLS=[
 "laueimproc/testing/tests/set_spots.html",
 "laueimproc/testing/tests/rois.html",
 "laueimproc/testing/tests/inter_batch.html",
-"laueimproc/testing/tests/lattice.html",
 "laueimproc/testing/tests/reciprocal.html",
+"laueimproc/testing/tests/lattice.html",
+"laueimproc/testing/tests/bragg.html",
 "laueimproc/testing/run.html",
 "laueimproc/nn/index.html",
 "laueimproc/nn/dataaug/index.html",
@@ -69,8 +70,8 @@ URLS=[
 "laueimproc/immix/inter.html",
 "laueimproc/diffraction/index.html",
 "laueimproc/diffraction/lattice.html",
-"laueimproc/diffraction/bragg.html",
 "laueimproc/diffraction/reciprocal.html",
+"laueimproc/diffraction/bragg.html",
 "laueimproc/convention.html"
 ];
 INDEX=[
@@ -407,127 +408,127 @@ INDEX=[
 "func":1
 },
 {
-"ref":"laueimproc.io.write_dat",
-"url":6,
-"doc":"Write a dat file."
-},
-{
-"ref":"laueimproc.io.write_dat.write_dat",
-"url":6,
-"doc":"Write the dat file associate to the provided diagram. The file contains the following columns:  peak_X : float The x position of the center of the peak in convention j+1/2 in this module. It is like cv2 convention but start by (1, 1), not (0, 0). The position is the position estimated after a gaussian fit with mse criteria.  peak_Y : float The y position of the center of the peak in convention i+1/2 in this module. Same formalism as peak_X.  peak_Itot : float peak_Isub + the mean of the background estimation in the roi.  peak_Isub : float Gaussian amplitude, fitted on the roi with no background. Intensity without background.  peak_fwaxmaj : float Main full with. It is 2 std of the gaussian in the main axis of the PCA.  peak_fwaxmin : float Same as peak_fwaxmaj along the secondary axis.  peak_inclination : float The angle between the horizontal axis (i) and the main pca axis of the spot. The angle is defined in clockwise (-trigo_angle(i, j in order to give a positive angle when we plot the image and when we have a vien in the physician base (-j, i). The angle is defined between -90 and 90 degrees.  Xdev : float The difference between the position of the gaussian and the baricenter along the x axis in cv2 convention (axis j in this module).  Ydev : float Same as Xdev for the y axis.  peak_bkg : float The mean of the estimated background in the roi.  Ipixmax : int The max intensity of the all the pixel in the roi with no background. The peaks are written in the native order of the gaussian. Parameters      filename : pathlike The path to the file, relative or absolute. The suffix \".dat\" is automaticaly append if it is not already provided. If a file is already existing, it is overwriten. diagram : laueimproc.classes.diagram.Diagram The reference to the diagram. Examples     >>> import pathlib >>> import tempfile >>> from laueimproc.classes.diagram import Diagram >>> from laueimproc.io.write_dat import write_dat >>> import laueimproc.io >>> diagram = Diagram(pathlib.Path(laueimproc.io.__file__).parent / \"ge.jp2\") >>> diagram.find_spots() >>> file = pathlib.Path(tempfile.gettempdir( / \"ge_blanc.dat\" >>> write_dat(file, diagram) >>> >>> with open(file, \"r\", encoding=\"utf-8\") as raw:  doctest: +ELLIPSIS  . print(raw.read(  . peak_X peak_Y peak_Itot peak_Isub peak_fwaxmaj  .ation Xdev Ydev peak_bkg Ipixmax 5.549 4.764 1500.0 604.0 7.054  .-50.9 0.000 0.000 896.0 1121.0 26.591 1.228 1116.4 89.0 5.721  .-87.9 0.000 0.000 1027.4 1129.0  . 1974.962 1938.139 4998.9 3950.0 4.097  . 28.1 0.000 0.000 1048.9 4999.0 1179.912 1976.142 20253.1 19144.0 5.356  . 5.7 0.000 0.000 1109.1 20258.0  file created by laueimproc  .  Diagram from ge.jp2:  History:  1. 240 spots from self.find_spots()  No Properties  Current state:   id, state:  .   nbr spots: 240   total mem: 16.4MB >>>",
-"func":1
-},
-{
 "ref":"laueimproc.io.convert",
-"url":7,
+"url":6,
 "doc":"Convert the image file format."
 },
 {
 "ref":"laueimproc.io.convert.converter_decorator",
-"url":7,
+"url":6,
 "doc":"Decorate an image converter into a batch image converter.",
 "func":1
 },
 {
 "ref":"laueimproc.io.convert.to_jp2",
-"url":7,
+"url":6,
 "doc":"Convert a file into jpeg2000 format. Parameters      src_file : pathlibPath The input filename. dst_dir : pathlib.Path The output directory. metadata : boolean Flag to allow the copy of metadata. Returns    - abs_out_path : pathlib.Path The absolute filename of the created image.",
 "func":1
 },
 {
 "ref":"laueimproc.io.read",
-"url":8,
+"url":7,
 "doc":"Read an image of laue diagram."
 },
 {
 "ref":"laueimproc.io.read.extract_metadata",
-"url":8,
+"url":7,
 "doc":"Extract the metadata of the file content. Parameters      data : bytes The raw image file content. Returns    - metadata : dict The metadata of the file.",
 "func":1
 },
 {
 "ref":"laueimproc.io.read.read_image",
-"url":8,
+"url":7,
 "doc":"Read and decode a grayscale image into a numpy array. Use cv2 as possible, and fabio if cv2 failed. Parameters      filename : pathlike The path to the image, relative or absolute. Returns    - image : torch.Tensor The grayscale laue image matrix in float between with value range in [0, 1]. metadata : dict The file metadata. Raises    OSError If the given path is not a file, or if the image reading failed.",
 "func":1
 },
 {
 "ref":"laueimproc.io.read.to_floattensor",
-"url":8,
+"url":7,
 "doc":"Convert and shift tenso into float torch tensor. If the input is not in floating point, it is converting in float32 and the value range is set beetweeen 0 and 1. Parameters      data : arraylike The torch tensor or the numpy array to convert. Returns    - tensor : torch.Tensor The float torch tensor.",
 "func":1
 },
 {
 "ref":"laueimproc.io.write",
-"url":9,
+"url":8,
 "doc":"Write an image of laue diagram."
 },
 {
 "ref":"laueimproc.io.write.write_jp2",
-"url":9,
+"url":8,
 "doc":"Write a lossless jpeg2000 image with the metadata. Parameters      filename : pathlike The path to the file, relative or absolute. The suffix \".jp2\" is automaticaly append if it is not already provided. If a file is already existing, it is overwriten. image : torch.Tensor The 2d grayscale float image with values in range [0, 1]. metadata : dict, optional If provided, a jsonisable dictionary of informations. Examples     >>> import pathlib >>> import tempfile >>> import torch >>> from laueimproc.io.read import read_image >>> from laueimproc.io.write import write_jp2 >>> >>> file = pathlib.Path(tempfile.gettempdir( / \"image.jp2\" >>> img_ref = torch.rand 2048, 1024 >>> img_ref = (img_ref  65535 + 0.5).to(int).to(torch.float32) / 65535 >>> metadata_ref = {\"prop1\": 1} >>> >>> write_jp2(file, img_ref, metadata_ref) >>> img, metadata = read_image(file) >>> torch.allclose(img, img_ref, atol=1/65535, rtol=0) True >>> metadata  metadata_ref True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.io.comp_lm",
-"url":10,
+"url":9,
 "doc":"Implement a convolutive generative variational auto-encoder neuronal network."
 },
 {
 "ref":"laueimproc.io.comp_lm.VariationalEncoder",
-"url":10,
+"url":9,
 "doc":"Projects images into a more compact space. Each patch of 320x320 pixels with a stride of 64 pixels is projected into a space of dimension 64, quantizable with 8 bits per component. Initialize internal Module state, shared by both nn.Module and ScriptModule."
 },
 {
 "ref":"laueimproc.io.comp_lm.VariationalEncoder.forward",
-"url":10,
+"url":9,
 "doc":"Apply the function on the images. Parameters      img : torch.Tensor The float image batch of shape (n, 1, h, w). With h and w >= 160 + k 32, k >= 0 integer. Returns    - lat : torch.Tensor The projection of the image in the latent space. New shape is (n, 256, h/32-4, w/32-4) with value in [0, 1]. Examples     >>> import torch >>> from laueimproc.io.comp_lm import VariationalEncoder >>> encoder = VariationalEncoder() >>> encoder(torch.rand 5, 1, 160, 224 ).shape torch.Size([5, 64, 1, 3]) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.io.comp_lm.VariationalEncoder.add_quantization_noise",
-"url":10,
+"url":9,
 "doc":"Add a uniform noise in order to simulate the quantization into uint8. Parameters      lat : torch.Tensor The float lattent space of shape (n, 64, a, b) with value in range ]0, 1[. Returns    - noised_lat : torch.Tensor The input tensor with a aditive uniform noise U(-.5/255, .5/255). The finals values are clamped to stay in the range [0, 1]. Examples     >>> import torch >>> from laueimproc.io.comp_lm import VariationalEncoder >>> lat = torch.rand 5, 64, 1, 3 >>> q_lat = VariationalEncoder.add_quantization_noise(lat) >>> torch.all(abs(q_lat - lat)  >> abs q_lat - lat).mean().round(decimals=3 tensor(0.) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.io.comp_lm.Decoder",
-"url":10,
+"url":9,
 "doc":"Unfold the projected encoded images into the color space. Initialize internal Module state, shared by both nn.Module and ScriptModule."
 },
 {
 "ref":"laueimproc.io.comp_lm.Decoder.forward",
-"url":10,
+"url":9,
 "doc":"Apply the function on the latent images. Parameters      lat : torch.Tensor The projected image in the latent space of shape (n, 256, hl, wl). Returns    - img : torch.Tensor A close image in colorspace to the input image. It is as mutch bijective as possible than VariationalEncoder. New shape is (n, 256, 160+hl 32, 160+wl 32) with value in [0, 1]. Examples     >>> import torch >>> from laueimproc.io.comp_lm import Decoder >>> decoder = Decoder() >>> decoder(torch.rand 5, 64, 1, 3 ).shape torch.Size([5, 1, 160, 224]) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.io.comp_lm.LMCodec",
-"url":10,
+"url":9,
 "doc":"Encode and Decode Laue Max images. Initialise the codec. Parameters      weights : pathlike The filename of the model data."
 },
 {
 "ref":"laueimproc.io.comp_lm.LMCodec.decode",
-"url":10,
+"url":9,
 "doc":"Decode le compressed content. Parameters      data The compact data representation. Examples     >>> import numpy as np >>> from laueimproc.io.comp_lm import LMCodec >>> codec = LMCodec(\"/tmp/lmweights.tar\").eval() >>> img = np.random.randint(0, 65536, (1000, 1000), dtype=np.uint16) >>> data = codec.encode(img) >>> decoded = codec.decode(data) >>> bool img  decoded).all( True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.io.comp_lm.LMCodec.encode",
-"url":10,
+"url":9,
 "doc":"Encode the image. Parameters      img : torch.Tensor or np.ndarray The 1 channel image to encode. Examples     >>> import numpy as np >>> from laueimproc.io.comp_lm import LMCodec >>> codec = LMCodec(\"/tmp/lmweights.tar\").eval() >>> img = np.random.randint(0, 65536, (1000, 1000), dtype=np.uint16) >>> encoded = codec.encode(img) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.io.comp_lm.LMCodec.forward",
-"url":10,
+"url":9,
 "doc":"Encode then decode the image. Parameters      img : torch.Tensor The 1 channel image to encode. Returns    - predicted : torch.Tensor The predicted image of same shape. Examples     >>> import torch >>> from laueimproc.io.comp_lm import LMCodec >>> codec = LMCodec(\"/tmp/lmweights.tar\") >>> codec.forward(torch.rand 1000, 1000 ).shape torch.Size([1000, 1000]) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.io.comp_lm.LMCodec.overfit",
-"url":10,
+"url":9,
 "doc":"Overfit the model on the given diagrams. Parameters      diagrams : list[Diagram] All the diagrams we want to compress.",
+"func":1
+},
+{
+"ref":"laueimproc.io.write_dat",
+"url":10,
+"doc":"Write a dat file."
+},
+{
+"ref":"laueimproc.io.write_dat.write_dat",
+"url":10,
+"doc":"Write the dat file associate to the provided diagram. The file contains the following columns:  peak_X : float The x position of the center of the peak in convention j+1/2 in this module. It is like cv2 convention but start by (1, 1), not (0, 0). The position is the position estimated after a gaussian fit with mse criteria.  peak_Y : float The y position of the center of the peak in convention i+1/2 in this module. Same formalism as peak_X.  peak_Itot : float peak_Isub + the mean of the background estimation in the roi.  peak_Isub : float Gaussian amplitude, fitted on the roi with no background. Intensity without background.  peak_fwaxmaj : float Main full with. It is 2 std of the gaussian in the main axis of the PCA.  peak_fwaxmin : float Same as peak_fwaxmaj along the secondary axis.  peak_inclination : float The angle between the vertical axis (i) and the main pca axis of the spot. The angle is defined in clockwise (-trigo_angle(i, j in order to give a positive angle when we plot the image and when we have a view in the physician base (-j, i). The angle is defined between -90 and 90 degrees.  Xdev : float The difference between the position of the gaussian and the baricenter along the x axis in cv2 convention (axis j in this module).  Ydev : float Same as Xdev for the y axis.  peak_bkg : float The mean of the estimated background in the roi.  Ipixmax : int The max intensity of the all the pixel in the roi with no background. The peaks are written in the native order of the gaussian. Parameters      filename : pathlike The path to the file, relative or absolute. The suffix \".dat\" is automaticaly append if it is not already provided. If a file is already existing, it is overwriten. diagram : laueimproc.classes.diagram.Diagram The reference to the diagram. Examples     >>> import pathlib >>> import tempfile >>> from laueimproc.classes.diagram import Diagram >>> from laueimproc.io.write_dat import write_dat >>> import laueimproc.io >>> diagram = Diagram(pathlib.Path(laueimproc.io.__file__).parent / \"ge.jp2\") >>> diagram.find_spots() >>> file = pathlib.Path(tempfile.gettempdir( / \"ge_blanc.dat\" >>> write_dat(file, diagram) >>> >>> with open(file, \"r\", encoding=\"utf-8\") as raw:  doctest: +ELLIPSIS  . print(raw.read(  . peak_X peak_Y peak_Itot peak_Isub peak_fwaxmaj  .ation Xdev Ydev peak_bkg Ipixmax 5.549 4.764 1500.0 604.0 7.054  .-50.9 0.000 0.000 896.0 1121.0 26.591 1.228 1116.4 89.0 5.721  .-87.9 0.000 0.000 1027.4 1129.0  . 1974.962 1938.139 4998.9 3950.0 4.097  . 28.1 0.000 0.000 1048.9 4999.0 1179.912 1976.142 20253.1 19144.0 5.356  . 5.7 0.000 0.000 1109.1 20258.0  file created by laueimproc  .  Diagram from ge.jp2:  History:  1. 240 spots from self.find_spots()  No Properties  Current state:   id, state:  .   nbr spots: 240   total mem: 16.4MB >>>",
 "func":1
 },
 {
@@ -1811,72 +1812,72 @@ INDEX=[
 "func":1
 },
 {
-"ref":"laueimproc.gmm.linalg",
-"url":38,
-"doc":"Helper for fast linear algebra for 2d matrix."
-},
-{
-"ref":"laueimproc.gmm.linalg.batched_matmul",
-"url":38,
-"doc":"Perform a matrix product on the last 2 dimensions. Parameters      mat1 : torch.Tensor Matrix of shape ( ., n, m). mat2 : torch.Tensor Matrix of shape ( ., m, p). Returns    - prod : torch.Tensor The matrix of shape ( ., n, p). Examples     >>> import torch >>> from laueimproc.gmm.linalg import batched_matmul >>> mat1 = torch.randn 9, 1, 7, 6, 3, 4 >>> mat2 = torch.randn( (8, 1, 6, 4, 5 >>> batched_matmul(mat1, mat2).shape torch.Size([9, 8, 7, 6, 3, 5]) >>>",
-"func":1
-},
-{
-"ref":"laueimproc.gmm.linalg.cov2d_to_eigtheta",
-"url":38,
-"doc":"Rotate the covariance matrix into canonical base, like a PCA. Work only for dimension \\(D = 2\\), ie 2 2 square matrix. Parameters      cov : torch.Tensor The 2x2 covariance matrix of shape ( ., 2, 2). \\(\\mathbf{\\Sigma} = \\begin{pmatrix} \\sigma_1 & c  c & \\sigma_2  \\end{pmatrix}\\) with \\(\\begin{cases} \\sigma_1 > 0  \\sigma_2 > 0  \\end{cases}\\) eig : boolean, default=True If True, compute the eigen values, leave the field empty otherwise (faster). theta : boolean, default=True If True, compute the eigen vector rotation, leave the field empty otherwise (faster). Returns    - eigtheta : torch.Tensor The concatenation of the eigenvalues and theta \\( \\left[ \\lambda_1, \\lambda_2, \\theta \\right] \\) of shape ( ., 3) such that: \\(\\begin{cases} \\lambda_1 >= \\lambda_2 > 0  \\theta \\in \\left]-\\frac{\\pi}{2}, \\frac{\\pi}{2}\\right]  \\mathbf{R} = \\begin{pmatrix} cos(\\theta) & -sin(\\theta)  sin(\\theta) & cos(\\theta)  \\end{pmatrix}  \\mathbf{D} = \\begin{pmatrix} \\lambda_1 & 0  0 & \\lambda_2  \\end{pmatrix}  \\mathbf{R}^{-1} \\mathbf{\\Sigma} \\mathbf{R} = \\mathbf{D}  \\end{cases}\\) \\(\\begin{cases} tr( \\mathbf{\\Sigma} ) = tr( \\mathbf{R}^{-1} \\mathbf{\\Sigma} \\mathbf{R} ) = tr(\\mathbf{D})  det( \\mathbf{\\Sigma} ) = det( \\mathbf{R}^{-1} \\mathbf{\\Sigma} \\mathbf{R} ) = det(\\mathbf{D})  \\mathbf{\\Sigma} \\begin{pmatrix} cos(\\theta)  sin(\\theta)  \\end{pmatrix} = \\lambda_1 \\begin{pmatrix} cos(\\theta)  sin(\\theta)  \\end{pmatrix}  \\end{cases}\\) \\( \\Leftrightarrow \\begin{cases} \\lambda_1 + \\lambda_2 = \\sigma_1 + \\sigma_2  \\lambda_1 \\lambda_2 = \\sigma_1 \\sigma_2 - c^2  \\sigma_1 cos(\\theta) + c sin(\\theta) = \\lambda_1 cos(\\theta)  \\end{cases}\\) \\( \\Leftrightarrow \\begin{cases} \\lambda_1 = \\frac{1}{2} \\left( \\sigma_1 + \\sigma_2 + \\sqrt{(2c)^2 + (\\sigma_2 - \\sigma_1)^2} \\right)  \\lambda_2 = \\frac{1}{2} \\left( \\sigma_1 + \\sigma_2 - \\sqrt{(2c)^2 + (\\sigma_2 - \\sigma_1)^2} \\right)  \\theta = tan^{-1}\\left( \\frac{ \\sigma_2 - \\sigma_1 + \\sqrt{(2c)^2 + (\\sigma_2 - \\sigma_1)^2} }{2c} \\right)  \\end{cases}\\) Examples     >>> import numpy as np >>> import torch >>> from laueimproc.gmm.linalg import cov2d_to_eigtheta >>> obs = torch.randn 1000, 100, 2), dtype=torch.float64)  ( ., n_obs, n_var) >>> cov = obs.mT @ obs  create real symmetric positive covariance matrix >>> eigtheta = cov2d_to_eigtheta(cov) >>> >>>  check resultst are corrects >>> torch.allclose(torch.linalg.eigvalsh(cov).flip(-1), eigtheta[ ., :2]) True >>> theta = eigtheta[ ., 2] >>> rot =  torch.cos(theta), -torch.sin(theta)], [torch.sin(theta), torch.cos(theta) >>> rot = torch.asarray(np.array(rot .movedim 0, -2), (1, -1 >>> diag = torch.zeros_like(cov) >>> diag[ ., 0, 0] = eigtheta[ ., 0] >>> diag[ ., 1, 1] = eigtheta[ ., 1] >>> torch.allclose(torch.linalg.inv(rot) @ cov @ rot, diag) True >>> >>>  check is differenciable >>> cov.requires_grad = True >>> cov2d_to_eigtheta(cov).sum().backward() >>> >>>  timing >>> import timeit >>> def timer():  . a = min(timeit.repeat(lambda: cov2d_to_eigtheta(cov), repeat=10, number=100  . b = min(timeit.repeat(lambda: torch.linalg.eigh(cov), repeat=10, number=100  . print(f\"torch is {b/a:.2f} times slowler\")  . a = min(timeit.repeat(lambda: cov2d_to_eigtheta(cov, eig=False), repeat=10, number=100  . b = min(timeit.repeat(lambda: torch.linalg.eigvalsh(cov), repeat=10, number=100  . print(f\"torch is {b/a:.2f} times slowler\")  . >>> timer()  doctest: +SKIP torch is 2.84 times slowler torch is 3.87 times slowler >>>",
-"func":1
-},
-{
-"ref":"laueimproc.gmm.linalg.inv_cov2d",
-"url":38,
-"doc":"Compute the det and the inverse of covariance matrix. Parameters      cov : torch.Tensor The 2x2 covariance matrix of shape ( ., 2, 2). \\(\\mathbf{\\Sigma} = \\begin{pmatrix} \\sigma_1 & c  c & \\sigma_2  \\end{pmatrix}\\) with \\(\\begin{cases} \\sigma_1 > 0  \\sigma_2 > 0  \\end{cases}\\) inv : boolean, default=True If True, compute the inverse matrix, return empty tensor overwise otherwise (faster). Returns    - det : torch.Tensor The determinant of the matrix of shape ( .,). inv : torch.Tensor The inverse matrix of shape ( ., 2, 2). Examples     >>> import torch >>> from laueimproc.gmm.linalg import inv_cov2d >>> obs = torch.randn 1000, 100, 2  ( ., n_obs, n_var) >>> cov = obs.mT @ obs  create real symmetric positive covariance matrix >>> _, inv = inv_cov2d(cov) >>> torch.allclose(torch.linalg.inv(cov), inv) True >>>",
-"func":1
-},
-{
-"ref":"laueimproc.gmm.linalg.multivariate_normal",
-"url":38,
-"doc":"Draw a random realisations of 2d centered gaussian law. Parameters      cov : torch.Tensor Covariance matrix of shape ( ., 2, 2). nbr : int The numbers of samples by cov matrices. Returns    - draw : torch.Tensor The random centered draw of cov matrix cov, shape (nbr,  ., 2). Examples     >>> import math, torch >>> from laueimproc.gmm.linalg import multivariate_normal >>> >>> s1, s2, t = 9.0, 2.0, math.radians(20) >>> rot = torch.asarray( math.cos(t), -math.sin(t)], [math.sin(t), math.cos(t) ) >>> samples = torch.randn(10_000, 2)  N(0,  1, 0], [0, 1 ) >>> samples  = torch.asarray( s1, s2 )  N(0,  s1 2, 0], [0, s2 2 ) >>> samples @= torch.linalg.inv(rot) >>> cov = (samples.mT @ samples) / (len(samples) - 1) >>> >>> draw = multivariate_normal(cov, len(samples >>> cov_ = (draw.mT @ draw) / (len(draw) - 1) >>> torch.allclose(cov, cov_, rtol=0.1) True >>> >>>  import matplotlib.pyplot as plt >>>  _ = plt.scatter( samples.mT, alpha=0.1) >>>  _ = plt.scatter( draw.mT, alpha=0.1) >>>  _ = plt.axis(\"equal\") >>>  plt.show() >>>",
-"func":1
-},
-{
 "ref":"laueimproc.gmm.fit",
-"url":39,
+"url":38,
 "doc":"Implement the EM (Esperance Maximisation) algo. Detailed algorithm for going from step \\(s\\) to step \\(s+1\\):  \\( p_{i,j} = \\frac{ \\eta_j^{(s)} \\mathcal{N}_{\\mathbf{\\mu}_j^{(s)}, \\mathbf{\\Sigma}_j^{(s) \\left(\\mathbf{x}_i\\right) }{ \\sum\\limits_{k=1}^K \\eta_k^{(s)} \\mathcal{N}_{\\mathbf{\\mu}_k^{(s)}, \\mathbf{\\Sigma}_k^{(s) \\left(\\mathbf{x}_i\\right) } \\) Posterior probability that observation \\(i\\) belongs to cluster \\(j\\).  \\( \\eta_j^{(s+1)} = \\frac{\\sum\\limits_{i=1}^N \\alpha_i p_{i,j {\\sum\\limits_{i=1}^N \\alpha_i} \\) The relative weight of each gaussian.  \\( \\mathbf{\\mu}_j^{(s+1)} = \\frac{ \\sum\\limits_{i=1}^N \\alpha_i \\omega_i p_{i,j} \\mathbf{x}_i }{ \\sum\\limits_{i=1}^N \\alpha_i \\omega_i p_{i,j} } \\) The mean of each gaussian.  \\( \\mathbf{\\Sigma}_j^{(s+1)} = \\frac{ \\sum\\limits_{i=1}^N \\omega_i \\alpha_i p_{i,j} \\left(\\mathbf{x}_i - \\mathbf{\\mu}_j^{(s+1)}\\right) \\left(\\mathbf{x}_i - \\mathbf{\\mu}_j^{(s+1)}\\right)^{\\intercal} }{ \\sum\\limits_{i=1}^N \\alpha_i p_{i,j} } \\) The cov of each gaussian. This sted is iterated as long as the log likelihood increases."
 },
 {
 "ref":"laueimproc.gmm.fit.fit_em",
-"url":39,
+"url":38,
 "doc":"Implement a weighted version of the 2d EM algorithm. Parameters      roi : torch.Tensor The picture of the roi, of shape (h, w). nbr_clusters : int The number \\(K\\) of gaussians. nbr_tries : int The number of times that the algorithm converges in order to have the best possible solution. It is ignored in the case  nbr_clusters = 1. Returns    - mean : torch.Tensor The vectors \\(\\mathbf{\\mu}\\). Shape ( ., \\(K\\), \\(D\\ . cov : torch.Tensor The matrices \\(\\mathbf{\\Sigma}\\). Shape ( ., \\(K\\), \\(D\\), \\(D\\ . eta : torch.Tensor The relative mass \\(\\eta\\). Shape ( ., \\(K\\ .",
 "func":1
 },
 {
 "ref":"laueimproc.gmm.metric",
-"url":40,
+"url":39,
 "doc":"Metric to estimate the quality of the fit of the gmm."
 },
 {
 "ref":"laueimproc.gmm.metric.aic",
-"url":40,
+"url":39,
 "doc":"Compute the Akaike Information Criterion and the Bayesian Information Criterion. Parameters      obs : torch.Tensor The observations \\(\\mathbf{x}_i\\) of shape ( ., \\(N\\), \\(D\\ . weights : torch.Tensor, optional The duplication weights of shape ( ., \\(N\\ . gmm : tuple of torch.Tensor  mean : torch.Tensor The column mean vector \\(\\mathbf{\\mu}_j\\) of shape ( ., \\(K\\), \\(D\\ .  cov : torch.Tensor The covariance matrix \\(\\mathbf{\\Sigma}\\) of shape ( ., \\(K\\), \\(D\\), \\(D\\ .  eta : torch.Tensor The relative mass \\(\\eta_j\\) of shape ( ., \\(K\\ . Returns    - aic : torch.Tensor Akaike Information Criterion \\(aic = 2p-2\\log(L_{\\alpha,\\omega})\\), \\(p\\) is the number of free parameters and \\(L_{\\alpha,\\omega}\\) the likelihood.",
 "func":1
 },
 {
 "ref":"laueimproc.gmm.metric.bic",
-"url":40,
+"url":39,
 "doc":"Compute the Akaike Information Criterion and the Bayesian Information Criterion. Parameters      obs : torch.Tensor The observations \\(\\mathbf{x}_i\\) of shape ( ., \\(N\\), \\(D\\ . weights : torch.Tensor, optional The duplication weights of shape ( ., \\(N\\ . gmm : tuple of torch.Tensor  mean : torch.Tensor The column mean vector \\(\\mathbf{\\mu}_j\\) of shape ( ., \\(K\\), \\(D\\ .  cov : torch.Tensor The covariance matrix \\(\\mathbf{\\Sigma}\\) of shape ( ., \\(K\\), \\(D\\), \\(D\\ .  eta : torch.Tensor The relative mass \\(\\eta_j\\) of shape ( ., \\(K\\ . Returns    - bic : torch.Tensor Bayesian Information Criterion \\(bic = \\log(N)p-2\\log(L_{\\alpha,\\omega})\\), \\(p\\) is the number of free parameters and \\(L_{\\alpha,\\omega}\\) the likelihood.",
 "func":1
 },
 {
 "ref":"laueimproc.gmm.metric.log_likelihood",
-"url":40,
+"url":39,
 "doc":"Compute the log likelihood. Parameters      obs : torch.Tensor The observations \\(\\mathbf{x}_i\\) of shape ( ., \\(N\\), \\(D\\ . weights : torch.Tensor, optional The duplication weights of shape ( ., \\(N\\ . gmm : tuple of torch.Tensor  mean : torch.Tensor The column mean vector \\(\\mathbf{\\mu}_j\\) of shape ( ., \\(K\\), \\(D\\ .  cov : torch.Tensor The covariance matrix \\(\\mathbf{\\Sigma}\\) of shape ( ., \\(K\\), \\(D\\), \\(D\\ .  eta : torch.Tensor The relative mass \\(\\eta_j\\) of shape ( ., \\(K\\ . Returns    - log_likelihood : torch.Tensor The log likelihood \\( L_{\\alpha,\\omega} \\) of shape ( .,). \\( L_{\\alpha,\\omega} = \\log\\left( \\prod\\limits_{i=1}^N \\sum\\limits_{j=1}^K \\eta_j \\left( \\mathcal{N}_{(\\mathbf{\\mu}_j,\\frac{1}{\\omega_i}\\mathbf{\\Sigma}_j)}(\\mathbf{x}_i) \\right)^{\\alpha_i} \\right) \\)",
 "func":1
 },
 {
 "ref":"laueimproc.gmm.metric.mse",
-"url":40,
+"url":39,
 "doc":"Compute the mean square error. Parameters      obs : torch.Tensor The observations \\(\\mathbf{x}_i\\) of shape ( ., \\(N\\), \\(D\\ . weights : torch.Tensor, optional The duplication weights of shape ( ., \\(N\\ . gmm : tuple of torch.Tensor  mean : torch.Tensor The column mean vector \\(\\mathbf{\\mu}_j\\) of shape ( ., \\(K\\), \\(D\\ .  cov : torch.Tensor The covariance matrix \\(\\mathbf{\\Sigma}\\) of shape ( ., \\(K\\), \\(D\\), \\(D\\ .  mag : torch.Tensor The relative mass \\(\\eta_j\\) of shape ( ., \\(K\\ . Returns    - mse : torch.Tensor The mean square error of shape ( .,). \\( mse = \\frac{1}{N}\\sum\\limits_{i=1}^N \\left(\\left(\\sum\\limits_{j=1}^K \\eta_j \\left( \\mathcal{N}_{(\\mathbf{\\mu}_j,\\frac{1}{\\omega_i}\\mathbf{\\Sigma}_j)}(\\mathbf{x}_i) \\right)\\right) - \\alpha_i\\right)^2 \\)",
+"func":1
+},
+{
+"ref":"laueimproc.gmm.linalg",
+"url":40,
+"doc":"Helper for fast linear algebra for 2d matrix."
+},
+{
+"ref":"laueimproc.gmm.linalg.batched_matmul",
+"url":40,
+"doc":"Perform a matrix product on the last 2 dimensions. Parameters      mat1 : torch.Tensor Matrix of shape ( ., n, m). mat2 : torch.Tensor Matrix of shape ( ., m, p). Returns    - prod : torch.Tensor The matrix of shape ( ., n, p). Examples     >>> import torch >>> from laueimproc.gmm.linalg import batched_matmul >>> mat1 = torch.randn 9, 1, 7, 6, 3, 4 >>> mat2 = torch.randn( (8, 1, 6, 4, 5 >>> batched_matmul(mat1, mat2).shape torch.Size([9, 8, 7, 6, 3, 5]) >>>",
+"func":1
+},
+{
+"ref":"laueimproc.gmm.linalg.cov2d_to_eigtheta",
+"url":40,
+"doc":"Rotate the covariance matrix into canonical base, like a PCA. Work only for dimension \\(D = 2\\), ie 2 2 square matrix. Parameters      cov : torch.Tensor The 2x2 covariance matrix of shape ( ., 2, 2). \\(\\mathbf{\\Sigma} = \\begin{pmatrix} \\sigma_1 & c  c & \\sigma_2  \\end{pmatrix}\\) with \\(\\begin{cases} \\sigma_1 > 0  \\sigma_2 > 0  \\end{cases}\\) eig : boolean, default=True If True, compute the eigen values, leave the field empty otherwise (faster). theta : boolean, default=True If True, compute the eigen vector rotation, leave the field empty otherwise (faster). Returns    - eigtheta : torch.Tensor The concatenation of the eigenvalues and theta in counterclockwise (trigo). \\( \\left[ \\lambda_1, \\lambda_2, \\theta \\right] \\) of shape ( ., 3) such that: \\(\\begin{cases} \\lambda_1 >= \\lambda_2 > 0  \\theta \\in \\left]-\\frac{\\pi}{2}, \\frac{\\pi}{2}\\right]  \\mathbf{R} = \\begin{pmatrix} cos(\\theta) & -sin(\\theta)  sin(\\theta) & cos(\\theta)  \\end{pmatrix}  \\mathbf{D} = \\begin{pmatrix} \\lambda_1 & 0  0 & \\lambda_2  \\end{pmatrix}  \\mathbf{R}^{-1} \\mathbf{\\Sigma} \\mathbf{R} = \\mathbf{D}  \\end{cases}\\) \\(\\begin{cases} tr( \\mathbf{\\Sigma} ) = tr( \\mathbf{R}^{-1} \\mathbf{\\Sigma} \\mathbf{R} ) = tr(\\mathbf{D})  det( \\mathbf{\\Sigma} ) = det( \\mathbf{R}^{-1} \\mathbf{\\Sigma} \\mathbf{R} ) = det(\\mathbf{D})  \\mathbf{\\Sigma} \\begin{pmatrix} cos(\\theta)  sin(\\theta)  \\end{pmatrix} = \\lambda_1 \\begin{pmatrix} cos(\\theta)  sin(\\theta)  \\end{pmatrix}  \\end{cases}\\) \\( \\Leftrightarrow \\begin{cases} \\lambda_1 + \\lambda_2 = \\sigma_1 + \\sigma_2  \\lambda_1 \\lambda_2 = \\sigma_1 \\sigma_2 - c^2  \\sigma_1 cos(\\theta) + c sin(\\theta) = \\lambda_1 cos(\\theta)  \\end{cases}\\) \\( \\Leftrightarrow \\begin{cases} \\lambda_1 = \\frac{1}{2} \\left( \\sigma_1 + \\sigma_2 + \\sqrt{(2c)^2 + (\\sigma_2 - \\sigma_1)^2} \\right)  \\lambda_2 = \\frac{1}{2} \\left( \\sigma_1 + \\sigma_2 - \\sqrt{(2c)^2 + (\\sigma_2 - \\sigma_1)^2} \\right)  \\theta = tan^{-1}\\left( \\frac{ \\sigma_2 - \\sigma_1 + \\sqrt{(2c)^2 + (\\sigma_2 - \\sigma_1)^2} }{2c} \\right)  \\end{cases}\\) Examples     >>> import numpy as np >>> import torch >>> from laueimproc.gmm.linalg import cov2d_to_eigtheta >>> obs = torch.randn 1000, 100, 2), dtype=torch.float64)  ( ., n_obs, n_var) >>> cov = obs.mT @ obs  create real symmetric positive covariance matrix >>> eigtheta = cov2d_to_eigtheta(cov) >>> >>>  check resultst are corrects >>> torch.allclose(torch.linalg.eigvalsh(cov).flip(-1), eigtheta[ ., :2]) True >>> theta = eigtheta[ ., 2] >>> rot =  torch.cos(theta), -torch.sin(theta)], [torch.sin(theta), torch.cos(theta) >>> rot = torch.asarray(np.array(rot .movedim 0, -2), (1, -1 >>> diag = torch.zeros_like(cov) >>> diag[ ., 0, 0] = eigtheta[ ., 0] >>> diag[ ., 1, 1] = eigtheta[ ., 1] >>> torch.allclose(torch.linalg.inv(rot) @ cov @ rot, diag) True >>> >>>  check is differenciable >>> cov.requires_grad = True >>> cov2d_to_eigtheta(cov).sum().backward() >>> >>>  timing >>> import timeit >>> def timer():  . a = min(timeit.repeat(lambda: cov2d_to_eigtheta(cov), repeat=10, number=100  . b = min(timeit.repeat(lambda: torch.linalg.eigh(cov), repeat=10, number=100  . print(f\"torch is {b/a:.2f} times slowler\")  . a = min(timeit.repeat(lambda: cov2d_to_eigtheta(cov, eig=False), repeat=10, number=100  . b = min(timeit.repeat(lambda: torch.linalg.eigvalsh(cov), repeat=10, number=100  . print(f\"torch is {b/a:.2f} times slowler\")  . >>> timer()  doctest: +SKIP torch is 2.84 times slowler torch is 3.87 times slowler >>>",
+"func":1
+},
+{
+"ref":"laueimproc.gmm.linalg.inv_cov2d",
+"url":40,
+"doc":"Compute the det and the inverse of covariance matrix. Parameters      cov : torch.Tensor The 2x2 covariance matrix of shape ( ., 2, 2). \\(\\mathbf{\\Sigma} = \\begin{pmatrix} \\sigma_1 & c  c & \\sigma_2  \\end{pmatrix}\\) with \\(\\begin{cases} \\sigma_1 > 0  \\sigma_2 > 0  \\end{cases}\\) inv : boolean, default=True If True, compute the inverse matrix, return empty tensor overwise otherwise (faster). Returns    - det : torch.Tensor The determinant of the matrix of shape ( .,). inv : torch.Tensor The inverse matrix of shape ( ., 2, 2). Examples     >>> import torch >>> from laueimproc.gmm.linalg import inv_cov2d >>> obs = torch.randn 1000, 100, 2  ( ., n_obs, n_var) >>> cov = obs.mT @ obs  create real symmetric positive covariance matrix >>> _, inv = inv_cov2d(cov) >>> torch.allclose(torch.linalg.inv(cov), inv) True >>>",
+"func":1
+},
+{
+"ref":"laueimproc.gmm.linalg.multivariate_normal",
+"url":40,
+"doc":"Draw a random realisations of 2d centered gaussian law. Parameters      cov : torch.Tensor Covariance matrix of shape ( ., 2, 2). nbr : int The numbers of samples by cov matrices. Returns    - draw : torch.Tensor The random centered draw of cov matrix cov, shape (nbr,  ., 2). Examples     >>> import math, torch >>> from laueimproc.gmm.linalg import multivariate_normal >>> >>> s1, s2, t = 9.0, 2.0, math.radians(20) >>> rot = torch.asarray( math.cos(t), -math.sin(t)], [math.sin(t), math.cos(t) ) >>> samples = torch.randn(10_000, 2)  N(0,  1, 0], [0, 1 ) >>> samples  = torch.asarray( s1, s2 )  N(0,  s1 2, 0], [0, s2 2 ) >>> samples @= torch.linalg.inv(rot) >>> cov = (samples.mT @ samples) / (len(samples) - 1) >>> >>> draw = multivariate_normal(cov, len(samples >>> cov_ = (draw.mT @ draw) / (len(draw) - 1) >>> torch.allclose(cov, cov_, rtol=0.1) True >>> >>>  import matplotlib.pyplot as plt >>>  _ = plt.scatter( samples.mT, alpha=0.1) >>>  _ = plt.scatter( draw.mT, alpha=0.1) >>>  _ = plt.axis(\"equal\") >>>  plt.show() >>>",
 "func":1
 },
 {
@@ -2039,453 +2040,543 @@ INDEX=[
 "func":1
 },
 {
-"ref":"laueimproc.testing.tests.lattice",
-"url":50,
-"doc":"Test the convertion between lattice and primitive space."
-},
-{
-"ref":"laueimproc.testing.tests.lattice.test_batch_lattice_to_primitive",
-"url":50,
-"doc":"Tests batch dimension.",
-"func":1
-},
-{
-"ref":"laueimproc.testing.tests.lattice.test_jac_lattice_to_primitive",
-"url":50,
-"doc":"Tests compute jacobian.",
-"func":1
-},
-{
-"ref":"laueimproc.testing.tests.lattice.test_batch_primitive_to_lattice",
-"url":50,
-"doc":"Tests batch dimension.",
-"func":1
-},
-{
-"ref":"laueimproc.testing.tests.lattice.test_jac_primitive_to_lattice",
-"url":50,
-"doc":"Tests compute jacobian.",
-"func":1
-},
-{
-"ref":"laueimproc.testing.tests.lattice.test_bij_lattice_to_primitive_to_lattice",
-"url":50,
-"doc":"Test is the transformation is reverible.",
-"func":1
-},
-{
 "ref":"laueimproc.testing.tests.reciprocal",
-"url":51,
+"url":50,
 "doc":"Test the convertion between primitive and reciprocal."
 },
 {
 "ref":"laueimproc.testing.tests.reciprocal.test_batch_primitive_to_reciprocal",
-"url":51,
+"url":50,
 "doc":"Tests batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.reciprocal.test_jac_primitive_to_reciprocal",
-"url":51,
+"url":50,
 "doc":"Tests compute jacobian.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.reciprocal.test_bij",
-"url":51,
+"url":50,
 "doc":"Test is the transformation is reversible.",
 "func":1
 },
 {
-"ref":"laueimproc.testing.run",
+"ref":"laueimproc.testing.tests.lattice",
+"url":51,
+"doc":"Test the convertion between lattice and primitive space."
+},
+{
+"ref":"laueimproc.testing.tests.lattice.test_batch_lattice_to_primitive",
+"url":51,
+"doc":"Tests batch dimension.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.lattice.test_jac_lattice_to_primitive",
+"url":51,
+"doc":"Tests compute jacobian.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.lattice.test_batch_primitive_to_lattice",
+"url":51,
+"doc":"Tests batch dimension.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.lattice.test_jac_primitive_to_lattice",
+"url":51,
+"doc":"Tests compute jacobian.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.lattice.test_bij_lattice_to_primitive_to_lattice",
+"url":51,
+"doc":"Test is the transformation is reverible.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.bragg",
 "url":52,
+"doc":"Test the function of bragg diffraction."
+},
+{
+"ref":"laueimproc.testing.tests.bragg.test_batch_reciprocal_hkl_to_energy",
+"url":52,
+"doc":"Test batch dimension.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.bragg.test_batch_reciprocal_hkl_to_uq",
+"url":52,
+"doc":"Test batch dimension.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.bragg.test_batch_uf_to_uq",
+"url":52,
+"doc":"Test batch dimension.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.bragg.test_batch_uq_to_uf",
+"url":52,
+"doc":"Test batch dimension.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.bragg.test_bij_uf_to_uq_to_uf",
+"url":52,
+"doc":"Test uf -> uq -> uf = uf.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.bragg.test_bij_uq_to_uf_to_uq",
+"url":52,
+"doc":"Test uq -> uf -> uq = uq.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.bragg.test_jac_reciprocal_hkl_to_energy",
+"url":52,
+"doc":"Test compute jacobian.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.bragg.test_jac_reciprocal_hkl_to_uq",
+"url":52,
+"doc":"Test compute jacobian.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.bragg.test_normalization_reciprocal_hkl_to_uq",
+"url":52,
+"doc":"Test norm is 1.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.bragg.test_normalization_uf_to_uq",
+"url":52,
+"doc":"Test norm is 1.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.bragg.test_normalization_uq_to_uf",
+"url":52,
+"doc":"Test norm is 1.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.bragg.test_sign_uq",
+"url":52,
+"doc":"Test uf is not sensitive to the uq orientation.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.run",
+"url":53,
 "doc":"Executes all the tests via the  pytest module."
 },
 {
 "ref":"laueimproc.testing.run.run_tests",
-"url":52,
+"url":53,
 "doc":"Perform all unit tests.",
 "func":1
 },
 {
 "ref":"laueimproc.nn",
-"url":53,
+"url":54,
 "doc":"Neuronal Network sub module."
 },
 {
 "ref":"laueimproc.nn.dataaug",
-"url":54,
+"url":55,
 "doc":"Image data augmentation."
 },
 {
 "ref":"laueimproc.nn.dataaug.patch",
-"url":55,
+"url":56,
 "doc":"Crop and pad an image to schange the size without any interpolation."
 },
 {
 "ref":"laueimproc.nn.dataaug.patch.patch",
-"url":55,
+"url":56,
 "doc":"Pad the image with transparent borders. Parameters      image : torch.Tensor or numpy.ndarray The image to be cropped and padded. shape : int and int The pixel dimensions of the returned image. The convention adopted is the numpy convention (height, width). copy : boolean, default=True If True, ensure that the returned tensor doesn't share the data of the input tensor. Returns    - patched_image The cropped and padded image homogeneous with the input. Examples     >>> import torch >>> from laueimproc.nn.dataaug.patch import patch >>> ref = torch.full 4, 8), 128, dtype=torch.uint8) >>> patch(ref, (6, 6 tensor( 0, 0, 0, 0, 0, 0], [128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128], [ 0, 0, 0, 0, 0, 0 , dtype=torch.uint8) >>> patch(ref, (3, 9 tensor( 128, 128, 128, 128, 128, 128, 128, 128, 0], [128, 128, 128, 128, 128, 128, 128, 128, 0], [128, 128, 128, 128, 128, 128, 128, 128, 0 , dtype=torch.uint8) >>> patch(ref, (2, 2 tensor( 128, 128], [128, 128 , dtype=torch.uint8) >>> patch(ref, (10, 10 tensor( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [ 0, 128, 128, 128, 128, 128, 128, 128, 128, 0], [ 0, 128, 128, 128, 128, 128, 128, 128, 128, 0], [ 0, 128, 128, 128, 128, 128, 128, 128, 128, 0], [ 0, 128, 128, 128, 128, 128, 128, 128, 128, 0], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , dtype=torch.uint8) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.nn.dataaug.scale",
-"url":56,
+"url":57,
 "doc":"Resize and image keeping the proportions."
 },
 {
 "ref":"laueimproc.nn.dataaug.scale.rescale",
-"url":56,
+"url":57,
 "doc":"Reshape the image, keep the spact ratio and pad with black pixels. Parameters      image : cutcutcodec.core.classes.image_video.FrameVideo or torch.Tensor or numpy.ndarray The image to be resized, of shape (height, width). shape : int and int The pixel dimensions of the returned image. The convention adopted is the numpy convention (height, width). copy : boolean, default=True If True, ensure that the returned tensor doesn't share the data of the input tensor. Returns    - resized_image The resized (and padded) image homogeneous with the input. The underground data are not shared with the input. A safe copy is done. Examples     >>> import torch >>> from laueimproc.nn.dataaug.scale import rescale >>> ref = torch.full 4, 8), 128, dtype=torch.uint8) >>> >>>  upscale >>> rescale(ref, (8, 12 tensor( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , dtype=torch.uint8) >>> >>>  downscale >>> rescale(ref, (4, 4 tensor( 0, 0, 0, 0], [128, 128, 128, 128], [128, 128, 128, 128], [ 0, 0, 0, 0 , dtype=torch.uint8) >>> >>>  mix >>> rescale(ref, (6, 6 tensor( 0, 0, 0, 0, 0, 0], [128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128], [ 0, 0, 0, 0, 0, 0], [ 0, 0, 0, 0, 0, 0 , dtype=torch.uint8) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.nn.train",
-"url":57,
+"url":58,
 "doc":"Training pipeline for the models."
 },
 {
 "ref":"laueimproc.nn.train.train_vae_spot_classifier",
-"url":57,
+"url":58,
 "doc":"Train the model. Parameters      model : laueimproc.nn.vae_spot_classifier.VAESpotClassifier The initialised but not already trained model. dataset : laueimproc.classes.dataset.DiagramsDataset Contains all the initialised diagrams. batch : int, optional The number of pictures in each batch. By default, the batch size is equal to the dataset size, so that there is exactely one complete batch per epoch. epoch : int, default=10 The number of epoch. lr : float, optional The learning rate. fig : matplotlib.figure.Figure, optional An empty figure ready to be filled.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier",
-"url":58,
+"url":59,
 "doc":"Classifier of laue spots using variational convolutive auto-encoder."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier",
-"url":58,
+"url":59,
 "doc":"A partialy convolutive variationel auto encoder used for unsupervised spot classification. Attributes      decoder : Decoder The decoder part, able to random draw and reconstitue an image from the encoder. device: torch.device The device of the model. encoder : Encoder The encoder part, able to transform an image into au gaussian law. latent_dim : int The dimension of the latent space. shape : tuple[int, int] The shape of the rois. space : float, default = 3.0 The non penalized spreading area half size. Initialise the model. Parameters      shape : tuple[int, int] Transmitted to  laueimproc.nn.vae_spot_classifier.Encoder and  laueimproc.nn.vae_spot_classifier.Decoder . latent_dim : int, default=2 Transmitted to  laueimproc.nn.vae_spot_classifier.Encoder and  laueimproc.nn.vae_spot_classifier.Decoder . space : float, default=3.0 The non penalized spreading area in the latent space. All the points with abs(p) <= space are autorized. A small value condensate all the data, very continuous space but hard to split. In a other way, a large space split the clusters but the values betwean the clusters are not well defined. intensity_sensitive : boolean, default=True If set to False, the model will not consider the spots intensity, as they will be normalized to have a power of 1. scale_sensitive : boolean = True If set to False, the model will not consider the spots size, as they will be resized and reinterpolated to a constant shape."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.dataaug",
-"url":58,
+"url":59,
 "doc":"Apply all the data augmentations on the image. Parameters      image : torch.Tensor The image of shape (h, w). Returns    - aug_batch : torch.Tensor The augmented stack of images of shape (n, 1, h', w').",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.device",
-"url":58,
+"url":59,
 "doc":"Return the device of the model."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.forward",
-"url":58,
+"url":59,
 "doc":"Encode, random draw and decode the image. Parameters      data : laueimproc.classes.base_diagram.BaseDiagram or torch.Tensor If a digram is provided, the spots are extract, data augmentation are applied, and the mean projection in the latent space is returned. If the input is a tensor, data augmentation are not applied. Return the autoencoded data, after having decoded a random latent space draw. Returns    - torch.Tensor The mean latent vector of shape (n, latent_dim) if the input is a Diagram. The generated image of shape (n, height, width) otherwise.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.latent_dim",
-"url":58,
+"url":59,
 "doc":"Return the dimension of the latent space."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.loss",
-"url":58,
+"url":59,
 "doc":"Forward the data and compute the loss values. Parameters      batch : torch.Tensor The image stack of shape (n, h, w). Returns    - mse_loss : torch.Tensor The sum of the mean square error loss for each image in the batch, shape (1,). kld_loss : torch.Tensor Pretty close to the sum of the Kullback-Leibler divergence for each projection in the batch, shape (1,). It is not litteraly the Kullback-Leibler divergence because the peanality for the mean is less strict, the cost is 0 in the [-space, space] interval. The cost is minimum when var=1 and -space<=mean<=space. Notes   -  No verifications are performed for performance reason.  The reduction is sum and not mean because it ables to split the batch in several slices.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.normalization",
-"url":58,
+"url":59,
 "doc":"Return the mean and the std of all the training data."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.plot_autoencode",
-"url":58,
+"url":59,
 "doc":"Encode and decode the images, plot the initial and regenerated images. Parameters      axe_input : matplotlib.axes.Axes The 2d empty axe ready to be filled by the input mosaic. axe_output : matplotlib.axes.Axes The 2d empty axe ready to be filled by the generated mosaic. spots : torch.Tensor The image stack of shape (n, h, w).",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.scan_data",
-"url":58,
+"url":59,
 "doc":"Complete the data histogram to standardise data (centered and reduction). Parameters      spots_generator : iterable A generator of spot batch, each item has to be of shape (:, h, w).",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.shape",
-"url":58,
+"url":59,
 "doc":"Return the shape of the images."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.space",
-"url":58,
+"url":59,
 "doc":"Return the non penalized spreading area half size."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Decoder",
-"url":58,
+"url":59,
 "doc":"Decode the latent sample into a new image. Attributes      parent : laueimproc.nn.vae_spot_classifier.VAESpotClassifier The main full auto encoder, containing this module. Initialise the decoder. Parameters      parent : laueimproc.nn.vae_spot_classifier.VAESpotClassifier The main module."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Decoder.forward",
-"url":58,
+"url":59,
 "doc":"Generate a new image from the samples. Parameters      sample : torch.Tensor The batch of the n samples, output of the  Decoder.parametrize function. The size is (n, latent_dim) Returns    - image : torch.Tensor The generated image batch, of shape (n, 1, height, width) Notes   - No verifications are performed for performance reason.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Decoder.parametrize",
-"url":58,
+"url":59,
 "doc":"Perform a random draw according to the normal law N(mean, std 2). Parameters      mean : torch.Tensor The batch of the mean vectors, shape (n, latent_dim). std : torch.Tensor The batch of the diagonal sqrt(covariance) matrix, shape (n, latent_dim). Returns    - draw : torch.Tensor The batch of the random draw. Notes   - No verifications are performed for performance reason.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Decoder.parent",
-"url":58,
+"url":59,
 "doc":"Return the parent module."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Decoder.plot_map",
-"url":58,
+"url":59,
 "doc":"Generate and display spots from a regular sampling of latent space. Parameters      axe : matplotlib.axes.Axes The 2d empty axe ready to be filled. grid : int or tuple[int, int] Grid dimension in latent space. If only one number is supplied, the grid will have this dimension on all axes. The 2 coordinates corresponds respectively to the number of lines and columns.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Encoder",
-"url":58,
+"url":59,
 "doc":"Encode an image into a gausian probality density. Attributes      parent : laueimproc.nn.vae_spot_classifier.VAESpotClassifier The main full auto encoder, containing this module. Initialise the encoder. Parameters      parent : laueimproc.nn.vae_spot_classifier.VAESpotClassifier The main module."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Encoder.forward",
-"url":58,
+"url":59,
 "doc":"Extract the mean and the std for each images. Parameters      batch : torch.Tensor The stack of the n images, of shape (n, 1, height, width). Returns    - mean : torch.Tensor The mean (center of gaussians) for each image, shape (n, latent_dims). std : torch.Tensor The standard deviation (shape of gaussian) for each image, shape (n, latent_dims). Notes   - No verifications are performed for performance reason. If the model is in eval mode, it computes only the mean and gives the value None to the std.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Encoder.parent",
-"url":58,
+"url":59,
 "doc":"Return the parent module."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Encoder.plot_latent",
-"url":58,
+"url":59,
 "doc":"Plot the 2d pca of the spots projected in the latent space. Parameters      axe : matplotlib.axes.Axes The 2d empty axe ready to be filled. spots_generator : iterable A generator of spot batch, each item has to be of shape (:, h, w).",
 "func":1
 },
 {
 "ref":"laueimproc.nn.loader",
-"url":59,
+"url":60,
 "doc":"Load and batch the data for neuronal network training."
 },
 {
 "ref":"laueimproc.nn.loader.SpotDataloader",
-"url":59,
+"url":60,
 "doc":"Get spots picture, apply dataaug and set in batch. Attributes      batch_size : int The batch dimension, read and write. Initialise the data loader. Parameters      dataset : laueimproc.classes.dataset.DiagramsDataset Contains all the initialised diagrams. model : laueimproc.nn.vae_spot_classifier.VAESpotClassifier The model, for the dataaug."
 },
 {
 "ref":"laueimproc.nn.loader.SpotDataloader.batch_size",
-"url":59,
+"url":60,
 "doc":"Return the batch size."
 },
 {
 "ref":"laueimproc.nn.loader.find_shape",
-"url":59,
+"url":60,
 "doc":"Scan the shape of all the spots and deduce the best shape. Parameters      dataset : laueimproc.classes.dataset.DiagramsDataset Contains all the initialised diagrams. percent : float The percentage of spots smaller or equal to the shape returned. Returns    - height : int The height shape. width : int The width shape. Examples     >>> import laueimproc >>> from laueimproc.nn.loader import find_shape >>> def init(diagram: laueimproc.Diagram):  . diagram.find_spots()  . >>> dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples( >>> _ = dataset.apply(init) >>> find_shape(dataset, 0.95) (15, 12) >>> find_shape(dataset, 0.5) (5, 5) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.common",
-"url":60,
+"url":61,
 "doc":"Little common tools."
 },
 {
 "ref":"laueimproc.common.bytes2human",
-"url":60,
+"url":61,
 "doc":"Convert a size in bytes in readable human string. Examples     >>> from laueimproc.common import bytes2human >>> bytes2human(0) '0.0B' >>> bytes2human(2000) '2.0kB' >>> bytes2human(2_000_000) '2.0MB' >>> bytes2human(2e9) '2.0GB' >>>",
 "func":1
 },
 {
 "ref":"laueimproc.common.get_project_root",
-"url":60,
+"url":61,
 "doc":"Return the absolute project root folder. Examples     >>> from laueimproc.common import get_project_root >>> root = get_project_root() >>> root.is_dir() True >>> root.name 'laueimproc' >>>",
 "func":1
 },
 {
 "ref":"laueimproc.common.time2sec",
-"url":60,
+"url":61,
 "doc":"Parse a time duration expression and return it in seconds. Raises    ValueError If the provided time dosen't match a parsable correct time format. Examples     >>> from laueimproc.common import time2sec >>> time2sec(12.34) 12.34 >>> time2sec(\"12.34\") 12.34 >>> time2sec(\".34\") 0.34 >>> time2sec(\"12.\") 12.0 >>> time2sec(\"12\") 12.0 >>> time2sec(\"12.34s\") 12.34 >>> time2sec(\"12.34 sec\") 12.34 >>> time2sec(\"2 m\") 120.0 >>> time2sec(\"2min 2\") 122.0 >>> time2sec(\" 2.5 h \") 9000.0 >>> time2sec(\"2hour02\") 7320.0 >>> time2sec(\"2h 2s\") 7202.0 >>> time2sec(\"2.5 hours 2.0 minutes 12.34 seconds\") 9132.34 >>>",
 "func":1
 },
 {
 "ref":"laueimproc.ml",
-"url":61,
+"url":62,
 "doc":"General machine learning utils."
 },
 {
 "ref":"laueimproc.ml.spot_dist",
-"url":62,
+"url":63,
 "doc":"Find the close spots in two diagrams."
 },
 {
 "ref":"laueimproc.ml.spot_dist.associate_spots",
-"url":62,
+"url":63,
 "doc":"Find the close spots. Parameters      pos1 : torch.Tensor The coordinates of the position of each spot of the first diagram. Is is a tensor of shape (n, 2) containg real elements. pos2 : torch.Tensor The coordinates of the position of each spot of the second diagram. Is is a tensor of shape (n, 2) containg real elements. eps : float The max euclidian distance to associate 2 spots. Returns    - pair : torch.Tensor The couple of the indices of the closest spots, of shape (n, 2). Examples     >>> import torch >>> from laueimproc.ml.spot_dist import associate_spots >>> pos1 = torch.rand 1500, 2), dtype=torch.float32) >>> pos2 = torch.rand 2500, 2), dtype=torch.float32) >>> eps = 1e-3 >>> pair = associate_spots(pos1, pos2, eps) >>> (torch.sqrt pos1[pair[:, 0 - pos2[pair[:, 1 ) 2)  >>",
 "func":1
 },
 {
 "ref":"laueimproc.ml.spot_dist.spotslabel_to_diag",
-"url":62,
+"url":63,
 "doc":"Inverse the representation, from diagram to spots. Parameters      labels : dict[int, torch.Tensor] To each diagram index, associate the label of each spot as a compact dict. Each value is a tensor of shape (n, 2), first column is native spot index into the diagram, then second column corresponds to the label. Returns    - diagrams : dict[int, set[int To each spot label, associate the set of diagram indices, containg the spot. Examples     >>> import torch >>> from laueimproc.ml.spot_dist import (associate_spots, track_spots,  . spotslabel_to_diag) >>> h, w = 5, 10 >>> diags = torch.tensor(  . sum  j, j+1] for j in range(i w, (i+1) w-1)] for i in range(h , start=[])  . + sum  j, j+w] for j in range(i w, (i+1) w)] for i in range(h-1 , start=[])  . ) >>> pos = [torch.rand 2000, 2), dtype=torch.float32) for _ in range(diags.max()+1)] >>> pairs = [associate_spots(pos[i], pos[j], 5e-3) for i, j in diags.tolist()] >>> labels = track_spots(pairs, diags) >>> diagrams = spotslabel_to_diag(labels) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.ml.spot_dist.track_spots",
-"url":62,
+"url":63,
 "doc":"Associate one label by position, give this label to all spots at this position. Parameters      pairs : list[torch.Tensor] For each pair of diagrams, contains the couple of close spots indices. diags : torch.Tensor The index of the diagrams for each pair, shape (len(pairs), 2). Returns    - labels : dict[int, torch.Tensor] To each diagram index, associate the label of each spot as a compact dict. Each value is a tensor of shape (n, 2), first column is native spot index into the diagram, then second column corresponds to the label. Examples     >>> import torch >>> from laueimproc.ml.spot_dist import associate_spots, track_spots >>> h, w = 5, 10 >>> diags = torch.tensor(  . sum  j, j+1] for j in range(i w, (i+1) w-1)] for i in range(h , start=[])  . + sum  j, j+w] for j in range(i w, (i+1) w)] for i in range(h-1 , start=[])  . ) >>> pos = [torch.rand 2000, 2), dtype=torch.float32) for _ in range(diags.max()+1)] >>> pairs = [associate_spots(pos[i], pos[j], 5e-3) for i, j in diags.tolist()] >>> labels = track_spots(pairs, diags) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.ml.dataset_dist",
-"url":63,
+"url":64,
 "doc":"Manage the diagams positioning inside a dataset."
 },
 {
 "ref":"laueimproc.ml.dataset_dist.call_diag2scalars",
-"url":63,
+"url":64,
 "doc":"Call the function, check, cast and return the output. The function typing is assumed to be checked. Parameters      pos_func : callable The function that associate a space position to a diagram index. index : int The argument value of the function. Returns    - position : tuple[float,  .] The scalar vector as a tuple of float.",
 "func":1
 },
 {
 "ref":"laueimproc.ml.dataset_dist.check_diag2scalars_typing",
-"url":63,
+"url":64,
 "doc":"Ensure that the position function has the right type of input / outputs. Parameters      pos_func : callable A function supposed to take a diagram index as input and that return a scalar vector in a space of n dimensions. Raises    AssertionError If something wrong is detected. Examples     >>> import pytest >>> from laueimproc.ml.dataset_dist import check_diag2scalars_typing >>> def ok_1(index: int) -> float:  . return float(index)  . >>> def ok_2(index: int) -> tuple[float]:  . return (float(index),)  . >>> def ok_3(index: int) -> tuple[float, float]:  . return (float(index), 0.0)  . >>> def warn_1(index):  . return float(index)  . >>> def warn_2(index: int):  . return float(index)  . >>> def warn_3(index) -> float:  . return float(index)  . >>> def warn_4(index: int) -> tuple:  . return float(index)  . >>> error_1 = \"this is not a function\" >>> def error_2(file: str) -> float:  bad input type  . return float(file)  . >>> def error_3(index: int) -> list:  bad output type  . return [float(index)]  . >>> def error_4(index: int, cam: str) -> tuple:  bag input arguments  . return float(index)  . >>> check_diag2scalars_typing(ok_1) >>> check_diag2scalars_typing(ok_2) >>> check_diag2scalars_typing(ok_3) >>> >>> with pytest.warns(SyntaxWarning):  . check_diag2scalars_typing(warn_1)  . >>> with pytest.warns(SyntaxWarning):  . check_diag2scalars_typing(warn_2)  . >>> with pytest.warns(SyntaxWarning):  . check_diag2scalars_typing(warn_3)  . >>> with pytest.warns(SyntaxWarning):  . check_diag2scalars_typing(warn_4)  . >>> >>> with pytest.raises(AssertionError):  . check_diag2scalars_typing(error_1)  . >>> with pytest.raises(AssertionError):  . check_diag2scalars_typing(error_2)  . >>> with pytest.raises(AssertionError):  . check_diag2scalars_typing(error_3)  . >>> with pytest.raises(AssertionError):  . check_diag2scalars_typing(error_4)  . >>>",
 "func":1
 },
 {
 "ref":"laueimproc.ml.dataset_dist.select_closest",
-"url":63,
+"url":64,
 "doc":"Select the closest point. Find the index i such as \\(d_i\\) is minimum, using the following formalism: \\(\\begin{cases} d_i = \\sqrt{\\sum\\limits_{j=0}^{D-1}\\left(\\kappa_j(p_j-x_{ij} ^2\\right)}  \\left|p_j-x_{ij}\\right| \\le \\epsilon_j, \\forall j \\in [\\![0;D-1]\\!]  \\end{cases}\\)  \\(D\\), the number of dimensions of the space used.  \\(\\kappa_j\\), a scalar inversely homogeneous has the unit used by the quantity of index \\(j\\).  \\(p_j\\), the coordinate \\(j\\) of the point of reference.  \\(x_{ij}\\), the \\(i\\)-th point of comparaison, coordinate \\(j\\). Parameters      coords : torch.Tensor The float32 points of each individual \\(\\text{coords[i, j]} = x_{ij}\\), of shape (n, \\(D\\ . point : tuple[float,  .] The point of reference in the destination space \\(point[j] = p_j\\). tol : tuple[float,  .], default inf The absolute tolerence value for each component (kind of manhattan distance). Such as \\(\\text{tol[j]} = \\epsilon_j\\). scale : tuple[float,  .], optional \\(\\text{scale[j]} = \\kappa_j\\), used for rescale each axis before to compute the euclidian distance. By default \\(\\kappa_j = 1, \\forall j \\in [\\![0;D-1]\\!]\\). Returns    - index: int The index \\(i\\) of the closest item \\(\\underset{i}{\\operatorname{argmin \\left(d\\right)\\). Raises    LookupError If no points match the criteria. Examples     >>> import torch >>> from laueimproc.ml.dataset_dist import select_closest >>> coords = torch.empty 1000, 3), dtype=torch.float32) >>> coords[:, 0] = torch.linspace(-1, 1, 1000) >>> coords[:, 1] = torch.linspace(-10, 10, 1000) >>> coords[:, 2] = torch.arange(1000) % 2 >>> select_closest(coords, (0.0, 0.0, 0.1 500 >>> select_closest(coords, (0.0, 0.0, 0.9 499 >>> select_closest(coords, (0.5, 5.0, 0.1 750 >>> select_closest(coords, (0.5, 5.0, 0.1), scale=(10, 1, 0.01 749 >>> select_closest(coords, (0.0, 0.0, 0.1), tol=(4/1000, 40/1000, 0.2 500 >>> try:  . select_closest(coords, (0.0, 0.0, 0.1), tol=(1/1000, 10/1000, 0.05  . except LookupError as err:  . print(err)  . no point match >>>",
 "func":1
 },
 {
 "ref":"laueimproc.ml.dataset_dist.select_closests",
-"url":63,
+"url":64,
 "doc":"Select the closest points. Find all the indices i such as: \\(\\left|p_j-x_{ij}\\right| \\le \\epsilon_j, \\forall j \\in [\\![0;D-1]\\!]\\) Sorted the results byt increasing \\(d_i\\) such as: \\(d_i = \\sqrt{\\sum\\limits_{j=0}^{D-1}\\left(\\kappa_j(p_j-x_{ij} ^2\\right)}\\)  \\(D\\), the number of dimensions of the space used.  \\(\\kappa_j\\), a scalar inversely homogeneous has the unit used by the quantity of index \\(j\\).  \\(p_j\\), the coordinate \\(j\\) of the point of reference.  \\(x_{ij}\\), the \\(i\\)-th point of comparaison, coordinate \\(j\\). Parameters      coords : torch.Tensor The float32 points of each individual \\(\\text{coords[i, j]} = x_{ij}\\), of shape (n, \\(D\\ . point : tuple[float,  .], optional If provided, the point \\(point[j] = p_j\\) is used to calculate the distance and sort the results. By default, the point taken is equal to the average of the tol. tol : tuple[float | tuple[float, float],  .], default inf The absolute tolerence value for each component (kind of manhattan distance). Such as \\(\\text{tol[j][0]} = \\epsilon_{j-min}, \\text{tol[j][1]} = \\epsilon_{j-max}\\). scale : tuple[float,  .], optional \\(\\text{scale[j]} = \\kappa_j\\), used for rescale each axis before to compute the euclidian distance. By default \\(\\kappa_j = 1, \\forall j \\in [\\![0;D-1]\\!]\\). Returns    - indices : torch.Tensor The int32 list of the sorted coords indices.",
 "func":1
 },
 {
 "ref":"dist",
-"url":64,
+"url":65,
 "doc":"Distance calculation."
 },
 {
 "ref":"dist.select_closest_point",
-"url":64,
+"url":65,
 "doc":"Select the closest point according the manhattan tolerancy and an euclidian distance.",
 "func":1
 },
 {
 "ref":"laueimproc.immix",
-"url":65,
+"url":66,
 "doc":"Mixture of images."
 },
 {
 "ref":"laueimproc.immix.mean",
-"url":66,
+"url":67,
 "doc":"Compute the mean image of a batch of images."
 },
 {
 "ref":"laueimproc.immix.mean.mean_stack",
-"url":66,
+"url":67,
 "doc":"Compute the average image. Parameters      dataset : laueimproc.classes.dataset.DiagramsDataset The dataset containing all images. Returns    - torch.Tensor The average image of all the images contained in this dataset.",
 "func":1
 },
 {
 "ref":"laueimproc.immix.inter",
-"url":67,
+"url":68,
 "doc":"Compute an intermediate image of a batch of images."
 },
 {
 "ref":"laueimproc.immix.inter.MomentumMixer",
-"url":67,
+"url":68,
 "doc":"Compute an average momenttume betweem the two closest candidates. Attributes      high : int The index max of the sorted stack. low : int The index min of the sorted stack. Precompute the momentum. Parameters      nbr : int The number of items in the stack. level : float The relative position in the stack in [0, 1]. Examples     >>> import torch >>> from laueimproc.immix.inter import MomentumMixer >>> mom = MomentumMixer(5, 0.5) >>> mom(torch.arange(5)[mom.low], torch.arange(5)[mom.high]) tensor(2.) >>> mom = MomentumMixer(4, 0.5) >>> mom(torch.arange(4)[mom.low], torch.arange(4)[mom.high]) tensor(1.5000) >>> mom = MomentumMixer(101, 0.1 torch.pi) >>> mom(torch.arange(101)[mom.low], torch.arange(101)[mom.high]) tensor(31.4159) >>>"
 },
 {
 "ref":"laueimproc.immix.inter.MomentumMixer.high",
-"url":67,
+"url":68,
 "doc":"Return the index max of the sorted stack."
 },
 {
 "ref":"laueimproc.immix.inter.MomentumMixer.low",
-"url":67,
+"url":68,
 "doc":"Return the index min of the sorted stack."
 },
 {
 "ref":"laueimproc.immix.inter.snowflake_stack",
-"url":67,
+"url":68,
 "doc":"Compute the median, first quartile, third quartile or everything in between. This algorithm consists of computing the histogram of all the images into a heap of size n. Then compute the cumulative histogram to deduce in each slice the value is. To bound the result. Iterate the processus to refine the bounds until reaching the required accuracy. Parameters      dataset : laueimproc.classes.dataset.DiagramsDataset The dataset containing all images. level : float, default=0.5 The level of the sorted stack.  0 -> min filter  0.25 -> first quartile  0.5 (default) -> median  0.75 -> third quartile  1 -> max filter tol : float, default=1/(2 16-1) Accuracy of the estimated returned image. Returns    - torch.Tensor The 2d float32 grayscale image. Notes   - Unlike the native algorithm, images are read a number of times proportional to the logarithm of the inverse of the precision. Independent of the number of images in the dataset. This algorithm is therefore better suited to large datasets.",
 "func":1
 },
 {
 "ref":"laueimproc.immix.inter.sort_stack",
-"url":67,
+"url":68,
 "doc":"Compute the median, first quartile, third quartile or everything in between. This algorithm consists of stacking all the images into a heap of size n. Then sort each column in the stack (as many columns as there are pixels in the image). Finally, we return the image in the new stack at height n   level . Parameters      dataset : laueimproc.classes.dataset.DiagramsDataset The dataset containing all images. level : float, default=0.5 The level of the sorted stack.  0 -> min filter  0.25 -> first quartile  0.5 (default) -> median  0.75 -> third quartile  1 -> max filter Returns    - torch.Tensor The 2d float32 grayscale image. Notes   - For reasons of memory limitations, the final image is calculated in small chunks. As a result, each image on the hard disk is read n times, with n proportional to the number of diagrams in the dataset.",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction",
-"url":68,
-"doc":"Implement the Bragg diffraction rules. https: www.silx.org/doc/pyFAI/latest/geometry.html detector-position Bases   -  \\(\\mathcal{B^c}\\): The orthonormal base of the cristal \\([\\mathbf{C_1}, \\mathbf{C_2}, \\mathbf{C_3}]\\).  \\(\\mathcal{B^s}\\): The orthonormal base of the sample \\([\\mathbf{S_1}, \\mathbf{S_2}, \\mathbf{S_3}]\\).  \\(\\mathcal{B^l}\\): The orthonormal base of the lab \\([\\mathbf{X_1}, \\mathbf{X_2}, \\mathbf{X_3}]\\) in pyfai. Lattice parameters          https: en.wikipedia.org/wiki/Lattice_constant /media/File:UnitCell.png  \\([a, b, c, \\alpha, \\beta, \\gamma]\\): The latice parameters.  \\(\\mathbf{A}\\): The primitive column vectors \\([\\mathbf{e_1}, \\mathbf{e_2}, \\mathbf{e_3}]\\) in an orthonormal base.  \\(\\mathbf{B}\\): The reciprocal column vectors \\([\\mathbf{e_1^ }, \\mathbf{e_2^ }, \\mathbf{e_3^ }]\\) in an orthonormal base."
+"url":69,
+"doc":"Implement the Bragg diffraction rules. https: www.silx.org/doc/pyFAI/latest/geometry.html detector-position Bases   -  \\(\\mathcal{B^c}\\): The orthonormal base of the cristal \\([\\mathbf{C_1}, \\mathbf{C_2}, \\mathbf{C_3}]\\).  \\(\\mathcal{B^s}\\): The orthonormal base of the sample \\([\\mathbf{S_1}, \\mathbf{S_2}, \\mathbf{S_3}]\\).  \\(\\mathcal{B^l}\\): The orthonormal base of the lab \\([\\mathbf{L_1}, \\mathbf{L_2}, \\mathbf{L_3}]\\) in pyfai. Lattice parameters          https: en.wikipedia.org/wiki/Lattice_constant /media/File:UnitCell.png  \\([a, b, c, \\alpha, \\beta, \\gamma]\\): The latice parameters.  \\(\\mathbf{A}\\): The primitive column vectors \\([\\mathbf{e_1}, \\mathbf{e_2}, \\mathbf{e_3}]\\) in an orthonormal base.  \\(\\mathbf{B}\\): The reciprocal column vectors \\([\\mathbf{e_1^ }, \\mathbf{e_2^ }, \\mathbf{e_3^ }]\\) in an orthonormal base."
+},
+{
+"ref":"laueimproc.diffraction.reciprocal_hkl_to_energy",
+"url":69,
+"doc":"Alias to  laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy .",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.reciprocal_hkl_to_uq",
+"url":69,
+"doc":"Alias to  laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy .",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.reciprocal_hkl_to_uq_energy",
+"url":69,
+"doc":"Thanks to the bragg relation, compute the energy of each diffracted ray. The incidient ray \\(u_i\\) is assumed to be \\(\\mathbf{L_1}\\), ie \\([0, 0, 1]\\) in the lab base \\(\\mathcal{B^l}\\). Parameters      reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) of shape ( r, 3, 3) in the lab base \\(\\mathcal{B^l}\\). hkl : torch.Tensor The h, k, l indices of shape ( n, 3) we want to mesure. Returns    - uq : torch.Tensor All the unitary diffracting plane normal vector of shape ( r,  n, 3). The vectors are expressed in the same base as the reciprocal space. enery : torch.Tensor The energy of each ray in J as a tensor of shape ( r,  n). \\(\\begin{cases} E = \\frac{hc}{\\lambda}  \\lambda = 2d\\sin(\\theta)  \\sin(\\theta) = \\left| \\langle u_i, u_q \\langle \\right|  \\end{cases}\\) Examples     >>> import torch >>> from laueimproc.diffraction.bragg import reciprocal_hkl_to_uq_energy >>> reciprocal = torch.torch.tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00],  . [ 9.6225e+08, 3.0387e+09, -0.0000e+00],  . [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>> hkl = torch.tensor([1, 2, -1]) >>> u_q, energy = reciprocal_hkl_to_uq_energy(reciprocal, hkl) >>> u_q tensor([ 0.1798, 0.7595, -0.6252]) >>> 6.24e18  energy  convertion J -> eV tensor(9200.6816) >>>",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.uf_to_uq",
+"url":69,
+"doc":"Calculate the vector normal to the diffracting planes. Bijection of  uq_to_uf . \\(u_q \\propto u_f - u_i\\) Parameters      u_f : torch.Tensor The normalized diffracted rays of shape ( ., 3). Returns    - u_q : torch.Tensor The normalized normals of shape ( ., 3).",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.uq_to_uf",
+"url":69,
+"doc":"Calculate the diffracted ray from q vector. Bijection of  uf_to_uq . \\(\\begin{cases} u_f - u_i = \\eta u_q  \\eta = 2 \\langle u_q, -u_i \\rightangle  \\end{cases}\\) Parameters      u_q : torch.Tensor The normalized q vectors of shape ( ., 3). Returns    - u_f : torch.Tensor The normalized diffracted ray of shape ( ., 3). Notes   -  \\(u_f\\) is not sensitive to the \\(u_q\\) orientation.",
+"func":1
 },
 {
 "ref":"laueimproc.diffraction.lattice_to_primitive",
-"url":68,
+"url":69,
 "doc":"Convert the lattice parameters into primitive vectors.  image  / / /build/media/IMGLatticeBc.avif :width: 256 Parameters      lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\). Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) of shape ( ., 3, 3) in the base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.diffraction.lattice import lattice_to_primitive >>> lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2 torch.pi/3]) >>> lattice_to_primitive(lattice)  quartz lattice tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17], [ 0.0000e+00, 3.2909e-10, 8.6603e-10], [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.primitive_to_lattice",
-"url":68,
+"url":69,
 "doc":"Convert the primitive vectors to the lattice parameters.  image  / / /build/media/IMGLattice.avif :width: 256 Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\). Notes   - We have  primitive_to_lattice(lattice_to_primitive(lattice  lattice , but it is not the case for the composition inverse because the numerical value of \\(\\mathbf{A}\\) is base dependent. Examples     >>> import torch >>> from laueimproc.diffraction.lattice import primitive_to_lattice >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_lattice(primitive)  quartz lattice tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00]) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.primitive_to_reciprocal",
-"url":68,
+"url":69,
 "doc":"Convert the primitive vectors into the reciprocal base vectors. Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) in the same orthonormal base. Examples     >>> import torch >>> from laueimproc.diffraction.reciprocal import primitive_to_reciprocal >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_reciprocal(primitive) tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00], [ 9.6225e+08, 3.0387e+09, -0.0000e+00], [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.reciprocal_to_primitive",
-"url":68,
+"url":69,
 "doc":"Convert the reciprocal vectors into the primitive base vectors. Parameters      reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) in any orthonormal base. Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in the same orthonormal base.",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.lattice",
-"url":69,
+"url":70,
 "doc":"Link the lattice parameters and the primitive vectors \\(\\mathbf{A}\\)."
 },
 {
 "ref":"laueimproc.diffraction.lattice.lattice_to_primitive",
-"url":69,
+"url":70,
 "doc":"Convert the lattice parameters into primitive vectors.  image  / / /build/media/IMGLatticeBc.avif :width: 256 Parameters      lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\). Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) of shape ( ., 3, 3) in the base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.diffraction.lattice import lattice_to_primitive >>> lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2 torch.pi/3]) >>> lattice_to_primitive(lattice)  quartz lattice tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17], [ 0.0000e+00, 3.2909e-10, 8.6603e-10], [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.lattice.primitive_to_lattice",
-"url":69,
+"url":70,
 "doc":"Convert the primitive vectors to the lattice parameters.  image  / / /build/media/IMGLattice.avif :width: 256 Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\). Notes   - We have  primitive_to_lattice(lattice_to_primitive(lattice  lattice , but it is not the case for the composition inverse because the numerical value of \\(\\mathbf{A}\\) is base dependent. Examples     >>> import torch >>> from laueimproc.diffraction.lattice import primitive_to_lattice >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_lattice(primitive)  quartz lattice tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00]) >>>",
-"func":1
-},
-{
-"ref":"laueimproc.diffraction.bragg",
-"url":70,
-"doc":"Simulation of the bragg diffraction."
-},
-{
-"ref":"laueimproc.diffraction.bragg.get_energy",
-"url":70,
-"doc":"Thanks to the bragg relation, compute the energy of each diffracted ray. Parameters      reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) of shape ( r, 3, 3) in the lab base \\(\\mathcal{B^l}\\). hkl : torch.Tensor The h, k, l indices of shape ( n, 3) we want to mesure. Returns    - enery : torch.Tensor The energy of each ray in J as a tensor of shape ( n,  r).",
-"func":1
-},
-{
-"ref":"laueimproc.diffraction.bragg.ui_to_uq",
-"url":70,
-"doc":"Simulate a complete bragg diffraction. Parameters      reciprocal : torch.Tensor The reciprocal 3d column vectors (e1 , e2 , e3 ) of shape ( ., 3, 3) in the orthonormal base (x, y, z). max_hkl : int, default = 10 The max number of node taken in the reciprocal space. It is assumed to be a pathetic approximation of the diffraction conditions. Returns    - uq : torch.Tensor All the diffracting plane normal vector of shape ( ., n, 3), with n <= (2 max_hkl + 1) 3.",
 "func":1
 },
 {
@@ -2506,19 +2597,54 @@ INDEX=[
 "func":1
 },
 {
-"ref":"laueimproc.convention",
+"ref":"laueimproc.diffraction.bragg",
 "url":72,
+"doc":"Simulation of the bragg diffraction."
+},
+{
+"ref":"laueimproc.diffraction.bragg.reciprocal_hkl_to_energy",
+"url":72,
+"doc":"Alias to  laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy .",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.bragg.reciprocal_hkl_to_uq",
+"url":72,
+"doc":"Alias to  laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy .",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy",
+"url":72,
+"doc":"Thanks to the bragg relation, compute the energy of each diffracted ray. The incidient ray \\(u_i\\) is assumed to be \\(\\mathbf{L_1}\\), ie \\([0, 0, 1]\\) in the lab base \\(\\mathcal{B^l}\\). Parameters      reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) of shape ( r, 3, 3) in the lab base \\(\\mathcal{B^l}\\). hkl : torch.Tensor The h, k, l indices of shape ( n, 3) we want to mesure. Returns    - uq : torch.Tensor All the unitary diffracting plane normal vector of shape ( r,  n, 3). The vectors are expressed in the same base as the reciprocal space. enery : torch.Tensor The energy of each ray in J as a tensor of shape ( r,  n). \\(\\begin{cases} E = \\frac{hc}{\\lambda}  \\lambda = 2d\\sin(\\theta)  \\sin(\\theta) = \\left| \\langle u_i, u_q \\langle \\right|  \\end{cases}\\) Examples     >>> import torch >>> from laueimproc.diffraction.bragg import reciprocal_hkl_to_uq_energy >>> reciprocal = torch.torch.tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00],  . [ 9.6225e+08, 3.0387e+09, -0.0000e+00],  . [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>> hkl = torch.tensor([1, 2, -1]) >>> u_q, energy = reciprocal_hkl_to_uq_energy(reciprocal, hkl) >>> u_q tensor([ 0.1798, 0.7595, -0.6252]) >>> 6.24e18  energy  convertion J -> eV tensor(9200.6816) >>>",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.bragg.uf_to_uq",
+"url":72,
+"doc":"Calculate the vector normal to the diffracting planes. Bijection of  uq_to_uf . \\(u_q \\propto u_f - u_i\\) Parameters      u_f : torch.Tensor The normalized diffracted rays of shape ( ., 3). Returns    - u_q : torch.Tensor The normalized normals of shape ( ., 3).",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.bragg.uq_to_uf",
+"url":72,
+"doc":"Calculate the diffracted ray from q vector. Bijection of  uf_to_uq . \\(\\begin{cases} u_f - u_i = \\eta u_q  \\eta = 2 \\langle u_q, -u_i \\rightangle  \\end{cases}\\) Parameters      u_q : torch.Tensor The normalized q vectors of shape ( ., 3). Returns    - u_f : torch.Tensor The normalized diffracted ray of shape ( ., 3). Notes   -  \\(u_f\\) is not sensitive to the \\(u_q\\) orientation.",
+"func":1
+},
+{
+"ref":"laueimproc.convention",
+"url":73,
 "doc":"Provide tools for switching convention. The two conventions supported are:   ij : Extension by continuity (N -> R) of the numpy convention (height, width). The first axis iterates on lines from top to bottom, the second on columns from left to right. In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel. It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).   xy : A transposition and a translation of the origin of the  ij convention. The first axis iterates on columns from left to right, the second on lines from top to bottom. In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.  image  / /build/media/IMGConvIJXY.avif :width: 256"
 },
 {
 "ref":"laueimproc.convention.ij_to_xy",
-"url":72,
+"url":73,
 "doc":"Switch the axis i and j, and append 1/2 to all values. Parameters      array : torch.Tensor or np.ndarray The data in ij convention. i, j : tuple, int, slice or Ellipsis The indexing of the i subdata and j subdata. Returns    - array : torch.Tensor or np.ndarray A reference to the ij_array, with the axis converted in xy convention. Notes   - Input and output data are shared in place. Examples     >>> import torch >>> from laueimproc.convention import ij_to_xy >>> array = torch.zeros 10, 2 >>> array[:, 0] = torch.linspace(0, 1, 10)  i axis >>> array[:, 1] = torch.linspace(2, 1, 10)  j axis >>> array tensor( 0.0000, 2.0000], [0.1111, 1.8889], [0.2222, 1.7778], [0.3333, 1.6667], [0.4444, 1.5556], [0.5556, 1.4444], [0.6667, 1.3333], [0.7778, 1.2222], [0.8889, 1.1111], [1.0000, 1.0000 ) >>> ij_to_xy(array, i=( ., 0), j=( ., 1 tensor( 2.5000, 0.5000], [2.3889, 0.6111], [2.2778, 0.7222], [2.1667, 0.8333], [2.0556, 0.9444], [1.9444, 1.0556], [1.8333, 1.1667], [1.7222, 1.2778], [1.6111, 1.3889], [1.5000, 1.5000 ) >>> _ is array  inplace True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.convention.ij_to_xy_decorator",
-"url":72,
+"url":73,
 "doc":"Append the argument conv to a function to allow user switching convention.",
 "func":1
 }

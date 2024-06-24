@@ -98,7 +98,7 @@ def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool = True, theta: bool = True) -
     Returns
     -------
     eigtheta : torch.Tensor
-        The concatenation of the eigenvalues and theta
+        The concatenation of the eigenvalues and theta in counterclockwise (trigo).
         \( \left[ \lambda_1, \lambda_2, \theta \right] \) of shape (..., 3) such that:
         \(\begin{cases}
             \lambda_1 &gt;= \lambda_2 &gt; 0 \\
@@ -434,7 +434,7 @@ with <span><span class="MathJax_Preview">\begin{cases}
 <dl>
 <dt><strong><code>eigtheta</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>
-<p>The concatenation of the eigenvalues and theta
+<p>The concatenation of the eigenvalues and theta in counterclockwise (trigo).
 <span><span class="MathJax_Preview"> \left[ \lambda_1, \lambda_2, \theta \right] </span><script type="math/tex"> \left[ \lambda_1, \lambda_2, \theta \right] </script></span> of shape (&hellip;, 3) such that:
 <span><span class="MathJax_Preview">\begin{cases}
 \lambda_1 &gt;= \lambda_2 &gt; 0 \\
@@ -567,7 +567,7 @@ torch is 3.87 times slowler
     Returns
     -------
     eigtheta : torch.Tensor
-        The concatenation of the eigenvalues and theta
+        The concatenation of the eigenvalues and theta in counterclockwise (trigo).
         \( \left[ \lambda_1, \lambda_2, \theta \right] \) of shape (..., 3) such that:
         \(\begin{cases}
             \lambda_1 &gt;= \lambda_2 &gt; 0 \\

@@ -34,9 +34,9 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
     * peak_fwaxmin : float
         Same as peak_fwaxmaj along the secondary axis.
     * peak_inclination : float
-        The angle between the horizontal axis (i) and the main pca axis of the spot.
+        The angle between the vertical axis (i) and the main pca axis of the spot.
         The angle is defined in clockwise (-trigo_angle(i, j)) in order to give a positive angle
-        when we plot the image and when we have a vien in the physician base (-j, i).
+        when we plot the image and when we have a view in the physician base (-j, i).
         The angle is defined between -90 and 90 degrees.
     * Xdev : float
         The difference between the position of the gaussian and the baricenter

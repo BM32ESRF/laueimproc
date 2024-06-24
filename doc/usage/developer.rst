@@ -136,9 +136,3 @@ Trash
 -----
 
 If it segfault, maybe the problem comes from c-files, you can delete it with ``find laueimproc/ -name *.so -exec rm {} \;``.
-
-
-Pour installer xypython
-Les liens https://gist.github.com/oleksis/f897d0b186bcc30b29b6ac7ef65320ed
-puis https://askubuntu.com/questions/1330171/how-to-install-wxpython-under-an-alternative-python-version
-sont utiles, adapter la commande git à https://extras.wxpython.org/wxPython4/extras/linux/gtk3/

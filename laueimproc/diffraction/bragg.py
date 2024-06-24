@@ -44,9 +44,9 @@ def reciprocal_hkl_to_uq_energy(
     enery : torch.Tensor
         The energy of each ray in J as a tensor of shape (*r, *n).
         \(\begin{cases}
-            E = \frac{h.c}{\lambda} \\
-            \lambda = 2.d.\sin(\theta) \\
-            \sin(\theta) = |<u_i, u_q>| \\
+            E = \frac{hc}{\lambda} \\
+            \lambda = 2d\sin(\theta) \\
+            \sin(\theta) = \left| \langle u_i, u_q \langle \right| \\
         \end{cases}\)
 
     Examples
@@ -90,6 +90,69 @@ def reciprocal_hkl_to_uq_energy(
         u_q = u_q * torch.rsqrt(inv_d_square)
 
     return u_q, enery
+
+
+def uf_to_uq(u_f: torch.Tensor) -> torch.Tensor:
+    r"""Calculate the vector normal to the diffracting planes.
+
+    Bijection of ``uq_to_uf``.
+
+    \(u_q \propto u_f - u_i\)
+
+    Parameters
+    ----------
+    u_f : torch.Tensor
+        The normalized diffracted rays of shape (..., 3).
+
+    Returns
+    -------
+    u_q : torch.Tensor
+        The normalized normals of shape (..., 3).
+    """
+    assert isinstance(u_f, torch.Tensor), u_f.__class__.__name__
+    assert u_f.shape[-1:] == (3,), u_f.shape
+
+    u_q = u_f.clone()
+    u_q[..., 2] -= 1.0  # uf - ui
+    norm = torch.sum(u_q * u_q, dim=-1, keepdim=True)
+    # eps = torch.finfo(u_q.dtype).eps  # to solve case no deviation
+    # norm[norm <= eps] = torch.inf  # to solve case no deviation
+    u_q = u_q * torch.rsqrt(norm)
+    return u_q
+
+
+def uq_to_uf(u_q: torch.Tensor) -> torch.Tensor:
+    r"""Calculate the diffracted ray from q vector.
+
+    Bijection of ``uf_to_uq``.
+
+    \(\begin{cases}
+        u_f - u_i = \eta u_q \\
+        \eta = 2 \langle u_q, -u_i \rightangle \\
+    \end{cases}\)
+
+    Parameters
+    ----------
+    u_q : torch.Tensor
+        The normalized q vectors of shape (..., 3).
+
+    Returns
+    -------
+    u_f : torch.Tensor
+        The normalized diffracted ray of shape (..., 3).
+
+    Notes
+    -----
+    * \(u_f\) is not sensitive to the \(u_q\) orientation.
+    """
+    assert isinstance(u_q, torch.Tensor), u_q.__class__.__name__
+    assert u_q.shape[-1:] == (3,), u_q.shape
+
+    uq_dot_ui = u_q[..., 2]  # -<uq, -ui>
+    q_norm = -2.0 * uq_dot_ui
+    u_f = q_norm.unsqueeze(-1) * u_q
+    u_f[..., 2] += 1.0  # eta * uq + ui
+    return u_f
 
 
 def _select_all_hkl(max_hkl: int, dtype: torch.dtype) -> torch.Tensor:

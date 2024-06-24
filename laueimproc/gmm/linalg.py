@@ -68,7 +68,7 @@ def cov2d_to_eigtheta(cov: torch.Tensor, eig: bool = True, theta: bool = True) -
     Returns
     -------
     eigtheta : torch.Tensor
-        The concatenation of the eigenvalues and theta
+        The concatenation of the eigenvalues and theta in counterclockwise (trigo).
         \( \left[ \lambda_1, \lambda_2, \theta \right] \) of shape (..., 3) such that:
         \(\begin{cases}
             \lambda_1 >= \lambda_2 > 0 \\

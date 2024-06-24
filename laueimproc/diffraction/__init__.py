@@ -26,13 +26,17 @@ https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png
     in an orthonormal base.
 """
 
-from .bragg import reciprocal_hkl_to_energy, reciprocal_hkl_to_uq, reciprocal_hkl_to_uq_energy
+from .bragg import (
+    reciprocal_hkl_to_energy, reciprocal_hkl_to_uq, reciprocal_hkl_to_uq_energy,
+    uf_to_uq, uq_to_uf,
+)
 from .lattice import lattice_to_primitive, primitive_to_lattice
 from .reciprocal import primitive_to_reciprocal, reciprocal_to_primitive
 
 
 __all__ = [
     "reciprocal_hkl_to_energy", "reciprocal_hkl_to_uq", "reciprocal_hkl_to_uq_energy",
+    "uf_to_uq", "uq_to_uf",
     "lattice_to_primitive", "primitive_to_lattice",
     "primitive_to_reciprocal", "reciprocal_to_primitive",
 ]
