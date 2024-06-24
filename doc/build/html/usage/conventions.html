@@ -72,10 +72,10 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#crystalography">Crystalography</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#lattice-parameters">Lattice parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lattice-parameters">Lattice Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reciprocal-space">Reciprocal Space</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#projection-in-cristal-base">Projection in cristal base</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="developer.html">Developer’s Guide</a></li>
@@ -140,8 +140,9 @@
 </section>
 <section id="crystalography">
 <h2>Crystalography<a class="headerlink" href="#crystalography" title="Link to this heading"></a></h2>
+<p>All functions are available in the <a class="reference external" href="../../laueimproc/diffraction.html">laueimproc.diffraction</a> module.</p>
 <section id="lattice-parameters">
-<h3>Lattice parameters<a class="headerlink" href="#lattice-parameters" title="Link to this heading"></a></h3>
+<h3>Lattice Parameters<a class="headerlink" href="#lattice-parameters" title="Link to this heading"></a></h3>
 <p>As shown in the figure below, the parameters a, b, c, alpha, gamma and beta are such that:</p>
 <ul class="simple">
 <li><p>$&lt;e_1, e_2&gt; = cos(alpha)$</p></li>
@@ -149,10 +150,6 @@
 <li><p>$&lt;e_1, e_2&gt; = cos(gamma)$</p></li>
 </ul>
 <a class="reference internal image-reference" href="../_images/IMGLattice.avif"><img alt="lattice parameters" src="../_images/IMGLattice.avif" style="width: 512px;" /></a>
-</section>
-</section>
-<section id="projection-in-cristal-base">
-<h2>Projection in cristal base<a class="headerlink" href="#projection-in-cristal-base" title="Link to this heading"></a></h2>
 <p>Here is the convention adopted for projecting the primitive vectors $e_1$, $e_2$ and $e_3$
 into the orthonormal base of the christal $C_1$, $C_2$ and $C_3$.
 The matrix of the primitive vectors is called $mathbf{A}$ and the base $mathcal{B^c}$.</p>
@@ -160,6 +157,13 @@ The matrix of the primitive vectors is called $mathbf{A}$ and the base $mathcal{
 <li><p>$e_1$ is collinear with $C_1$.</p></li>
 <li><p>$e_2$ in in the plane $C_1, C_2$.</p></li>
 </ul>
+</section>
+<section id="reciprocal-space">
+<h3>Reciprocal Space<a class="headerlink" href="#reciprocal-space" title="Link to this heading"></a></h3>
+<p>Wheter in primitive or reciprocal space, the crystalline mesh is representetd by a 3 x 3 matrix, the concatenation of 3 colums vectors.
+The information carried by these matricies are invariant by rotation. In other words, you can express it in any orthonormal base.</p>
+<p>Let see how works the reciprocal transformation by the example bellow:</p>
+<video controls="True" preload="auto" width="512"><source src="../_images/ANIMPrimitiveReciprocal.webm" type="video/webm">primitive to reciprocal transformation</video></section>
 </section>
 </section>
 

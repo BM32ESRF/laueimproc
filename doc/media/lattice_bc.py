@@ -2,7 +2,7 @@
 from manim import *
 import torch
 
-from laueimproc.diffraction.lattice import lattice_to_primitive
+from laueimproc.diffraction import lattice_to_primitive
 
 config.frame_width = 2.5
 config.frame_height = 2.5
@@ -114,49 +114,31 @@ class ANIMLatticeBc(ThreeDScene):
 
         self.begin_ambient_camera_rotation(20*DEGREES/9, about="theta")
 
-        lattice_a, text = get_lattice(0.8, 0.6, 0.6, PI/2, PI/2, PI/2)
-        self.play(Write(text_ref[0]), run_time=0.5)
-        self.play(ReplacementTransform(lattice_ref, lattice_a), ReplacementTransform(text_ref[0], text[0]), run_time=2)
-        lattice_ref, text_ref = get_lattice(0.6, 0.6, 0.6, PI/2, PI/2, PI/2)
-        self.play(ReplacementTransform(lattice_a, lattice_ref), ReplacementTransform(text[0], text_ref[0]), run_time=1.5)
-        self.remove(text_ref[0])
-
-        lattice_b, text = get_lattice(0.6, 0.8, 0.6, PI/2, PI/2, PI/2)
-        self.play(Write(text_ref[1]), run_time=0.5)
-        self.play(ReplacementTransform(lattice_ref, lattice_b), ReplacementTransform(text_ref[1], text[1]), run_time=2)
-        lattice_ref, text_ref = get_lattice(0.6, 0.6, 0.6, PI/2, PI/2, PI/2)
-        self.play(ReplacementTransform(lattice_b, lattice_ref), ReplacementTransform(text[1], text_ref[1]), run_time=1.5)
-        self.remove(text_ref[1])
-
-        lattice_c, text = get_lattice(0.6, 0.6, 0.8, PI/2, PI/2, PI/2)
-        self.play(Write(text_ref[2]), run_time=0.5)
-        self.play(ReplacementTransform(lattice_ref, lattice_c), ReplacementTransform(text_ref[2], text[2]), run_time=2)
-        lattice_ref, text_ref = get_lattice(0.6, 0.6, 0.6, PI/2, PI/2, PI/2)
-        self.play(ReplacementTransform(lattice_c, lattice_ref), ReplacementTransform(text[2], text_ref[2]), run_time=1.5)
-        self.remove(text_ref[2])
+        for i, lattice in enumerate([
+            (0.8, 0.6, 0.6, PI/2, PI/2, PI/2),
+            (0.6, 0.8, 0.6, PI/2, PI/2, PI/2),
+            (0.6, 0.6, 0.8, PI/2, PI/2, PI/2),
+        ]):
+            lattice_a, text = get_lattice(*lattice)
+            self.play(Write(text_ref[i]), run_time=0.5)
+            self.play(ReplacementTransform(lattice_ref, lattice_a), ReplacementTransform(text_ref[i], text[i]), run_time=2)
+            lattice_ref, text_ref = get_lattice(0.6, 0.6, 0.6, PI/2, PI/2, PI/2)
+            self.play(ReplacementTransform(lattice_a, lattice_ref), ReplacementTransform(text[i], text_ref[i]), run_time=1.5)
+            self.remove(text_ref[i])
 
         self.stop_ambient_camera_rotation(about="theta")
         self.begin_ambient_camera_rotation(-20*DEGREES/9, about="theta")
 
-        lattice_alpha, text = get_lattice(0.6, 0.6, 0.6, 60*DEGREES, PI/2, PI/2)
-        self.play(Write(text_ref[3][0]), Write(text_ref[3][1]), run_time=0.5)
-        self.play(ReplacementTransform(lattice_ref, lattice_alpha), ReplacementTransform(text_ref[3], text[3]), run_time=2)
-        lattice_ref, text_ref = get_lattice(0.6, 0.6, 0.6, PI/2, PI/2, PI/2)
-        self.play(ReplacementTransform(lattice_alpha, lattice_ref), ReplacementTransform(text[3], text_ref[3]), run_time=1.5)
-        self.remove(text_ref[3])
-
-        lattice_beta, text = get_lattice(0.6, 0.6, 0.6, PI/2, 60*DEGREES, PI/2)
-        self.play(Write(text_ref[4][0]), Write(text_ref[4][1]), run_time=0.5)
-        self.play(ReplacementTransform(lattice_ref, lattice_beta), ReplacementTransform(text_ref[4], text[4]), run_time=2)
-        lattice_ref, text_ref = get_lattice(0.6, 0.6, 0.6, PI/2, PI/2, PI/2)
-        self.play(ReplacementTransform(lattice_beta, lattice_ref), ReplacementTransform(text[4], text_ref[4]), run_time=1.5)
-        self.remove(text_ref[4])
-
-        lattice_gamma, text = get_lattice(0.6, 0.6, 0.6, PI/2, PI/2, 60*DEGREES)
-        self.play(Write(text_ref[5][0]), Write(text_ref[5][1]), run_time=0.5)
-        self.play(ReplacementTransform(lattice_ref, lattice_gamma), ReplacementTransform(text_ref[5], text[5]), run_time=2)
-        lattice_ref, text_ref = get_lattice(0.6, 0.6, 0.6, PI/2, PI/2, PI/2)
-        self.play(ReplacementTransform(lattice_gamma, lattice_ref), ReplacementTransform(text[5], text_ref[5]), run_time=1.5)
-        self.remove(text_ref[5])
+        for i, lattice in enumerate([
+            (0.6, 0.6, 0.6, PI/3, PI/2, PI/2),
+            (0.6, 0.6, 0.6, PI/2, PI/3, PI/2),
+            (0.6, 0.6, 0.6, PI/2, PI/2, PI/3),
+        ]):
+            lattice_alpha, text = get_lattice(*lattice)
+            self.play(Write(text_ref[i+3][0]), Write(text_ref[i+3][1]), run_time=0.5)
+            self.play(ReplacementTransform(lattice_ref, lattice_alpha), ReplacementTransform(text_ref[i+3], text[i+3]), run_time=2)
+            lattice_ref, text_ref = get_lattice(0.6, 0.6, 0.6, PI/2, PI/2, PI/2)
+            self.play(ReplacementTransform(lattice_alpha, lattice_ref), ReplacementTransform(text[i+3], text_ref[i+3]), run_time=1.5)
+            self.remove(text_ref[i+3])
 
         self.stop_ambient_camera_rotation(about="theta")

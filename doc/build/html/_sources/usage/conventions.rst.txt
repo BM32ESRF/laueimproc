@@ -46,7 +46,9 @@ In a more general case, you can use the function `ij_to_xy <../../laueimproc/con
 Crystalography
 --------------
 
-Lattice parameters
+All functions are available in the `laueimproc.diffraction <../../laueimproc/diffraction.html>`_ module.
+
+Lattice Parameters
 ^^^^^^^^^^^^^^^^^^
 
 As shown in the figure below, the parameters a, b, c, alpha, gamma and beta are such that:
@@ -59,9 +61,6 @@ As shown in the figure below, the parameters a, b, c, alpha, gamma and beta are 
     :alt: lattice parameters
     :width: 512
 
-Projection in cristal base
---------------------------
-
 Here is the convention adopted for projecting the primitive vectors $e_1$, $e_2$ and $e_3$
 into the orthonormal base of the christal $C_1$, $C_2$ and $C_3$.
 The matrix of the primitive vectors is called $\mathbf{A}$ and the base $\mathcal{B^c}$.
@@ -72,3 +71,15 @@ The matrix of the primitive vectors is called $\mathbf{A}$ and the base $\mathca
 
 * $e_1$ is collinear with $C_1$.
 * $e_2$ in in the plane $C_1, C_2$.
+
+Reciprocal Space
+^^^^^^^^^^^^^^^^
+
+Wheter in primitive or reciprocal space, the crystalline mesh is representetd by a 3 x 3 matrix, the concatenation of 3 colums vectors.
+The information carried by these matricies are invariant by rotation. In other words, you can express it in any orthonormal base.
+
+Let see how works the reciprocal transformation by the example bellow:
+
+.. video:: /build/media/ANIMPrimitiveReciprocal.webm
+    :alt: primitive to reciprocal transformation
+    :width: 512

@@ -46,7 +46,7 @@ def lattice_to_primitive(lattice: torch.Tensor) -> torch.Tensor:
     return torch.cat([
         lat_a.unsqueeze(-1),  # e1_c1
         (lat_b * cos_gamma).unsqueeze(-1),  # e2_c1
-        (lat_c * cos_beta).unsqueeze(-1),  # e2_c1
+        (lat_c * cos_beta).unsqueeze(-1),  # e3_c1
         zero.unsqueeze(-1),  # e1_c2
         (lat_b * sin_gamma).unsqueeze(-1),  # e2_c2
         (lat_c * e3_c2).unsqueeze(-1),  # e3_c2

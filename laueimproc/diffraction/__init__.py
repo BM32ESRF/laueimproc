@@ -12,7 +12,7 @@ Bases
 * \(\mathcal{B^s}\): The orthonormal base of the sample
     \([\mathbf{S_1}, \mathbf{S_2}, \mathbf{S_3}]\).
 * \(\mathcal{B^l}\): The orthonormal base of the lab
-    \([\mathbf{X_1}, \mathbf{X_2}, \mathbf{X_3}]\) in pyfai.
+    \([\mathbf{L_1}, \mathbf{L_2}, \mathbf{L_3}]\) in pyfai.
 
 Lattice parameters
 ------------------
@@ -20,15 +20,19 @@ Lattice parameters
 https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png
 
 * \([a, b, c, \alpha, \beta, \gamma]\): The latice parameters.
-* \(\mathbf{A}\): The column vectors \([\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]\)
-    in the base \(\mathcal{B^c}\).
-* \(\mathbf{B}\): The column vectors \([\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]\)
-    in the base \(\mathcal{B^c}\).
+* \(\mathbf{A}\): The primitive column vectors \([\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]\)
+    in an orthonormal base.
+* \(\mathbf{B}\): The reciprocal column vectors \([\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]\)
+    in an orthonormal base.
 """
 
+from .bragg import reciprocal_hkl_to_energy, reciprocal_hkl_to_uq, reciprocal_hkl_to_uq_energy
 from .lattice import lattice_to_primitive, primitive_to_lattice
+from .reciprocal import primitive_to_reciprocal, reciprocal_to_primitive
 
 
 __all__ = [
-    lattice_to_primitive, primitive_to_lattice
+    "reciprocal_hkl_to_energy", "reciprocal_hkl_to_uq", "reciprocal_hkl_to_uq_energy",
+    "lattice_to_primitive", "primitive_to_lattice",
+    "primitive_to_reciprocal", "reciprocal_to_primitive",
 ]

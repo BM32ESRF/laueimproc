@@ -40,7 +40,7 @@ def test_jac_primitive_to_lattice():
 
 def test_bij_lattice_to_primitive_to_lattice():
     """Test is the transformation is reverible."""
-    lattice = torch.empty(1000, 6)
+    lattice = torch.empty(1000, 6, dtype=torch.float64)
     lattice[..., :3] = (1.0 - 0.2) * torch.rand(len(lattice), 3) + 0.1
     lattice[..., 4:] = (1.0 - 0.2) * torch.pi * torch.rand(len(lattice), 2) + 0.1
     alpha_max = torch.acos(torch.cos(lattice[..., 4]) * torch.cos(lattice[..., 5]))
