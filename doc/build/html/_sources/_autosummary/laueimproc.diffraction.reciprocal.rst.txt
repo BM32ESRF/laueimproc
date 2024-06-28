@@ -1,0 +1,30 @@
+laueimproc.diffraction.reciprocal
+=================================
+
+.. automodule:: laueimproc.diffraction.reciprocal
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      primitive_to_reciprocal
+      reciprocal_to_primitive
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

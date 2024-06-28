@@ -1,0 +1,30 @@
+laueimproc.diffraction.projection
+=================================
+
+.. automodule:: laueimproc.diffraction.projection
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      detector_to_ray
+      ray_to_detector
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

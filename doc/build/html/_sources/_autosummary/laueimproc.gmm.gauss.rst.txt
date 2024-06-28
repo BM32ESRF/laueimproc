@@ -1,0 +1,30 @@
+laueimproc.gmm.gauss
+====================
+
+.. automodule:: laueimproc.gmm.gauss
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      gauss
+      gauss2d
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

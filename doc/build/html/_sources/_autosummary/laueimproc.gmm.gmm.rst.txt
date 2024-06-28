@@ -1,0 +1,32 @@
+laueimproc.gmm.gmm
+==================
+
+.. automodule:: laueimproc.gmm.gmm
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      gmm2d
+      gmm2d_and_jac
+      mse_cost
+      mse_cost_and_grad
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

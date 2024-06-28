@@ -27,16 +27,24 @@ https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png
 """
 
 from .bragg import (
-    reciprocal_hkl_to_energy, reciprocal_hkl_to_uq, reciprocal_hkl_to_uq_energy,
+    hkl_reciprocal_to_energy, hkl_reciprocal_to_uq, hkl_reciprocal_to_uq_energy,
     uf_to_uq, uq_to_uf,
 )
+from .hkl import select_hkl
 from .lattice import lattice_to_primitive, primitive_to_lattice
+from .metric import compute_matching_rate
+from .projection import detector_to_ray, ray_to_detector
 from .reciprocal import primitive_to_reciprocal, reciprocal_to_primitive
+from .rotation import angle_to_rot, rotate_cristal
 
 
 __all__ = [
-    "reciprocal_hkl_to_energy", "reciprocal_hkl_to_uq", "reciprocal_hkl_to_uq_energy",
+    "hkl_reciprocal_to_energy", "hkl_reciprocal_to_uq", "hkl_reciprocal_to_uq_energy",
     "uf_to_uq", "uq_to_uf",
+    "select_hkl",
     "lattice_to_primitive", "primitive_to_lattice",
+    "compute_matching_rate",
+    "detector_to_ray", "ray_to_detector",
     "primitive_to_reciprocal", "reciprocal_to_primitive",
+    "angle_to_rot", "rotate_cristal",
 ]

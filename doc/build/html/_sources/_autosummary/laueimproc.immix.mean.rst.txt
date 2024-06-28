@@ -1,0 +1,29 @@
+laueimproc.immix.mean
+=====================
+
+.. automodule:: laueimproc.immix.mean
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      mean_stack
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

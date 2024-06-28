@@ -47,11 +47,11 @@ URLS=[
 "laueimproc/testing/coding_style.html",
 "laueimproc/testing/tests/index.html",
 "laueimproc/testing/tests/set_spots.html",
-"laueimproc/testing/tests/rois.html",
 "laueimproc/testing/tests/inter_batch.html",
 "laueimproc/testing/tests/reciprocal.html",
 "laueimproc/testing/tests/lattice.html",
 "laueimproc/testing/tests/bragg.html",
+"laueimproc/testing/tests/projection.html",
 "laueimproc/testing/run.html",
 "laueimproc/nn/index.html",
 "laueimproc/nn/dataaug/index.html",
@@ -72,6 +72,10 @@ URLS=[
 "laueimproc/diffraction/lattice.html",
 "laueimproc/diffraction/reciprocal.html",
 "laueimproc/diffraction/bragg.html",
+"laueimproc/diffraction/rotation.html",
+"laueimproc/diffraction/hkl.html",
+"laueimproc/diffraction/metric.html",
+"laueimproc/diffraction/projection.html",
 "laueimproc/convention.html"
 ];
 INDEX=[
@@ -2012,166 +2016,190 @@ INDEX=[
 "func":1
 },
 {
-"ref":"laueimproc.testing.tests.rois",
-"url":48,
-"doc":"Test the c rois optimisation."
-},
-{
-"ref":"laueimproc.testing.tests.rois.test_memory_imgbboxes2raw",
-"url":48,
-"doc":"Test imgbboxes2raw memory leak.",
-"func":1
-},
-{
-"ref":"laueimproc.testing.tests.rois.test_memory_filter_by_indices",
-"url":48,
-"doc":"Test imgbboxes2raw memory leak.",
-"func":1
-},
-{
 "ref":"laueimproc.testing.tests.inter_batch",
-"url":49,
+"url":48,
 "doc":"Test the median function."
 },
 {
 "ref":"laueimproc.testing.tests.inter_batch.test_tol_random",
-"url":49,
+"url":48,
 "doc":"Create a random dataset, and compute the median.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.reciprocal",
-"url":50,
+"url":49,
 "doc":"Test the convertion between primitive and reciprocal."
 },
 {
 "ref":"laueimproc.testing.tests.reciprocal.test_batch_primitive_to_reciprocal",
-"url":50,
+"url":49,
 "doc":"Tests batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.reciprocal.test_jac_primitive_to_reciprocal",
-"url":50,
+"url":49,
 "doc":"Tests compute jacobian.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.reciprocal.test_bij",
-"url":50,
+"url":49,
 "doc":"Test is the transformation is reversible.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.lattice",
-"url":51,
+"url":50,
 "doc":"Test the convertion between lattice and primitive space."
 },
 {
 "ref":"laueimproc.testing.tests.lattice.test_batch_lattice_to_primitive",
-"url":51,
+"url":50,
 "doc":"Tests batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.lattice.test_jac_lattice_to_primitive",
-"url":51,
+"url":50,
 "doc":"Tests compute jacobian.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.lattice.test_batch_primitive_to_lattice",
-"url":51,
+"url":50,
 "doc":"Tests batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.lattice.test_jac_primitive_to_lattice",
-"url":51,
+"url":50,
 "doc":"Tests compute jacobian.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.lattice.test_bij_lattice_to_primitive_to_lattice",
-"url":51,
+"url":50,
 "doc":"Test is the transformation is reverible.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg",
-"url":52,
+"url":51,
 "doc":"Test the function of bragg diffraction."
 },
 {
-"ref":"laueimproc.testing.tests.bragg.test_batch_reciprocal_hkl_to_energy",
-"url":52,
+"ref":"laueimproc.testing.tests.bragg.test_batch_hkl_reciprocal_to_energy",
+"url":51,
 "doc":"Test batch dimension.",
 "func":1
 },
 {
-"ref":"laueimproc.testing.tests.bragg.test_batch_reciprocal_hkl_to_uq",
-"url":52,
+"ref":"laueimproc.testing.tests.bragg.test_batch_hkl_reciprocal_to_uq",
+"url":51,
 "doc":"Test batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_batch_uf_to_uq",
-"url":52,
+"url":51,
 "doc":"Test batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_batch_uq_to_uf",
-"url":52,
+"url":51,
 "doc":"Test batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_bij_uf_to_uq_to_uf",
-"url":52,
+"url":51,
 "doc":"Test uf -> uq -> uf = uf.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_bij_uq_to_uf_to_uq",
-"url":52,
+"url":51,
 "doc":"Test uq -> uf -> uq = uq.",
 "func":1
 },
 {
-"ref":"laueimproc.testing.tests.bragg.test_jac_reciprocal_hkl_to_energy",
-"url":52,
+"ref":"laueimproc.testing.tests.bragg.test_jac_hkl_reciprocal_to_energy",
+"url":51,
 "doc":"Test compute jacobian.",
 "func":1
 },
 {
-"ref":"laueimproc.testing.tests.bragg.test_jac_reciprocal_hkl_to_uq",
-"url":52,
+"ref":"laueimproc.testing.tests.bragg.test_jac_hkl_reciprocal_to_uq",
+"url":51,
 "doc":"Test compute jacobian.",
 "func":1
 },
 {
-"ref":"laueimproc.testing.tests.bragg.test_normalization_reciprocal_hkl_to_uq",
-"url":52,
+"ref":"laueimproc.testing.tests.bragg.test_normalization_hkl_reciprocal_to_uq",
+"url":51,
 "doc":"Test norm is 1.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_normalization_uf_to_uq",
-"url":52,
+"url":51,
 "doc":"Test norm is 1.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_normalization_uq_to_uf",
-"url":52,
+"url":51,
 "doc":"Test norm is 1.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_sign_uq",
-"url":52,
+"url":51,
 "doc":"Test uf is not sensitive to the uq orientation.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.projection",
+"url":52,
+"doc":"Test the convertion between ray and detector position."
+},
+{
+"ref":"laueimproc.testing.tests.projection.test_batch_detector_to_ray",
+"url":52,
+"doc":"Tests batch dimension.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.projection.test_batch_ray_to_detector",
+"url":52,
+"doc":"Tests batch dimension.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.projection.test_bij_ray_to_point_to_ray",
+"url":52,
+"doc":"Test ray -> point -> ray = ray.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.projection.test_jac_detector_to_ray",
+"url":52,
+"doc":"Tests compute jacobian.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.projection.test_jac_ray_to_detector",
+"url":52,
+"doc":"Tests compute jacobian.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.tests.projection.test_normalization_detector_to_ray",
+"url":52,
+"doc":"Test norm is 1.",
 "func":1
 },
 {
@@ -2509,21 +2537,21 @@ INDEX=[
 "doc":"Implement the Bragg diffraction rules. https: www.silx.org/doc/pyFAI/latest/geometry.html detector-position Bases   -  \\(\\mathcal{B^c}\\): The orthonormal base of the cristal \\([\\mathbf{C_1}, \\mathbf{C_2}, \\mathbf{C_3}]\\).  \\(\\mathcal{B^s}\\): The orthonormal base of the sample \\([\\mathbf{S_1}, \\mathbf{S_2}, \\mathbf{S_3}]\\).  \\(\\mathcal{B^l}\\): The orthonormal base of the lab \\([\\mathbf{L_1}, \\mathbf{L_2}, \\mathbf{L_3}]\\) in pyfai. Lattice parameters          https: en.wikipedia.org/wiki/Lattice_constant /media/File:UnitCell.png  \\([a, b, c, \\alpha, \\beta, \\gamma]\\): The latice parameters.  \\(\\mathbf{A}\\): The primitive column vectors \\([\\mathbf{e_1}, \\mathbf{e_2}, \\mathbf{e_3}]\\) in an orthonormal base.  \\(\\mathbf{B}\\): The reciprocal column vectors \\([\\mathbf{e_1^ }, \\mathbf{e_2^ }, \\mathbf{e_3^ }]\\) in an orthonormal base."
 },
 {
-"ref":"laueimproc.diffraction.reciprocal_hkl_to_energy",
+"ref":"laueimproc.diffraction.hkl_reciprocal_to_energy",
 "url":69,
-"doc":"Alias to  laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy .",
+"doc":"Alias to  laueimproc.diffraction.bragg.hkl_reciprocal_to_uq_energy .",
 "func":1
 },
 {
-"ref":"laueimproc.diffraction.reciprocal_hkl_to_uq",
+"ref":"laueimproc.diffraction.hkl_reciprocal_to_uq",
 "url":69,
-"doc":"Alias to  laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy .",
+"doc":"Alias to  laueimproc.diffraction.bragg.hkl_reciprocal_to_uq_energy .",
 "func":1
 },
 {
-"ref":"laueimproc.diffraction.reciprocal_hkl_to_uq_energy",
+"ref":"laueimproc.diffraction.hkl_reciprocal_to_uq_energy",
 "url":69,
-"doc":"Thanks to the bragg relation, compute the energy of each diffracted ray. The incidient ray \\(u_i\\) is assumed to be \\(\\mathbf{L_1}\\), ie \\([0, 0, 1]\\) in the lab base \\(\\mathcal{B^l}\\). Parameters      reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) of shape ( r, 3, 3) in the lab base \\(\\mathcal{B^l}\\). hkl : torch.Tensor The h, k, l indices of shape ( n, 3) we want to mesure. Returns    - uq : torch.Tensor All the unitary diffracting plane normal vector of shape ( r,  n, 3). The vectors are expressed in the same base as the reciprocal space. enery : torch.Tensor The energy of each ray in J as a tensor of shape ( r,  n). \\(\\begin{cases} E = \\frac{hc}{\\lambda}  \\lambda = 2d\\sin(\\theta)  \\sin(\\theta) = \\left| \\langle u_i, u_q \\langle \\right|  \\end{cases}\\) Examples     >>> import torch >>> from laueimproc.diffraction.bragg import reciprocal_hkl_to_uq_energy >>> reciprocal = torch.torch.tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00],  . [ 9.6225e+08, 3.0387e+09, -0.0000e+00],  . [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>> hkl = torch.tensor([1, 2, -1]) >>> u_q, energy = reciprocal_hkl_to_uq_energy(reciprocal, hkl) >>> u_q tensor([ 0.1798, 0.7595, -0.6252]) >>> 6.24e18  energy  convertion J -> eV tensor(9200.6816) >>>",
+"doc":"Thanks to the bragg relation, compute the energy of each diffracted ray. The incidient ray \\(u_i\\) is assumed to be \\(\\mathbf{L_1}\\), ie \\([0, 0, 1]\\) in the lab base \\(\\mathcal{B^l}\\). Parameters      hkl : torch.Tensor The h, k, l indices of shape ( n, 3) we want to mesure. reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) of shape ( r, 3, 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - uq : torch.Tensor All the unitary diffracting plane normal vector of shape ( n,  r, 3). The vectors are expressed in the same base as the reciprocal space. energy : torch.Tensor The energy of each ray in J as a tensor of shape ( n,  r). \\(\\begin{cases} E = \\frac{hc}{\\lambda}  \\lambda = 2d\\sin(\\theta)  \\sin(\\theta) = \\left| \\langle u_i, u_q \\rangle \\right|  \\end{cases}\\) Examples     >>> import torch >>> from laueimproc.diffraction.bragg import hkl_reciprocal_to_uq_energy >>> reciprocal = torch.torch.tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00],  . [ 9.6225e+08, 3.0387e+09, -0.0000e+00],  . [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>> hkl = torch.tensor([1, 2, -1]) >>> u_q, energy = hkl_reciprocal_to_uq_energy(hkl, reciprocal) >>> u_q tensor([ 0.1798, 0.7595, -0.6252]) >>> 6.24e18  energy  convertion J -> eV tensor(9200.6816) >>>",
 "func":1
 },
 {
@@ -2535,7 +2563,13 @@ INDEX=[
 {
 "ref":"laueimproc.diffraction.uq_to_uf",
 "url":69,
-"doc":"Calculate the diffracted ray from q vector. Bijection of  uf_to_uq . \\(\\begin{cases} u_f - u_i = \\eta u_q  \\eta = 2 \\langle u_q, -u_i \\rightangle  \\end{cases}\\) Parameters      u_q : torch.Tensor The normalized q vectors of shape ( ., 3). Returns    - u_f : torch.Tensor The normalized diffracted ray of shape ( ., 3). Notes   -  \\(u_f\\) is not sensitive to the \\(u_q\\) orientation.",
+"doc":"Calculate the diffracted ray from q vector. Bijection of  uf_to_uq . \\(\\begin{cases} u_f - u_i = \\eta u_q  \\eta = 2 \\langle u_q, -u_i \\rangle  \\end{cases}\\) Parameters      u_q : torch.Tensor The normalized q vectors of shape ( ., 3). Returns    - u_f : torch.Tensor The normalized diffracted ray of shape ( ., 3). Notes   -  \\(u_f\\) is not sensitive to the \\(u_q\\) orientation.",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.select_hkl",
+"url":69,
+"doc":"Simulate the hkl energy for different rotations, reject out of band indices. Parameters      lattice : torch.Tensor, optional If provided, the lattices parameters \\([a, b, c, \\alpha, \\beta, \\gamma \\) of shape ( ., 6) are used to simulate the hkl energy for a large number of rotation. max_hkl : int The maximum absolute hkl sum such as |h| + |k| + |l| <= max_hkl. e_min : float, optional Indicies that systematicaly have an energy strictely less than  e_min in J are rejected. e_max : float, optional Indicies that systematicaly have an energy strictely greater than  e_max in J are rejected. keep_harmonics : boolean, default=True If False, delete the multiple hkl indicies of the other. In other words, keep only the highest energy armonic. Returns    - hkl : torch.Tensor The int16 hkl of shape (n, 3).",
 "func":1
 },
 {
@@ -2551,6 +2585,24 @@ INDEX=[
 "func":1
 },
 {
+"ref":"laueimproc.diffraction.compute_matching_rate",
+"url":69,
+"doc":"Compute the matching rate. Parameters      exp_uq : torch.Tensor The unitary experimental uq vector of shape ( n, e, 3). theo_uq : torch.Tensor The unitary simulated theorical uq vector of shape ( n, t, 3). phi_max : float The maximum positive angular distance in radian to consider that the rays are closed enough. Returns    - match : torch.Tensor The matching rate of shape n.",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.detector_to_ray",
+"url":69,
+"doc":"Find light ray witch intersected on the detector. Parameters      point : torch.Tensor The 2d point in the referencial of the detector of shape ( p,  r, 2). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p', 6). Returns    - ray : torch.Tensor The unitary rays vectors of shape ( broadcast(p, p'),  r, 3).",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.ray_to_detector",
+"url":69,
+"doc":"Find the intersection of the light ray with the detector. Parameters      ray : torch.Tensor The unitary ray vector of shape ( r, 3). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p, 6). Returns    - point : torch.Tensor The 2d points in the referencial of the detector of shape ( r,  p, 2). dist : torch.Tensor The algebrical distance of the ray between the sample and the detector. a positive value means that the beam crashs on the detector. A negative value means it is moving away. The shape is ( r,  p).",
+"func":1
+},
+{
 "ref":"laueimproc.diffraction.primitive_to_reciprocal",
 "url":69,
 "doc":"Convert the primitive vectors into the reciprocal base vectors. Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) in the same orthonormal base. Examples     >>> import torch >>> from laueimproc.diffraction.reciprocal import primitive_to_reciprocal >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_reciprocal(primitive) tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00], [ 9.6225e+08, 3.0387e+09, -0.0000e+00], [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>>",
@@ -2560,6 +2612,18 @@ INDEX=[
 "ref":"laueimproc.diffraction.reciprocal_to_primitive",
 "url":69,
 "doc":"Convert the reciprocal vectors into the primitive base vectors. Parameters      reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) in any orthonormal base. Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in the same orthonormal base.",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.angle_to_rot",
+"url":69,
+"doc":"Generate a rotation matrix from the given angles. The rotation are following the pyfai convention. Parameters      theta1 : torch.Tensor or float The first rotation angle of shape ( a,). \\( rot_1 = \\begin{pmatrix} 1 & 0 & 0  0 & \\cos(\\theta_1) & -\\sin(\\theta_1)  c & \\sin(\\theta_1) & \\cos(\\theta_1)  \\end{pmatrix} \\) theta2 : torch.Tensor or float The second rotation angle of shape ( b,). \\( rot_2 = \\begin{pmatrix} \\cos(\\theta_2) & 0 & \\sin(\\theta_2)  0 & 1 & 0  -\\sin(\\theta_2) & 0 & \\cos(\\theta_2)  \\end{pmatrix} \\) theta3 : torch.Tensor or float The third rotation angle of shape ( c,). (inverse of pyfai convention) \\( rot_3 = \\begin{pmatrix} \\cos(\\theta_3) & -\\sin(\\theta_3) & 0  \\sin(\\theta_3) & \\cos(\\theta_3) & 0  0 & 0 & 1  \\end{pmatrix} \\) meshgrid : boolean, default=True If set to True, batch all rotation in a different dim, shuch as final dim is ( a,  b,  c, 3, 3). Overwise, apply rotation elementwise and len(a), len(b) and len(c) must be equal such as final dim is ( broadcast(a, b, c), 3, 3). Returns    - rot : torch.Tensor The global rotation \\(rot_3 . rot_2 . rot_1\\). Examples     >>> import torch >>> from laueimproc.diffraction.rotation import angle_to_rot >>> angle_to_rot(theta1=torch.pi/6) tensor( 1.0000, 0.0000, 0.0000], [ 0.0000, 0.8660, -0.5000], [ 0.0000, 0.5000, 0.8660 ) >>> angle_to_rot(theta2=torch.pi/6) tensor( 0.8660, 0.0000, 0.5000], [ 0.0000, 1.0000, 0.0000], [-0.5000, 0.0000, 0.8660 ) >>> angle_to_rot(theta3=torch.pi/6) tensor( 0.8660, -0.5000, 0.0000], [ 0.5000, 0.8660, 0.0000], [ 0.0000, 0.0000, 1.0000 ) >>> angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6) tensor( 0.7500, -0.2165, 0.6250], [ 0.4330, 0.8750, -0.2165], [-0.5000, 0.4330, 0.7500 ) >>> angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9 .shape torch.Size([4, 5, 6, 7, 8, 9, 3, 3]) >>>",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.rotate_cristal",
+"url":69,
+"doc":"Apply an active rotation to the crystal. Parameters      cristal : torch.Tensor The primitive (\\(\\mathbf{A}\\ or reciprocal (\\(\\mathbf{B}\\ in the base \\(\\mathcal{B}\\). The shape of this parameter is ( c, 3, 3). rot : torch.Tensor The active rotation matrix, of shape ( r, 3, 3). Returns    - rotated_cristal: torch.Tensor The batched matricial product  rot @ cristal of shape ( c,  r, 3, 3).",
 "func":1
 },
 {
@@ -2602,21 +2666,21 @@ INDEX=[
 "doc":"Simulation of the bragg diffraction."
 },
 {
-"ref":"laueimproc.diffraction.bragg.reciprocal_hkl_to_energy",
+"ref":"laueimproc.diffraction.bragg.hkl_reciprocal_to_energy",
 "url":72,
-"doc":"Alias to  laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy .",
+"doc":"Alias to  laueimproc.diffraction.bragg.hkl_reciprocal_to_uq_energy .",
 "func":1
 },
 {
-"ref":"laueimproc.diffraction.bragg.reciprocal_hkl_to_uq",
+"ref":"laueimproc.diffraction.bragg.hkl_reciprocal_to_uq",
 "url":72,
-"doc":"Alias to  laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy .",
+"doc":"Alias to  laueimproc.diffraction.bragg.hkl_reciprocal_to_uq_energy .",
 "func":1
 },
 {
-"ref":"laueimproc.diffraction.bragg.reciprocal_hkl_to_uq_energy",
+"ref":"laueimproc.diffraction.bragg.hkl_reciprocal_to_uq_energy",
 "url":72,
-"doc":"Thanks to the bragg relation, compute the energy of each diffracted ray. The incidient ray \\(u_i\\) is assumed to be \\(\\mathbf{L_1}\\), ie \\([0, 0, 1]\\) in the lab base \\(\\mathcal{B^l}\\). Parameters      reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) of shape ( r, 3, 3) in the lab base \\(\\mathcal{B^l}\\). hkl : torch.Tensor The h, k, l indices of shape ( n, 3) we want to mesure. Returns    - uq : torch.Tensor All the unitary diffracting plane normal vector of shape ( r,  n, 3). The vectors are expressed in the same base as the reciprocal space. enery : torch.Tensor The energy of each ray in J as a tensor of shape ( r,  n). \\(\\begin{cases} E = \\frac{hc}{\\lambda}  \\lambda = 2d\\sin(\\theta)  \\sin(\\theta) = \\left| \\langle u_i, u_q \\langle \\right|  \\end{cases}\\) Examples     >>> import torch >>> from laueimproc.diffraction.bragg import reciprocal_hkl_to_uq_energy >>> reciprocal = torch.torch.tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00],  . [ 9.6225e+08, 3.0387e+09, -0.0000e+00],  . [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>> hkl = torch.tensor([1, 2, -1]) >>> u_q, energy = reciprocal_hkl_to_uq_energy(reciprocal, hkl) >>> u_q tensor([ 0.1798, 0.7595, -0.6252]) >>> 6.24e18  energy  convertion J -> eV tensor(9200.6816) >>>",
+"doc":"Thanks to the bragg relation, compute the energy of each diffracted ray. The incidient ray \\(u_i\\) is assumed to be \\(\\mathbf{L_1}\\), ie \\([0, 0, 1]\\) in the lab base \\(\\mathcal{B^l}\\). Parameters      hkl : torch.Tensor The h, k, l indices of shape ( n, 3) we want to mesure. reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) of shape ( r, 3, 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - uq : torch.Tensor All the unitary diffracting plane normal vector of shape ( n,  r, 3). The vectors are expressed in the same base as the reciprocal space. energy : torch.Tensor The energy of each ray in J as a tensor of shape ( n,  r). \\(\\begin{cases} E = \\frac{hc}{\\lambda}  \\lambda = 2d\\sin(\\theta)  \\sin(\\theta) = \\left| \\langle u_i, u_q \\rangle \\right|  \\end{cases}\\) Examples     >>> import torch >>> from laueimproc.diffraction.bragg import hkl_reciprocal_to_uq_energy >>> reciprocal = torch.torch.tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00],  . [ 9.6225e+08, 3.0387e+09, -0.0000e+00],  . [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>> hkl = torch.tensor([1, 2, -1]) >>> u_q, energy = hkl_reciprocal_to_uq_energy(hkl, reciprocal) >>> u_q tensor([ 0.1798, 0.7595, -0.6252]) >>> 6.24e18  energy  convertion J -> eV tensor(9200.6816) >>>",
 "func":1
 },
 {
@@ -2628,23 +2692,85 @@ INDEX=[
 {
 "ref":"laueimproc.diffraction.bragg.uq_to_uf",
 "url":72,
-"doc":"Calculate the diffracted ray from q vector. Bijection of  uf_to_uq . \\(\\begin{cases} u_f - u_i = \\eta u_q  \\eta = 2 \\langle u_q, -u_i \\rightangle  \\end{cases}\\) Parameters      u_q : torch.Tensor The normalized q vectors of shape ( ., 3). Returns    - u_f : torch.Tensor The normalized diffracted ray of shape ( ., 3). Notes   -  \\(u_f\\) is not sensitive to the \\(u_q\\) orientation.",
+"doc":"Calculate the diffracted ray from q vector. Bijection of  uf_to_uq . \\(\\begin{cases} u_f - u_i = \\eta u_q  \\eta = 2 \\langle u_q, -u_i \\rangle  \\end{cases}\\) Parameters      u_q : torch.Tensor The normalized q vectors of shape ( ., 3). Returns    - u_f : torch.Tensor The normalized diffracted ray of shape ( ., 3). Notes   -  \\(u_f\\) is not sensitive to the \\(u_q\\) orientation.",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.rotation",
+"url":73,
+"doc":"Help for making rotation matrix."
+},
+{
+"ref":"laueimproc.diffraction.rotation.angle_to_rot",
+"url":73,
+"doc":"Generate a rotation matrix from the given angles. The rotation are following the pyfai convention. Parameters      theta1 : torch.Tensor or float The first rotation angle of shape ( a,). \\( rot_1 = \\begin{pmatrix} 1 & 0 & 0  0 & \\cos(\\theta_1) & -\\sin(\\theta_1)  c & \\sin(\\theta_1) & \\cos(\\theta_1)  \\end{pmatrix} \\) theta2 : torch.Tensor or float The second rotation angle of shape ( b,). \\( rot_2 = \\begin{pmatrix} \\cos(\\theta_2) & 0 & \\sin(\\theta_2)  0 & 1 & 0  -\\sin(\\theta_2) & 0 & \\cos(\\theta_2)  \\end{pmatrix} \\) theta3 : torch.Tensor or float The third rotation angle of shape ( c,). (inverse of pyfai convention) \\( rot_3 = \\begin{pmatrix} \\cos(\\theta_3) & -\\sin(\\theta_3) & 0  \\sin(\\theta_3) & \\cos(\\theta_3) & 0  0 & 0 & 1  \\end{pmatrix} \\) meshgrid : boolean, default=True If set to True, batch all rotation in a different dim, shuch as final dim is ( a,  b,  c, 3, 3). Overwise, apply rotation elementwise and len(a), len(b) and len(c) must be equal such as final dim is ( broadcast(a, b, c), 3, 3). Returns    - rot : torch.Tensor The global rotation \\(rot_3 . rot_2 . rot_1\\). Examples     >>> import torch >>> from laueimproc.diffraction.rotation import angle_to_rot >>> angle_to_rot(theta1=torch.pi/6) tensor( 1.0000, 0.0000, 0.0000], [ 0.0000, 0.8660, -0.5000], [ 0.0000, 0.5000, 0.8660 ) >>> angle_to_rot(theta2=torch.pi/6) tensor( 0.8660, 0.0000, 0.5000], [ 0.0000, 1.0000, 0.0000], [-0.5000, 0.0000, 0.8660 ) >>> angle_to_rot(theta3=torch.pi/6) tensor( 0.8660, -0.5000, 0.0000], [ 0.5000, 0.8660, 0.0000], [ 0.0000, 0.0000, 1.0000 ) >>> angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6) tensor( 0.7500, -0.2165, 0.6250], [ 0.4330, 0.8750, -0.2165], [-0.5000, 0.4330, 0.7500 ) >>> angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9 .shape torch.Size([4, 5, 6, 7, 8, 9, 3, 3]) >>>",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.rotation.rotate_cristal",
+"url":73,
+"doc":"Apply an active rotation to the crystal. Parameters      cristal : torch.Tensor The primitive (\\(\\mathbf{A}\\ or reciprocal (\\(\\mathbf{B}\\ in the base \\(\\mathcal{B}\\). The shape of this parameter is ( c, 3, 3). rot : torch.Tensor The active rotation matrix, of shape ( r, 3, 3). Returns    - rotated_cristal: torch.Tensor The batched matricial product  rot @ cristal of shape ( c,  r, 3, 3).",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.hkl",
+"url":74,
+"doc":"Help to select the hkl indices."
+},
+{
+"ref":"laueimproc.diffraction.hkl.select_hkl",
+"url":74,
+"doc":"Simulate the hkl energy for different rotations, reject out of band indices. Parameters      lattice : torch.Tensor, optional If provided, the lattices parameters \\([a, b, c, \\alpha, \\beta, \\gamma \\) of shape ( ., 6) are used to simulate the hkl energy for a large number of rotation. max_hkl : int The maximum absolute hkl sum such as |h| + |k| + |l| <= max_hkl. e_min : float, optional Indicies that systematicaly have an energy strictely less than  e_min in J are rejected. e_max : float, optional Indicies that systematicaly have an energy strictely greater than  e_max in J are rejected. keep_harmonics : boolean, default=True If False, delete the multiple hkl indicies of the other. In other words, keep only the highest energy armonic. Returns    - hkl : torch.Tensor The int16 hkl of shape (n, 3).",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.metric",
+"url":75,
+"doc":"Implement some loss functions."
+},
+{
+"ref":"laueimproc.diffraction.metric.raydotdist",
+"url":75,
+"doc":"Compute the scalar product matrix of the rays pairwise. Parameters      ray_point_1 : torch.Tensor The 2d point associated to uf in the referencial of the detector of shape ( n, r1, 2). Could be directly the unitary ray vector uf or uq of shape ( n, r1, 3). ray_point_2 : torch.Tensor The 2d point associated to uf in the referencial of the detector of shape ( n, r2, 2 . Could be directly the unitary ray vector uf or uq of shape ( n, r2, 3). poni : torch.Tensor, optional Only use if the ray are projected points. The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p, 6). Returns    - dist : torch.Tensor The distance matrix \\(\\cos(\\phi)\\) of shape ( n,  p, r1, r2).",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.metric.compute_matching_rate",
+"url":75,
+"doc":"Compute the matching rate. Parameters      exp_uq : torch.Tensor The unitary experimental uq vector of shape ( n, e, 3). theo_uq : torch.Tensor The unitary simulated theorical uq vector of shape ( n, t, 3). phi_max : float The maximum positive angular distance in radian to consider that the rays are closed enough. Returns    - match : torch.Tensor The matching rate of shape n.",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.projection",
+"url":76,
+"doc":"Project rays on a physical or virtual plane."
+},
+{
+"ref":"laueimproc.diffraction.projection.detector_to_ray",
+"url":76,
+"doc":"Find light ray witch intersected on the detector. Parameters      point : torch.Tensor The 2d point in the referencial of the detector of shape ( p,  r, 2). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p', 6). Returns    - ray : torch.Tensor The unitary rays vectors of shape ( broadcast(p, p'),  r, 3).",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.projection.ray_to_detector",
+"url":76,
+"doc":"Find the intersection of the light ray with the detector. Parameters      ray : torch.Tensor The unitary ray vector of shape ( r, 3). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p, 6). Returns    - point : torch.Tensor The 2d points in the referencial of the detector of shape ( r,  p, 2). dist : torch.Tensor The algebrical distance of the ray between the sample and the detector. a positive value means that the beam crashs on the detector. A negative value means it is moving away. The shape is ( r,  p).",
 "func":1
 },
 {
 "ref":"laueimproc.convention",
-"url":73,
+"url":77,
 "doc":"Provide tools for switching convention. The two conventions supported are:   ij : Extension by continuity (N -> R) of the numpy convention (height, width). The first axis iterates on lines from top to bottom, the second on columns from left to right. In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel. It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).   xy : A transposition and a translation of the origin of the  ij convention. The first axis iterates on columns from left to right, the second on lines from top to bottom. In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.  image  / /build/media/IMGConvIJXY.avif :width: 256"
 },
 {
 "ref":"laueimproc.convention.ij_to_xy",
-"url":73,
+"url":77,
 "doc":"Switch the axis i and j, and append 1/2 to all values. Parameters      array : torch.Tensor or np.ndarray The data in ij convention. i, j : tuple, int, slice or Ellipsis The indexing of the i subdata and j subdata. Returns    - array : torch.Tensor or np.ndarray A reference to the ij_array, with the axis converted in xy convention. Notes   - Input and output data are shared in place. Examples     >>> import torch >>> from laueimproc.convention import ij_to_xy >>> array = torch.zeros 10, 2 >>> array[:, 0] = torch.linspace(0, 1, 10)  i axis >>> array[:, 1] = torch.linspace(2, 1, 10)  j axis >>> array tensor( 0.0000, 2.0000], [0.1111, 1.8889], [0.2222, 1.7778], [0.3333, 1.6667], [0.4444, 1.5556], [0.5556, 1.4444], [0.6667, 1.3333], [0.7778, 1.2222], [0.8889, 1.1111], [1.0000, 1.0000 ) >>> ij_to_xy(array, i=( ., 0), j=( ., 1 tensor( 2.5000, 0.5000], [2.3889, 0.6111], [2.2778, 0.7222], [2.1667, 0.8333], [2.0556, 0.9444], [1.9444, 1.0556], [1.8333, 1.1667], [1.7222, 1.2778], [1.6111, 1.3889], [1.5000, 1.5000 ) >>> _ is array  inplace True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.convention.ij_to_xy_decorator",
-"url":73,
+"url":77,
 "doc":"Append the argument conv to a function to allow user switching convention.",
 "func":1
 }

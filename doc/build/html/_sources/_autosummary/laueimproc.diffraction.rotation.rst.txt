@@ -1,0 +1,29 @@
+laueimproc.diffraction.rotation
+===============================
+
+.. automodule:: laueimproc.diffraction.rotation
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      angle_to_rot
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

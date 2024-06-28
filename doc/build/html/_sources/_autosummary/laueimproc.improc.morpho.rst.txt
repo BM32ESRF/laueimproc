@@ -1,0 +1,34 @@
+laueimproc.improc.morpho
+========================
+
+.. automodule:: laueimproc.improc.morpho
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_circle_kernel
+      morpho_close
+      morpho_dilate
+      morpho_erode
+      morpho_open
+      morphology
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

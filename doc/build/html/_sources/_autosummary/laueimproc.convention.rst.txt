@@ -1,0 +1,30 @@
+laueimproc.convention
+=====================
+
+.. automodule:: laueimproc.convention
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      ij_to_xy
+      ij_to_xy_decorator
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,32 @@
+laueimproc.gmm.metric
+=====================
+
+.. automodule:: laueimproc.gmm.metric
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      aic
+      bic
+      log_likelihood
+      mse
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

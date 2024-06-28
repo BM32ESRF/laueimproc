@@ -1,0 +1,35 @@
+laueimproc.opti
+===============
+
+.. automodule:: laueimproc.opti
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   laueimproc.opti.cache
+   laueimproc.opti.gpu
+   laueimproc.opti.memory
+   laueimproc.opti.rois
+   laueimproc.opti.singleton
+

@@ -1,0 +1,29 @@
+laueimproc.nn.dataaug.patch
+===========================
+
+.. automodule:: laueimproc.nn.dataaug.patch
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      patch
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,30 @@
+laueimproc.diffraction.metric
+=============================
+
+.. automodule:: laueimproc.diffraction.metric
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      matching_rate
+      raydotdist
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

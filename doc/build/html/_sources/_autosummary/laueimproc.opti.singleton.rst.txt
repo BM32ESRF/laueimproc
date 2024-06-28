@@ -1,0 +1,29 @@
+laueimproc.opti.singleton
+=========================
+
+.. automodule:: laueimproc.opti.singleton
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      MetaSingleton
+   
+   
+
+   
+   
+   
+
+
+

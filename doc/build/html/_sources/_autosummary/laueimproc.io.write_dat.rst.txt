@@ -1,0 +1,29 @@
+laueimproc.io.write\_dat
+========================
+
+.. automodule:: laueimproc.io.write_dat
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      write_dat
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

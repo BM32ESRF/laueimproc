@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>laueimproc.diffraction.rotation API documentation</title>
+<meta name="description" content="Help for making rotation matrix." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}#lunr-search{width:100%;font-size:1em;padding:6px 9px 5px 9px;border:1px solid silver}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>laueimproc.diffraction.rotation</code></h1>
+</header>
+<section id="section-intro">
+<p>Help for making rotation matrix.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+&#34;&#34;&#34;Help for making rotation matrix.&#34;&#34;&#34;
+
+import numbers
+
+import torch
+
+
+def angle_to_rot(
+    theta1: torch.Tensor | numbers.Real = 0,
+    theta2: torch.Tensor | numbers.Real = 0,
+    theta3: torch.Tensor | numbers.Real = 0,
+    meshgrid: bool = True,
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Generate a rotation matrix from the given angles.
+
+    The rotation are following the pyfai convention.
+
+    Parameters
+    ----------
+    theta1 : torch.Tensor or float
+        The first rotation angle of shape (*a,).
+        \(
+            rot_1 =
+            \begin{pmatrix}
+                1 &amp; 0              &amp;               0 \\
+                0 &amp; \cos(\theta_1) &amp; -\sin(\theta_1) \\
+                c &amp; \sin(\theta_1) &amp;  \cos(\theta_1) \\
+            \end{pmatrix}
+        \)
+    theta2 : torch.Tensor or float
+        The second rotation angle of shape (*b,).
+        \(
+            rot_2 =
+            \begin{pmatrix}
+                 \cos(\theta_2) &amp; 0 &amp; \sin(\theta_2) \\
+                              0 &amp; 1 &amp;              0 \\
+                -\sin(\theta_2) &amp; 0 &amp; \cos(\theta_2) \\
+            \end{pmatrix}
+        \)
+    theta3 : torch.Tensor or float
+        The third rotation angle of shape (*c,). (inverse of pyfai convention)
+        \(
+            rot_3 =
+            \begin{pmatrix}
+                \cos(\theta_3) &amp; -\sin(\theta_3) &amp; 0 \\
+                \sin(\theta_3) &amp;  \cos(\theta_3) &amp; 0 \\
+                             0 &amp;               0 &amp; 1 \\
+            \end{pmatrix}
+        \)
+    meshgrid : boolean, default=True
+        If set to True, batch all rotation in a different dim,
+        shuch as final dim is (*a, *b, *c, 3, 3).
+        Overwise, apply rotation elementwise and len(a), len(b) and len(c)
+        must be equal such as final dim is (*broadcast(a, b, c), 3, 3).
+
+    Returns
+    -------
+    rot : torch.Tensor
+        The global rotation \(rot_3 . rot_2 . rot_1\).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.diffraction.rotation import angle_to_rot
+    &gt;&gt;&gt; angle_to_rot(theta1=torch.pi/6)
+    tensor([[ 1.0000,  0.0000,  0.0000],
+            [ 0.0000,  0.8660, -0.5000],
+            [ 0.0000,  0.5000,  0.8660]])
+    &gt;&gt;&gt; angle_to_rot(theta2=torch.pi/6)
+    tensor([[ 0.8660,  0.0000,  0.5000],
+            [ 0.0000,  1.0000,  0.0000],
+            [-0.5000,  0.0000,  0.8660]])
+    &gt;&gt;&gt; angle_to_rot(theta3=torch.pi/6)
+    tensor([[ 0.8660, -0.5000,  0.0000],
+            [ 0.5000,  0.8660,  0.0000],
+            [ 0.0000,  0.0000,  1.0000]])
+    &gt;&gt;&gt; angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6)
+    tensor([[ 0.7500, -0.2165,  0.6250],
+            [ 0.4330,  0.8750, -0.2165],
+            [-0.5000,  0.4330,  0.7500]])
+    &gt;&gt;&gt; angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9)).shape
+    torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(theta1, torch.Tensor | numbers.Real), theta1.__class__.__name__
+    assert isinstance(theta2, torch.Tensor | numbers.Real), theta2.__class__.__name__
+    assert isinstance(theta3, torch.Tensor | numbers.Real), theta3.__class__.__name__
+    assert isinstance(meshgrid, bool), meshgrid.__class__.__name__
+
+    # find dtype and device
+    dtype = (
+        {a.dtype for a in (theta1, theta2, theta3) if isinstance(a, torch.Tensor)}
+        or {torch.float32}
+    )
+    dtype = max(dtype, key=lambda t: t.itemsize)
+    device = (
+        {a.device for a in (theta1, theta2, theta3) if isinstance(a, torch.Tensor)}
+        or {torch.device(&#34;cpu&#34;)}
+    ).pop()
+
+    # rot 1
+    if isinstance(theta1, numbers.Real):
+        theta1 = torch.tensor(theta1, device=device, dtype=dtype)
+    rot1 = torch.empty(*theta1.shape, 3, 3, dtype=dtype, device=device)
+    cos_val = torch.cos(theta1)
+    sin_val = torch.sin(theta1)
+    rot1[..., 0, 0], rot1[..., 0, 1], rot1[..., 0, 2] = 1.0, 0.0, 0.0
+    rot1[..., 1, 0], rot1[..., 1, 1], rot1[..., 1, 2] = 0.0, cos_val, -sin_val
+    rot1[..., 2, 0], rot1[..., 2, 1], rot1[..., 2, 2] = 0.0, sin_val, cos_val
+
+    # rot 2
+    if isinstance(theta2, numbers.Real):
+        theta2 = torch.tensor(theta2, device=device, dtype=dtype)
+    rot2 = torch.empty(*theta2.shape, 3, 3, dtype=dtype, device=device)
+    cos_val = torch.cos(theta2)
+    sin_val = torch.sin(theta2)
+    rot2[..., 0, 0], rot2[..., 0, 1], rot2[..., 0, 2] = cos_val, 0.0, sin_val
+    rot2[..., 1, 0], rot2[..., 1, 1], rot2[..., 1, 2] = 0.0, 1.0, 0.0
+    rot2[..., 2, 0], rot2[..., 2, 1], rot2[..., 2, 2] = -sin_val, 0.0, cos_val
+
+    # rot 3
+    if isinstance(theta3, numbers.Real):
+        theta3 = torch.tensor(theta3, device=device, dtype=dtype)
+    rot3 = torch.empty(*theta3.shape, 3, 3, dtype=dtype, device=device)
+    cos_val = torch.cos(theta3)
+    sin_val = torch.sin(theta3)
+    rot3[..., 0, 0], rot3[..., 0, 1], rot3[..., 0, 2] = cos_val, -sin_val, 0.0
+    rot3[..., 1, 0], rot3[..., 1, 1], rot3[..., 1, 2] = sin_val, cos_val, 0.0
+    rot3[..., 2, 0], rot3[..., 2, 1], rot3[..., 2, 2] = 0.0, 0.0, 1.0
+
+    # expand dims
+    if meshgrid:
+        rot1 = rot1[..., *((None,)*(len(theta2.shape))), *((None,)*(len(theta3.shape))), :, :]
+        rot2 = rot2[*((None,)*(len(theta1.shape))), ..., *((None,)*(len(theta3.shape))), :, :]
+        rot3 = rot3[*((None,)*(len(theta1.shape))), *((None,)*(len(theta2.shape))), ..., :, :]
+
+    return rot3 @ rot2 @ rot1  # broadcast
+
+
+def rotate_cristal(cristal: torch.Tensor, rot: torch.Tensor) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Apply an active rotation to the crystal.
+
+    Parameters
+    ----------
+    cristal : torch.Tensor
+        The primitive (\(\mathbf{A}\)) or reciprocal (\(\mathbf{B}\)) in the base \(\mathcal{B}\).
+        The shape of this parameter is (*c, 3, 3).
+    rot : torch.Tensor
+        The active rotation matrix, of shape (*r, 3, 3).
+
+    Returns
+    -------
+    rotated_cristal: torch.Tensor
+        The batched matricial product `rot @ cristal` of shape (*c, *r, 3, 3).
+    &#34;&#34;&#34;
+    assert isinstance(cristal, torch.Tensor), cristal.__class__.__name__
+    assert cristal.shape[-2:] == (3, 3), cristal.shape
+    assert isinstance(rot, torch.Tensor), rot.__class__.__name__
+    assert rot.shape[-2:] == (3, 3), rot.shape
+
+    *batch_c, _, _ = cristal.shape
+    *batch_r, _, _ = rot.shape
+
+    cristal = cristal[..., *((None,)*len(batch_r)), :, :]
+    rot = rot[*((None,)*len(batch_c)), ..., :, :]
+
+    return rot @ cristal</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="laueimproc.diffraction.rotation.angle_to_rot"><code class="name flex">
+<span>def <span class="ident">angle_to_rot</span></span>(<span>theta1: torch.Tensor | numbers.Real = 0, theta2: torch.Tensor | numbers.Real = 0, theta3: torch.Tensor | numbers.Real = 0, meshgrid: bool = True) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate a rotation matrix from the given angles.</p>
+<p>The rotation are following the pyfai convention.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>theta1</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
+<dd>The first rotation angle of shape (*a,).
+<span><span class="MathJax_Preview">
+rot_1 =
+\begin{pmatrix}
+1 &amp; 0
+&amp;
+0 \\
+0 &amp; \cos(\theta_1) &amp; -\sin(\theta_1) \\
+c &amp; \sin(\theta_1) &amp;
+\cos(\theta_1) \\
+\end{pmatrix}
+</span><script type="math/tex">
+rot_1 =
+\begin{pmatrix}
+1 & 0
+&
+0 \\
+0 & \cos(\theta_1) & -\sin(\theta_1) \\
+c & \sin(\theta_1) &
+\cos(\theta_1) \\
+\end{pmatrix}
+</script></span></dd>
+<dt><strong><code>theta2</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
+<dd>The second rotation angle of shape (*b,).
+<span><span class="MathJax_Preview">
+rot_2 =
+\begin{pmatrix}
+\cos(\theta_2) &amp; 0 &amp; \sin(\theta_2) \\
+0 &amp; 1 &amp;
+0 \\
+-\sin(\theta_2) &amp; 0 &amp; \cos(\theta_2) \\
+\end{pmatrix}
+</span><script type="math/tex">
+rot_2 =
+\begin{pmatrix}
+\cos(\theta_2) & 0 & \sin(\theta_2) \\
+0 & 1 &
+0 \\
+-\sin(\theta_2) & 0 & \cos(\theta_2) \\
+\end{pmatrix}
+</script></span></dd>
+<dt><strong><code>theta3</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
+<dd>The third rotation angle of shape (*c,). (inverse of pyfai convention)
+<span><span class="MathJax_Preview">
+rot_3 =
+\begin{pmatrix}
+\cos(\theta_3) &amp; -\sin(\theta_3) &amp; 0 \\
+\sin(\theta_3) &amp;
+\cos(\theta_3) &amp; 0 \\
+0 &amp;
+0 &amp; 1 \\
+\end{pmatrix}
+</span><script type="math/tex">
+rot_3 =
+\begin{pmatrix}
+\cos(\theta_3) & -\sin(\theta_3) & 0 \\
+\sin(\theta_3) &
+\cos(\theta_3) & 0 \\
+0 &
+0 & 1 \\
+\end{pmatrix}
+</script></span></dd>
+<dt><strong><code>meshgrid</code></strong> :&ensp;<code>boolean</code>, default=<code>True</code></dt>
+<dd>If set to True, batch all rotation in a different dim,
+shuch as final dim is (<em>a, </em>b, <em>c, 3, 3).
+Overwise, apply rotation elementwise and len(a), len(b) and len(c)
+must be equal such as final dim is (</em>broadcast(a, b, c), 3, 3).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>rot</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The global rotation <span><span class="MathJax_Preview">rot_3 . rot_2 . rot_1</span><script type="math/tex">rot_3 . rot_2 . rot_1</script></span>.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.diffraction.rotation import angle_to_rot
+&gt;&gt;&gt; angle_to_rot(theta1=torch.pi/6)
+tensor([[ 1.0000,  0.0000,  0.0000],
+        [ 0.0000,  0.8660, -0.5000],
+        [ 0.0000,  0.5000,  0.8660]])
+&gt;&gt;&gt; angle_to_rot(theta2=torch.pi/6)
+tensor([[ 0.8660,  0.0000,  0.5000],
+        [ 0.0000,  1.0000,  0.0000],
+        [-0.5000,  0.0000,  0.8660]])
+&gt;&gt;&gt; angle_to_rot(theta3=torch.pi/6)
+tensor([[ 0.8660, -0.5000,  0.0000],
+        [ 0.5000,  0.8660,  0.0000],
+        [ 0.0000,  0.0000,  1.0000]])
+&gt;&gt;&gt; angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6)
+tensor([[ 0.7500, -0.2165,  0.6250],
+        [ 0.4330,  0.8750, -0.2165],
+        [-0.5000,  0.4330,  0.7500]])
+&gt;&gt;&gt; angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9)).shape
+torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def angle_to_rot(
+    theta1: torch.Tensor | numbers.Real = 0,
+    theta2: torch.Tensor | numbers.Real = 0,
+    theta3: torch.Tensor | numbers.Real = 0,
+    meshgrid: bool = True,
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Generate a rotation matrix from the given angles.
+
+    The rotation are following the pyfai convention.
+
+    Parameters
+    ----------
+    theta1 : torch.Tensor or float
+        The first rotation angle of shape (*a,).
+        \(
+            rot_1 =
+            \begin{pmatrix}
+                1 &amp; 0              &amp;               0 \\
+                0 &amp; \cos(\theta_1) &amp; -\sin(\theta_1) \\
+                c &amp; \sin(\theta_1) &amp;  \cos(\theta_1) \\
+            \end{pmatrix}
+        \)
+    theta2 : torch.Tensor or float
+        The second rotation angle of shape (*b,).
+        \(
+            rot_2 =
+            \begin{pmatrix}
+                 \cos(\theta_2) &amp; 0 &amp; \sin(\theta_2) \\
+                              0 &amp; 1 &amp;              0 \\
+                -\sin(\theta_2) &amp; 0 &amp; \cos(\theta_2) \\
+            \end{pmatrix}
+        \)
+    theta3 : torch.Tensor or float
+        The third rotation angle of shape (*c,). (inverse of pyfai convention)
+        \(
+            rot_3 =
+            \begin{pmatrix}
+                \cos(\theta_3) &amp; -\sin(\theta_3) &amp; 0 \\
+                \sin(\theta_3) &amp;  \cos(\theta_3) &amp; 0 \\
+                             0 &amp;               0 &amp; 1 \\
+            \end{pmatrix}
+        \)
+    meshgrid : boolean, default=True
+        If set to True, batch all rotation in a different dim,
+        shuch as final dim is (*a, *b, *c, 3, 3).
+        Overwise, apply rotation elementwise and len(a), len(b) and len(c)
+        must be equal such as final dim is (*broadcast(a, b, c), 3, 3).
+
+    Returns
+    -------
+    rot : torch.Tensor
+        The global rotation \(rot_3 . rot_2 . rot_1\).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.diffraction.rotation import angle_to_rot
+    &gt;&gt;&gt; angle_to_rot(theta1=torch.pi/6)
+    tensor([[ 1.0000,  0.0000,  0.0000],
+            [ 0.0000,  0.8660, -0.5000],
+            [ 0.0000,  0.5000,  0.8660]])
+    &gt;&gt;&gt; angle_to_rot(theta2=torch.pi/6)
+    tensor([[ 0.8660,  0.0000,  0.5000],
+            [ 0.0000,  1.0000,  0.0000],
+            [-0.5000,  0.0000,  0.8660]])
+    &gt;&gt;&gt; angle_to_rot(theta3=torch.pi/6)
+    tensor([[ 0.8660, -0.5000,  0.0000],
+            [ 0.5000,  0.8660,  0.0000],
+            [ 0.0000,  0.0000,  1.0000]])
+    &gt;&gt;&gt; angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6)
+    tensor([[ 0.7500, -0.2165,  0.6250],
+            [ 0.4330,  0.8750, -0.2165],
+            [-0.5000,  0.4330,  0.7500]])
+    &gt;&gt;&gt; angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9)).shape
+    torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(theta1, torch.Tensor | numbers.Real), theta1.__class__.__name__
+    assert isinstance(theta2, torch.Tensor | numbers.Real), theta2.__class__.__name__
+    assert isinstance(theta3, torch.Tensor | numbers.Real), theta3.__class__.__name__
+    assert isinstance(meshgrid, bool), meshgrid.__class__.__name__
+
+    # find dtype and device
+    dtype = (
+        {a.dtype for a in (theta1, theta2, theta3) if isinstance(a, torch.Tensor)}
+        or {torch.float32}
+    )
+    dtype = max(dtype, key=lambda t: t.itemsize)
+    device = (
+        {a.device for a in (theta1, theta2, theta3) if isinstance(a, torch.Tensor)}
+        or {torch.device(&#34;cpu&#34;)}
+    ).pop()
+
+    # rot 1
+    if isinstance(theta1, numbers.Real):
+        theta1 = torch.tensor(theta1, device=device, dtype=dtype)
+    rot1 = torch.empty(*theta1.shape, 3, 3, dtype=dtype, device=device)
+    cos_val = torch.cos(theta1)
+    sin_val = torch.sin(theta1)
+    rot1[..., 0, 0], rot1[..., 0, 1], rot1[..., 0, 2] = 1.0, 0.0, 0.0
+    rot1[..., 1, 0], rot1[..., 1, 1], rot1[..., 1, 2] = 0.0, cos_val, -sin_val
+    rot1[..., 2, 0], rot1[..., 2, 1], rot1[..., 2, 2] = 0.0, sin_val, cos_val
+
+    # rot 2
+    if isinstance(theta2, numbers.Real):
+        theta2 = torch.tensor(theta2, device=device, dtype=dtype)
+    rot2 = torch.empty(*theta2.shape, 3, 3, dtype=dtype, device=device)
+    cos_val = torch.cos(theta2)
+    sin_val = torch.sin(theta2)
+    rot2[..., 0, 0], rot2[..., 0, 1], rot2[..., 0, 2] = cos_val, 0.0, sin_val
+    rot2[..., 1, 0], rot2[..., 1, 1], rot2[..., 1, 2] = 0.0, 1.0, 0.0
+    rot2[..., 2, 0], rot2[..., 2, 1], rot2[..., 2, 2] = -sin_val, 0.0, cos_val
+
+    # rot 3
+    if isinstance(theta3, numbers.Real):
+        theta3 = torch.tensor(theta3, device=device, dtype=dtype)
+    rot3 = torch.empty(*theta3.shape, 3, 3, dtype=dtype, device=device)
+    cos_val = torch.cos(theta3)
+    sin_val = torch.sin(theta3)
+    rot3[..., 0, 0], rot3[..., 0, 1], rot3[..., 0, 2] = cos_val, -sin_val, 0.0
+    rot3[..., 1, 0], rot3[..., 1, 1], rot3[..., 1, 2] = sin_val, cos_val, 0.0
+    rot3[..., 2, 0], rot3[..., 2, 1], rot3[..., 2, 2] = 0.0, 0.0, 1.0
+
+    # expand dims
+    if meshgrid:
+        rot1 = rot1[..., *((None,)*(len(theta2.shape))), *((None,)*(len(theta3.shape))), :, :]
+        rot2 = rot2[*((None,)*(len(theta1.shape))), ..., *((None,)*(len(theta3.shape))), :, :]
+        rot3 = rot3[*((None,)*(len(theta1.shape))), *((None,)*(len(theta2.shape))), ..., :, :]
+
+    return rot3 @ rot2 @ rot1  # broadcast</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.diffraction.rotation.rotate_cristal"><code class="name flex">
+<span>def <span class="ident">rotate_cristal</span></span>(<span>cristal: torch.Tensor, rot: torch.Tensor) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Apply an active rotation to the crystal.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>cristal</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The primitive ((\mathbf{A})) or reciprocal ((\mathbf{B})) in the base <span><span class="MathJax_Preview">\mathcal{B}</span><script type="math/tex">\mathcal{B}</script></span>.
+The shape of this parameter is (*c, 3, 3).</dd>
+<dt><strong><code>rot</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The active rotation matrix, of shape (*r, 3, 3).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>rotated_cristal</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The batched matricial product <code>rot @ cristal</code> of shape (<em>c, </em>r, 3, 3).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rotate_cristal(cristal: torch.Tensor, rot: torch.Tensor) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Apply an active rotation to the crystal.
+
+    Parameters
+    ----------
+    cristal : torch.Tensor
+        The primitive (\(\mathbf{A}\)) or reciprocal (\(\mathbf{B}\)) in the base \(\mathcal{B}\).
+        The shape of this parameter is (*c, 3, 3).
+    rot : torch.Tensor
+        The active rotation matrix, of shape (*r, 3, 3).
+
+    Returns
+    -------
+    rotated_cristal: torch.Tensor
+        The batched matricial product `rot @ cristal` of shape (*c, *r, 3, 3).
+    &#34;&#34;&#34;
+    assert isinstance(cristal, torch.Tensor), cristal.__class__.__name__
+    assert cristal.shape[-2:] == (3, 3), cristal.shape
+    assert isinstance(rot, torch.Tensor), rot.__class__.__name__
+    assert rot.shape[-2:] == (3, 3), rot.shape
+
+    *batch_c, _, _ = cristal.shape
+    *batch_r, _, _ = rot.shape
+
+    cristal = cristal[..., *((None,)*len(batch_r)), :, :]
+    rot = rot[*((None,)*len(batch_c)), ..., :, :]
+
+    return rot @ cristal</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<form>
+<input id="lunr-search" name="q" placeholder="🔎 Search ..." aria-label="Search"
+disabled minlength="2">
+</form>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.css" integrity="sha512-j1u8eUJ4f23xPPxwOrLUPQaCD2dwzNqqmDDcWS4deWsMv2ohLqmXXuP3hU7g8TyzbMSakP/mMqoNBYWj8AEIFg==" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.js" integrity="sha512-plGUER9JkeEWPPqQBE4sdLqBoQug5Ap+BCGMc7bJ8BXkm+VVj6QzkpBz5Yv2yPkkq+cqg9IpkBaGCas6uDbW8g==" crossorigin></script>
+<style>
+.modal-dialog iframe {
+width: 100vw;
+height: calc(100vh - 80px);
+}
+@media screen and (min-width: 700px) {
+.modal-dialog iframe {
+width: 70vw;
+height: 80vh;
+}
+}
+.modal-dialog .tingle-modal-box {width: auto;}
+.modal-dialog .tingle-modal-box__content {padding: 0;}
+</style>
+<script>
+const input = document.getElementById('lunr-search');
+input.disabled = false;
+input.form.addEventListener('submit', (ev) => {
+ev.preventDefault();
+const url = new URL(window.location);
+url.searchParams.set('q', input.value);
+history.replaceState({}, null, url.toString());
+search(input.value);
+});
+const query = new URL(window.location).searchParams.get('q');
+if (query)
+search(query);
+function search(query) {
+const url = '../../doc-search.html#' + encodeURIComponent(query);
+new tingle.modal({
+cssClass: ['modal-dialog'],
+onClose: () => {
+const url = new URL(window.location);
+url.searchParams.delete('q');
+history.replaceState({}, null, url.toString());
+setTimeout(() => input.focus(), 100);
+}
+}).setContent('<iframe src="' + url + '"></iframe>').open();
+}
+</script>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="laueimproc.diffraction" href="index.html">laueimproc.diffraction</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="laueimproc.diffraction.rotation.angle_to_rot" href="#laueimproc.diffraction.rotation.angle_to_rot">angle_to_rot</a></code></li>
+<li><code><a title="laueimproc.diffraction.rotation.rotate_cristal" href="#laueimproc.diffraction.rotation.rotate_cristal">rotate_cristal</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

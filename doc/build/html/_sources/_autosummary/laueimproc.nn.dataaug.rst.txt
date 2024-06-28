@@ -1,0 +1,32 @@
+laueimproc.nn.dataaug
+=====================
+
+.. automodule:: laueimproc.nn.dataaug
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   laueimproc.nn.dataaug.patch
+   laueimproc.nn.dataaug.scale
+

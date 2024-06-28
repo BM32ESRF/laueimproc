@@ -1,0 +1,30 @@
+laueimproc.improc.peaks\_search
+===============================
+
+.. automodule:: laueimproc.improc.peaks_search
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      estimate_background
+      peaks_search
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

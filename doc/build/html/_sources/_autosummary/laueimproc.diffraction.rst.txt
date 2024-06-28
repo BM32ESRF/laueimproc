@@ -1,0 +1,36 @@
+laueimproc.diffraction
+======================
+
+.. automodule:: laueimproc.diffraction
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   laueimproc.diffraction.bragg
+   laueimproc.diffraction.lattice
+   laueimproc.diffraction.metric
+   laueimproc.diffraction.projection
+   laueimproc.diffraction.reciprocal
+   laueimproc.diffraction.rotation
+

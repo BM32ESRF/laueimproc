@@ -1,0 +1,34 @@
+laueimproc.improc
+=================
+
+.. automodule:: laueimproc.improc
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   laueimproc.improc.find_bboxes
+   laueimproc.improc.morpho
+   laueimproc.improc.peaks_search
+   laueimproc.improc.spot
+

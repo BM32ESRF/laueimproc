@@ -1,0 +1,32 @@
+laueimproc.ml.dataset\_dist
+===========================
+
+.. automodule:: laueimproc.ml.dataset_dist
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      call_diag2scalars
+      check_diag2scalars_typing
+      select_closest
+      select_closests
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

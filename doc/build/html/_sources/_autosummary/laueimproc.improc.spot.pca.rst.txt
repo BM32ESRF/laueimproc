@@ -1,0 +1,29 @@
+laueimproc.improc.spot.pca
+==========================
+
+.. automodule:: laueimproc.improc.spot.pca
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compute_rois_pca
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

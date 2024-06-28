@@ -1,0 +1,42 @@
+﻿laueimproc
+==========
+
+.. automodule:: laueimproc
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   laueimproc.classes
+   laueimproc.common
+   laueimproc.convention
+   laueimproc.diffraction
+   laueimproc.gmm
+   laueimproc.immix
+   laueimproc.improc
+   laueimproc.io
+   laueimproc.ml
+   laueimproc.nn
+   laueimproc.opti
+   laueimproc.testing
+

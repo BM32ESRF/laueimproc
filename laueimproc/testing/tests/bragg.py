@@ -5,7 +5,7 @@
 import torch
 
 from laueimproc.diffraction.bragg import (
-    reciprocal_hkl_to_energy, reciprocal_hkl_to_uq, uf_to_uq, uq_to_uf
+    hkl_reciprocal_to_energy, hkl_reciprocal_to_uq, uf_to_uq, uq_to_uf
 )
 
 
@@ -23,30 +23,30 @@ BATCH_UQ = (19, 20, 21)
 BATCHED_UQ = UQ[None, None, None, :].expand(*BATCH_UQ, -1).clone()
 
 
-def test_batch_reciprocal_hkl_to_energy():
+def test_batch_hkl_reciprocal_to_energy():
     """Test batch dimension."""
-    assert reciprocal_hkl_to_energy(
-        torch.empty(0, 3, 3), torch.empty(0, 3, dtype=int)
+    assert hkl_reciprocal_to_energy(
+        torch.empty(0, 3, dtype=int), torch.empty(0, 3, 3)
     ).shape == (0, 0)
-    assert reciprocal_hkl_to_energy(RECIPROCAL, torch.empty(0, 3, dtype=int)).shape == (0,)
-    assert reciprocal_hkl_to_energy(torch.empty(0, 3, 3), HKL).shape == (0,)
-    assert reciprocal_hkl_to_energy(RECIPROCAL, HKL).shape == ()
-    assert reciprocal_hkl_to_energy(
-        BATCHED_RECIPROCAL, BATCHED_HKL
-    ).shape == BATCH_RECIPROCAL + BATCH_HKL
+    assert hkl_reciprocal_to_energy(torch.empty(0, 3, dtype=int), RECIPROCAL).shape == (0,)
+    assert hkl_reciprocal_to_energy(HKL, torch.empty(0, 3, 3)).shape == (0,)
+    assert hkl_reciprocal_to_energy(HKL, RECIPROCAL).shape == ()
+    assert hkl_reciprocal_to_energy(
+        BATCHED_HKL, BATCHED_RECIPROCAL
+    ).shape == BATCH_HKL + BATCH_RECIPROCAL
 
 
-def test_batch_reciprocal_hkl_to_uq():
+def test_batch_hkl_reciprocal_to_uq():
     """Test batch dimension."""
-    assert reciprocal_hkl_to_uq(
-        torch.empty(0, 3, 3), torch.empty(0, 3, dtype=int)
+    assert hkl_reciprocal_to_uq(
+        torch.empty(0, 3, dtype=int), torch.empty(0, 3, 3)
     ).shape == (0, 0, 3)
-    assert reciprocal_hkl_to_uq(RECIPROCAL, torch.empty(0, 3, dtype=int)).shape == (0, 3)
-    assert reciprocal_hkl_to_uq(torch.empty(0, 3, 3), HKL).shape == (0, 3)
-    assert reciprocal_hkl_to_uq(RECIPROCAL, HKL).shape == (3,)
-    assert reciprocal_hkl_to_uq(
-        BATCHED_RECIPROCAL, BATCHED_HKL
-    ).shape == (*BATCH_RECIPROCAL, *BATCH_HKL, 3)
+    assert hkl_reciprocal_to_uq(torch.empty(0, 3, dtype=int), RECIPROCAL).shape == (0, 3)
+    assert hkl_reciprocal_to_uq(HKL, torch.empty(0, 3, 3)).shape == (0, 3)
+    assert hkl_reciprocal_to_uq(HKL, RECIPROCAL).shape == (3,)
+    assert hkl_reciprocal_to_uq(
+        BATCHED_HKL, BATCHED_RECIPROCAL
+    ).shape == (*BATCH_HKL, *BATCH_RECIPROCAL, 3)
 
 
 def test_batch_uf_to_uq():
@@ -84,22 +84,22 @@ def test_bij_uq_to_uf_to_uq():
     )
 
 
-def test_jac_reciprocal_hkl_to_energy():
+def test_jac_hkl_reciprocal_to_energy():
     """Test compute jacobian."""
-    assert torch.func.jacrev(reciprocal_hkl_to_energy)(RECIPROCAL, HKL).shape == (3, 3)
+    assert torch.func.jacrev(hkl_reciprocal_to_energy, 1)(HKL, RECIPROCAL).shape == (3, 3)
 
 
-def test_jac_reciprocal_hkl_to_uq():
+def test_jac_hkl_reciprocal_to_uq():
     """Test compute jacobian."""
-    assert torch.func.jacrev(reciprocal_hkl_to_uq)(RECIPROCAL, HKL).shape == (3, 3, 3)
+    assert torch.func.jacrev(hkl_reciprocal_to_uq, 1)(HKL, RECIPROCAL).shape == (3, 3, 3)
 
 
-def test_normalization_reciprocal_hkl_to_uq():
+def test_normalization_hkl_reciprocal_to_uq():
     """Test norm is 1."""
     reciprocal = torch.eye(3) + torch.randn(1000, 3, 3) / 3
     hkl = torch.randint(-6, 7, (1000, 3))
     hkl = hkl[hkl.prod(dim=-1) != 0]
-    u_q = reciprocal_hkl_to_uq(reciprocal, hkl)
+    u_q = hkl_reciprocal_to_uq(hkl, reciprocal)
     assert torch.allclose(torch.linalg.vector_norm(u_q, dim=-1), torch.tensor(1.0))
 
 

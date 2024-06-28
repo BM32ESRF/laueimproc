@@ -1,0 +1,30 @@
+laueimproc.improc.spot.fit
+==========================
+
+.. automodule:: laueimproc.improc.spot.fit
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      fit_gaussians_em
+      fit_gaussians_mse
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -15,11 +15,13 @@
 <meta name="twitter:card" content="summary_large_image" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation &mdash; laueimproc 1.4.2 documentation</title>
+  <title>Installation &mdash; laueimproc 1.4.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+      <link rel="stylesheet" type="text/css" href="../_static/dark_mode_css/general.css?v=c0a7eb24" />
+      <link rel="stylesheet" type="text/css" href="../_static/dark_mode_css/dark.css?v=70edf1c7" />
 
   
   <!--[if lt IE 9]>
@@ -28,12 +30,14 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=02f2166e"></script>
+        <script src="../_static/documentation_options.js?v=a68a9277"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
         <script src="../_static/copybutton.js?v=f281be69"></script>
         <script src="../_static/tabs.js?v=3ee01567"></script>
+        <script src="../_static/dark_mode_js/default_dark.js?v=fd565c74"></script>
+        <script src="../_static/dark_mode_js/theme_switcher.js?v=358d3910"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -53,7 +57,7 @@
             laueimproc
           </a>
               <div class="version">
-                1.4.2
+                1.4.3
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -75,6 +79,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#installation-with-pip">Installation with pip</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#building-from-source">Building From Source</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#open-documentation">Open Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#install-lauetools">Install LaueTools</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#platform-support">Platform Support</a></li>
@@ -113,8 +118,8 @@
 <section id="python-and-pytorch-support">
 <h2>Python and PyTorch Support<a class="headerlink" href="#python-and-pytorch-support" title="Link to this heading"></a></h2>
 <p>LaueImproc supports these versions.</p>
-<table class="docutils align-default" id="id2">
-<caption><span class="caption-text">Python versions</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Python versions</span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Python</p></th>
 <th class="head"><p>3.13</p></th>
@@ -199,7 +204,7 @@ brew<span class="w"> </span>install<span class="w"> </span>pyenv
 <p>If it fails, <a class="reference external" href="https://github.com/pyenv/pyenv/wiki/Common-build-problems">this debug link</a> may help you.</p>
 </section>
 <section id="configure-pyenv">
-<h3>Configure pyenv<a class="headerlink" href="#configure-pyenv" title="Link to this heading"></a></h3>
+<span id="id1"></span><h3>Configure pyenv<a class="headerlink" href="#configure-pyenv" title="Link to this heading"></a></h3>
 <p>Create the virtual environement.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pyenv<span class="w"> </span>update
 env<span class="w"> </span><span class="nv">PYTHON_CONFIGURE_OPTS</span><span class="o">=</span><span class="s2">&quot;--enable-shared --enable-optimizations --with-lto&quot;</span><span class="w"> </span><span class="nv">PYTHON_CFLAGS</span><span class="o">=</span><span class="s1">&#39;-march=native -mtune=native&#39;</span><span class="w"> </span><span class="se">\</span>
@@ -329,6 +334,33 @@ pip<span class="w"> </span>-v<span class="w"> </span>install<span class="w"> </s
 <p>Once laueimproc has been installed correctly, simply type the next lines to open the documentation</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>laueimproc<span class="w"> </span>doc
 </pre></div>
+</div>
+</section>
+<section id="install-lauetools">
+<h3>Install LaueTools<a class="headerlink" href="#install-lauetools" title="Link to this heading"></a></h3>
+<p>This module is closely linked to LaueTools, which is itself closely linked to <code class="docutils literal notranslate"><span class="pre">wxpython</span></code>.</p>
+<p>If you have scrupulously followed the guide to installing python with pyenv (<a class="reference internal" href="#configure-pyenv"><span class="std std-ref">Configure pyenv</span></a>), install the following packages:</p>
+<div class="tab-set docutils container">
+<input checked="True" class="tab-input" id="tab-set--6-input--1" name="tab-set--6" type="radio"><label class="tab-label" for="tab-set--6-input--1">Linux</label><div class="tab-content docutils container">
+<div class="tab-set docutils container">
+<input checked="True" class="tab-input" id="tab-set--5-input--1" name="tab-set--5" type="radio"><label class="tab-label" for="tab-set--5-input--1">Debian Ubuntu Mint System</label><div class="tab-content docutils container">
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>freeglut3<span class="w"> </span>freeglut3-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libgl1-mesa-dev<span class="w"> </span>libglu1-mesa-dev<span class="w"> </span>libgstreamer-plugins-base1.0-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libgtk-3-dev<span class="w"> </span>libwebkit2gtk-4.0-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libjpeg-dev<span class="w"> </span>libtiff-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libnotify-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libsdl2-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libsm-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libxtst-dev
+</pre></div>
+</div>
+</div>
+</div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-f<span class="w"> </span>https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04<span class="w"> </span>wxPython
+</pre></div>
+</div>
+</div>
 </div>
 </section>
 </section>

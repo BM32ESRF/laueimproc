@@ -57,6 +57,7 @@ all = [
   "sphinx",
   "sphinx-copybutton",
   "sphinx-inline-tabs",
+  "sphinx-rtd-dark-mode",
   "sphinx-rtd-theme",
   "sphinxcontrib-video",
   "sphinxext-opengraph",

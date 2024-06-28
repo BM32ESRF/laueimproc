@@ -27,6 +27,7 @@ master_doc = "index"
 language = "en"
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", ".venv"]
 html_theme = "sphinx_rtd_theme"
+default_dark_mode = True
 pygments_style = "sphinx"
 extensions = [
     "recommonmark",
@@ -42,6 +43,7 @@ extensions = [
     "sphinx.ext.viewcode",  # in pillow conf
     "sphinx_copybutton",  # in pillow conf
     "sphinx_inline_tabs",  # in pillow conf
+    "sphinx_rtd_dark_mode",  # for dark mode
     "sphinx_rtd_theme",
     "sphinxcontrib.video",  # for video insertion in doc
     "sphinxext.opengraph",  # in pillow conf

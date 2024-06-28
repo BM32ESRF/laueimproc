@@ -1,0 +1,29 @@
+laueimproc.classes.diagram
+==========================
+
+.. automodule:: laueimproc.classes.diagram
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Diagram
+   
+   
+
+   
+   
+   
+
+
+

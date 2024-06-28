@@ -1,0 +1,35 @@
+laueimproc.classes.base\_diagram
+================================
+
+.. automodule:: laueimproc.classes.base_diagram
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      check_init
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      BaseDiagram
+   
+   
+
+   
+   
+   
+
+
+

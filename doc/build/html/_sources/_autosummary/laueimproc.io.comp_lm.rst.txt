@@ -1,0 +1,31 @@
+laueimproc.io.comp\_lm
+======================
+
+.. automodule:: laueimproc.io.comp_lm
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Decoder
+      LMCodec
+      VariationalEncoder
+   
+   
+
+   
+   
+   
+
+
+

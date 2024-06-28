@@ -1,0 +1,30 @@
+laueimproc.diffraction.lattice
+==============================
+
+.. automodule:: laueimproc.diffraction.lattice
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      lattice_to_primitive
+      primitive_to_lattice
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

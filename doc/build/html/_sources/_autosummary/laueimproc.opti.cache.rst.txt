@@ -1,0 +1,37 @@
+laueimproc.opti.cache
+=====================
+
+.. automodule:: laueimproc.opti.cache
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      auto_cache
+      collect
+      getsizeof
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CacheManager
+   
+   
+
+   
+   
+   
+
+
+

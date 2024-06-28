@@ -45,9 +45,6 @@ Overview
     usage/conventions.rst
     usage/developer.rst
 
-.. image:: media/diag_06.avif
-    :alt: An example of a laue diagram.
-
 
 Indices and tables
 ==================

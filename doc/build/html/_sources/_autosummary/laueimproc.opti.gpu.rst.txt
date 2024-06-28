@@ -1,0 +1,29 @@
+laueimproc.opti.gpu
+===================
+
+.. automodule:: laueimproc.opti.gpu
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      to_device
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

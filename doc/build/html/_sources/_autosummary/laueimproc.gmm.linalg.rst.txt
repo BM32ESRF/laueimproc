@@ -1,0 +1,32 @@
+laueimproc.gmm.linalg
+=====================
+
+.. automodule:: laueimproc.gmm.linalg
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      batched_matmul
+      cov2d_to_eigtheta
+      inv_cov2d
+      multivariate_normal
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

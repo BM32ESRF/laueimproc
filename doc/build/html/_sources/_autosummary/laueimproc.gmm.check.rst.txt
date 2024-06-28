@@ -1,0 +1,31 @@
+laueimproc.gmm.check
+====================
+
+.. automodule:: laueimproc.gmm.check
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      check_gmm
+      check_infit
+      check_ingauss
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

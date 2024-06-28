@@ -1,0 +1,29 @@
+laueimproc.improc.spot.extrema
+==============================
+
+.. automodule:: laueimproc.improc.spot.extrema
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compute_rois_nb_peaks
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

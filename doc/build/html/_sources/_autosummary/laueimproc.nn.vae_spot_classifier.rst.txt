@@ -1,0 +1,31 @@
+laueimproc.nn.vae\_spot\_classifier
+===================================
+
+.. automodule:: laueimproc.nn.vae_spot_classifier
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Decoder
+      Encoder
+      VAESpotClassifier
+   
+   
+
+   
+   
+   
+
+
+

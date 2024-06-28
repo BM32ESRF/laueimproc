@@ -1,0 +1,34 @@
+laueimproc.classes
+==================
+
+.. automodule:: laueimproc.classes
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   laueimproc.classes.base_dataset
+   laueimproc.classes.base_diagram
+   laueimproc.classes.dataset
+   laueimproc.classes.diagram
+

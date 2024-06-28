@@ -1,0 +1,29 @@
+laueimproc.nn.dataaug.scale
+===========================
+
+.. automodule:: laueimproc.nn.dataaug.scale
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      rescale
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

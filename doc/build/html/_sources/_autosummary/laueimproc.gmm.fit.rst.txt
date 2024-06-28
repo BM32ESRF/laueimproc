@@ -1,0 +1,29 @@
+laueimproc.gmm.fit
+==================
+
+.. automodule:: laueimproc.gmm.fit
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      fit_em
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

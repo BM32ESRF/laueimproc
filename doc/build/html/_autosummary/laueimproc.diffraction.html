@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="laueimproc.diffraction" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="_autosummary/laueimproc.diffraction.html" />
+<meta property="og:site_name" content="laueimproc" />
+<meta property="og:description" content="Implement the Bragg diffraction rules. https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position Bases:-(mathcal{B^c}): The orthonormal base of the cristal,([mathbf{C_1}, mathbf{C_2}, m..." />
+<meta property="og:image:width" content="1146" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image" content="/None" />
+<meta property="og:image:alt" content="Implement the Bragg diffraction rules. https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position Bases:-(mathcal{B^c}): The orthonormal base of t..." />
+<meta name="description" content="Implement the Bragg diffraction rules. https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position Bases:-(mathcal{B^c}): The orthonormal base of the cristal,([mathbf{C_1}, mathbf{C_2}, m..." />
+<meta name="twitter:card" content="summary_large_image" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>laueimproc.diffraction &mdash; laueimproc 1.4.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=4c969af8" />
+      <link rel="stylesheet" type="text/css" href="../_static/dark_mode_css/general.css?v=c0a7eb24" />
+      <link rel="stylesheet" type="text/css" href="../_static/dark_mode_css/dark.css?v=70edf1c7" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=a68a9277"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="../_static/copybutton.js?v=f281be69"></script>
+        <script src="../_static/tabs.js?v=3ee01567"></script>
+        <script src="../_static/dark_mode_js/default_dark.js?v=fd565c74"></script>
+        <script src="../_static/dark_mode_js/theme_switcher.js?v=358d3910"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            laueimproc
+          </a>
+              <div class="version">
+                1.4.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../usage/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/conventions.html">Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage/developer.html">Developer’s Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">laueimproc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">laueimproc.diffraction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_autosummary/laueimproc.diffraction.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-laueimproc.diffraction">
+<span id="laueimproc-diffraction"></span><h1>laueimproc.diffraction<a class="headerlink" href="#module-laueimproc.diffraction" title="Link to this heading"></a></h1>
+<p>Implement the Bragg diffraction rules.</p>
+<p><a class="reference external" href="https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position">https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position</a></p>
+<section id="bases">
+<h2>Bases<a class="headerlink" href="#bases" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt>(mathcal{B^c}): The orthonormal base of the cristal</dt><dd><p>([mathbf{C_1}, mathbf{C_2}, mathbf{C_3}]).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>(mathcal{B^s}): The orthonormal base of the sample</dt><dd><p>([mathbf{S_1}, mathbf{S_2}, mathbf{S_3}]).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>(mathcal{B^l}): The orthonormal base of the lab</dt><dd><p>([mathbf{L_1}, mathbf{L_2}, mathbf{L_3}]) in pyfai.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="lattice-parameters">
+<h2>Lattice parameters<a class="headerlink" href="#lattice-parameters" title="Link to this heading"></a></h2>
+<p><a class="reference external" href="https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png">https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png</a></p>
+<ul class="simple">
+<li><p>([a, b, c, alpha, beta, gamma]): The latice parameters.</p></li>
+<li><dl class="simple">
+<dt>(mathbf{A}): The primitive column vectors ([mathbf{e_1}, mathbf{e_2}, mathbf{e_3}])</dt><dd><p>in an orthonormal base.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>(mathbf{B}): The reciprocal column vectors ([mathbf{e_1^*}, mathbf{e_2^*}, mathbf{e_3^*}])</dt><dd><p>in an orthonormal base.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<p class="rubric">Modules</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="laueimproc.diffraction.bragg.html#module-laueimproc.diffraction.bragg" title="laueimproc.diffraction.bragg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">laueimproc.diffraction.bragg</span></code></a></p></td>
+<td><p>Simulation of the bragg diffraction.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="laueimproc.diffraction.lattice.html#module-laueimproc.diffraction.lattice" title="laueimproc.diffraction.lattice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">laueimproc.diffraction.lattice</span></code></a></p></td>
+<td><p>Link the lattice parameters and the primitive vectors (mathbf{A}).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="laueimproc.diffraction.metric.html#module-laueimproc.diffraction.metric" title="laueimproc.diffraction.metric"><code class="xref py py-obj docutils literal notranslate"><span class="pre">laueimproc.diffraction.metric</span></code></a></p></td>
+<td><p>Implement some loss functions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="laueimproc.diffraction.projection.html#module-laueimproc.diffraction.projection" title="laueimproc.diffraction.projection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">laueimproc.diffraction.projection</span></code></a></p></td>
+<td><p>Project rays on a physical or virtual plane.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="laueimproc.diffraction.reciprocal.html#module-laueimproc.diffraction.reciprocal" title="laueimproc.diffraction.reciprocal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">laueimproc.diffraction.reciprocal</span></code></a></p></td>
+<td><p>Enables communication between primitive (mathbf{A}) and reciprocal space (mathbf{B}).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="laueimproc.diffraction.rotation.html#module-laueimproc.diffraction.rotation" title="laueimproc.diffraction.rotation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">laueimproc.diffraction.rotation</span></code></a></p></td>
+<td><p>Help for making rotation matrix.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024-2024, J.S. Micha, O. Robach., S. Tardif, R. Richard.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

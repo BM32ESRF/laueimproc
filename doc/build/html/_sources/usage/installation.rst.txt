@@ -67,6 +67,8 @@ First install the `python dependencies <https://github.com/pyenv/pyenv/wiki#sugg
 
 If it fails, `this debug link <https://github.com/pyenv/pyenv/wiki/Common-build-problems>`_ may help you.
 
+.. _configure-pyenv:
+
 Configure pyenv
 ^^^^^^^^^^^^^^^
 
@@ -188,7 +190,6 @@ Building From Source
 
 To install the lastest development version from `GitHub <https://github.com/BM32ESRF/laueimproc>`_ source, clone laueimproc using ``git`` and install it using ``pip``:
 
-
 .. note::
     It works for updating an already installed version as well.
 
@@ -214,6 +215,34 @@ Once laueimproc has been installed correctly, simply type the next lines to open
 .. code-block:: shell
 
     laueimproc doc
+
+
+Install LaueTools
+^^^^^^^^^^^^^^^^^
+
+This module is closely linked to LaueTools, which is itself closely linked to ``wxpython``.
+
+If you have scrupulously followed the guide to installing python with pyenv (:ref:`configure-pyenv`), install the following packages:
+
+.. tab:: Linux
+
+    .. tab:: Debian Ubuntu Mint System
+
+        .. code-block:: shell
+
+            sudo apt install \
+                freeglut3 freeglut3-dev \
+                libgl1-mesa-dev libglu1-mesa-dev libgstreamer-plugins-base1.0-dev \
+                libgtk-3-dev libwebkit2gtk-4.0-dev \
+                libjpeg-dev libtiff-dev \
+                libnotify-dev \
+                libsdl2-dev \
+                libsm-dev \
+                libxtst-dev
+
+    .. code-block:: shell
+
+        pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxPython
 
 
 Platform Support

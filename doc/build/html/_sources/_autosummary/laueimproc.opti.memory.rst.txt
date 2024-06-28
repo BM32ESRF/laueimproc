@@ -1,0 +1,33 @@
+laueimproc.opti.memory
+======================
+
+.. automodule:: laueimproc.opti.memory
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      free_malloc
+      get_swappiness
+      mem_to_free
+      total_memory
+      used_memory
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,29 @@
+laueimproc.improc.find\_bboxes
+==============================
+
+.. automodule:: laueimproc.improc.find_bboxes
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      find_bboxes
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

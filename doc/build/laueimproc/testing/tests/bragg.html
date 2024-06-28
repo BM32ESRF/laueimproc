@@ -35,7 +35,7 @@
 import torch
 
 from laueimproc.diffraction.bragg import (
-    reciprocal_hkl_to_energy, reciprocal_hkl_to_uq, uf_to_uq, uq_to_uf
+    hkl_reciprocal_to_energy, hkl_reciprocal_to_uq, uf_to_uq, uq_to_uf
 )
 
 
@@ -53,30 +53,30 @@ BATCH_UQ = (19, 20, 21)
 BATCHED_UQ = UQ[None, None, None, :].expand(*BATCH_UQ, -1).clone()
 
 
-def test_batch_reciprocal_hkl_to_energy():
+def test_batch_hkl_reciprocal_to_energy():
     &#34;&#34;&#34;Test batch dimension.&#34;&#34;&#34;
-    assert reciprocal_hkl_to_energy(
-        torch.empty(0, 3, 3), torch.empty(0, 3, dtype=int)
+    assert hkl_reciprocal_to_energy(
+        torch.empty(0, 3, dtype=int), torch.empty(0, 3, 3)
     ).shape == (0, 0)
-    assert reciprocal_hkl_to_energy(RECIPROCAL, torch.empty(0, 3, dtype=int)).shape == (0,)
-    assert reciprocal_hkl_to_energy(torch.empty(0, 3, 3), HKL).shape == (0,)
-    assert reciprocal_hkl_to_energy(RECIPROCAL, HKL).shape == ()
-    assert reciprocal_hkl_to_energy(
-        BATCHED_RECIPROCAL, BATCHED_HKL
-    ).shape == BATCH_RECIPROCAL + BATCH_HKL
+    assert hkl_reciprocal_to_energy(torch.empty(0, 3, dtype=int), RECIPROCAL).shape == (0,)
+    assert hkl_reciprocal_to_energy(HKL, torch.empty(0, 3, 3)).shape == (0,)
+    assert hkl_reciprocal_to_energy(HKL, RECIPROCAL).shape == ()
+    assert hkl_reciprocal_to_energy(
+        BATCHED_HKL, BATCHED_RECIPROCAL
+    ).shape == BATCH_HKL + BATCH_RECIPROCAL
 
 
-def test_batch_reciprocal_hkl_to_uq():
+def test_batch_hkl_reciprocal_to_uq():
     &#34;&#34;&#34;Test batch dimension.&#34;&#34;&#34;
-    assert reciprocal_hkl_to_uq(
-        torch.empty(0, 3, 3), torch.empty(0, 3, dtype=int)
+    assert hkl_reciprocal_to_uq(
+        torch.empty(0, 3, dtype=int), torch.empty(0, 3, 3)
     ).shape == (0, 0, 3)
-    assert reciprocal_hkl_to_uq(RECIPROCAL, torch.empty(0, 3, dtype=int)).shape == (0, 3)
-    assert reciprocal_hkl_to_uq(torch.empty(0, 3, 3), HKL).shape == (0, 3)
-    assert reciprocal_hkl_to_uq(RECIPROCAL, HKL).shape == (3,)
-    assert reciprocal_hkl_to_uq(
-        BATCHED_RECIPROCAL, BATCHED_HKL
-    ).shape == (*BATCH_RECIPROCAL, *BATCH_HKL, 3)
+    assert hkl_reciprocal_to_uq(torch.empty(0, 3, dtype=int), RECIPROCAL).shape == (0, 3)
+    assert hkl_reciprocal_to_uq(HKL, torch.empty(0, 3, 3)).shape == (0, 3)
+    assert hkl_reciprocal_to_uq(HKL, RECIPROCAL).shape == (3,)
+    assert hkl_reciprocal_to_uq(
+        BATCHED_HKL, BATCHED_RECIPROCAL
+    ).shape == (*BATCH_HKL, *BATCH_RECIPROCAL, 3)
 
 
 def test_batch_uf_to_uq():
@@ -114,22 +114,22 @@ def test_bij_uq_to_uf_to_uq():
     )
 
 
-def test_jac_reciprocal_hkl_to_energy():
+def test_jac_hkl_reciprocal_to_energy():
     &#34;&#34;&#34;Test compute jacobian.&#34;&#34;&#34;
-    assert torch.func.jacrev(reciprocal_hkl_to_energy)(RECIPROCAL, HKL).shape == (3, 3)
+    assert torch.func.jacrev(hkl_reciprocal_to_energy, 1)(HKL, RECIPROCAL).shape == (3, 3)
 
 
-def test_jac_reciprocal_hkl_to_uq():
+def test_jac_hkl_reciprocal_to_uq():
     &#34;&#34;&#34;Test compute jacobian.&#34;&#34;&#34;
-    assert torch.func.jacrev(reciprocal_hkl_to_uq)(RECIPROCAL, HKL).shape == (3, 3, 3)
+    assert torch.func.jacrev(hkl_reciprocal_to_uq, 1)(HKL, RECIPROCAL).shape == (3, 3, 3)
 
 
-def test_normalization_reciprocal_hkl_to_uq():
+def test_normalization_hkl_reciprocal_to_uq():
     &#34;&#34;&#34;Test norm is 1.&#34;&#34;&#34;
     reciprocal = torch.eye(3) + torch.randn(1000, 3, 3) / 3
     hkl = torch.randint(-6, 7, (1000, 3))
     hkl = hkl[hkl.prod(dim=-1) != 0]
-    u_q = reciprocal_hkl_to_uq(reciprocal, hkl)
+    u_q = hkl_reciprocal_to_uq(hkl, reciprocal)
     assert torch.allclose(torch.linalg.vector_norm(u_q, dim=-1), torch.tensor(1.0))
 
 
@@ -165,8 +165,8 @@ def test_sign_uq():
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="laueimproc.testing.tests.bragg.test_batch_reciprocal_hkl_to_energy"><code class="name flex">
-<span>def <span class="ident">test_batch_reciprocal_hkl_to_energy</span></span>(<span>)</span>
+<dt id="laueimproc.testing.tests.bragg.test_batch_hkl_reciprocal_to_energy"><code class="name flex">
+<span>def <span class="ident">test_batch_hkl_reciprocal_to_energy</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test batch dimension.</p></div>
@@ -174,21 +174,21 @@ def test_sign_uq():
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_batch_reciprocal_hkl_to_energy():
+<pre><code class="python">def test_batch_hkl_reciprocal_to_energy():
     &#34;&#34;&#34;Test batch dimension.&#34;&#34;&#34;
-    assert reciprocal_hkl_to_energy(
-        torch.empty(0, 3, 3), torch.empty(0, 3, dtype=int)
+    assert hkl_reciprocal_to_energy(
+        torch.empty(0, 3, dtype=int), torch.empty(0, 3, 3)
     ).shape == (0, 0)
-    assert reciprocal_hkl_to_energy(RECIPROCAL, torch.empty(0, 3, dtype=int)).shape == (0,)
-    assert reciprocal_hkl_to_energy(torch.empty(0, 3, 3), HKL).shape == (0,)
-    assert reciprocal_hkl_to_energy(RECIPROCAL, HKL).shape == ()
-    assert reciprocal_hkl_to_energy(
-        BATCHED_RECIPROCAL, BATCHED_HKL
-    ).shape == BATCH_RECIPROCAL + BATCH_HKL</code></pre>
+    assert hkl_reciprocal_to_energy(torch.empty(0, 3, dtype=int), RECIPROCAL).shape == (0,)
+    assert hkl_reciprocal_to_energy(HKL, torch.empty(0, 3, 3)).shape == (0,)
+    assert hkl_reciprocal_to_energy(HKL, RECIPROCAL).shape == ()
+    assert hkl_reciprocal_to_energy(
+        BATCHED_HKL, BATCHED_RECIPROCAL
+    ).shape == BATCH_HKL + BATCH_RECIPROCAL</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.testing.tests.bragg.test_batch_reciprocal_hkl_to_uq"><code class="name flex">
-<span>def <span class="ident">test_batch_reciprocal_hkl_to_uq</span></span>(<span>)</span>
+<dt id="laueimproc.testing.tests.bragg.test_batch_hkl_reciprocal_to_uq"><code class="name flex">
+<span>def <span class="ident">test_batch_hkl_reciprocal_to_uq</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test batch dimension.</p></div>
@@ -196,17 +196,17 @@ def test_sign_uq():
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_batch_reciprocal_hkl_to_uq():
+<pre><code class="python">def test_batch_hkl_reciprocal_to_uq():
     &#34;&#34;&#34;Test batch dimension.&#34;&#34;&#34;
-    assert reciprocal_hkl_to_uq(
-        torch.empty(0, 3, 3), torch.empty(0, 3, dtype=int)
+    assert hkl_reciprocal_to_uq(
+        torch.empty(0, 3, dtype=int), torch.empty(0, 3, 3)
     ).shape == (0, 0, 3)
-    assert reciprocal_hkl_to_uq(RECIPROCAL, torch.empty(0, 3, dtype=int)).shape == (0, 3)
-    assert reciprocal_hkl_to_uq(torch.empty(0, 3, 3), HKL).shape == (0, 3)
-    assert reciprocal_hkl_to_uq(RECIPROCAL, HKL).shape == (3,)
-    assert reciprocal_hkl_to_uq(
-        BATCHED_RECIPROCAL, BATCHED_HKL
-    ).shape == (*BATCH_RECIPROCAL, *BATCH_HKL, 3)</code></pre>
+    assert hkl_reciprocal_to_uq(torch.empty(0, 3, dtype=int), RECIPROCAL).shape == (0, 3)
+    assert hkl_reciprocal_to_uq(HKL, torch.empty(0, 3, 3)).shape == (0, 3)
+    assert hkl_reciprocal_to_uq(HKL, RECIPROCAL).shape == (3,)
+    assert hkl_reciprocal_to_uq(
+        BATCHED_HKL, BATCHED_RECIPROCAL
+    ).shape == (*BATCH_HKL, *BATCH_RECIPROCAL, 3)</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.testing.tests.bragg.test_batch_uf_to_uq"><code class="name flex">
@@ -280,8 +280,8 @@ def test_sign_uq():
     )</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.testing.tests.bragg.test_jac_reciprocal_hkl_to_energy"><code class="name flex">
-<span>def <span class="ident">test_jac_reciprocal_hkl_to_energy</span></span>(<span>)</span>
+<dt id="laueimproc.testing.tests.bragg.test_jac_hkl_reciprocal_to_energy"><code class="name flex">
+<span>def <span class="ident">test_jac_hkl_reciprocal_to_energy</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test compute jacobian.</p></div>
@@ -289,13 +289,13 @@ def test_sign_uq():
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_jac_reciprocal_hkl_to_energy():
+<pre><code class="python">def test_jac_hkl_reciprocal_to_energy():
     &#34;&#34;&#34;Test compute jacobian.&#34;&#34;&#34;
-    assert torch.func.jacrev(reciprocal_hkl_to_energy)(RECIPROCAL, HKL).shape == (3, 3)</code></pre>
+    assert torch.func.jacrev(hkl_reciprocal_to_energy, 1)(HKL, RECIPROCAL).shape == (3, 3)</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.testing.tests.bragg.test_jac_reciprocal_hkl_to_uq"><code class="name flex">
-<span>def <span class="ident">test_jac_reciprocal_hkl_to_uq</span></span>(<span>)</span>
+<dt id="laueimproc.testing.tests.bragg.test_jac_hkl_reciprocal_to_uq"><code class="name flex">
+<span>def <span class="ident">test_jac_hkl_reciprocal_to_uq</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test compute jacobian.</p></div>
@@ -303,13 +303,13 @@ def test_sign_uq():
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_jac_reciprocal_hkl_to_uq():
+<pre><code class="python">def test_jac_hkl_reciprocal_to_uq():
     &#34;&#34;&#34;Test compute jacobian.&#34;&#34;&#34;
-    assert torch.func.jacrev(reciprocal_hkl_to_uq)(RECIPROCAL, HKL).shape == (3, 3, 3)</code></pre>
+    assert torch.func.jacrev(hkl_reciprocal_to_uq, 1)(HKL, RECIPROCAL).shape == (3, 3, 3)</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.testing.tests.bragg.test_normalization_reciprocal_hkl_to_uq"><code class="name flex">
-<span>def <span class="ident">test_normalization_reciprocal_hkl_to_uq</span></span>(<span>)</span>
+<dt id="laueimproc.testing.tests.bragg.test_normalization_hkl_reciprocal_to_uq"><code class="name flex">
+<span>def <span class="ident">test_normalization_hkl_reciprocal_to_uq</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test norm is 1.</p></div>
@@ -317,12 +317,12 @@ def test_sign_uq():
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_normalization_reciprocal_hkl_to_uq():
+<pre><code class="python">def test_normalization_hkl_reciprocal_to_uq():
     &#34;&#34;&#34;Test norm is 1.&#34;&#34;&#34;
     reciprocal = torch.eye(3) + torch.randn(1000, 3, 3) / 3
     hkl = torch.randint(-6, 7, (1000, 3))
     hkl = hkl[hkl.prod(dim=-1) != 0]
-    u_q = reciprocal_hkl_to_uq(reciprocal, hkl)
+    u_q = hkl_reciprocal_to_uq(hkl, reciprocal)
     assert torch.allclose(torch.linalg.vector_norm(u_q, dim=-1), torch.tensor(1.0))</code></pre>
 </details>
 </dd>
@@ -442,15 +442,15 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.testing.tests.bragg.test_batch_reciprocal_hkl_to_energy" href="#laueimproc.testing.tests.bragg.test_batch_reciprocal_hkl_to_energy">test_batch_reciprocal_hkl_to_energy</a></code></li>
-<li><code><a title="laueimproc.testing.tests.bragg.test_batch_reciprocal_hkl_to_uq" href="#laueimproc.testing.tests.bragg.test_batch_reciprocal_hkl_to_uq">test_batch_reciprocal_hkl_to_uq</a></code></li>
+<li><code><a title="laueimproc.testing.tests.bragg.test_batch_hkl_reciprocal_to_energy" href="#laueimproc.testing.tests.bragg.test_batch_hkl_reciprocal_to_energy">test_batch_hkl_reciprocal_to_energy</a></code></li>
+<li><code><a title="laueimproc.testing.tests.bragg.test_batch_hkl_reciprocal_to_uq" href="#laueimproc.testing.tests.bragg.test_batch_hkl_reciprocal_to_uq">test_batch_hkl_reciprocal_to_uq</a></code></li>
 <li><code><a title="laueimproc.testing.tests.bragg.test_batch_uf_to_uq" href="#laueimproc.testing.tests.bragg.test_batch_uf_to_uq">test_batch_uf_to_uq</a></code></li>
 <li><code><a title="laueimproc.testing.tests.bragg.test_batch_uq_to_uf" href="#laueimproc.testing.tests.bragg.test_batch_uq_to_uf">test_batch_uq_to_uf</a></code></li>
 <li><code><a title="laueimproc.testing.tests.bragg.test_bij_uf_to_uq_to_uf" href="#laueimproc.testing.tests.bragg.test_bij_uf_to_uq_to_uf">test_bij_uf_to_uq_to_uf</a></code></li>
 <li><code><a title="laueimproc.testing.tests.bragg.test_bij_uq_to_uf_to_uq" href="#laueimproc.testing.tests.bragg.test_bij_uq_to_uf_to_uq">test_bij_uq_to_uf_to_uq</a></code></li>
-<li><code><a title="laueimproc.testing.tests.bragg.test_jac_reciprocal_hkl_to_energy" href="#laueimproc.testing.tests.bragg.test_jac_reciprocal_hkl_to_energy">test_jac_reciprocal_hkl_to_energy</a></code></li>
-<li><code><a title="laueimproc.testing.tests.bragg.test_jac_reciprocal_hkl_to_uq" href="#laueimproc.testing.tests.bragg.test_jac_reciprocal_hkl_to_uq">test_jac_reciprocal_hkl_to_uq</a></code></li>
-<li><code><a title="laueimproc.testing.tests.bragg.test_normalization_reciprocal_hkl_to_uq" href="#laueimproc.testing.tests.bragg.test_normalization_reciprocal_hkl_to_uq">test_normalization_reciprocal_hkl_to_uq</a></code></li>
+<li><code><a title="laueimproc.testing.tests.bragg.test_jac_hkl_reciprocal_to_energy" href="#laueimproc.testing.tests.bragg.test_jac_hkl_reciprocal_to_energy">test_jac_hkl_reciprocal_to_energy</a></code></li>
+<li><code><a title="laueimproc.testing.tests.bragg.test_jac_hkl_reciprocal_to_uq" href="#laueimproc.testing.tests.bragg.test_jac_hkl_reciprocal_to_uq">test_jac_hkl_reciprocal_to_uq</a></code></li>
+<li><code><a title="laueimproc.testing.tests.bragg.test_normalization_hkl_reciprocal_to_uq" href="#laueimproc.testing.tests.bragg.test_normalization_hkl_reciprocal_to_uq">test_normalization_hkl_reciprocal_to_uq</a></code></li>
 <li><code><a title="laueimproc.testing.tests.bragg.test_normalization_uf_to_uq" href="#laueimproc.testing.tests.bragg.test_normalization_uf_to_uq">test_normalization_uf_to_uq</a></code></li>
 <li><code><a title="laueimproc.testing.tests.bragg.test_normalization_uq_to_uf" href="#laueimproc.testing.tests.bragg.test_normalization_uq_to_uf">test_normalization_uq_to_uf</a></code></li>
 <li><code><a title="laueimproc.testing.tests.bragg.test_sign_uq" href="#laueimproc.testing.tests.bragg.test_sign_uq">test_sign_uq</a></code></li>
