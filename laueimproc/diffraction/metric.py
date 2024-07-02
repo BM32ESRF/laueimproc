@@ -135,7 +135,7 @@ def compute_matching_rate(
     >>> exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
     >>> theo_uq = torch.randn(5000, 3)
     >>> theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True)
-    >>> compute_matching_rate(exp_uq, theo_uq, 0.5 * torch.pi/180)
+    >>> rate = compute_matching_rate(exp_uq, theo_uq, 0.5 * torch.pi/180)
     >>>
     """
     assert isinstance(exp_uq, torch.Tensor), exp_uq.__class__.__name__
