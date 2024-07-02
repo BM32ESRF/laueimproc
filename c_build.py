@@ -42,6 +42,14 @@ class Build(_build_py):
             self.distribution.ext_modules = []
         self.distribution.ext_modules.append(
             Extension(
+                "laueimproc.diffraction.c_metric",
+                sources=["laueimproc/diffraction/c_metric.c"],
+                optional=True,
+                **COMP_RULES,
+            )
+        )
+        self.distribution.ext_modules.append(
+            Extension(
                 "laueimproc.ml.c_dist",
                 sources=["laueimproc/ml/c_dist.c"],
                 optional=True,

@@ -112,6 +112,28 @@ int CheckKernel(PyArrayObject* kernel, enum NPY_TYPES dtype) {
 }
 
 
+int CheckRays(PyArrayObject* rays) {
+    // Print an exception if the rays are not correct.
+    if (PyArray_NDIM(rays) != 2) {
+        PyErr_SetString(PyExc_ValueError, "'rays' requires 2 dimensions");
+        return 1;
+    }
+    if (PyArray_DIM(rays, 1) != 3) {
+        PyErr_SetString(PyExc_ValueError, "second axis of 'rays' has to be of size 3, for x, y, and z");
+        return 1;
+    }
+    if (PyArray_TYPE(rays) != NPY_FLOAT32) {
+        PyErr_SetString(PyExc_TypeError, "'rays' has to be of type float32");
+        return 1;
+    }
+    if (!PyArray_IS_C_CONTIGUOUS(rays)) {
+        PyErr_SetString(PyExc_ValueError, "'rays' has to be c contiguous");
+        return 1;
+    }
+    return 0;
+}
+
+
 int CheckRois(PyArrayObject* rois) {
     // Print an exception if shape or format is not correct.
     if (PyArray_NDIM(rois) != 3) {

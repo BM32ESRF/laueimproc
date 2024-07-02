@@ -2,12 +2,65 @@
 
 """Implement some loss functions."""
 
+import functools
+import logging
 import math
 import numbers
 
+import numpy as np
 import torch
 
+try:
+    from laueimproc.diffraction import c_metric
+except ImportError:
+    logging.warning(
+        "failed to import laueimproc.diffraction.c_metric, a slow python version is used instead"
+    )
+    c_metric = None
 from .projection import detector_to_ray
+
+
+def _cached_ray_to_table(func):
+    """Decorate ray_to_table to cache the result."""
+    @functools.wraps(func)
+    def decorated(
+        ray: torch.Tensor, res: numbers.Real
+    ) -> tuple[np.ndarray, np.ndarray, tuple[int, int, int, int]]:
+        """Invoque ``c_metric.ray_to_table`` and keep result in cache.
+
+        Parameters
+        ----------
+        ray : torch.Tensor
+            The rays of shape (n, 3).
+        res : float
+            The maximal sample step in spherical hash table projection.
+
+        Returns
+        -------
+        table : np.ndarray[int]
+            The hash table of shape (a, b, 2).
+            The first layer ``table[:, :, 0]`` corresponds to the start inex of ``indicies``.
+            The second layer ``table[:, :, 1]`` corresponds to the number of items.
+        indices : np.ndarray[int]
+            Matching between the table and the ray index.
+            We have ``one_ray = ray[indices[table[c, d, 0] + i]]``,
+            with 0 <= c < a, 0 <= d < b and 0 <= i < table[c, d, 1]
+        limits : tuple[int, int, int, int]
+            Internal padding consideration.
+        """
+        assert isinstance(ray, torch.Tensor), ray.__class__.__name__
+        assert ray.ndim == 2 and ray.shape[1] == 3, ray.shape
+        signature = (ray.data_ptr(), ray.shape[0], float(res))
+        if signature not in cache:
+            if len(cache) > 64:  # to avoid memory leaking
+                cache.clear()
+            cache[signature] = c_metric.ray_to_table(ray.numpy(force=True), res)
+        return cache[signature]
+    cache = {}
+    return decorated
+
+
+ray_to_table = None if c_metric is None else _cached_ray_to_table(c_metric.ray_to_table)
 
 
 def raydotdist(
@@ -21,8 +74,8 @@ def raydotdist(
         The 2d point associated to uf in the referencial of the detector of shape (*n, r1, 2).
         Could be directly the unitary ray vector uf or uq of shape (*n, r1, 3).
     ray_point_2 : torch.Tensor
-        The 2d point associated to uf in the referencial of the detector of shape (*n, r2, 2)).
-        Could be directly the unitary ray vector uf or uq of shape (*n, r2, 3).
+        The 2d point associated to uf in the referencial of the detector of shape (*n', r2, 2)).
+        Could be directly the unitary ray vector uf or uq of shape (*n', r2, 3).
     poni : torch.Tensor, optional
         Only use if the ray are projected points.
         The point of normal incidence, callibration parameters according the pyfai convention.
@@ -31,7 +84,7 @@ def raydotdist(
     Returns
     -------
     dist : torch.Tensor
-        The distance matrix \(\cos(\phi)\) of shape (*n, *p, r1, r2).
+        The distance matrix \(\cos(\phi)\) of shape (*broadcast(n, n'), *p, r1, r2).
     """
     assert isinstance(ray_point_1, torch.Tensor), ray_point_1.__class__.__name__
     assert isinstance(ray_point_2, torch.Tensor), ray_point_2.__class__.__name__
@@ -56,7 +109,7 @@ def raydotdist(
 
 
 def compute_matching_rate(
-    exp_uq: torch.Tensor, theo_uq: torch.Tensor, phi_max: numbers.Real
+    exp_uq: torch.Tensor, theo_uq: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
 ) -> torch.Tensor:
     r"""Compute the matching rate.
 
@@ -65,56 +118,59 @@ def compute_matching_rate(
     exp_uq : torch.Tensor
         The unitary experimental uq vector of shape (*n, e, 3).
     theo_uq : torch.Tensor
-        The unitary simulated theorical uq vector of shape (*n, t, 3).
+        The unitary simulated theorical uq vector of shape (*n', t, 3).
     phi_max : float
         The maximum positive angular distance in radian to consider that the rays are closed enough.
 
     Returns
     -------
     match : torch.Tensor
-        The matching rate of shape n.
+        The matching rate of shape broadcast(n, n').
+
+    Examples
+    --------
+    >>> import torch
+    >>> from laueimproc.diffraction.metric import compute_matching_rate
+    >>> exp_uq = torch.randn(1000, 3)
+    >>> exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
+    >>> theo_uq = torch.randn(5000, 3)
+    >>> theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True)
+    >>> compute_matching_rate(exp_uq, theo_uq, 0.5 * torch.pi/180)
+    >>>
     """
     assert isinstance(exp_uq, torch.Tensor), exp_uq.__class__.__name__
     assert exp_uq.ndim >= 2 and exp_uq.shape[-1] == 3, exp_uq.shape
     assert isinstance(theo_uq, torch.Tensor), theo_uq.__class__.__name__
     assert theo_uq.ndim >= 2 and theo_uq.shape[-1] == 3, theo_uq.shape
+    *batch_exp, size_e, _ = exp_uq.shape
+    *batch_theo, size_t, _ = theo_uq.shape
+    assert size_e * size_t, "can not compute distance of empty matrix"
+
+    if not _no_c and c_metric is not None:
+        batch_n = torch.broadcast_shapes(batch_exp, batch_theo)
+        exp_uq = torch.broadcast_to(
+            exp_uq, batch_n + (size_e, 3)
+        ).reshape(int(np.prod(batch_n)), size_e, 3)
+        theo_uq = torch.broadcast_to(
+            theo_uq, batch_n + (size_t, 3)
+        ).reshape(int(np.prod(batch_n)), size_t, 3)
+        rate = [
+            len(
+                c_metric.link_close_rays(
+                    theo.numpy(force=True), phi_max, exp.numpy(force=True), 4.0*phi_max,
+                    ray_to_table(exp, 4.0*phi_max),
+                )[0]
+            )  # / size_t
+            for exp, theo in zip(exp_uq, theo_uq)
+        ]
+        return torch.asarray(rate, dtype=theo_uq.dtype, device=theo_uq.device).reshape(batch_n)
+
     assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
     assert 0 <= phi_max < math.pi/2, phi_max
-
     dist = raydotdist(exp_uq, theo_uq)  # (*n, e, t)
-
     dist = dist > math.cos(phi_max)
     dist = torch.any(dist, dim=-2)  # (*n, t)
     rate = torch.count_nonzero(dist, dim=-1)  # (*n,)
     rate = rate.to(theo_uq.dtype)
     # rate /= exp_uq.shape[-2]
     return rate
-
-
-# def compute_dist(x, y):
-#     diff = x[..., *((None,)*(y.ndim-1)), :] - y[*((None,)*(x.ndim-1)), ..., :]  # (*x, *y, 2)
-#     return torch.sqrt(torch.sum(diff * diff, dim=-1))
-
-
-# def couple(ref, x, eps=0.1):
-#     # make reference hash table
-#     ref_dict = {}  # to each rounded couple (x, y) associate the ref indices
-#     for i, idx in enumerate((0.5 + ref/eps).to(torch.int64).tolist()):
-#         idx = tuple(idx)
-#         ref_dict[idx] = ref_dict.get(idx, [])
-#         ref_dict[idx].append(i)
-
-#     # compare each element
-#     quandidates = []  # to each dst indicies, associate the ref candidates indicies
-#     for i, (x1_floor, x2_floor) in enumerate((x/eps).to(torch.int64).tolist()):
-#         quandidates.append(
-#             ref_dict.get((x1_floor, x2_floor), [])
-#             + ref_dict.get((x1_floor, x2_floor + 1), [])
-#             + ref_dict.get((x1_floor + 1, x2_floor), [])
-#             + ref_dict.get((x1_floor + 1, x2_floor + 1), [])
-#         )
-
-#     # each matrix distances
-#     distances = []  # to each dst indices, associate the distance with all the ref candidates
-#     for i_x, i_refs in enumerate(quandidates):
-#         distances.append(compute_dist(x[i_x], ref[i_refs]))
