@@ -7,10 +7,9 @@ import numbers
 
 import torch
 
-from .bragg import hkl_reciprocal_to_energy
+from .bragg import PLANK_H, CELERITY_C
 from .lattice import lattice_to_primitive
 from .reciprocal import primitive_to_reciprocal
-from .rotation import angle_to_rot, rotate_cristal
 
 
 @functools.lru_cache(maxsize=8)
@@ -47,12 +46,11 @@ def _select_all_hkl(max_hkl: int) -> torch.Tensor:
 def select_hkl(
     lattice: torch.Tensor | None = None,
     *,
-    max_hkl: numbers.Integral = 10,
-    e_min: numbers.Real = 0.0,
+    max_hkl: numbers.Integral = 18,
     e_max: numbers.Real = torch.inf,
     keep_harmonics: bool = True,
 ) -> torch.Tensor:
-    r"""Simulate the hkl energy for different rotations, reject out of band indices.
+    r"""Reject the hkl sistematicaly out of energy band.
 
     Parameters
     ----------
@@ -61,8 +59,6 @@ def select_hkl(
         are used to simulate the hkl energy for a large number of rotation.
     max_hkl : int
         The maximum absolute hkl sum such as |h| + |k| + |l| <= max_hkl.
-    e_min : float, optional
-        Indicies that systematicaly have an energy strictely less than `e_min` in J are rejected.
     e_max : float, optional
         Indicies that systematicaly have an energy strictely greater than `e_max` in J are rejected.
     keep_harmonics : boolean, default=True
@@ -73,52 +69,85 @@ def select_hkl(
     -------
     hkl : torch.Tensor
         The int16 hkl of shape (n, 3).
+
+    Examples
+    --------
+    >>> import torch
+    >>> from laueimproc.diffraction.hkl import select_hkl
+    >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
+    >>> select_hkl(lattice)
+    tensor([[  0, -18,   0],
+            [  0, -17,  -1],
+            [  0, -17,   0],
+            ...,
+            [ 17,   0,   1],
+            [ 17,   1,   0],
+            [ 18,   0,   0]], dtype=torch.int16)
+    >>> len(_)
+    4578
+    >>> select_hkl(lattice, keep_harmonics=False)
+    tensor([[  0, -17,  -1],
+            [  0, -17,   1],
+            [  0, -16,  -1],
+            ...,
+            [ 17,   0,  -1],
+            [ 17,   0,   1],
+            [ 17,   1,   0]], dtype=torch.int16)
+    >>> len(_)
+    3661
+    >>> select_hkl(lattice, e_max=20e3 * 1.60e-19)  # 20 keV
+    tensor([[  0, -11,  -3],
+            [  0, -11,  -2],
+            [  0, -11,  -1],
+            ...,
+            [ 11,   3,   0],
+            [ 11,   3,   1],
+            [ 11,   3,   2]], dtype=torch.int16)
+    >>> len(_)
+    3399
+    >>>
     """
     assert isinstance(max_hkl, numbers.Integral), max_hkl.__class__.__name__
     assert 0 < max_hkl <= torch.iinfo(torch.int16).max, max_hkl
-    assert isinstance(e_min, numbers.Real), e_min.__class__.__name__
-    assert e_min >= 0.0, e_min
     assert isinstance(e_max, numbers.Real), e_max.__class__.__name__
-    assert e_max > e_min, (e_min, e_max)
     assert isinstance(keep_harmonics, bool), keep_harmonics.__class__.__name__
     assert isinstance(lattice, torch.Tensor | None), lattice.__class__.__name__
     assert lattice is None or lattice.shape[-1:] == (6,), lattice.shape
 
-    hkl = _select_all_hkl(int(max_hkl))
+    hkl = _select_all_hkl(int(max_hkl))  # (n, 3)
     if lattice is not None:
         hkl = hkl.to(lattice.device)
 
-    if lattice is not None and (e_min > 0.0 or e_max < torch.inf):
-        reciprocal = primitive_to_reciprocal(lattice_to_primitive(lattice))
-        angles = torch.linspace(
-            -torch.pi/2, torch.pi/2, 12, device=lattice.device, dtype=lattice.dtype
-        )
-        reciprocal = rotate_cristal(reciprocal, angle_to_rot(angles, angles, angles))
-        energy = hkl_reciprocal_to_energy(hkl, reciprocal).reshape(len(hkl), -1)
-        hkl = hkl[torch.any(energy >= e_min, dim=1) & torch.any(energy <= e_max, dim=1)]
+    if lattice is not None and e_max < torch.inf:
+        reciprocal = primitive_to_reciprocal(lattice_to_primitive(lattice))  # (..., 3, 3)
+        u_q = reciprocal[..., None, :, :] @ hkl[..., None].to(reciprocal.device, reciprocal.dtype)
+        inv_d_square = u_q.mT @ u_q  # (..., n, 1, 1)
+        energy = 0.5 * CELERITY_C * PLANK_H * torch.sqrt(inv_d_square[..., :, 0, 0])  # (..., n)
+        energy = energy.reshape(-1, len(hkl))
+        # import ipdb; ipdb.set_trace()
+        hkl = hkl[torch.any(energy <= e_max, dim=0)]  # energy corresponds to the energy max
     else:
-        energy = False
+        energy = None
 
     if not keep_harmonics:
-        if energy is None:
-            hkl = hkl[torch.gcd(torch.gcd(hkl[:, 0], hkl[:, 1]), hkl[:, 2]) == 1]
-        else:
-            family = hkl // torch.gcd(torch.gcd(hkl[:, 0], hkl[:, 1]), hkl[:, 2]).unsqueeze(-1)
-            family = family.tolist()
-            family_dict = {}  # to each family, associate the hkls
-            hkl = hkl.tolist()
-            for family_, hkl_ in zip(family, hkl):
-                family_ = tuple(family_)
-                family_dict[family_] = family_dict.get(family_, [])
-                family_dict[family_].append(hkl_)
-            family_dict = {  # to each family, associate the hkl to keep
-                family_: min(hkl_list, key=lambda hkl_: sum(map(abs, hkl_)))
-                for family_, hkl_list in family_dict.items()
-            }
-            hkl = [
-                hkl_ for hkl_, family_ in zip(hkl, family)
-                if family_dict[tuple(family_)] == hkl_
-            ]
-            hkl = torch.tensor(hkl, device=lattice.device, dtype=torch.int16)
+        hkl = hkl[torch.gcd(torch.gcd(hkl[:, 0], hkl[:, 1]), hkl[:, 2]) == 1]
+        # method to select only the first diffracting harmonic, if e_min > 0...
+        # family = hkl // torch.gcd(torch.gcd(hkl[:, 0], hkl[:, 1]), hkl[:, 2]).unsqueeze(-1)
+        # family = family.tolist()
+        # family_dict = {}  # to each family, associate the hkls
+        # hkl = hkl.tolist()
+        # for family_, hkl_ in zip(family, hkl):
+        #     family_ = tuple(family_)
+        #     family_dict[family_] = family_dict.get(family_, [])
+        #     family_dict[family_].append(hkl_)
+        # family_dict = {  # to each family, associate the hkl to keep
+        #     family_: min(hkl_list, key=lambda hkl_: sum(map(abs, hkl_)))
+        #     for family_, hkl_list in family_dict.items()
+        # }
+        # hkl = [
+        #     hkl_ for hkl_, family_ in zip(hkl, family)
+        #     if family_dict[tuple(family_)] == hkl_
+        # ]
+        # hkl = torch.tensor(hkl, device=lattice.device, dtype=torch.int16)
 
     return hkl

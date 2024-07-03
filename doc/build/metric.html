@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>laueimproc.testing.tests API documentation</title>
-<meta name="description" content="" />
+<title>metric API documentation</title>
+<meta name="description" content="Fast distance calculation based on hash table." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -20,46 +20,31 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Namespace <code>laueimproc.testing.tests</code></h1>
+<h1 class="title">Module <code>metric</code></h1>
 </header>
 <section id="section-intro">
+<p>Fast distance calculation based on hash table.</p>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt><code class="name"><a title="laueimproc.testing.tests.bragg" href="bragg.html">laueimproc.testing.tests.bragg</a></code></dt>
+<dt id="metric.link_close_rays"><code class="name flex">
+<span>def <span class="ident">link_close_rays</span></span>(<span>...)</span>
+</code></dt>
 <dd>
-<div class="desc"><p>Test the function of bragg diffraction.</p></div>
+<div class="desc"><p>Associate the closet ray.</p></div>
 </dd>
-<dt><code class="name"><a title="laueimproc.testing.tests.inter_batch" href="inter_batch.html">laueimproc.testing.tests.inter_batch</a></code></dt>
+<dt id="metric.ray_to_table"><code class="name flex">
+<span>def <span class="ident">ray_to_table</span></span>(<span>...)</span>
+</code></dt>
 <dd>
-<div class="desc"><p>Test the median function.</p></div>
-</dd>
-<dt><code class="name"><a title="laueimproc.testing.tests.lattice" href="lattice.html">laueimproc.testing.tests.lattice</a></code></dt>
-<dd>
-<div class="desc"><p>Test the convertion between lattice and primitive space.</p></div>
-</dd>
-<dt><code class="name"><a title="laueimproc.testing.tests.metric" href="metric.html">laueimproc.testing.tests.metric</a></code></dt>
-<dd>
-<div class="desc"><p>Test if the matching rate is ok.</p></div>
-</dd>
-<dt><code class="name"><a title="laueimproc.testing.tests.projection" href="projection.html">laueimproc.testing.tests.projection</a></code></dt>
-<dd>
-<div class="desc"><p>Test the convertion between ray and detector position.</p></div>
-</dd>
-<dt><code class="name"><a title="laueimproc.testing.tests.reciprocal" href="reciprocal.html">laueimproc.testing.tests.reciprocal</a></code></dt>
-<dd>
-<div class="desc"><p>Test the convertion between primitive and reciprocal.</p></div>
-</dd>
-<dt><code class="name"><a title="laueimproc.testing.tests.set_spots" href="set_spots.html">laueimproc.testing.tests.set_spots</a></code></dt>
-<dd>
-<div class="desc"><p>Test the set_spots function.</p></div>
+<div class="desc"><p>Projects rays into a hash table.</p></div>
 </dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
 </section>
 <section>
 </section>
@@ -99,7 +84,7 @@ const query = new URL(window.location).searchParams.get('q');
 if (query)
 search(query);
 function search(query) {
-const url = '../../../doc-search.html#' + encodeURIComponent(query);
+const url = 'doc-search.html#' + encodeURIComponent(query);
 new tingle.modal({
 cssClass: ['modal-dialog'],
 onClose: () => {
@@ -118,18 +103,13 @@ setTimeout(() => input.focus(), 100);
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="laueimproc.testing" href="../index.html">laueimproc.testing</a></code></li>
+<li><code><a title="laueimproc.diffraction" href="laueimproc/diffraction/index.html">laueimproc.diffraction</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
-<ul>
-<li><code><a title="laueimproc.testing.tests.bragg" href="bragg.html">laueimproc.testing.tests.bragg</a></code></li>
-<li><code><a title="laueimproc.testing.tests.inter_batch" href="inter_batch.html">laueimproc.testing.tests.inter_batch</a></code></li>
-<li><code><a title="laueimproc.testing.tests.lattice" href="lattice.html">laueimproc.testing.tests.lattice</a></code></li>
-<li><code><a title="laueimproc.testing.tests.metric" href="metric.html">laueimproc.testing.tests.metric</a></code></li>
-<li><code><a title="laueimproc.testing.tests.projection" href="projection.html">laueimproc.testing.tests.projection</a></code></li>
-<li><code><a title="laueimproc.testing.tests.reciprocal" href="reciprocal.html">laueimproc.testing.tests.reciprocal</a></code></li>
-<li><code><a title="laueimproc.testing.tests.set_spots" href="set_spots.html">laueimproc.testing.tests.set_spots</a></code></li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="metric.link_close_rays" href="#metric.link_close_rays">link_close_rays</a></code></li>
+<li><code><a title="metric.ray_to_table" href="#metric.ray_to_table">ray_to_table</a></code></li>
 </ul>
 </li>
 </ul>

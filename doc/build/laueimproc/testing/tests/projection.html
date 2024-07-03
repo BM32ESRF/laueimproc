@@ -54,8 +54,8 @@ def test_batch_detector_to_ray():
     assert detector_to_ray(torch.empty(0, 2), torch.empty(0, 6)).shape == (0, 3)
     assert detector_to_ray(POINT, PONI).shape == (3,)
     assert (
-        detector_to_ray(BATCHED_POINT[None, None, ...], BATCHED_PONI).shape
-        == (*BATCH_PONI, *BATCH_POINT, 3)
+        detector_to_ray(BATCHED_POINT[..., None, None, :], BATCHED_PONI).shape
+        == (*BATCH_POINT, *BATCH_PONI, 3)
     )
 
 
@@ -137,8 +137,8 @@ def test_normalization_detector_to_ray():
     assert detector_to_ray(torch.empty(0, 2), torch.empty(0, 6)).shape == (0, 3)
     assert detector_to_ray(POINT, PONI).shape == (3,)
     assert (
-        detector_to_ray(BATCHED_POINT[None, None, ...], BATCHED_PONI).shape
-        == (*BATCH_PONI, *BATCH_POINT, 3)
+        detector_to_ray(BATCHED_POINT[..., None, None, :], BATCHED_PONI).shape
+        == (*BATCH_POINT, *BATCH_PONI, 3)
     )</code></pre>
 </details>
 </dd>

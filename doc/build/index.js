@@ -52,6 +52,7 @@ URLS=[
 "laueimproc/testing/tests/lattice.html",
 "laueimproc/testing/tests/bragg.html",
 "laueimproc/testing/tests/projection.html",
+"laueimproc/testing/tests/metric.html",
 "laueimproc/testing/run.html",
 "laueimproc/nn/index.html",
 "laueimproc/nn/dataaug/index.html",
@@ -73,9 +74,10 @@ URLS=[
 "laueimproc/diffraction/reciprocal.html",
 "laueimproc/diffraction/bragg.html",
 "laueimproc/diffraction/rotation.html",
-"laueimproc/diffraction/hkl.html",
-"laueimproc/diffraction/metric.html",
 "laueimproc/diffraction/projection.html",
+"laueimproc/diffraction/metric.html",
+"metric.html",
+"laueimproc/diffraction/hkl.html",
 "laueimproc/convention.html"
 ];
 INDEX=[
@@ -2203,574 +2205,608 @@ INDEX=[
 "func":1
 },
 {
-"ref":"laueimproc.testing.run",
+"ref":"laueimproc.testing.tests.metric",
 "url":53,
+"doc":"Test if the matching rate is ok."
+},
+{
+"ref":"laueimproc.testing.tests.metric.test_batch_matching_rate",
+"url":53,
+"doc":"Tests batch dimension.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.run",
+"url":54,
 "doc":"Executes all the tests via the  pytest module."
 },
 {
 "ref":"laueimproc.testing.run.run_tests",
-"url":53,
+"url":54,
 "doc":"Perform all unit tests.",
 "func":1
 },
 {
 "ref":"laueimproc.nn",
-"url":54,
+"url":55,
 "doc":"Neuronal Network sub module."
 },
 {
 "ref":"laueimproc.nn.dataaug",
-"url":55,
+"url":56,
 "doc":"Image data augmentation."
 },
 {
 "ref":"laueimproc.nn.dataaug.patch",
-"url":56,
+"url":57,
 "doc":"Crop and pad an image to schange the size without any interpolation."
 },
 {
 "ref":"laueimproc.nn.dataaug.patch.patch",
-"url":56,
+"url":57,
 "doc":"Pad the image with transparent borders. Parameters      image : torch.Tensor or numpy.ndarray The image to be cropped and padded. shape : int and int The pixel dimensions of the returned image. The convention adopted is the numpy convention (height, width). copy : boolean, default=True If True, ensure that the returned tensor doesn't share the data of the input tensor. Returns    - patched_image The cropped and padded image homogeneous with the input. Examples     >>> import torch >>> from laueimproc.nn.dataaug.patch import patch >>> ref = torch.full 4, 8), 128, dtype=torch.uint8) >>> patch(ref, (6, 6 tensor( 0, 0, 0, 0, 0, 0], [128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128], [ 0, 0, 0, 0, 0, 0 , dtype=torch.uint8) >>> patch(ref, (3, 9 tensor( 128, 128, 128, 128, 128, 128, 128, 128, 0], [128, 128, 128, 128, 128, 128, 128, 128, 0], [128, 128, 128, 128, 128, 128, 128, 128, 0 , dtype=torch.uint8) >>> patch(ref, (2, 2 tensor( 128, 128], [128, 128 , dtype=torch.uint8) >>> patch(ref, (10, 10 tensor( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [ 0, 128, 128, 128, 128, 128, 128, 128, 128, 0], [ 0, 128, 128, 128, 128, 128, 128, 128, 128, 0], [ 0, 128, 128, 128, 128, 128, 128, 128, 128, 0], [ 0, 128, 128, 128, 128, 128, 128, 128, 128, 0], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , dtype=torch.uint8) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.nn.dataaug.scale",
-"url":57,
+"url":58,
 "doc":"Resize and image keeping the proportions."
 },
 {
 "ref":"laueimproc.nn.dataaug.scale.rescale",
-"url":57,
+"url":58,
 "doc":"Reshape the image, keep the spact ratio and pad with black pixels. Parameters      image : cutcutcodec.core.classes.image_video.FrameVideo or torch.Tensor or numpy.ndarray The image to be resized, of shape (height, width). shape : int and int The pixel dimensions of the returned image. The convention adopted is the numpy convention (height, width). copy : boolean, default=True If True, ensure that the returned tensor doesn't share the data of the input tensor. Returns    - resized_image The resized (and padded) image homogeneous with the input. The underground data are not shared with the input. A safe copy is done. Examples     >>> import torch >>> from laueimproc.nn.dataaug.scale import rescale >>> ref = torch.full 4, 8), 128, dtype=torch.uint8) >>> >>>  upscale >>> rescale(ref, (8, 12 tensor( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128], [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 , dtype=torch.uint8) >>> >>>  downscale >>> rescale(ref, (4, 4 tensor( 0, 0, 0, 0], [128, 128, 128, 128], [128, 128, 128, 128], [ 0, 0, 0, 0 , dtype=torch.uint8) >>> >>>  mix >>> rescale(ref, (6, 6 tensor( 0, 0, 0, 0, 0, 0], [128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128], [128, 128, 128, 128, 128, 128], [ 0, 0, 0, 0, 0, 0], [ 0, 0, 0, 0, 0, 0 , dtype=torch.uint8) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.nn.train",
-"url":58,
+"url":59,
 "doc":"Training pipeline for the models."
 },
 {
 "ref":"laueimproc.nn.train.train_vae_spot_classifier",
-"url":58,
+"url":59,
 "doc":"Train the model. Parameters      model : laueimproc.nn.vae_spot_classifier.VAESpotClassifier The initialised but not already trained model. dataset : laueimproc.classes.dataset.DiagramsDataset Contains all the initialised diagrams. batch : int, optional The number of pictures in each batch. By default, the batch size is equal to the dataset size, so that there is exactely one complete batch per epoch. epoch : int, default=10 The number of epoch. lr : float, optional The learning rate. fig : matplotlib.figure.Figure, optional An empty figure ready to be filled.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier",
-"url":59,
+"url":60,
 "doc":"Classifier of laue spots using variational convolutive auto-encoder."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier",
-"url":59,
+"url":60,
 "doc":"A partialy convolutive variationel auto encoder used for unsupervised spot classification. Attributes      decoder : Decoder The decoder part, able to random draw and reconstitue an image from the encoder. device: torch.device The device of the model. encoder : Encoder The encoder part, able to transform an image into au gaussian law. latent_dim : int The dimension of the latent space. shape : tuple[int, int] The shape of the rois. space : float, default = 3.0 The non penalized spreading area half size. Initialise the model. Parameters      shape : tuple[int, int] Transmitted to  laueimproc.nn.vae_spot_classifier.Encoder and  laueimproc.nn.vae_spot_classifier.Decoder . latent_dim : int, default=2 Transmitted to  laueimproc.nn.vae_spot_classifier.Encoder and  laueimproc.nn.vae_spot_classifier.Decoder . space : float, default=3.0 The non penalized spreading area in the latent space. All the points with abs(p) <= space are autorized. A small value condensate all the data, very continuous space but hard to split. In a other way, a large space split the clusters but the values betwean the clusters are not well defined. intensity_sensitive : boolean, default=True If set to False, the model will not consider the spots intensity, as they will be normalized to have a power of 1. scale_sensitive : boolean = True If set to False, the model will not consider the spots size, as they will be resized and reinterpolated to a constant shape."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.dataaug",
-"url":59,
+"url":60,
 "doc":"Apply all the data augmentations on the image. Parameters      image : torch.Tensor The image of shape (h, w). Returns    - aug_batch : torch.Tensor The augmented stack of images of shape (n, 1, h', w').",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.device",
-"url":59,
+"url":60,
 "doc":"Return the device of the model."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.forward",
-"url":59,
+"url":60,
 "doc":"Encode, random draw and decode the image. Parameters      data : laueimproc.classes.base_diagram.BaseDiagram or torch.Tensor If a digram is provided, the spots are extract, data augmentation are applied, and the mean projection in the latent space is returned. If the input is a tensor, data augmentation are not applied. Return the autoencoded data, after having decoded a random latent space draw. Returns    - torch.Tensor The mean latent vector of shape (n, latent_dim) if the input is a Diagram. The generated image of shape (n, height, width) otherwise.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.latent_dim",
-"url":59,
+"url":60,
 "doc":"Return the dimension of the latent space."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.loss",
-"url":59,
+"url":60,
 "doc":"Forward the data and compute the loss values. Parameters      batch : torch.Tensor The image stack of shape (n, h, w). Returns    - mse_loss : torch.Tensor The sum of the mean square error loss for each image in the batch, shape (1,). kld_loss : torch.Tensor Pretty close to the sum of the Kullback-Leibler divergence for each projection in the batch, shape (1,). It is not litteraly the Kullback-Leibler divergence because the peanality for the mean is less strict, the cost is 0 in the [-space, space] interval. The cost is minimum when var=1 and -space<=mean<=space. Notes   -  No verifications are performed for performance reason.  The reduction is sum and not mean because it ables to split the batch in several slices.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.normalization",
-"url":59,
+"url":60,
 "doc":"Return the mean and the std of all the training data."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.plot_autoencode",
-"url":59,
+"url":60,
 "doc":"Encode and decode the images, plot the initial and regenerated images. Parameters      axe_input : matplotlib.axes.Axes The 2d empty axe ready to be filled by the input mosaic. axe_output : matplotlib.axes.Axes The 2d empty axe ready to be filled by the generated mosaic. spots : torch.Tensor The image stack of shape (n, h, w).",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.scan_data",
-"url":59,
+"url":60,
 "doc":"Complete the data histogram to standardise data (centered and reduction). Parameters      spots_generator : iterable A generator of spot batch, each item has to be of shape (:, h, w).",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.shape",
-"url":59,
+"url":60,
 "doc":"Return the shape of the images."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.VAESpotClassifier.space",
-"url":59,
+"url":60,
 "doc":"Return the non penalized spreading area half size."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Decoder",
-"url":59,
+"url":60,
 "doc":"Decode the latent sample into a new image. Attributes      parent : laueimproc.nn.vae_spot_classifier.VAESpotClassifier The main full auto encoder, containing this module. Initialise the decoder. Parameters      parent : laueimproc.nn.vae_spot_classifier.VAESpotClassifier The main module."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Decoder.forward",
-"url":59,
+"url":60,
 "doc":"Generate a new image from the samples. Parameters      sample : torch.Tensor The batch of the n samples, output of the  Decoder.parametrize function. The size is (n, latent_dim) Returns    - image : torch.Tensor The generated image batch, of shape (n, 1, height, width) Notes   - No verifications are performed for performance reason.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Decoder.parametrize",
-"url":59,
+"url":60,
 "doc":"Perform a random draw according to the normal law N(mean, std 2). Parameters      mean : torch.Tensor The batch of the mean vectors, shape (n, latent_dim). std : torch.Tensor The batch of the diagonal sqrt(covariance) matrix, shape (n, latent_dim). Returns    - draw : torch.Tensor The batch of the random draw. Notes   - No verifications are performed for performance reason.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Decoder.parent",
-"url":59,
+"url":60,
 "doc":"Return the parent module."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Decoder.plot_map",
-"url":59,
+"url":60,
 "doc":"Generate and display spots from a regular sampling of latent space. Parameters      axe : matplotlib.axes.Axes The 2d empty axe ready to be filled. grid : int or tuple[int, int] Grid dimension in latent space. If only one number is supplied, the grid will have this dimension on all axes. The 2 coordinates corresponds respectively to the number of lines and columns.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Encoder",
-"url":59,
+"url":60,
 "doc":"Encode an image into a gausian probality density. Attributes      parent : laueimproc.nn.vae_spot_classifier.VAESpotClassifier The main full auto encoder, containing this module. Initialise the encoder. Parameters      parent : laueimproc.nn.vae_spot_classifier.VAESpotClassifier The main module."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Encoder.forward",
-"url":59,
+"url":60,
 "doc":"Extract the mean and the std for each images. Parameters      batch : torch.Tensor The stack of the n images, of shape (n, 1, height, width). Returns    - mean : torch.Tensor The mean (center of gaussians) for each image, shape (n, latent_dims). std : torch.Tensor The standard deviation (shape of gaussian) for each image, shape (n, latent_dims). Notes   - No verifications are performed for performance reason. If the model is in eval mode, it computes only the mean and gives the value None to the std.",
 "func":1
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Encoder.parent",
-"url":59,
+"url":60,
 "doc":"Return the parent module."
 },
 {
 "ref":"laueimproc.nn.vae_spot_classifier.Encoder.plot_latent",
-"url":59,
+"url":60,
 "doc":"Plot the 2d pca of the spots projected in the latent space. Parameters      axe : matplotlib.axes.Axes The 2d empty axe ready to be filled. spots_generator : iterable A generator of spot batch, each item has to be of shape (:, h, w).",
 "func":1
 },
 {
 "ref":"laueimproc.nn.loader",
-"url":60,
+"url":61,
 "doc":"Load and batch the data for neuronal network training."
 },
 {
 "ref":"laueimproc.nn.loader.SpotDataloader",
-"url":60,
+"url":61,
 "doc":"Get spots picture, apply dataaug and set in batch. Attributes      batch_size : int The batch dimension, read and write. Initialise the data loader. Parameters      dataset : laueimproc.classes.dataset.DiagramsDataset Contains all the initialised diagrams. model : laueimproc.nn.vae_spot_classifier.VAESpotClassifier The model, for the dataaug."
 },
 {
 "ref":"laueimproc.nn.loader.SpotDataloader.batch_size",
-"url":60,
+"url":61,
 "doc":"Return the batch size."
 },
 {
 "ref":"laueimproc.nn.loader.find_shape",
-"url":60,
+"url":61,
 "doc":"Scan the shape of all the spots and deduce the best shape. Parameters      dataset : laueimproc.classes.dataset.DiagramsDataset Contains all the initialised diagrams. percent : float The percentage of spots smaller or equal to the shape returned. Returns    - height : int The height shape. width : int The width shape. Examples     >>> import laueimproc >>> from laueimproc.nn.loader import find_shape >>> def init(diagram: laueimproc.Diagram):  . diagram.find_spots()  . >>> dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples( >>> _ = dataset.apply(init) >>> find_shape(dataset, 0.95) (15, 12) >>> find_shape(dataset, 0.5) (5, 5) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.common",
-"url":61,
+"url":62,
 "doc":"Little common tools."
 },
 {
 "ref":"laueimproc.common.bytes2human",
-"url":61,
+"url":62,
 "doc":"Convert a size in bytes in readable human string. Examples     >>> from laueimproc.common import bytes2human >>> bytes2human(0) '0.0B' >>> bytes2human(2000) '2.0kB' >>> bytes2human(2_000_000) '2.0MB' >>> bytes2human(2e9) '2.0GB' >>>",
 "func":1
 },
 {
 "ref":"laueimproc.common.get_project_root",
-"url":61,
+"url":62,
 "doc":"Return the absolute project root folder. Examples     >>> from laueimproc.common import get_project_root >>> root = get_project_root() >>> root.is_dir() True >>> root.name 'laueimproc' >>>",
 "func":1
 },
 {
 "ref":"laueimproc.common.time2sec",
-"url":61,
+"url":62,
 "doc":"Parse a time duration expression and return it in seconds. Raises    ValueError If the provided time dosen't match a parsable correct time format. Examples     >>> from laueimproc.common import time2sec >>> time2sec(12.34) 12.34 >>> time2sec(\"12.34\") 12.34 >>> time2sec(\".34\") 0.34 >>> time2sec(\"12.\") 12.0 >>> time2sec(\"12\") 12.0 >>> time2sec(\"12.34s\") 12.34 >>> time2sec(\"12.34 sec\") 12.34 >>> time2sec(\"2 m\") 120.0 >>> time2sec(\"2min 2\") 122.0 >>> time2sec(\" 2.5 h \") 9000.0 >>> time2sec(\"2hour02\") 7320.0 >>> time2sec(\"2h 2s\") 7202.0 >>> time2sec(\"2.5 hours 2.0 minutes 12.34 seconds\") 9132.34 >>>",
 "func":1
 },
 {
 "ref":"laueimproc.ml",
-"url":62,
+"url":63,
 "doc":"General machine learning utils."
 },
 {
 "ref":"laueimproc.ml.spot_dist",
-"url":63,
+"url":64,
 "doc":"Find the close spots in two diagrams."
 },
 {
 "ref":"laueimproc.ml.spot_dist.associate_spots",
-"url":63,
+"url":64,
 "doc":"Find the close spots. Parameters      pos1 : torch.Tensor The coordinates of the position of each spot of the first diagram. Is is a tensor of shape (n, 2) containg real elements. pos2 : torch.Tensor The coordinates of the position of each spot of the second diagram. Is is a tensor of shape (n, 2) containg real elements. eps : float The max euclidian distance to associate 2 spots. Returns    - pair : torch.Tensor The couple of the indices of the closest spots, of shape (n, 2). Examples     >>> import torch >>> from laueimproc.ml.spot_dist import associate_spots >>> pos1 = torch.rand 1500, 2), dtype=torch.float32) >>> pos2 = torch.rand 2500, 2), dtype=torch.float32) >>> eps = 1e-3 >>> pair = associate_spots(pos1, pos2, eps) >>> (torch.sqrt pos1[pair[:, 0 - pos2[pair[:, 1 ) 2)  >>",
 "func":1
 },
 {
 "ref":"laueimproc.ml.spot_dist.spotslabel_to_diag",
-"url":63,
+"url":64,
 "doc":"Inverse the representation, from diagram to spots. Parameters      labels : dict[int, torch.Tensor] To each diagram index, associate the label of each spot as a compact dict. Each value is a tensor of shape (n, 2), first column is native spot index into the diagram, then second column corresponds to the label. Returns    - diagrams : dict[int, set[int To each spot label, associate the set of diagram indices, containg the spot. Examples     >>> import torch >>> from laueimproc.ml.spot_dist import (associate_spots, track_spots,  . spotslabel_to_diag) >>> h, w = 5, 10 >>> diags = torch.tensor(  . sum  j, j+1] for j in range(i w, (i+1) w-1)] for i in range(h , start=[])  . + sum  j, j+w] for j in range(i w, (i+1) w)] for i in range(h-1 , start=[])  . ) >>> pos = [torch.rand 2000, 2), dtype=torch.float32) for _ in range(diags.max()+1)] >>> pairs = [associate_spots(pos[i], pos[j], 5e-3) for i, j in diags.tolist()] >>> labels = track_spots(pairs, diags) >>> diagrams = spotslabel_to_diag(labels) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.ml.spot_dist.track_spots",
-"url":63,
+"url":64,
 "doc":"Associate one label by position, give this label to all spots at this position. Parameters      pairs : list[torch.Tensor] For each pair of diagrams, contains the couple of close spots indices. diags : torch.Tensor The index of the diagrams for each pair, shape (len(pairs), 2). Returns    - labels : dict[int, torch.Tensor] To each diagram index, associate the label of each spot as a compact dict. Each value is a tensor of shape (n, 2), first column is native spot index into the diagram, then second column corresponds to the label. Examples     >>> import torch >>> from laueimproc.ml.spot_dist import associate_spots, track_spots >>> h, w = 5, 10 >>> diags = torch.tensor(  . sum  j, j+1] for j in range(i w, (i+1) w-1)] for i in range(h , start=[])  . + sum  j, j+w] for j in range(i w, (i+1) w)] for i in range(h-1 , start=[])  . ) >>> pos = [torch.rand 2000, 2), dtype=torch.float32) for _ in range(diags.max()+1)] >>> pairs = [associate_spots(pos[i], pos[j], 5e-3) for i, j in diags.tolist()] >>> labels = track_spots(pairs, diags) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.ml.dataset_dist",
-"url":64,
+"url":65,
 "doc":"Manage the diagams positioning inside a dataset."
 },
 {
 "ref":"laueimproc.ml.dataset_dist.call_diag2scalars",
-"url":64,
+"url":65,
 "doc":"Call the function, check, cast and return the output. The function typing is assumed to be checked. Parameters      pos_func : callable The function that associate a space position to a diagram index. index : int The argument value of the function. Returns    - position : tuple[float,  .] The scalar vector as a tuple of float.",
 "func":1
 },
 {
 "ref":"laueimproc.ml.dataset_dist.check_diag2scalars_typing",
-"url":64,
+"url":65,
 "doc":"Ensure that the position function has the right type of input / outputs. Parameters      pos_func : callable A function supposed to take a diagram index as input and that return a scalar vector in a space of n dimensions. Raises    AssertionError If something wrong is detected. Examples     >>> import pytest >>> from laueimproc.ml.dataset_dist import check_diag2scalars_typing >>> def ok_1(index: int) -> float:  . return float(index)  . >>> def ok_2(index: int) -> tuple[float]:  . return (float(index),)  . >>> def ok_3(index: int) -> tuple[float, float]:  . return (float(index), 0.0)  . >>> def warn_1(index):  . return float(index)  . >>> def warn_2(index: int):  . return float(index)  . >>> def warn_3(index) -> float:  . return float(index)  . >>> def warn_4(index: int) -> tuple:  . return float(index)  . >>> error_1 = \"this is not a function\" >>> def error_2(file: str) -> float:  bad input type  . return float(file)  . >>> def error_3(index: int) -> list:  bad output type  . return [float(index)]  . >>> def error_4(index: int, cam: str) -> tuple:  bag input arguments  . return float(index)  . >>> check_diag2scalars_typing(ok_1) >>> check_diag2scalars_typing(ok_2) >>> check_diag2scalars_typing(ok_3) >>> >>> with pytest.warns(SyntaxWarning):  . check_diag2scalars_typing(warn_1)  . >>> with pytest.warns(SyntaxWarning):  . check_diag2scalars_typing(warn_2)  . >>> with pytest.warns(SyntaxWarning):  . check_diag2scalars_typing(warn_3)  . >>> with pytest.warns(SyntaxWarning):  . check_diag2scalars_typing(warn_4)  . >>> >>> with pytest.raises(AssertionError):  . check_diag2scalars_typing(error_1)  . >>> with pytest.raises(AssertionError):  . check_diag2scalars_typing(error_2)  . >>> with pytest.raises(AssertionError):  . check_diag2scalars_typing(error_3)  . >>> with pytest.raises(AssertionError):  . check_diag2scalars_typing(error_4)  . >>>",
 "func":1
 },
 {
 "ref":"laueimproc.ml.dataset_dist.select_closest",
-"url":64,
+"url":65,
 "doc":"Select the closest point. Find the index i such as \\(d_i\\) is minimum, using the following formalism: \\(\\begin{cases} d_i = \\sqrt{\\sum\\limits_{j=0}^{D-1}\\left(\\kappa_j(p_j-x_{ij} ^2\\right)}  \\left|p_j-x_{ij}\\right| \\le \\epsilon_j, \\forall j \\in [\\![0;D-1]\\!]  \\end{cases}\\)  \\(D\\), the number of dimensions of the space used.  \\(\\kappa_j\\), a scalar inversely homogeneous has the unit used by the quantity of index \\(j\\).  \\(p_j\\), the coordinate \\(j\\) of the point of reference.  \\(x_{ij}\\), the \\(i\\)-th point of comparaison, coordinate \\(j\\). Parameters      coords : torch.Tensor The float32 points of each individual \\(\\text{coords[i, j]} = x_{ij}\\), of shape (n, \\(D\\ . point : tuple[float,  .] The point of reference in the destination space \\(point[j] = p_j\\). tol : tuple[float,  .], default inf The absolute tolerence value for each component (kind of manhattan distance). Such as \\(\\text{tol[j]} = \\epsilon_j\\). scale : tuple[float,  .], optional \\(\\text{scale[j]} = \\kappa_j\\), used for rescale each axis before to compute the euclidian distance. By default \\(\\kappa_j = 1, \\forall j \\in [\\![0;D-1]\\!]\\). Returns    - index: int The index \\(i\\) of the closest item \\(\\underset{i}{\\operatorname{argmin \\left(d\\right)\\). Raises    LookupError If no points match the criteria. Examples     >>> import torch >>> from laueimproc.ml.dataset_dist import select_closest >>> coords = torch.empty 1000, 3), dtype=torch.float32) >>> coords[:, 0] = torch.linspace(-1, 1, 1000) >>> coords[:, 1] = torch.linspace(-10, 10, 1000) >>> coords[:, 2] = torch.arange(1000) % 2 >>> select_closest(coords, (0.0, 0.0, 0.1 500 >>> select_closest(coords, (0.0, 0.0, 0.9 499 >>> select_closest(coords, (0.5, 5.0, 0.1 750 >>> select_closest(coords, (0.5, 5.0, 0.1), scale=(10, 1, 0.01 749 >>> select_closest(coords, (0.0, 0.0, 0.1), tol=(4/1000, 40/1000, 0.2 500 >>> try:  . select_closest(coords, (0.0, 0.0, 0.1), tol=(1/1000, 10/1000, 0.05  . except LookupError as err:  . print(err)  . no point match >>>",
 "func":1
 },
 {
 "ref":"laueimproc.ml.dataset_dist.select_closests",
-"url":64,
+"url":65,
 "doc":"Select the closest points. Find all the indices i such as: \\(\\left|p_j-x_{ij}\\right| \\le \\epsilon_j, \\forall j \\in [\\![0;D-1]\\!]\\) Sorted the results byt increasing \\(d_i\\) such as: \\(d_i = \\sqrt{\\sum\\limits_{j=0}^{D-1}\\left(\\kappa_j(p_j-x_{ij} ^2\\right)}\\)  \\(D\\), the number of dimensions of the space used.  \\(\\kappa_j\\), a scalar inversely homogeneous has the unit used by the quantity of index \\(j\\).  \\(p_j\\), the coordinate \\(j\\) of the point of reference.  \\(x_{ij}\\), the \\(i\\)-th point of comparaison, coordinate \\(j\\). Parameters      coords : torch.Tensor The float32 points of each individual \\(\\text{coords[i, j]} = x_{ij}\\), of shape (n, \\(D\\ . point : tuple[float,  .], optional If provided, the point \\(point[j] = p_j\\) is used to calculate the distance and sort the results. By default, the point taken is equal to the average of the tol. tol : tuple[float | tuple[float, float],  .], default inf The absolute tolerence value for each component (kind of manhattan distance). Such as \\(\\text{tol[j][0]} = \\epsilon_{j-min}, \\text{tol[j][1]} = \\epsilon_{j-max}\\). scale : tuple[float,  .], optional \\(\\text{scale[j]} = \\kappa_j\\), used for rescale each axis before to compute the euclidian distance. By default \\(\\kappa_j = 1, \\forall j \\in [\\![0;D-1]\\!]\\). Returns    - indices : torch.Tensor The int32 list of the sorted coords indices.",
 "func":1
 },
 {
 "ref":"dist",
-"url":65,
+"url":66,
 "doc":"Distance calculation."
 },
 {
 "ref":"dist.select_closest_point",
-"url":65,
+"url":66,
 "doc":"Select the closest point according the manhattan tolerancy and an euclidian distance.",
 "func":1
 },
 {
 "ref":"laueimproc.immix",
-"url":66,
+"url":67,
 "doc":"Mixture of images."
 },
 {
 "ref":"laueimproc.immix.mean",
-"url":67,
+"url":68,
 "doc":"Compute the mean image of a batch of images."
 },
 {
 "ref":"laueimproc.immix.mean.mean_stack",
-"url":67,
+"url":68,
 "doc":"Compute the average image. Parameters      dataset : laueimproc.classes.dataset.DiagramsDataset The dataset containing all images. Returns    - torch.Tensor The average image of all the images contained in this dataset.",
 "func":1
 },
 {
 "ref":"laueimproc.immix.inter",
-"url":68,
+"url":69,
 "doc":"Compute an intermediate image of a batch of images."
 },
 {
 "ref":"laueimproc.immix.inter.MomentumMixer",
-"url":68,
+"url":69,
 "doc":"Compute an average momenttume betweem the two closest candidates. Attributes      high : int The index max of the sorted stack. low : int The index min of the sorted stack. Precompute the momentum. Parameters      nbr : int The number of items in the stack. level : float The relative position in the stack in [0, 1]. Examples     >>> import torch >>> from laueimproc.immix.inter import MomentumMixer >>> mom = MomentumMixer(5, 0.5) >>> mom(torch.arange(5)[mom.low], torch.arange(5)[mom.high]) tensor(2.) >>> mom = MomentumMixer(4, 0.5) >>> mom(torch.arange(4)[mom.low], torch.arange(4)[mom.high]) tensor(1.5000) >>> mom = MomentumMixer(101, 0.1 torch.pi) >>> mom(torch.arange(101)[mom.low], torch.arange(101)[mom.high]) tensor(31.4159) >>>"
 },
 {
 "ref":"laueimproc.immix.inter.MomentumMixer.high",
-"url":68,
+"url":69,
 "doc":"Return the index max of the sorted stack."
 },
 {
 "ref":"laueimproc.immix.inter.MomentumMixer.low",
-"url":68,
+"url":69,
 "doc":"Return the index min of the sorted stack."
 },
 {
 "ref":"laueimproc.immix.inter.snowflake_stack",
-"url":68,
+"url":69,
 "doc":"Compute the median, first quartile, third quartile or everything in between. This algorithm consists of computing the histogram of all the images into a heap of size n. Then compute the cumulative histogram to deduce in each slice the value is. To bound the result. Iterate the processus to refine the bounds until reaching the required accuracy. Parameters      dataset : laueimproc.classes.dataset.DiagramsDataset The dataset containing all images. level : float, default=0.5 The level of the sorted stack.  0 -> min filter  0.25 -> first quartile  0.5 (default) -> median  0.75 -> third quartile  1 -> max filter tol : float, default=1/(2 16-1) Accuracy of the estimated returned image. Returns    - torch.Tensor The 2d float32 grayscale image. Notes   - Unlike the native algorithm, images are read a number of times proportional to the logarithm of the inverse of the precision. Independent of the number of images in the dataset. This algorithm is therefore better suited to large datasets.",
 "func":1
 },
 {
 "ref":"laueimproc.immix.inter.sort_stack",
-"url":68,
+"url":69,
 "doc":"Compute the median, first quartile, third quartile or everything in between. This algorithm consists of stacking all the images into a heap of size n. Then sort each column in the stack (as many columns as there are pixels in the image). Finally, we return the image in the new stack at height n   level . Parameters      dataset : laueimproc.classes.dataset.DiagramsDataset The dataset containing all images. level : float, default=0.5 The level of the sorted stack.  0 -> min filter  0.25 -> first quartile  0.5 (default) -> median  0.75 -> third quartile  1 -> max filter Returns    - torch.Tensor The 2d float32 grayscale image. Notes   - For reasons of memory limitations, the final image is calculated in small chunks. As a result, each image on the hard disk is read n times, with n proportional to the number of diagrams in the dataset.",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction",
-"url":69,
+"url":70,
 "doc":"Implement the Bragg diffraction rules. https: www.silx.org/doc/pyFAI/latest/geometry.html detector-position Bases   -  \\(\\mathcal{B^c}\\): The orthonormal base of the cristal \\([\\mathbf{C_1}, \\mathbf{C_2}, \\mathbf{C_3}]\\).  \\(\\mathcal{B^s}\\): The orthonormal base of the sample \\([\\mathbf{S_1}, \\mathbf{S_2}, \\mathbf{S_3}]\\).  \\(\\mathcal{B^l}\\): The orthonormal base of the lab \\([\\mathbf{L_1}, \\mathbf{L_2}, \\mathbf{L_3}]\\) in pyfai. Lattice parameters          https: en.wikipedia.org/wiki/Lattice_constant /media/File:UnitCell.png  \\([a, b, c, \\alpha, \\beta, \\gamma]\\): The latice parameters.  \\(\\mathbf{A}\\): The primitive column vectors \\([\\mathbf{e_1}, \\mathbf{e_2}, \\mathbf{e_3}]\\) in an orthonormal base.  \\(\\mathbf{B}\\): The reciprocal column vectors \\([\\mathbf{e_1^ }, \\mathbf{e_2^ }, \\mathbf{e_3^ }]\\) in an orthonormal base."
 },
 {
 "ref":"laueimproc.diffraction.hkl_reciprocal_to_energy",
-"url":69,
+"url":70,
 "doc":"Alias to  laueimproc.diffraction.bragg.hkl_reciprocal_to_uq_energy .",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.hkl_reciprocal_to_uq",
-"url":69,
+"url":70,
 "doc":"Alias to  laueimproc.diffraction.bragg.hkl_reciprocal_to_uq_energy .",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.hkl_reciprocal_to_uq_energy",
-"url":69,
+"url":70,
 "doc":"Thanks to the bragg relation, compute the energy of each diffracted ray. The incidient ray \\(u_i\\) is assumed to be \\(\\mathbf{L_1}\\), ie \\([0, 0, 1]\\) in the lab base \\(\\mathcal{B^l}\\). Parameters      hkl : torch.Tensor The h, k, l indices of shape ( n, 3) we want to mesure. reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) of shape ( r, 3, 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - uq : torch.Tensor All the unitary diffracting plane normal vector of shape ( n,  r, 3). The vectors are expressed in the same base as the reciprocal space. energy : torch.Tensor The energy of each ray in J as a tensor of shape ( n,  r). \\(\\begin{cases} E = \\frac{hc}{\\lambda}  \\lambda = 2d\\sin(\\theta)  \\sin(\\theta) = \\left| \\langle u_i, u_q \\rangle \\right|  \\end{cases}\\) Examples     >>> import torch >>> from laueimproc.diffraction.bragg import hkl_reciprocal_to_uq_energy >>> reciprocal = torch.torch.tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00],  . [ 9.6225e+08, 3.0387e+09, -0.0000e+00],  . [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>> hkl = torch.tensor([1, 2, -1]) >>> u_q, energy = hkl_reciprocal_to_uq_energy(hkl, reciprocal) >>> u_q tensor([ 0.1798, 0.7595, -0.6252]) >>> 6.24e18  energy  convertion J -> eV tensor(9200.6816) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.uf_to_uq",
-"url":69,
+"url":70,
 "doc":"Calculate the vector normal to the diffracting planes. Bijection of  uq_to_uf . \\(u_q \\propto u_f - u_i\\) Parameters      u_f : torch.Tensor The normalized diffracted rays of shape ( ., 3). Returns    - u_q : torch.Tensor The normalized normals of shape ( ., 3).",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.uq_to_uf",
-"url":69,
+"url":70,
 "doc":"Calculate the diffracted ray from q vector. Bijection of  uf_to_uq . \\(\\begin{cases} u_f - u_i = \\eta u_q  \\eta = 2 \\langle u_q, -u_i \\rangle  \\end{cases}\\) Parameters      u_q : torch.Tensor The normalized q vectors of shape ( ., 3). Returns    - u_f : torch.Tensor The normalized diffracted ray of shape ( ., 3). Notes   -  \\(u_f\\) is not sensitive to the \\(u_q\\) orientation.",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.select_hkl",
-"url":69,
-"doc":"Simulate the hkl energy for different rotations, reject out of band indices. Parameters      lattice : torch.Tensor, optional If provided, the lattices parameters \\([a, b, c, \\alpha, \\beta, \\gamma \\) of shape ( ., 6) are used to simulate the hkl energy for a large number of rotation. max_hkl : int The maximum absolute hkl sum such as |h| + |k| + |l| <= max_hkl. e_min : float, optional Indicies that systematicaly have an energy strictely less than  e_min in J are rejected. e_max : float, optional Indicies that systematicaly have an energy strictely greater than  e_max in J are rejected. keep_harmonics : boolean, default=True If False, delete the multiple hkl indicies of the other. In other words, keep only the highest energy armonic. Returns    - hkl : torch.Tensor The int16 hkl of shape (n, 3).",
+"url":70,
+"doc":"Reject the hkl sistematicaly out of energy band. Parameters      lattice : torch.Tensor, optional If provided, the lattices parameters \\([a, b, c, \\alpha, \\beta, \\gamma \\) of shape ( ., 6) are used to simulate the hkl energy for a large number of rotation. max_hkl : int The maximum absolute hkl sum such as |h| + |k| + |l|  >> import torch >>> from laueimproc.diffraction.hkl import select_hkl >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2]) >>> select_hkl(lattice) tensor( 0, -18, 0], [ 0, -17, -1], [ 0, -17, 0],  ., [ 17, 0, 1], [ 17, 1, 0], [ 18, 0, 0 , dtype=torch.int16) >>> len(_) 4578 >>> select_hkl(lattice, keep_harmonics=False) tensor( 0, -17, -1], [ 0, -17, 1], [ 0, -16, -1],  ., [ 17, 0, -1], [ 17, 0, 1], [ 17, 1, 0 , dtype=torch.int16) >>> len(_) 3661 >>> select_hkl(lattice, e_max=20e3  1.60e-19)  20 keV tensor( 0, -11, -3], [ 0, -11, -2], [ 0, -11, -1],  ., [ 11, 3, 0], [ 11, 3, 1], [ 11, 3, 2 , dtype=torch.int16) >>> len(_) 3399 >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.lattice_to_primitive",
-"url":69,
+"url":70,
 "doc":"Convert the lattice parameters into primitive vectors.  image  / / /build/media/IMGLatticeBc.avif :width: 256 Parameters      lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\). Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) of shape ( ., 3, 3) in the base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.diffraction.lattice import lattice_to_primitive >>> lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2 torch.pi/3]) >>> lattice_to_primitive(lattice)  quartz lattice tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17], [ 0.0000e+00, 3.2909e-10, 8.6603e-10], [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.primitive_to_lattice",
-"url":69,
+"url":70,
 "doc":"Convert the primitive vectors to the lattice parameters.  image  / / /build/media/IMGLattice.avif :width: 256 Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\). Notes   - We have  primitive_to_lattice(lattice_to_primitive(lattice  lattice , but it is not the case for the composition inverse because the numerical value of \\(\\mathbf{A}\\) is base dependent. Examples     >>> import torch >>> from laueimproc.diffraction.lattice import primitive_to_lattice >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_lattice(primitive)  quartz lattice tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00]) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.compute_matching_rate",
-"url":69,
-"doc":"Compute the matching rate. Parameters      exp_uq : torch.Tensor The unitary experimental uq vector of shape ( n, e, 3). theo_uq : torch.Tensor The unitary simulated theorical uq vector of shape ( n, t, 3). phi_max : float The maximum positive angular distance in radian to consider that the rays are closed enough. Returns    - match : torch.Tensor The matching rate of shape n.",
+"url":70,
+"doc":"Compute the matching rate. Parameters      exp_uq : torch.Tensor The unitary experimental uq vector of shape ( n, e, 3). theo_uq : torch.Tensor The unitary simulated theorical uq vector of shape ( n', t, 3). phi_max : float The maximum positive angular distance in radian to consider that the rays are closed enough. Returns    - match : torch.Tensor The matching rate of shape broadcast(n, n'). Examples     >>> import torch >>> from laueimproc.diffraction.metric import compute_matching_rate >>> exp_uq = torch.randn(1000, 3) >>> exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True) >>> theo_uq = torch.randn(5000, 3) >>> theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True) >>> rate = compute_matching_rate(exp_uq, theo_uq, 0.5  torch.pi/180) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.detector_to_ray",
-"url":69,
-"doc":"Find light ray witch intersected on the detector. Parameters      point : torch.Tensor The 2d point in the referencial of the detector of shape ( p,  r, 2). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p', 6). Returns    - ray : torch.Tensor The unitary rays vectors of shape ( broadcast(p, p'),  r, 3).",
+"url":70,
+"doc":"Find light ray witch intersected on the detector. Parameters      point : torch.Tensor The 2d point in the referencial of the detector of shape ( r,  p, 2). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p', 6). Returns    - ray : torch.Tensor The unitary rays vectors of shape ( r,  broadcast(p, p'), 3).",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.ray_to_detector",
-"url":69,
+"url":70,
 "doc":"Find the intersection of the light ray with the detector. Parameters      ray : torch.Tensor The unitary ray vector of shape ( r, 3). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p, 6). Returns    - point : torch.Tensor The 2d points in the referencial of the detector of shape ( r,  p, 2). dist : torch.Tensor The algebrical distance of the ray between the sample and the detector. a positive value means that the beam crashs on the detector. A negative value means it is moving away. The shape is ( r,  p).",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.primitive_to_reciprocal",
-"url":69,
+"url":70,
 "doc":"Convert the primitive vectors into the reciprocal base vectors. Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) in the same orthonormal base. Examples     >>> import torch >>> from laueimproc.diffraction.reciprocal import primitive_to_reciprocal >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_reciprocal(primitive) tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00], [ 9.6225e+08, 3.0387e+09, -0.0000e+00], [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.reciprocal_to_primitive",
-"url":69,
+"url":70,
 "doc":"Convert the reciprocal vectors into the primitive base vectors. Parameters      reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) in any orthonormal base. Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in the same orthonormal base.",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.angle_to_rot",
-"url":69,
+"url":70,
 "doc":"Generate a rotation matrix from the given angles. The rotation are following the pyfai convention. Parameters      theta1 : torch.Tensor or float The first rotation angle of shape ( a,). \\( rot_1 = \\begin{pmatrix} 1 & 0 & 0  0 & \\cos(\\theta_1) & -\\sin(\\theta_1)  c & \\sin(\\theta_1) & \\cos(\\theta_1)  \\end{pmatrix} \\) theta2 : torch.Tensor or float The second rotation angle of shape ( b,). \\( rot_2 = \\begin{pmatrix} \\cos(\\theta_2) & 0 & \\sin(\\theta_2)  0 & 1 & 0  -\\sin(\\theta_2) & 0 & \\cos(\\theta_2)  \\end{pmatrix} \\) theta3 : torch.Tensor or float The third rotation angle of shape ( c,). (inverse of pyfai convention) \\( rot_3 = \\begin{pmatrix} \\cos(\\theta_3) & -\\sin(\\theta_3) & 0  \\sin(\\theta_3) & \\cos(\\theta_3) & 0  0 & 0 & 1  \\end{pmatrix} \\) meshgrid : boolean, default=True If set to True, batch all rotation in a different dim, shuch as final dim is ( a,  b,  c, 3, 3). Overwise, apply rotation elementwise and len(a), len(b) and len(c) must be equal such as final dim is ( broadcast(a, b, c), 3, 3). Returns    - rot : torch.Tensor The global rotation \\(rot_3 . rot_2 . rot_1\\). Examples     >>> import torch >>> from laueimproc.diffraction.rotation import angle_to_rot >>> angle_to_rot(theta1=torch.pi/6) tensor( 1.0000, 0.0000, 0.0000], [ 0.0000, 0.8660, -0.5000], [ 0.0000, 0.5000, 0.8660 ) >>> angle_to_rot(theta2=torch.pi/6) tensor( 0.8660, 0.0000, 0.5000], [ 0.0000, 1.0000, 0.0000], [-0.5000, 0.0000, 0.8660 ) >>> angle_to_rot(theta3=torch.pi/6) tensor( 0.8660, -0.5000, 0.0000], [ 0.5000, 0.8660, 0.0000], [ 0.0000, 0.0000, 1.0000 ) >>> angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6) tensor( 0.7500, -0.2165, 0.6250], [ 0.4330, 0.8750, -0.2165], [-0.5000, 0.4330, 0.7500 ) >>> angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9 .shape torch.Size([4, 5, 6, 7, 8, 9, 3, 3]) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.rotate_cristal",
-"url":69,
+"url":70,
 "doc":"Apply an active rotation to the crystal. Parameters      cristal : torch.Tensor The primitive (\\(\\mathbf{A}\\ or reciprocal (\\(\\mathbf{B}\\ in the base \\(\\mathcal{B}\\). The shape of this parameter is ( c, 3, 3). rot : torch.Tensor The active rotation matrix, of shape ( r, 3, 3). Returns    - rotated_cristal: torch.Tensor The batched matricial product  rot @ cristal of shape ( c,  r, 3, 3).",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.lattice",
-"url":70,
+"url":71,
 "doc":"Link the lattice parameters and the primitive vectors \\(\\mathbf{A}\\)."
 },
 {
 "ref":"laueimproc.diffraction.lattice.lattice_to_primitive",
-"url":70,
+"url":71,
 "doc":"Convert the lattice parameters into primitive vectors.  image  / / /build/media/IMGLatticeBc.avif :width: 256 Parameters      lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\). Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) of shape ( ., 3, 3) in the base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.diffraction.lattice import lattice_to_primitive >>> lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2 torch.pi/3]) >>> lattice_to_primitive(lattice)  quartz lattice tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17], [ 0.0000e+00, 3.2909e-10, 8.6603e-10], [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.lattice.primitive_to_lattice",
-"url":70,
+"url":71,
 "doc":"Convert the primitive vectors to the lattice parameters.  image  / / /build/media/IMGLattice.avif :width: 256 Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\). Notes   - We have  primitive_to_lattice(lattice_to_primitive(lattice  lattice , but it is not the case for the composition inverse because the numerical value of \\(\\mathbf{A}\\) is base dependent. Examples     >>> import torch >>> from laueimproc.diffraction.lattice import primitive_to_lattice >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_lattice(primitive)  quartz lattice tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00]) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.reciprocal",
-"url":71,
+"url":72,
 "doc":"Enables communication between primitive \\(\\mathbf{A}\\) and reciprocal space \\(\\mathbf{B}\\).  image  / / /build/media/IMGPrimitiveReciprocal.avif :width: 256"
 },
 {
 "ref":"laueimproc.diffraction.reciprocal.primitive_to_reciprocal",
-"url":71,
+"url":72,
 "doc":"Convert the primitive vectors into the reciprocal base vectors. Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) in the same orthonormal base. Examples     >>> import torch >>> from laueimproc.diffraction.reciprocal import primitive_to_reciprocal >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_reciprocal(primitive) tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00], [ 9.6225e+08, 3.0387e+09, -0.0000e+00], [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.reciprocal.reciprocal_to_primitive",
-"url":71,
+"url":72,
 "doc":"Convert the reciprocal vectors into the primitive base vectors. Parameters      reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) in any orthonormal base. Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in the same orthonormal base.",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.bragg",
-"url":72,
+"url":73,
 "doc":"Simulation of the bragg diffraction."
 },
 {
 "ref":"laueimproc.diffraction.bragg.hkl_reciprocal_to_energy",
-"url":72,
+"url":73,
 "doc":"Alias to  laueimproc.diffraction.bragg.hkl_reciprocal_to_uq_energy .",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.bragg.hkl_reciprocal_to_uq",
-"url":72,
+"url":73,
 "doc":"Alias to  laueimproc.diffraction.bragg.hkl_reciprocal_to_uq_energy .",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.bragg.hkl_reciprocal_to_uq_energy",
-"url":72,
+"url":73,
 "doc":"Thanks to the bragg relation, compute the energy of each diffracted ray. The incidient ray \\(u_i\\) is assumed to be \\(\\mathbf{L_1}\\), ie \\([0, 0, 1]\\) in the lab base \\(\\mathcal{B^l}\\). Parameters      hkl : torch.Tensor The h, k, l indices of shape ( n, 3) we want to mesure. reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) of shape ( r, 3, 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - uq : torch.Tensor All the unitary diffracting plane normal vector of shape ( n,  r, 3). The vectors are expressed in the same base as the reciprocal space. energy : torch.Tensor The energy of each ray in J as a tensor of shape ( n,  r). \\(\\begin{cases} E = \\frac{hc}{\\lambda}  \\lambda = 2d\\sin(\\theta)  \\sin(\\theta) = \\left| \\langle u_i, u_q \\rangle \\right|  \\end{cases}\\) Examples     >>> import torch >>> from laueimproc.diffraction.bragg import hkl_reciprocal_to_uq_energy >>> reciprocal = torch.torch.tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00],  . [ 9.6225e+08, 3.0387e+09, -0.0000e+00],  . [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>> hkl = torch.tensor([1, 2, -1]) >>> u_q, energy = hkl_reciprocal_to_uq_energy(hkl, reciprocal) >>> u_q tensor([ 0.1798, 0.7595, -0.6252]) >>> 6.24e18  energy  convertion J -> eV tensor(9200.6816) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.bragg.uf_to_uq",
-"url":72,
+"url":73,
 "doc":"Calculate the vector normal to the diffracting planes. Bijection of  uq_to_uf . \\(u_q \\propto u_f - u_i\\) Parameters      u_f : torch.Tensor The normalized diffracted rays of shape ( ., 3). Returns    - u_q : torch.Tensor The normalized normals of shape ( ., 3).",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.bragg.uq_to_uf",
-"url":72,
+"url":73,
 "doc":"Calculate the diffracted ray from q vector. Bijection of  uf_to_uq . \\(\\begin{cases} u_f - u_i = \\eta u_q  \\eta = 2 \\langle u_q, -u_i \\rangle  \\end{cases}\\) Parameters      u_q : torch.Tensor The normalized q vectors of shape ( ., 3). Returns    - u_f : torch.Tensor The normalized diffracted ray of shape ( ., 3). Notes   -  \\(u_f\\) is not sensitive to the \\(u_q\\) orientation.",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.rotation",
-"url":73,
+"url":74,
 "doc":"Help for making rotation matrix."
 },
 {
 "ref":"laueimproc.diffraction.rotation.angle_to_rot",
-"url":73,
+"url":74,
 "doc":"Generate a rotation matrix from the given angles. The rotation are following the pyfai convention. Parameters      theta1 : torch.Tensor or float The first rotation angle of shape ( a,). \\( rot_1 = \\begin{pmatrix} 1 & 0 & 0  0 & \\cos(\\theta_1) & -\\sin(\\theta_1)  c & \\sin(\\theta_1) & \\cos(\\theta_1)  \\end{pmatrix} \\) theta2 : torch.Tensor or float The second rotation angle of shape ( b,). \\( rot_2 = \\begin{pmatrix} \\cos(\\theta_2) & 0 & \\sin(\\theta_2)  0 & 1 & 0  -\\sin(\\theta_2) & 0 & \\cos(\\theta_2)  \\end{pmatrix} \\) theta3 : torch.Tensor or float The third rotation angle of shape ( c,). (inverse of pyfai convention) \\( rot_3 = \\begin{pmatrix} \\cos(\\theta_3) & -\\sin(\\theta_3) & 0  \\sin(\\theta_3) & \\cos(\\theta_3) & 0  0 & 0 & 1  \\end{pmatrix} \\) meshgrid : boolean, default=True If set to True, batch all rotation in a different dim, shuch as final dim is ( a,  b,  c, 3, 3). Overwise, apply rotation elementwise and len(a), len(b) and len(c) must be equal such as final dim is ( broadcast(a, b, c), 3, 3). Returns    - rot : torch.Tensor The global rotation \\(rot_3 . rot_2 . rot_1\\). Examples     >>> import torch >>> from laueimproc.diffraction.rotation import angle_to_rot >>> angle_to_rot(theta1=torch.pi/6) tensor( 1.0000, 0.0000, 0.0000], [ 0.0000, 0.8660, -0.5000], [ 0.0000, 0.5000, 0.8660 ) >>> angle_to_rot(theta2=torch.pi/6) tensor( 0.8660, 0.0000, 0.5000], [ 0.0000, 1.0000, 0.0000], [-0.5000, 0.0000, 0.8660 ) >>> angle_to_rot(theta3=torch.pi/6) tensor( 0.8660, -0.5000, 0.0000], [ 0.5000, 0.8660, 0.0000], [ 0.0000, 0.0000, 1.0000 ) >>> angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6) tensor( 0.7500, -0.2165, 0.6250], [ 0.4330, 0.8750, -0.2165], [-0.5000, 0.4330, 0.7500 ) >>> angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9 .shape torch.Size([4, 5, 6, 7, 8, 9, 3, 3]) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.rotation.rotate_cristal",
-"url":73,
+"url":74,
 "doc":"Apply an active rotation to the crystal. Parameters      cristal : torch.Tensor The primitive (\\(\\mathbf{A}\\ or reciprocal (\\(\\mathbf{B}\\ in the base \\(\\mathcal{B}\\). The shape of this parameter is ( c, 3, 3). rot : torch.Tensor The active rotation matrix, of shape ( r, 3, 3). Returns    - rotated_cristal: torch.Tensor The batched matricial product  rot @ cristal of shape ( c,  r, 3, 3).",
 "func":1
 },
 {
-"ref":"laueimproc.diffraction.hkl",
-"url":74,
-"doc":"Help to select the hkl indices."
-},
-{
-"ref":"laueimproc.diffraction.hkl.select_hkl",
-"url":74,
-"doc":"Simulate the hkl energy for different rotations, reject out of band indices. Parameters      lattice : torch.Tensor, optional If provided, the lattices parameters \\([a, b, c, \\alpha, \\beta, \\gamma \\) of shape ( ., 6) are used to simulate the hkl energy for a large number of rotation. max_hkl : int The maximum absolute hkl sum such as |h| + |k| + |l| <= max_hkl. e_min : float, optional Indicies that systematicaly have an energy strictely less than  e_min in J are rejected. e_max : float, optional Indicies that systematicaly have an energy strictely greater than  e_max in J are rejected. keep_harmonics : boolean, default=True If False, delete the multiple hkl indicies of the other. In other words, keep only the highest energy armonic. Returns    - hkl : torch.Tensor The int16 hkl of shape (n, 3).",
-"func":1
-},
-{
-"ref":"laueimproc.diffraction.metric",
-"url":75,
-"doc":"Implement some loss functions."
-},
-{
-"ref":"laueimproc.diffraction.metric.raydotdist",
-"url":75,
-"doc":"Compute the scalar product matrix of the rays pairwise. Parameters      ray_point_1 : torch.Tensor The 2d point associated to uf in the referencial of the detector of shape ( n, r1, 2). Could be directly the unitary ray vector uf or uq of shape ( n, r1, 3). ray_point_2 : torch.Tensor The 2d point associated to uf in the referencial of the detector of shape ( n, r2, 2 . Could be directly the unitary ray vector uf or uq of shape ( n, r2, 3). poni : torch.Tensor, optional Only use if the ray are projected points. The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p, 6). Returns    - dist : torch.Tensor The distance matrix \\(\\cos(\\phi)\\) of shape ( n,  p, r1, r2).",
-"func":1
-},
-{
-"ref":"laueimproc.diffraction.metric.compute_matching_rate",
-"url":75,
-"doc":"Compute the matching rate. Parameters      exp_uq : torch.Tensor The unitary experimental uq vector of shape ( n, e, 3). theo_uq : torch.Tensor The unitary simulated theorical uq vector of shape ( n, t, 3). phi_max : float The maximum positive angular distance in radian to consider that the rays are closed enough. Returns    - match : torch.Tensor The matching rate of shape n.",
-"func":1
-},
-{
 "ref":"laueimproc.diffraction.projection",
-"url":76,
+"url":75,
 "doc":"Project rays on a physical or virtual plane."
 },
 {
 "ref":"laueimproc.diffraction.projection.detector_to_ray",
-"url":76,
-"doc":"Find light ray witch intersected on the detector. Parameters      point : torch.Tensor The 2d point in the referencial of the detector of shape ( p,  r, 2). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p', 6). Returns    - ray : torch.Tensor The unitary rays vectors of shape ( broadcast(p, p'),  r, 3).",
+"url":75,
+"doc":"Find light ray witch intersected on the detector. Parameters      point : torch.Tensor The 2d point in the referencial of the detector of shape ( r,  p, 2). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p', 6). Returns    - ray : torch.Tensor The unitary rays vectors of shape ( r,  broadcast(p, p'), 3).",
 "func":1
 },
 {
 "ref":"laueimproc.diffraction.projection.ray_to_detector",
-"url":76,
+"url":75,
 "doc":"Find the intersection of the light ray with the detector. Parameters      ray : torch.Tensor The unitary ray vector of shape ( r, 3). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p, 6). Returns    - point : torch.Tensor The 2d points in the referencial of the detector of shape ( r,  p, 2). dist : torch.Tensor The algebrical distance of the ray between the sample and the detector. a positive value means that the beam crashs on the detector. A negative value means it is moving away. The shape is ( r,  p).",
 "func":1
 },
 {
-"ref":"laueimproc.convention",
+"ref":"laueimproc.diffraction.metric",
+"url":76,
+"doc":"Implement some loss functions."
+},
+{
+"ref":"laueimproc.diffraction.metric.ray_to_table",
+"url":76,
+"doc":"Projects rays into a hash table.",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.metric.raydotdist",
+"url":76,
+"doc":"Compute the scalar product matrix of the rays pairwise. Parameters      ray_point_1 : torch.Tensor The 2d point associated to uf in the referencial of the detector of shape ( n, r1, 2). Could be directly the unitary ray vector uf or uq of shape ( n, r1, 3). ray_point_2 : torch.Tensor The 2d point associated to uf in the referencial of the detector of shape ( n', r2, 2 . Could be directly the unitary ray vector uf or uq of shape ( n', r2, 3). poni : torch.Tensor, optional Only use if the ray are projected points. The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape ( p, 6). Returns    - dist : torch.Tensor The distance matrix \\(\\cos(\\phi)\\) of shape ( broadcast(n, n'),  p, r1, r2).",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.metric.compute_matching_rate",
+"url":76,
+"doc":"Compute the matching rate. Parameters      exp_uq : torch.Tensor The unitary experimental uq vector of shape ( n, e, 3). theo_uq : torch.Tensor The unitary simulated theorical uq vector of shape ( n', t, 3). phi_max : float The maximum positive angular distance in radian to consider that the rays are closed enough. Returns    - match : torch.Tensor The matching rate of shape broadcast(n, n'). Examples     >>> import torch >>> from laueimproc.diffraction.metric import compute_matching_rate >>> exp_uq = torch.randn(1000, 3) >>> exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True) >>> theo_uq = torch.randn(5000, 3) >>> theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True) >>> rate = compute_matching_rate(exp_uq, theo_uq, 0.5  torch.pi/180) >>>",
+"func":1
+},
+{
+"ref":"metric",
 "url":77,
+"doc":"Fast distance calculation based on hash table."
+},
+{
+"ref":"metric.ray_to_table",
+"url":77,
+"doc":"Projects rays into a hash table.",
+"func":1
+},
+{
+"ref":"metric.link_close_rays",
+"url":77,
+"doc":"Associate the closet ray.",
+"func":1
+},
+{
+"ref":"laueimproc.diffraction.hkl",
+"url":78,
+"doc":"Help to select the hkl indices."
+},
+{
+"ref":"laueimproc.diffraction.hkl.select_hkl",
+"url":78,
+"doc":"Reject the hkl sistematicaly out of energy band. Parameters      lattice : torch.Tensor, optional If provided, the lattices parameters \\([a, b, c, \\alpha, \\beta, \\gamma \\) of shape ( ., 6) are used to simulate the hkl energy for a large number of rotation. max_hkl : int The maximum absolute hkl sum such as |h| + |k| + |l|  >> import torch >>> from laueimproc.diffraction.hkl import select_hkl >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2]) >>> select_hkl(lattice) tensor( 0, -18, 0], [ 0, -17, -1], [ 0, -17, 0],  ., [ 17, 0, 1], [ 17, 1, 0], [ 18, 0, 0 , dtype=torch.int16) >>> len(_) 4578 >>> select_hkl(lattice, keep_harmonics=False) tensor( 0, -17, -1], [ 0, -17, 1], [ 0, -16, -1],  ., [ 17, 0, -1], [ 17, 0, 1], [ 17, 1, 0 , dtype=torch.int16) >>> len(_) 3661 >>> select_hkl(lattice, e_max=20e3  1.60e-19)  20 keV tensor( 0, -11, -3], [ 0, -11, -2], [ 0, -11, -1],  ., [ 11, 3, 0], [ 11, 3, 1], [ 11, 3, 2 , dtype=torch.int16) >>> len(_) 3399 >>>",
+"func":1
+},
+{
+"ref":"laueimproc.convention",
+"url":79,
 "doc":"Provide tools for switching convention. The two conventions supported are:   ij : Extension by continuity (N -> R) of the numpy convention (height, width). The first axis iterates on lines from top to bottom, the second on columns from left to right. In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel. It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).   xy : A transposition and a translation of the origin of the  ij convention. The first axis iterates on columns from left to right, the second on lines from top to bottom. In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.  image  / /build/media/IMGConvIJXY.avif :width: 256"
 },
 {
 "ref":"laueimproc.convention.ij_to_xy",
-"url":77,
+"url":79,
 "doc":"Switch the axis i and j, and append 1/2 to all values. Parameters      array : torch.Tensor or np.ndarray The data in ij convention. i, j : tuple, int, slice or Ellipsis The indexing of the i subdata and j subdata. Returns    - array : torch.Tensor or np.ndarray A reference to the ij_array, with the axis converted in xy convention. Notes   - Input and output data are shared in place. Examples     >>> import torch >>> from laueimproc.convention import ij_to_xy >>> array = torch.zeros 10, 2 >>> array[:, 0] = torch.linspace(0, 1, 10)  i axis >>> array[:, 1] = torch.linspace(2, 1, 10)  j axis >>> array tensor( 0.0000, 2.0000], [0.1111, 1.8889], [0.2222, 1.7778], [0.3333, 1.6667], [0.4444, 1.5556], [0.5556, 1.4444], [0.6667, 1.3333], [0.7778, 1.2222], [0.8889, 1.1111], [1.0000, 1.0000 ) >>> ij_to_xy(array, i=( ., 0), j=( ., 1 tensor( 2.5000, 0.5000], [2.3889, 0.6111], [2.2778, 0.7222], [2.1667, 0.8333], [2.0556, 0.9444], [1.9444, 1.0556], [1.8333, 1.1667], [1.7222, 1.2778], [1.6111, 1.3889], [1.5000, 1.5000 ) >>> _ is array  inplace True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.convention.ij_to_xy_decorator",
-"url":77,
+"url":79,
 "doc":"Append the argument conv to a function to allow user switching convention.",
 "func":1
 }
