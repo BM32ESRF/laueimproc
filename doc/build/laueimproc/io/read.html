@@ -37,7 +37,6 @@ import logging
 import lzma
 import pathlib
 import time
-import typing
 import warnings
 
 import cv2
@@ -105,7 +104,7 @@ def extract_metadata(data: bytes) -&gt; dict:
     return metadata
 
 
-def read_image(filename: typing.Union[str, pathlib.Path]) -&gt; tuple[torch.Tensor, dict]:
+def read_image(filename: str | pathlib.Path) -&gt; tuple[torch.Tensor, dict]:
     &#34;&#34;&#34;Read and decode a grayscale image into a numpy array.
 
     Use cv2 as possible, and fabio if cv2 failed.
@@ -152,7 +151,7 @@ def read_image(filename: typing.Union[str, pathlib.Path]) -&gt; tuple[torch.Tens
     return image, metadata
 
 
-def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -&gt; torch.Tensor:
+def to_floattensor(data: torch.Tensor | np.ndarray) -&gt; torch.Tensor:
     &#34;&#34;&#34;Convert and shift tenso into float torch tensor.
 
     If the input is not in floating point, it is converting in float32
@@ -275,7 +274,7 @@ def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -&gt; torch.Ten
 </details>
 </dd>
 <dt id="laueimproc.io.read.read_image"><code class="name flex">
-<span>def <span class="ident">read_image</span></span>(<span>filename: Union[str, pathlib.Path]) ‑> tuple[torch.Tensor, dict]</span>
+<span>def <span class="ident">read_image</span></span>(<span>filename: str | pathlib.Path) ‑> tuple[torch.Tensor, dict]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read and decode a grayscale image into a numpy array.</p>
@@ -301,7 +300,7 @@ def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -&gt; torch.Ten
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def read_image(filename: typing.Union[str, pathlib.Path]) -&gt; tuple[torch.Tensor, dict]:
+<pre><code class="python">def read_image(filename: str | pathlib.Path) -&gt; tuple[torch.Tensor, dict]:
     &#34;&#34;&#34;Read and decode a grayscale image into a numpy array.
 
     Use cv2 as possible, and fabio if cv2 failed.
@@ -349,7 +348,7 @@ def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -&gt; torch.Ten
 </details>
 </dd>
 <dt id="laueimproc.io.read.to_floattensor"><code class="name flex">
-<span>def <span class="ident">to_floattensor</span></span>(<span>data: Union[torch.Tensor, numpy.ndarray]) ‑> torch.Tensor</span>
+<span>def <span class="ident">to_floattensor</span></span>(<span>data: torch.Tensor | numpy.ndarray) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert and shift tenso into float torch tensor.</p>
@@ -369,7 +368,7 @@ and the value range is set beetweeen 0 and 1.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -&gt; torch.Tensor:
+<pre><code class="python">def to_floattensor(data: torch.Tensor | np.ndarray) -&gt; torch.Tensor:
     &#34;&#34;&#34;Convert and shift tenso into float torch tensor.
 
     If the input is not in floating point, it is converting in float32

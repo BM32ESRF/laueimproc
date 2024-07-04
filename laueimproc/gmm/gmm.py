@@ -382,7 +382,8 @@ def mse_cost_and_grad(
                     **kwargs,
                 )
                 for i, (bl, bh) in enumerate(zip(areas[:-1], areas[1:]))
-            )
+            ),
+            strict=True,
         )
         grad = tuple(torch.cat(tensors, dim=0) for tensors in grad)
         return grad

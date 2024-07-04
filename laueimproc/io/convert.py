@@ -13,7 +13,7 @@ from laueimproc.io.read import read_image
 from laueimproc.io.write import write_jp2
 
 
-PATHLIKE = typing.Union[pathlib.Path, str]
+PATHLIKE = pathlib.Path | str
 SUPPORTED_FORMATS = {
     ".bmp", ".dib",
     ".jp2",
@@ -37,7 +37,7 @@ def converter_decorator(func: typing.Callable):
     """Decorate an image converter into a batch image converter."""
     @functools.wraps(func)
     def batch_converter(
-        src: typing.Union[PATHLIKE, typing.Iterable[PATHLIKE]],
+        src: PATHLIKE | typing.Iterable[PATHLIKE],
         dst_dir: typing.Optional[PATHLIKE] = None,
         metadata: bool = True,
     ):

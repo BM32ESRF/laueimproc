@@ -43,7 +43,7 @@ import yaml
 
 
 def write_jp2(
-    filename: typing.Union[str, pathlib.Path],
+    filename: str | pathlib.Path,
     image: torch.Tensor,
     metadata: typing.Optional[dict] = None,
 ):
@@ -116,7 +116,7 @@ def write_jp2(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="laueimproc.io.write.write_jp2"><code class="name flex">
-<span>def <span class="ident">write_jp2</span></span>(<span>filename: Union[str, pathlib.Path], image: torch.Tensor, metadata: Optional[dict] = None)</span>
+<span>def <span class="ident">write_jp2</span></span>(<span>filename: str | pathlib.Path, image: torch.Tensor, metadata: Optional[dict] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Write a lossless jpeg2000 image with the metadata.</p>
@@ -156,7 +156,7 @@ True
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def write_jp2(
-    filename: typing.Union[str, pathlib.Path],
+    filename: str | pathlib.Path,
     image: torch.Tensor,
     metadata: typing.Optional[dict] = None,
 ):

@@ -139,12 +139,12 @@ def angle_to_rot(
     return rot3 @ rot2 @ rot1  # broadcast
 
 
-def rotate_cristal(cristal: torch.Tensor, rot: torch.Tensor) -> torch.Tensor:
+def rotate_crystal(crystal: torch.Tensor, rot: torch.Tensor) -> torch.Tensor:
     r"""Apply an active rotation to the crystal.
 
     Parameters
     ----------
-    cristal : torch.Tensor
+    crystal : torch.Tensor
         The primitive (\(\mathbf{A}\)) or reciprocal (\(\mathbf{B}\)) in the base \(\mathcal{B}\).
         The shape of this parameter is (*c, 3, 3).
     rot : torch.Tensor
@@ -152,18 +152,18 @@ def rotate_cristal(cristal: torch.Tensor, rot: torch.Tensor) -> torch.Tensor:
 
     Returns
     -------
-    rotated_cristal: torch.Tensor
-        The batched matricial product `rot @ cristal` of shape (*c, *r, 3, 3).
+    rotated_crystal: torch.Tensor
+        The batched matricial product `rot @ crystal` of shape (*c, *r, 3, 3).
     """
-    assert isinstance(cristal, torch.Tensor), cristal.__class__.__name__
-    assert cristal.shape[-2:] == (3, 3), cristal.shape
+    assert isinstance(crystal, torch.Tensor), crystal.__class__.__name__
+    assert crystal.shape[-2:] == (3, 3), crystal.shape
     assert isinstance(rot, torch.Tensor), rot.__class__.__name__
     assert rot.shape[-2:] == (3, 3), rot.shape
 
-    *batch_c, _, _ = cristal.shape
+    *batch_c, _, _ = crystal.shape
     *batch_r, _, _ = rot.shape
 
-    cristal = cristal[..., *((None,)*len(batch_r)), :, :]
+    crystal = crystal[..., *((None,)*len(batch_r)), :, :]
     rot = rot[*((None,)*len(batch_c)), ..., :, :]
 
-    return rot @ cristal
+    return rot @ crystal

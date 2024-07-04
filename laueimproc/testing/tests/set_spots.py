@@ -23,8 +23,10 @@ def test_from_anchors_rois_numpy():
     """Init a diagram from anchors and rois."""
     diag = BaseDiagram(get_sample())
     anchors = itertools.product(range(15, min(diag.image.shape)-30, 200), repeat=2)
-    rois = [np.empty((random.randint(5, 30), random.randint(5, 30)), dtype=np.uint16)]
-    anchors_rois = [[i, j, roi] for (i, j), roi in zip(anchors, rois)]
+    anchors_rois = [
+        [i, j, np.empty((random.randint(5, 30), random.randint(5, 30)), dtype=np.uint16)]
+        for i, j in anchors
+    ]
     diag.set_spots(anchors_rois)
     assert len(diag) == len(anchors_rois)
 
@@ -33,8 +35,10 @@ def test_from_anchors_rois_torch():
     """Init a diagram from anchors and rois."""
     diag = BaseDiagram(get_sample())
     anchors = itertools.product(range(15, min(diag.image.shape)-30, 200), repeat=2)
-    rois = [torch.zeros((random.randint(5, 30), random.randint(5, 30)))]
-    anchors_rois = [[i, j, roi] for (i, j), roi in zip(anchors, rois)]
+    anchors_rois = [
+        [i, j, np.empty((random.randint(5, 30), random.randint(5, 30)), dtype=np.uint16)]
+        for i, j in anchors
+    ]
     diag.set_spots(anchors_rois)
     assert len(diag) == len(anchors_rois)
 

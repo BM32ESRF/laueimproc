@@ -72,7 +72,9 @@ class SpotDataloader:
                 return torch.empty((0, *self.model.shape), dtype=torch.float32)
             return torch.cat([
                 self.model.dataaug(roi[:height, :width]).unsqueeze(0)
-                for roi, (height, width) in zip(diagram.rois, diagram.bboxes[:, 2:].tolist())
+                for roi, (height, width) in zip(
+                    diagram.rois, diagram.bboxes[:, 2:].tolist(), strict=True
+                )
             ])
 
         batch = torch.empty((0, *self.model.shape), dtype=torch.float32)

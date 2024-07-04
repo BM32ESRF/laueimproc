@@ -191,7 +191,7 @@ def select_hkl(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="laueimproc.diffraction.hkl.select_hkl"><code class="name flex">
-<span>def <span class="ident">select_hkl</span></span>(<span>lattice: Optional[None] = None, *, max_hkl: numbers.Integral = 18, e_max: numbers.Real = inf, keep_harmonics: bool = True) ‑> torch.Tensor</span>
+<span>def <span class="ident">select_hkl</span></span>(<span>lattice: None | torch.Tensor = None, *, max_hkl: numbers.Integral = 18, e_max: numbers.Real = inf, keep_harmonics: bool = True) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reject the hkl sistematicaly out of energy band.</p>

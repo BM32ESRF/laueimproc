@@ -5,7 +5,6 @@
 import multiprocessing
 import pathlib
 import pickle
-import typing
 
 
 LOCK = multiprocessing.Lock()
@@ -54,9 +53,8 @@ def restore_dataset(filename: pathlib.Path, dataset=None):
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".pickle")
     assert dataset is None or isinstance(dataset, BaseDiagramsDataset), dataset.__class__.__name__
 
-    with LOCK:
-        with open(filename, "rb") as raw:
-            new_dataset = pickle.load(raw)
+    with LOCK, open(filename, "rb") as raw:
+        new_dataset = pickle.load(raw)
 
     if dataset is None:
         dataset = new_dataset
@@ -65,7 +63,7 @@ def restore_dataset(filename: pathlib.Path, dataset=None):
     return dataset
 
 
-def write_dataset(filename: typing.Union[str, pathlib.Path], dataset) -> pathlib.Path:
+def write_dataset(filename: str | pathlib.Path, dataset) -> pathlib.Path:
     """Write the pickle file associate to the provided diagrams dataset.
 
     Parameters
@@ -88,8 +86,7 @@ def write_dataset(filename: typing.Union[str, pathlib.Path], dataset) -> pathlib
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".pickle")
     assert isinstance(dataset, BaseDiagramsDataset), dataset.__class__.__name__
 
-    with LOCK:
-        with open(filename, "wb") as raw:
-            pickle.dump(dataset, raw)
+    with LOCK, open(filename, "wb") as raw:
+        pickle.dump(dataset, raw)
 
     return filename

@@ -36,7 +36,6 @@ import functools
 import numbers
 import pathlib
 import re
-import typing
 
 
 def bytes2human(size: numbers.Real) -&gt; str:
@@ -83,7 +82,7 @@ def get_project_root() -&gt; pathlib.Path:
     return pathlib.Path(__file__).resolve().parent
 
 
-def time2sec(time: typing.Union[numbers.Real, str], /) -&gt; float:
+def time2sec(time: numbers.Real | str, /) -&gt; float:
     &#34;&#34;&#34;Parse a time duration expression and return it in seconds.
 
     Raises
@@ -240,7 +239,7 @@ def get_project_root() -&gt; pathlib.Path:
 </details>
 </dd>
 <dt id="laueimproc.common.time2sec"><code class="name flex">
-<span>def <span class="ident">time2sec</span></span>(<span>time: Union[numbers.Real, str], /) ‑> float</span>
+<span>def <span class="ident">time2sec</span></span>(<span>time: numbers.Real | str, /) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse a time duration expression and return it in seconds.</p>
@@ -283,7 +282,7 @@ def get_project_root() -&gt; pathlib.Path:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def time2sec(time: typing.Union[numbers.Real, str], /) -&gt; float:
+<pre><code class="python">def time2sec(time: numbers.Real | str, /) -&gt; float:
     &#34;&#34;&#34;Parse a time duration expression and return it in seconds.
 
     Raises

@@ -66,7 +66,7 @@ into the orthonormal base of the christal $C_1$, $C_2$ and $C_3$.
 The matrix of the primitive vectors is called $\mathbf{A}$ and the base $\mathcal{B^c}$.
 
 .. video:: /build/media/ANIMLatticeBc.webm
-    :alt: projection of lattice in cristal base
+    :alt: projection of lattice in crystal base
     :width: 512
 
 * $e_1$ is collinear with $C_1$.

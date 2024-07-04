@@ -232,7 +232,7 @@ def track_spots(
         rename = {}  # old name -> new name
 
     # explore and update graph
-    for (diag_idx1, diag_idx2), pair in zip(diags, pairs):
+    for (diag_idx1, diag_idx2), pair in zip(diags, pairs, strict=True):
         for spot1, spot2 in pair.tolist():
             if spot1 not in labels[diag_idx1] and spot2 not in labels[diag_idx2]:  # case new spot
                 labels[diag_idx1][spot1] = labels[diag_idx2][spot2] = next_label

@@ -165,7 +165,9 @@ class VAESpotClassifier(torch.nn.Module):
 
         # case diagram
         batch = torch.empty((len(data), *self.shape), dtype=torch.float32, device=self.device)
-        for i, (roi, (height, width)) in enumerate(zip(data.rois, data.bboxes[:, 2:].tolist())):
+        for i, (roi, (height, width)) in enumerate(
+            zip(data.rois, data.bboxes[:, 2:].tolist(), strict=True)
+        ):
             batch[i] = self.dataaug(roi[:height, :width])
         mean, _ = self.encoder(batch.unsqueeze(1))
         return mean
@@ -469,7 +471,7 @@ class Decoder(torch.nn.Module):
     def plot_map(
         self,
         axe,
-        grid: typing.Union[numbers.Integral, tuple[numbers.Integral, numbers.Integral]] = 10,
+        grid: numbers.Integral | tuple[numbers.Integral, numbers.Integral] = 10,
     ):
         """Generate and display spots from a regular sampling of latent space.
 
@@ -600,7 +602,7 @@ class Encoder(torch.nn.Module):
             ),
         ])
 
-    def forward(self, batch: torch.Tensor) -> tuple[torch.Tensor, typing.Union[None, torch.Tensor]]:
+    def forward(self, batch: torch.Tensor) -> tuple[torch.Tensor, None | torch.Tensor]:
         """Extract the mean and the std for each images.
 
         Parameters

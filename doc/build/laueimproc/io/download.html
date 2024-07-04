@@ -76,7 +76,7 @@ def _decompress(suffix: str, data_gen: typing.Iterator):
 
 def download(
     url: str,
-    folder: typing.Union[str, pathlib.Path] = DEFAULT_FOLDER,
+    folder: str | pathlib.Path = DEFAULT_FOLDER,
     force_download: bool = False,
 ) -&gt; pathlib.Path:
     &#34;&#34;&#34;Download, decompress and unpack the data given by the url.
@@ -162,7 +162,7 @@ def get_samples(**kwargs) -&gt; pathlib.Path:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="laueimproc.io.download.download"><code class="name flex">
-<span>def <span class="ident">download</span></span>(<span>url: str, folder: Union[str, pathlib.Path] = PosixPath('/home/robin/.cache/laueimproc'), force_download: bool = False) ‑> pathlib.Path</span>
+<span>def <span class="ident">download</span></span>(<span>url: str, folder: str | pathlib.Path = PosixPath('/home/robin/.cache/laueimproc'), force_download: bool = False) ‑> pathlib.Path</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Download, decompress and unpack the data given by the url.</p>
@@ -186,7 +186,7 @@ def get_samples(**kwargs) -&gt; pathlib.Path:
 </summary>
 <pre><code class="python">def download(
     url: str,
-    folder: typing.Union[str, pathlib.Path] = DEFAULT_FOLDER,
+    folder: str | pathlib.Path = DEFAULT_FOLDER,
     force_download: bool = False,
 ) -&gt; pathlib.Path:
     &#34;&#34;&#34;Download, decompress and unpack the data given by the url.

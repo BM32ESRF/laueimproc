@@ -3,7 +3,6 @@
 """Crop and pad an image to schange the size without any interpolation."""
 
 import numbers
-import typing
 
 import numpy as np
 import torch
@@ -135,10 +134,10 @@ def _patch(image: torch.Tensor, shape: tuple[int, int], copy: bool) -> torch.Ten
 
 
 def patch(
-    image: typing.Union[torch.Tensor, np.ndarray],
-    shape: typing.Union[tuple[numbers.Integral, numbers.Integral], list[numbers.Integral]],
+    image: torch.Tensor | np.ndarray,
+    shape: tuple[numbers.Integral, numbers.Integral] | list[numbers.Integral],
     copy: bool = True,
-) -> typing.Union[torch.Tensor, np.ndarray]:
+) -> torch.Tensor | np.ndarray:
     """Pad the image with transparent borders.
 
     Parameters

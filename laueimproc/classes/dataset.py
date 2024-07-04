@@ -3,7 +3,6 @@
 """Link serveral diagrams together."""
 
 import numbers
-import typing
 
 import torch
 
@@ -57,9 +56,7 @@ class DiagramsDataset(BaseDiagramsDataset):
             case _:
                 raise ValueError(f"method can only be 'snowflake' or 'sort', not {method}")
 
-    def select_closest(
-        self, *args, no_raise: bool = False, **kwargs
-    ) -> typing.Union[Diagram, None]:
+    def select_closest(self, *args, no_raise: bool = False, **kwargs) -> None | Diagram:
         """Select the closest diagram to a given set of phisical parameters.
 
         Parameters
@@ -96,7 +93,7 @@ class DiagramsDataset(BaseDiagramsDataset):
             raise err
         return self._get_diagram_from_index(int(indices[index]))
 
-    def select_closests(self, *args, **kwargs) -> typing.Self:
+    def select_closests(self, *args, **kwargs):
         """Select the diagrams matching a given interval of phisical parameters.
 
         Parameters
@@ -125,15 +122,11 @@ class DiagramsDataset(BaseDiagramsDataset):
         rel_indices = select_closests(coords, *args, **kwargs)
         return self._get_diagrams_from_indices(indices[rel_indices])
 
-    def track_spots(self):
-        """Find the apparition of the same spots in differents diagrams."""
-        raise NotImplementedError
-
     def train_spot_classifier(
         self,
         *,
         model=None,
-        shape: typing.Union[numbers.Real, tuple[numbers.Integral, numbers.Integral]] = 0.95,
+        shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95,
         **kwargs,
     ):
         """Train a variational autoencoder classifier with the spots in the diagrams.

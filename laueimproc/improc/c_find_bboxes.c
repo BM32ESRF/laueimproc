@@ -140,7 +140,7 @@ int CFindBBoxes(
 
     free(clusters);
     free(merge);
-    *bboxes_p = realloc(*bboxes_p, 4 * (unsigned long)(*n) * sizeof(**bboxes_p));
+    *bboxes_p = (npy_int16 *)realloc(*bboxes_p, 4 * (unsigned long)(*n) * sizeof(**bboxes_p));
     if (*bboxes_p == NULL && *n) {
         fprintf(stderr, "failed to free the piece at the end of full_bboxes\n");
         return 1;

@@ -360,7 +360,7 @@ class Diagram(BaseDiagram):
 <dl>
 <dt id="laueimproc.classes.diagram.Diagram"><code class="flex name class">
 <span>class <span class="ident">Diagram</span></span>
-<span>(</span><span>data: Union[numpy.ndarray, torch.Tensor, str, pathlib.Path])</span>
+<span>(</span><span>data: numpy.ndarray | torch.Tensor | str | pathlib.Path)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A Laue diagram image.</p>
@@ -690,7 +690,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="laueimproc.classes.diagram.Diagram.areas"><code class="name">var <span class="ident">areas</span> : Optional[None]</code></dt>
+<dt id="laueimproc.classes.diagram.Diagram.areas"><code class="name">var <span class="ident">areas</span> : None | torch.Tensor</code></dt>
 <dd>
 <p class="inheritance">
 <em>Inherited from:</em>
@@ -698,7 +698,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
 </p>
 <div class="desc inherited"><p>Return the int32 area of each bboxes …</p></div>
 </dd>
-<dt id="laueimproc.classes.diagram.Diagram.bboxes"><code class="name">var <span class="ident">bboxes</span> : Optional[None]</code></dt>
+<dt id="laueimproc.classes.diagram.Diagram.bboxes"><code class="name">var <span class="ident">bboxes</span> : None | torch.Tensor</code></dt>
 <dd>
 <p class="inheritance">
 <em>Inherited from:</em>
@@ -730,7 +730,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
 </p>
 <div class="desc inherited"><p>Return the complete image of the diagram …</p></div>
 </dd>
-<dt id="laueimproc.classes.diagram.Diagram.rawrois"><code class="name">var <span class="ident">rawrois</span> : Optional[None]</code></dt>
+<dt id="laueimproc.classes.diagram.Diagram.rawrois"><code class="name">var <span class="ident">rawrois</span> : None | torch.Tensor</code></dt>
 <dd>
 <p class="inheritance">
 <em>Inherited from:</em>
@@ -738,7 +738,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
 </p>
 <div class="desc inherited"><p>Return the tensor of the raw rois of the spots.</p></div>
 </dd>
-<dt id="laueimproc.classes.diagram.Diagram.rois"><code class="name">var <span class="ident">rois</span> : Optional[None]</code></dt>
+<dt id="laueimproc.classes.diagram.Diagram.rois"><code class="name">var <span class="ident">rois</span> : None | torch.Tensor</code></dt>
 <dd>
 <p class="inheritance">
 <em>Inherited from:</em>

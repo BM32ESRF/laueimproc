@@ -33,7 +33,6 @@
 &#34;&#34;&#34;Crop and pad an image to schange the size without any interpolation.&#34;&#34;&#34;
 
 import numbers
-import typing
 
 import numpy as np
 import torch
@@ -165,10 +164,10 @@ def _patch(image: torch.Tensor, shape: tuple[int, int], copy: bool) -&gt; torch.
 
 
 def patch(
-    image: typing.Union[torch.Tensor, np.ndarray],
-    shape: typing.Union[tuple[numbers.Integral, numbers.Integral], list[numbers.Integral]],
+    image: torch.Tensor | np.ndarray,
+    shape: tuple[numbers.Integral, numbers.Integral] | list[numbers.Integral],
     copy: bool = True,
-) -&gt; typing.Union[torch.Tensor, np.ndarray]:
+) -&gt; torch.Tensor | np.ndarray:
     &#34;&#34;&#34;Pad the image with transparent borders.
 
     Parameters
@@ -251,7 +250,7 @@ def patch(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="laueimproc.nn.dataaug.patch.patch"><code class="name flex">
-<span>def <span class="ident">patch</span></span>(<span>image: Union[torch.Tensor, numpy.ndarray], shape: Union[tuple[numbers.Integral, numbers.Integral], list[numbers.Integral]], copy: bool = True) ‑> Union[torch.Tensor, numpy.ndarray]</span>
+<span>def <span class="ident">patch</span></span>(<span>image: torch.Tensor | numpy.ndarray, shape: tuple[numbers.Integral, numbers.Integral] | list[numbers.Integral], copy: bool = True) ‑> torch.Tensor | numpy.ndarray</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Pad the image with transparent borders.</p>
@@ -306,10 +305,10 @@ tensor([[  0,   0,   0,   0,   0,   0,   0,   0,   0,   0],
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def patch(
-    image: typing.Union[torch.Tensor, np.ndarray],
-    shape: typing.Union[tuple[numbers.Integral, numbers.Integral], list[numbers.Integral]],
+    image: torch.Tensor | np.ndarray,
+    shape: tuple[numbers.Integral, numbers.Integral] | list[numbers.Integral],
     copy: bool = True,
-) -&gt; typing.Union[torch.Tensor, np.ndarray]:
+) -&gt; torch.Tensor | np.ndarray:
     &#34;&#34;&#34;Pad the image with transparent borders.
 
     Parameters

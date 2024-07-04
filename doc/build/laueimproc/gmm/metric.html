@@ -244,7 +244,7 @@ def mse(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="laueimproc.gmm.metric.aic"><code class="name flex">
-<span>def <span class="ident">aic</span></span>(<span>obs: torch.Tensor, weights: Optional[None], gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) ‑> tuple[torch.Tensor, torch.Tensor]</span>
+<span>def <span class="ident">aic</span></span>(<span>obs: torch.Tensor, weights: None | torch.Tensor, gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) ‑> tuple[torch.Tensor, torch.Tensor]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute the Akaike Information Criterion and the Bayesian Information Criterion.</p>
@@ -324,7 +324,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
 </details>
 </dd>
 <dt id="laueimproc.gmm.metric.bic"><code class="name flex">
-<span>def <span class="ident">bic</span></span>(<span>obs: torch.Tensor, weights: Optional[None], gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) ‑> tuple[torch.Tensor, torch.Tensor]</span>
+<span>def <span class="ident">bic</span></span>(<span>obs: torch.Tensor, weights: None | torch.Tensor, gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) ‑> tuple[torch.Tensor, torch.Tensor]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute the Akaike Information Criterion and the Bayesian Information Criterion.</p>
@@ -410,7 +410,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
 </details>
 </dd>
 <dt id="laueimproc.gmm.metric.log_likelihood"><code class="name flex">
-<span>def <span class="ident">log_likelihood</span></span>(<span>obs: torch.Tensor, weights: Optional[None], gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) ‑> torch.Tensor</span>
+<span>def <span class="ident">log_likelihood</span></span>(<span>obs: torch.Tensor, weights: None | torch.Tensor, gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute the log likelihood.</p>
@@ -506,7 +506,7 @@ L_{\alpha,\omega} = \log\left(
 </details>
 </dd>
 <dt id="laueimproc.gmm.metric.mse"><code class="name flex">
-<span>def <span class="ident">mse</span></span>(<span>obs: torch.Tensor, weights: Optional[None], gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) ‑> torch.Tensor</span>
+<span>def <span class="ident">mse</span></span>(<span>obs: torch.Tensor, weights: None | torch.Tensor, gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute the mean square error.</p>

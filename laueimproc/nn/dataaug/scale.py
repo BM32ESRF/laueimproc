@@ -3,7 +3,6 @@
 """Resize and image keeping the proportions."""
 
 import numbers
-import typing
 
 import cv2
 import numpy as np
@@ -38,10 +37,10 @@ def _resize(image: torch.Tensor, shape: tuple[int, int], copy: bool) -> torch.Te
 
 
 def rescale(
-    image: typing.Union[torch.Tensor, np.ndarray],
-    shape: typing.Union[tuple[numbers.Integral, numbers.Integral], list[numbers.Integral]],
+    image: torch.Tensor | np.ndarray,
+    shape: tuple[numbers.Integral, numbers.Integral] | list[numbers.Integral],
     copy: bool = True,
-) -> typing.Union[torch.Tensor, np.ndarray]:
+) -> torch.Tensor | np.ndarray:
     """Reshape the image, keep the spact ratio and pad with black pixels.
 
     Parameters

@@ -46,7 +46,7 @@ def _decompress(suffix: str, data_gen: typing.Iterator):
 
 def download(
     url: str,
-    folder: typing.Union[str, pathlib.Path] = DEFAULT_FOLDER,
+    folder: str | pathlib.Path = DEFAULT_FOLDER,
     force_download: bool = False,
 ) -> pathlib.Path:
     """Download, decompress and unpack the data given by the url.

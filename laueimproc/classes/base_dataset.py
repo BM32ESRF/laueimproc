@@ -140,10 +140,10 @@ class BaseDiagramsDataset(threading.Thread):
         self._async_job: dict = {"dirs": [], "readed": set()}  # for the async run method
         self._diag2ind = diag2ind
         self._diag_scalars = [diag2scalars, {}]  # store the diagrams position
-        self._diagrams: dict[int, typing.Union[Diagram, queue.Queue]] = {}  # index to diagram
+        self._diagrams: dict[int, Diagram | queue.Queue] = {}  # index to diagram
         self._lock = threading.Lock()
         self._operations_chain: list[tuple[typing.Callable[[Diagram], object], tuple]] = []
-        self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
+        self._properties: dict[str, tuple[None | str, object]] = {}  # the properties
         super().__init__(daemon=True)
         self.add_diagrams(diagram_refs)
 
@@ -545,9 +545,7 @@ class BaseDiagramsDataset(threading.Thread):
             else:
                 thread.run()  # blocking
 
-    def add_diagrams(
-        self, new_diagrams: typing.Union[typing.Iterable, Diagram, str, pathlib.Path]
-    ):
+    def add_diagrams(self, new_diagrams: typing.Iterable | Diagram | str | pathlib.Path) -> None:
         """Append the new diagrams into the datset.
 
         Parameters
@@ -719,8 +717,8 @@ class BaseDiagramsDataset(threading.Thread):
 
     def autosave(
         self,
-        filename: typing.Union[str, pathlib.Path],
-        delay: typing.Union[numbers.Real, str] = None,
+        filename: str | pathlib.Path,
+        delay: typing.Optional[numbers.Real | str] = None,
     ):
         """Manage the dataset recovery.
 
@@ -920,7 +918,7 @@ class BaseDiagramsDataset(threading.Thread):
         hasher.update(cloudpickle.dumps(self._operations_chain))
         return hasher.hexdigest()
 
-    def restore(self, filename: typing.Union[str, pathlib.Path]):
+    def restore(self, filename: str | pathlib.Path):
         """Restore the dataset content from the backup file.
 
         Do nothing if the file doesn't exists.

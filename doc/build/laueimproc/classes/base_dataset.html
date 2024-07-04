@@ -170,10 +170,10 @@ class BaseDiagramsDataset(threading.Thread):
         self._async_job: dict = {&#34;dirs&#34;: [], &#34;readed&#34;: set()}  # for the async run method
         self._diag2ind = diag2ind
         self._diag_scalars = [diag2scalars, {}]  # store the diagrams position
-        self._diagrams: dict[int, typing.Union[Diagram, queue.Queue]] = {}  # index to diagram
+        self._diagrams: dict[int, Diagram | queue.Queue] = {}  # index to diagram
         self._lock = threading.Lock()
         self._operations_chain: list[tuple[typing.Callable[[Diagram], object], tuple]] = []
-        self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
+        self._properties: dict[str, tuple[None | str, object]] = {}  # the properties
         super().__init__(daemon=True)
         self.add_diagrams(diagram_refs)
 
@@ -575,9 +575,7 @@ class BaseDiagramsDataset(threading.Thread):
             else:
                 thread.run()  # blocking
 
-    def add_diagrams(
-        self, new_diagrams: typing.Union[typing.Iterable, Diagram, str, pathlib.Path]
-    ):
+    def add_diagrams(self, new_diagrams: typing.Iterable | Diagram | str | pathlib.Path) -&gt; None:
         &#34;&#34;&#34;Append the new diagrams into the datset.
 
         Parameters
@@ -749,8 +747,8 @@ class BaseDiagramsDataset(threading.Thread):
 
     def autosave(
         self,
-        filename: typing.Union[str, pathlib.Path],
-        delay: typing.Union[numbers.Real, str] = None,
+        filename: str | pathlib.Path,
+        delay: typing.Optional[numbers.Real | str] = None,
     ):
         &#34;&#34;&#34;Manage the dataset recovery.
 
@@ -950,7 +948,7 @@ class BaseDiagramsDataset(threading.Thread):
         hasher.update(cloudpickle.dumps(self._operations_chain))
         return hasher.hexdigest()
 
-    def restore(self, filename: typing.Union[str, pathlib.Path]):
+    def restore(self, filename: str | pathlib.Path):
         &#34;&#34;&#34;Restore the dataset content from the backup file.
 
         Do nothing if the file doesn&#39;t exists.
@@ -1055,7 +1053,7 @@ class BaseDiagramsDataset(threading.Thread):
 <dl>
 <dt id="laueimproc.classes.base_dataset.BaseDiagramsDataset"><code class="flex name class">
 <span>class <span class="ident">BaseDiagramsDataset</span></span>
-<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, diag2scalars: Optional[Callable[[int], Union[numbers.Real, tuple[numbers.Real, ...]]]] = None)</span>
+<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, diag2scalars: Optional[Callable[[int], numbers.Real | tuple[numbers.Real, ...]]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A Basic diagrams dataset with the fondamental structure.</p>
@@ -1134,10 +1132,10 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
         self._async_job: dict = {&#34;dirs&#34;: [], &#34;readed&#34;: set()}  # for the async run method
         self._diag2ind = diag2ind
         self._diag_scalars = [diag2scalars, {}]  # store the diagrams position
-        self._diagrams: dict[int, typing.Union[Diagram, queue.Queue]] = {}  # index to diagram
+        self._diagrams: dict[int, Diagram | queue.Queue] = {}  # index to diagram
         self._lock = threading.Lock()
         self._operations_chain: list[tuple[typing.Callable[[Diagram], object], tuple]] = []
-        self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
+        self._properties: dict[str, tuple[None | str, object]] = {}  # the properties
         super().__init__(daemon=True)
         self.add_diagrams(diagram_refs)
 
@@ -1539,9 +1537,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
             else:
                 thread.run()  # blocking
 
-    def add_diagrams(
-        self, new_diagrams: typing.Union[typing.Iterable, Diagram, str, pathlib.Path]
-    ):
+    def add_diagrams(self, new_diagrams: typing.Iterable | Diagram | str | pathlib.Path) -&gt; None:
         &#34;&#34;&#34;Append the new diagrams into the datset.
 
         Parameters
@@ -1713,8 +1709,8 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 
     def autosave(
         self,
-        filename: typing.Union[str, pathlib.Path],
-        delay: typing.Union[numbers.Real, str] = None,
+        filename: str | pathlib.Path,
+        delay: typing.Optional[numbers.Real | str] = None,
     ):
         &#34;&#34;&#34;Manage the dataset recovery.
 
@@ -1914,7 +1910,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
         hasher.update(cloudpickle.dumps(self._operations_chain))
         return hasher.hexdigest()
 
-    def restore(self, filename: typing.Union[str, pathlib.Path]):
+    def restore(self, filename: str | pathlib.Path):
         &#34;&#34;&#34;Restore the dataset content from the backup file.
 
         Do nothing if the file doesn&#39;t exists.
@@ -2128,7 +2124,7 @@ def state(self) -&gt; str:
 </details>
 </dd>
 <dt id="laueimproc.classes.base_dataset.BaseDiagramsDataset.add_diagrams"><code class="name flex">
-<span>def <span class="ident">add_diagrams</span></span>(<span>self, new_diagrams: Union[Iterable, <a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>, str, pathlib.Path])</span>
+<span>def <span class="ident">add_diagrams</span></span>(<span>self, new_diagrams: Union[Iterable, <a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>, str, pathlib.Path]) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Append the new diagrams into the datset.</p>
@@ -2181,9 +2177,7 @@ def state(self) -&gt; str:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add_diagrams(
-    self, new_diagrams: typing.Union[typing.Iterable, Diagram, str, pathlib.Path]
-):
+<pre><code class="python">def add_diagrams(self, new_diagrams: typing.Iterable | Diagram | str | pathlib.Path) -&gt; None:
     &#34;&#34;&#34;Append the new diagrams into the datset.
 
     Parameters
@@ -2448,7 +2442,7 @@ To each diagram index, associate the result.</dd>
 </details>
 </dd>
 <dt id="laueimproc.classes.base_dataset.BaseDiagramsDataset.autosave"><code class="name flex">
-<span>def <span class="ident">autosave</span></span>(<span>self, filename: Union[str, pathlib.Path], delay: Union[numbers.Real, str] = None)</span>
+<span>def <span class="ident">autosave</span></span>(<span>self, filename: str | pathlib.Path, delay: Union[numbers.Real, str, ForwardRef(None)] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Manage the dataset recovery.</p>
@@ -2469,8 +2463,8 @@ The supported formats are defined in <code><a title="laueimproc.common.time2sec"
 </summary>
 <pre><code class="python">def autosave(
     self,
-    filename: typing.Union[str, pathlib.Path],
-    delay: typing.Union[numbers.Real, str] = None,
+    filename: str | pathlib.Path,
+    delay: typing.Optional[numbers.Real | str] = None,
 ):
     &#34;&#34;&#34;Manage the dataset recovery.
 
@@ -2701,7 +2695,7 @@ The supported formats are defined in <code><a title="laueimproc.common.time2sec"
 </details>
 </dd>
 <dt id="laueimproc.classes.base_dataset.BaseDiagramsDataset.get_scalars"><code class="name flex">
-<span>def <span class="ident">get_scalars</span></span>(<span>self, as_dict: bool = True, copy: bool = True) ‑> Union[dict[int, tuple[float, ...]], tuple[torch.Tensor, torch.Tensor]]</span>
+<span>def <span class="ident">get_scalars</span></span>(<span>self, as_dict: bool = True, copy: bool = True) ‑> dict[int, tuple[float, ...]] | tuple[torch.Tensor, torch.Tensor]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Return the scalars values of each diagrams given by <code>diag2scalars</code>.</p></div>
@@ -2727,7 +2721,7 @@ The supported formats are defined in <code><a title="laueimproc.common.time2sec"
 </details>
 </dd>
 <dt id="laueimproc.classes.base_dataset.BaseDiagramsDataset.restore"><code class="name flex">
-<span>def <span class="ident">restore</span></span>(<span>self, filename: Union[str, pathlib.Path])</span>
+<span>def <span class="ident">restore</span></span>(<span>self, filename: str | pathlib.Path)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Restore the dataset content from the backup file.</p>
@@ -2742,7 +2736,7 @@ Based on <code><a title="laueimproc.io.save_dataset.restore_dataset" href="../io
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def restore(self, filename: typing.Union[str, pathlib.Path]):
+<pre><code class="python">def restore(self, filename: str | pathlib.Path):
     &#34;&#34;&#34;Restore the dataset content from the backup file.
 
     Do nothing if the file doesn&#39;t exists.

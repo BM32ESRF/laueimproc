@@ -35,7 +35,6 @@
 import bz2
 import pathlib
 import pickle
-import typing
 
 from tqdm.autonotebook import tqdm
 import numpy as np
@@ -261,7 +260,7 @@ class Decoder(torch.nn.Module):
 class LMCodec(torch.nn.Module):
     &#34;&#34;&#34;Encode and Decode Laue Max images.&#34;&#34;&#34;
 
-    def __init__(self, weights: typing.Union[str, pathlib.Path]):
+    def __init__(self, weights: str | pathlib.Path):
         &#34;&#34;&#34;Initialise the codec.
 
         Parameters
@@ -289,8 +288,8 @@ class LMCodec(torch.nn.Module):
             )
 
     def decode(
-        self, data: typing.Union[tuple[torch.Tensor, tuple[int, int, int, int]], bytes]
-    ) -&gt; typing.Union[torch.Tensor, np.ndarray]:
+        self, data: tuple[torch.Tensor, tuple[int, int, int, int]] | bytes
+    ) -&gt; torch.Tensor | np.ndarray:
         &#34;&#34;&#34;Decode le compressed content.
 
         Parameters
@@ -338,8 +337,8 @@ class LMCodec(torch.nn.Module):
         return img_np
 
     def encode(
-        self, img: typing.Union[torch.Tensor, np.ndarray]
-    ) -&gt; typing.Union[tuple[torch.Tensor, tuple[int, int, int, int]], bytes]:
+        self, img: torch.Tensor | np.ndarray
+    ) -&gt; tuple[torch.Tensor, tuple[int, int, int, int]] | bytes:
         &#34;&#34;&#34;Encode the image.
 
         Parameters
@@ -388,7 +387,7 @@ class LMCodec(torch.nn.Module):
         data = bz2.compress(data, compresslevel=9)
         return data
 
-    def forward(self, img: typing.Union[torch.Tensor, np.ndarray, bytes]) -&gt; torch.Tensor:
+    def forward(self, img: torch.Tensor | np.ndarray | bytes) -&gt; torch.Tensor:
         &#34;&#34;&#34;Encode then decode the image.
 
         Parameters
@@ -649,7 +648,7 @@ torch.Size([5, 1, 160, 224])
 </dd>
 <dt id="laueimproc.io.comp_lm.LMCodec"><code class="flex name class">
 <span>class <span class="ident">LMCodec</span></span>
-<span>(</span><span>weights: Union[str, pathlib.Path])</span>
+<span>(</span><span>weights: str | pathlib.Path)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Encode and Decode Laue Max images.</p>
@@ -666,7 +665,7 @@ torch.Size([5, 1, 160, 224])
 <pre><code class="python">class LMCodec(torch.nn.Module):
     &#34;&#34;&#34;Encode and Decode Laue Max images.&#34;&#34;&#34;
 
-    def __init__(self, weights: typing.Union[str, pathlib.Path]):
+    def __init__(self, weights: str | pathlib.Path):
         &#34;&#34;&#34;Initialise the codec.
 
         Parameters
@@ -694,8 +693,8 @@ torch.Size([5, 1, 160, 224])
             )
 
     def decode(
-        self, data: typing.Union[tuple[torch.Tensor, tuple[int, int, int, int]], bytes]
-    ) -&gt; typing.Union[torch.Tensor, np.ndarray]:
+        self, data: tuple[torch.Tensor, tuple[int, int, int, int]] | bytes
+    ) -&gt; torch.Tensor | np.ndarray:
         &#34;&#34;&#34;Decode le compressed content.
 
         Parameters
@@ -743,8 +742,8 @@ torch.Size([5, 1, 160, 224])
         return img_np
 
     def encode(
-        self, img: typing.Union[torch.Tensor, np.ndarray]
-    ) -&gt; typing.Union[tuple[torch.Tensor, tuple[int, int, int, int]], bytes]:
+        self, img: torch.Tensor | np.ndarray
+    ) -&gt; tuple[torch.Tensor, tuple[int, int, int, int]] | bytes:
         &#34;&#34;&#34;Encode the image.
 
         Parameters
@@ -793,7 +792,7 @@ torch.Size([5, 1, 160, 224])
         data = bz2.compress(data, compresslevel=9)
         return data
 
-    def forward(self, img: typing.Union[torch.Tensor, np.ndarray, bytes]) -&gt; torch.Tensor:
+    def forward(self, img: torch.Tensor | np.ndarray | bytes) -&gt; torch.Tensor:
         &#34;&#34;&#34;Encode then decode the image.
 
         Parameters
@@ -871,7 +870,7 @@ torch.Size([5, 1, 160, 224])
 <h3>Methods</h3>
 <dl>
 <dt id="laueimproc.io.comp_lm.LMCodec.decode"><code class="name flex">
-<span>def <span class="ident">decode</span></span>(<span>self, data: Union[tuple[torch.Tensor, tuple[int, int, int, int]], bytes]) ‑> Union[torch.Tensor, numpy.ndarray]</span>
+<span>def <span class="ident">decode</span></span>(<span>self, data: tuple[torch.Tensor, tuple[int, int, int, int]] | bytes) ‑> torch.Tensor | numpy.ndarray</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Decode le compressed content.</p>
@@ -896,8 +895,8 @@ True
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def decode(
-    self, data: typing.Union[tuple[torch.Tensor, tuple[int, int, int, int]], bytes]
-) -&gt; typing.Union[torch.Tensor, np.ndarray]:
+    self, data: tuple[torch.Tensor, tuple[int, int, int, int]] | bytes
+) -&gt; torch.Tensor | np.ndarray:
     &#34;&#34;&#34;Decode le compressed content.
 
     Parameters
@@ -946,7 +945,7 @@ True
 </details>
 </dd>
 <dt id="laueimproc.io.comp_lm.LMCodec.encode"><code class="name flex">
-<span>def <span class="ident">encode</span></span>(<span>self, img: Union[torch.Tensor, numpy.ndarray]) ‑> Union[tuple[torch.Tensor, tuple[int, int, int, int]], bytes]</span>
+<span>def <span class="ident">encode</span></span>(<span>self, img: torch.Tensor | numpy.ndarray) ‑> tuple[torch.Tensor, tuple[int, int, int, int]] | bytes</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Encode the image.</p>
@@ -968,8 +967,8 @@ True
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def encode(
-    self, img: typing.Union[torch.Tensor, np.ndarray]
-) -&gt; typing.Union[tuple[torch.Tensor, tuple[int, int, int, int]], bytes]:
+    self, img: torch.Tensor | np.ndarray
+) -&gt; tuple[torch.Tensor, tuple[int, int, int, int]] | bytes:
     &#34;&#34;&#34;Encode the image.
 
     Parameters
@@ -1020,7 +1019,7 @@ True
 </details>
 </dd>
 <dt id="laueimproc.io.comp_lm.LMCodec.forward"><code class="name flex">
-<span>def <span class="ident">forward</span></span>(<span>self, img: Union[torch.Tensor, numpy.ndarray, bytes]) ‑> torch.Tensor</span>
+<span>def <span class="ident">forward</span></span>(<span>self, img: torch.Tensor | numpy.ndarray | bytes) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Encode then decode the image.</p>
@@ -1046,7 +1045,7 @@ torch.Size([1000, 1000])
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def forward(self, img: typing.Union[torch.Tensor, np.ndarray, bytes]) -&gt; torch.Tensor:
+<pre><code class="python">def forward(self, img: torch.Tensor | np.ndarray | bytes) -&gt; torch.Tensor:
     &#34;&#34;&#34;Encode then decode the image.
 
     Parameters

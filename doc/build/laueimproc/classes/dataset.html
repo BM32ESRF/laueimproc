@@ -33,7 +33,6 @@
 &#34;&#34;&#34;Link serveral diagrams together.&#34;&#34;&#34;
 
 import numbers
-import typing
 
 import torch
 
@@ -87,9 +86,7 @@ class DiagramsDataset(BaseDiagramsDataset):
             case _:
                 raise ValueError(f&#34;method can only be &#39;snowflake&#39; or &#39;sort&#39;, not {method}&#34;)
 
-    def select_closest(
-        self, *args, no_raise: bool = False, **kwargs
-    ) -&gt; typing.Union[Diagram, None]:
+    def select_closest(self, *args, no_raise: bool = False, **kwargs) -&gt; None | Diagram:
         &#34;&#34;&#34;Select the closest diagram to a given set of phisical parameters.
 
         Parameters
@@ -126,7 +123,7 @@ class DiagramsDataset(BaseDiagramsDataset):
             raise err
         return self._get_diagram_from_index(int(indices[index]))
 
-    def select_closests(self, *args, **kwargs) -&gt; typing.Self:
+    def select_closests(self, *args, **kwargs):
         &#34;&#34;&#34;Select the diagrams matching a given interval of phisical parameters.
 
         Parameters
@@ -155,15 +152,11 @@ class DiagramsDataset(BaseDiagramsDataset):
         rel_indices = select_closests(coords, *args, **kwargs)
         return self._get_diagrams_from_indices(indices[rel_indices])
 
-    def track_spots(self):
-        &#34;&#34;&#34;Find the apparition of the same spots in differents diagrams.&#34;&#34;&#34;
-        raise NotImplementedError
-
     def train_spot_classifier(
         self,
         *,
         model=None,
-        shape: typing.Union[numbers.Real, tuple[numbers.Integral, numbers.Integral]] = 0.95,
+        shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95,
         **kwargs,
     ):
         &#34;&#34;&#34;Train a variational autoencoder classifier with the spots in the diagrams.
@@ -232,7 +225,7 @@ class DiagramsDataset(BaseDiagramsDataset):
 <dl>
 <dt id="laueimproc.classes.dataset.DiagramsDataset"><code class="flex name class">
 <span>class <span class="ident">DiagramsDataset</span></span>
-<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, diag2scalars: Optional[Callable[[int], Union[numbers.Real, tuple[numbers.Real, ...]]]] = None)</span>
+<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, diag2scalars: Optional[Callable[[int], numbers.Real | tuple[numbers.Real, ...]]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Link Diagrams together.</p>
@@ -304,9 +297,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
             case _:
                 raise ValueError(f&#34;method can only be &#39;snowflake&#39; or &#39;sort&#39;, not {method}&#34;)
 
-    def select_closest(
-        self, *args, no_raise: bool = False, **kwargs
-    ) -&gt; typing.Union[Diagram, None]:
+    def select_closest(self, *args, no_raise: bool = False, **kwargs) -&gt; None | Diagram:
         &#34;&#34;&#34;Select the closest diagram to a given set of phisical parameters.
 
         Parameters
@@ -343,7 +334,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
             raise err
         return self._get_diagram_from_index(int(indices[index]))
 
-    def select_closests(self, *args, **kwargs) -&gt; typing.Self:
+    def select_closests(self, *args, **kwargs):
         &#34;&#34;&#34;Select the diagrams matching a given interval of phisical parameters.
 
         Parameters
@@ -372,15 +363,11 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
         rel_indices = select_closests(coords, *args, **kwargs)
         return self._get_diagrams_from_indices(indices[rel_indices])
 
-    def track_spots(self):
-        &#34;&#34;&#34;Find the apparition of the same spots in differents diagrams.&#34;&#34;&#34;
-        raise NotImplementedError
-
     def train_spot_classifier(
         self,
         *,
         model=None,
-        shape: typing.Union[numbers.Real, tuple[numbers.Integral, numbers.Integral]] = 0.95,
+        shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95,
         **kwargs,
     ):
         &#34;&#34;&#34;Train a variational autoencoder classifier with the spots in the diagrams.
@@ -474,7 +461,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 <div class="desc inherited"><p>Append a new diagram into the dataset …</p></div>
 </dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.add_diagrams"><code class="name flex">
-<span>def <span class="ident">add_diagrams</span></span>(<span>self, new_diagrams: Union[Iterable, <a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>, str, pathlib.Path])</span>
+<span>def <span class="ident">add_diagrams</span></span>(<span>self, new_diagrams: Union[Iterable, <a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>, str, pathlib.Path]) ‑> None</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -504,7 +491,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 <div class="desc inherited"><p>Apply an operation in all the diagrams of the dataset …</p></div>
 </dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.autosave"><code class="name flex">
-<span>def <span class="ident">autosave</span></span>(<span>self, filename: Union[str, pathlib.Path], delay: Union[numbers.Real, str] = None)</span>
+<span>def <span class="ident">autosave</span></span>(<span>self, filename: str | pathlib.Path, delay: Union[numbers.Real, str, ForwardRef(None)] = None)</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -627,7 +614,7 @@ or <code>snowflake</code> for a faster algorithm on big dataset, but less accura
 <div class="desc inherited"><p>Return the property associated to the given id …</p></div>
 </dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.get_scalars"><code class="name flex">
-<span>def <span class="ident">get_scalars</span></span>(<span>self, as_dict: bool = True, copy: bool = True) ‑> Union[dict[int, tuple[float, ...]], tuple[torch.Tensor, torch.Tensor]]</span>
+<span>def <span class="ident">get_scalars</span></span>(<span>self, as_dict: bool = True, copy: bool = True) ‑> dict[int, tuple[float, ...]] | tuple[torch.Tensor, torch.Tensor]</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -637,7 +624,7 @@ or <code>snowflake</code> for a faster algorithm on big dataset, but less accura
 <div class="desc inherited"><p>Return the scalars values of each diagrams given by <code>diag2scalars</code>.</p></div>
 </dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.restore"><code class="name flex">
-<span>def <span class="ident">restore</span></span>(<span>self, filename: Union[str, pathlib.Path])</span>
+<span>def <span class="ident">restore</span></span>(<span>self, filename: str | pathlib.Path)</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -657,7 +644,7 @@ or <code>snowflake</code> for a faster algorithm on big dataset, but less accura
 <div class="desc inherited"><p>Run asynchronousely in a child thread, called by self.start().</p></div>
 </dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.select_closest"><code class="name flex">
-<span>def <span class="ident">select_closest</span></span>(<span>self, *args, no_raise: bool = False, **kwargs) ‑> Optional[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>]</span>
+<span>def <span class="ident">select_closest</span></span>(<span>self, *args, no_raise: bool = False, **kwargs) ‑> None | <a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Select the closest diagram to a given set of phisical parameters.</p>
@@ -688,9 +675,7 @@ Diagram(img_45.jp2)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def select_closest(
-    self, *args, no_raise: bool = False, **kwargs
-) -&gt; typing.Union[Diagram, None]:
+<pre><code class="python">def select_closest(self, *args, no_raise: bool = False, **kwargs) -&gt; None | Diagram:
     &#34;&#34;&#34;Select the closest diagram to a given set of phisical parameters.
 
     Parameters
@@ -729,7 +714,7 @@ Diagram(img_45.jp2)
 </details>
 </dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.select_closests"><code class="name flex">
-<span>def <span class="ident">select_closests</span></span>(<span>self, *args, **kwargs) ‑> Self</span>
+<span>def <span class="ident">select_closests</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Select the diagrams matching a given interval of phisical parameters.</p>
@@ -758,7 +743,7 @@ Diagram(img_45.jp2)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def select_closests(self, *args, **kwargs) -&gt; typing.Self:
+<pre><code class="python">def select_closests(self, *args, **kwargs):
     &#34;&#34;&#34;Select the diagrams matching a given interval of phisical parameters.
 
     Parameters
@@ -788,22 +773,8 @@ Diagram(img_45.jp2)
     return self._get_diagrams_from_indices(indices[rel_indices])</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.classes.dataset.DiagramsDataset.track_spots"><code class="name flex">
-<span>def <span class="ident">track_spots</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Find the apparition of the same spots in differents diagrams.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def track_spots(self):
-    &#34;&#34;&#34;Find the apparition of the same spots in differents diagrams.&#34;&#34;&#34;
-    raise NotImplementedError</code></pre>
-</details>
-</dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.train_spot_classifier"><code class="name flex">
-<span>def <span class="ident">train_spot_classifier</span></span>(<span>self, *, model=None, shape: Union[numbers.Real, tuple[numbers.Integral, numbers.Integral]] = 0.95, **kwargs)</span>
+<span>def <span class="ident">train_spot_classifier</span></span>(<span>self, *, model=None, shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Train a variational autoencoder classifier with the spots in the diagrams.</p>
@@ -847,7 +818,7 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
     self,
     *,
     model=None,
-    shape: typing.Union[numbers.Real, tuple[numbers.Integral, numbers.Integral]] = 0.95,
+    shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95,
     **kwargs,
 ):
     &#34;&#34;&#34;Train a variational autoencoder classifier with the spots in the diagrams.
@@ -989,7 +960,6 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.select_closest" href="#laueimproc.classes.dataset.DiagramsDataset.select_closest">select_closest</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.select_closests" href="#laueimproc.classes.dataset.DiagramsDataset.select_closests">select_closests</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.state" href="base_dataset.html#laueimproc.classes.dataset.DiagramsDataset.state">state</a></code></li>
-<li><code><a title="laueimproc.classes.dataset.DiagramsDataset.track_spots" href="#laueimproc.classes.dataset.DiagramsDataset.track_spots">track_spots</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.train_spot_classifier" href="#laueimproc.classes.dataset.DiagramsDataset.train_spot_classifier">train_spot_classifier</a></code></li>
 </ul>
 </li>

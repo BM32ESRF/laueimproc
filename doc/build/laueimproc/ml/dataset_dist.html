@@ -49,8 +49,8 @@ except ImportError:
     c_dist = None
 
 
-SCALS_TYPE = typing.Union[dict[int, tuple[float, ...]], tuple[torch.Tensor, torch.Tensor]]
-DIAG2SCALS_TYPE = typing.Callable[[int], typing.Union[numbers.Real, tuple[numbers.Real, ...]]]
+SCALS_TYPE = dict[int, tuple[float, ...]] | tuple[torch.Tensor, torch.Tensor]
+DIAG2SCALS_TYPE = typing.Callable[[int], numbers.Real | tuple[numbers.Real, ...]]
 
 
 def _add_pos(pos: SCALS_TYPE, index: int, coords: tuple[float, ...]) -&gt; SCALS_TYPE:
@@ -102,7 +102,7 @@ def _to_dict(pos: SCALS_TYPE) -&gt; dict[int, tuple[float, ...]]:
     if isinstance(pos, dict):
         return pos
     indices, coords = pos
-    return {i: c for i, *c in zip(indices.tolist(), coords.tolist())}
+    return {i: c for i, *c in zip(indices.tolist(), coords.tolist(), strict=True)}
 
 
 def _to_torch(pos: SCALS_TYPE) -&gt; tuple[torch.Tensor, torch.Tensor]:
@@ -114,7 +114,7 @@ def _to_torch(pos: SCALS_TYPE) -&gt; tuple[torch.Tensor, torch.Tensor]:
     &#34;&#34;&#34;
     if isinstance(pos, tuple):
         return pos
-    indices, coords = zip(*pos.items())
+    indices, coords = zip(*pos.items(), strict=True)
     indices_torch = torch.asarray(indices, dtype=torch.int32)
     coords_torch = torch.asarray(coords, dtype=torch.float32)
     return (indices_torch, coords_torch)
@@ -360,7 +360,7 @@ def select_closest(
 
     # reject items
     if tol is not None:
-        for i, (point_c, tol_c) in enumerate(zip(point, tol)):
+        for i, (point_c, tol_c) in enumerate(zip(point, tol, strict=True)):
             if tol is not None:
                 keep = coords[:, i] &gt;= point_c - tol_c
                 indices, coords = indices[keep], coords[keep]
@@ -454,7 +454,7 @@ def select_closests(
     if point is None and tol is not None and isinstance(tol[0], tuple):
         point = tuple(0.5 * (e[0] + e[1]) for e in tol)
     if tol is not None and isinstance(tol[0], numbers.Real):  # points assumed to be not None
-        tol = tuple((p-e, p+e) for p, e in zip(point, tol))
+        tol = tuple((p-e, p+e) for p, e in zip(point, tol, strict=True))
     indices = torch.arange(len(coords), dtype=torch.int32, device=coords.device)
 
     # reject items
@@ -486,7 +486,7 @@ def select_closests(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="laueimproc.ml.dataset_dist.call_diag2scalars"><code class="name flex">
-<span>def <span class="ident">call_diag2scalars</span></span>(<span>pos_func: Callable[[int], Union[numbers.Real, tuple[numbers.Real, ...]]], index: int) ‑> tuple[float, ...]</span>
+<span>def <span class="ident">call_diag2scalars</span></span>(<span>pos_func: Callable[[int], numbers.Real | tuple[numbers.Real, ...]], index: int) ‑> tuple[float, ...]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Call the function, check, cast and return the output.</p>
@@ -537,7 +537,7 @@ def select_closests(
 </details>
 </dd>
 <dt id="laueimproc.ml.dataset_dist.check_diag2scalars_typing"><code class="name flex">
-<span>def <span class="ident">check_diag2scalars_typing</span></span>(<span>pos_func: Callable[[int], Union[numbers.Real, tuple[numbers.Real, ...]]])</span>
+<span>def <span class="ident">check_diag2scalars_typing</span></span>(<span>pos_func: Callable[[int], numbers.Real | tuple[numbers.Real, ...]])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Ensure that the position function has the right type of input / outputs.</p>
@@ -904,7 +904,7 @@ no point match
 
     # reject items
     if tol is not None:
-        for i, (point_c, tol_c) in enumerate(zip(point, tol)):
+        for i, (point_c, tol_c) in enumerate(zip(point, tol, strict=True)):
             if tol is not None:
                 keep = coords[:, i] &gt;= point_c - tol_c
                 indices, coords = indices[keep], coords[keep]
@@ -1038,7 +1038,7 @@ By default <span><span class="MathJax_Preview">\kappa_j = 1, \forall j \in [\![0
     if point is None and tol is not None and isinstance(tol[0], tuple):
         point = tuple(0.5 * (e[0] + e[1]) for e in tol)
     if tol is not None and isinstance(tol[0], numbers.Real):  # points assumed to be not None
-        tol = tuple((p-e, p+e) for p, e in zip(point, tol))
+        tol = tuple((p-e, p+e) for p, e in zip(point, tol, strict=True))
     indices = torch.arange(len(coords), dtype=torch.int32, device=coords.device)
 
     # reject items

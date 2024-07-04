@@ -101,10 +101,7 @@ class BaseDiagram:
     &#34;&#34;&#34;
 
     def __init__(
-        self,
-        data: typing.Union[np.ndarray, torch.Tensor, str, pathlib.Path],
-        *,
-        _check: bool = True,
+        self, data: np.ndarray | torch.Tensor | str | pathlib.Path, *, _check: bool = True
     ):
         &#34;&#34;&#34;Create a new diagram with appropriated metadata.
 
@@ -118,9 +115,9 @@ class BaseDiagram:
         self._cache: tuple[threading.Lock, dict[str]] = (  # contains the optional cached data
             threading.Lock(), {}
         )
-        self._file_or_image: typing.Union[pathlib.Path, torch.Tensor]  # the path to the image file
+        self._file_or_image: pathlib.Path | torch.Tensor  # the path to the image file
         self._history: list[str] = []  # the history of the actions performed
-        self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
+        self._properties: dict[str, tuple[None | str, object]] = {}  # the properties
         self._rois: typing.Optional[tuple[bytearray, torch.Tensor]] = None  # datarois, bboxes
         self._rois_lock = threading.Lock()  # make the rois acces thread safe
 
@@ -299,7 +296,7 @@ class BaseDiagram:
             self._properties[name] = ((self.state if erasable else None), value)
 
     @property
-    def areas(self) -&gt; typing.Union[None, torch.Tensor]:
+    def areas(self) -&gt; None | torch.Tensor:
         &#34;&#34;&#34;Return the int32 area of each bboxes.
 
         Examples
@@ -326,7 +323,7 @@ class BaseDiagram:
         return shapes[:, 0] * shapes[:, 1]
 
     @property
-    def bboxes(self) -&gt; typing.Union[None, torch.Tensor]:
+    def bboxes(self) -&gt; None | torch.Tensor:
         &#34;&#34;&#34;Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width).
 
         Examples
@@ -439,7 +436,7 @@ class BaseDiagram:
         return removed
 
     @functools.cached_property
-    def file(self) -&gt; typing.Union[None, pathlib.Path]:
+    def file(self) -&gt; None | pathlib.Path:
         &#34;&#34;&#34;Return the absolute file path to the image, if it is provided.
 
         Examples
@@ -790,7 +787,7 @@ class BaseDiagram:
         return axes
 
     @property
-    def rawrois(self) -&gt; typing.Union[None, torch.Tensor]:
+    def rawrois(self) -&gt; None | torch.Tensor:
         &#34;&#34;&#34;Return the tensor of the raw rois of the spots.&#34;&#34;&#34;
         if not self.is_init():
             return None
@@ -799,7 +796,7 @@ class BaseDiagram:
         return rawshapes2rois(imgbboxes2raw(self.image, bboxes), bboxes[:, 2:])
 
     @property
-    def rois(self) -&gt; typing.Union[None, torch.Tensor]:
+    def rois(self) -&gt; None | torch.Tensor:
         &#34;&#34;&#34;Return the tensor of the provided rois of the spots.
 
         Examples
@@ -997,7 +994,7 @@ class BaseDiagram:
 <dl>
 <dt id="laueimproc.classes.base_diagram.BaseDiagram"><code class="flex name class">
 <span>class <span class="ident">BaseDiagram</span></span>
-<span>(</span><span>data: Union[numpy.ndarray, torch.Tensor, str, pathlib.Path])</span>
+<span>(</span><span>data: numpy.ndarray | torch.Tensor | str | pathlib.Path)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A Basic diagram with the fondamental structure.</p>
@@ -1066,10 +1063,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
     &#34;&#34;&#34;
 
     def __init__(
-        self,
-        data: typing.Union[np.ndarray, torch.Tensor, str, pathlib.Path],
-        *,
-        _check: bool = True,
+        self, data: np.ndarray | torch.Tensor | str | pathlib.Path, *, _check: bool = True
     ):
         &#34;&#34;&#34;Create a new diagram with appropriated metadata.
 
@@ -1083,9 +1077,9 @@ For memory management, it is better to provide a pathlike rather than an array.<
         self._cache: tuple[threading.Lock, dict[str]] = (  # contains the optional cached data
             threading.Lock(), {}
         )
-        self._file_or_image: typing.Union[pathlib.Path, torch.Tensor]  # the path to the image file
+        self._file_or_image: pathlib.Path | torch.Tensor  # the path to the image file
         self._history: list[str] = []  # the history of the actions performed
-        self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
+        self._properties: dict[str, tuple[None | str, object]] = {}  # the properties
         self._rois: typing.Optional[tuple[bytearray, torch.Tensor]] = None  # datarois, bboxes
         self._rois_lock = threading.Lock()  # make the rois acces thread safe
 
@@ -1264,7 +1258,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
             self._properties[name] = ((self.state if erasable else None), value)
 
     @property
-    def areas(self) -&gt; typing.Union[None, torch.Tensor]:
+    def areas(self) -&gt; None | torch.Tensor:
         &#34;&#34;&#34;Return the int32 area of each bboxes.
 
         Examples
@@ -1291,7 +1285,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         return shapes[:, 0] * shapes[:, 1]
 
     @property
-    def bboxes(self) -&gt; typing.Union[None, torch.Tensor]:
+    def bboxes(self) -&gt; None | torch.Tensor:
         &#34;&#34;&#34;Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width).
 
         Examples
@@ -1404,7 +1398,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         return removed
 
     @functools.cached_property
-    def file(self) -&gt; typing.Union[None, pathlib.Path]:
+    def file(self) -&gt; None | pathlib.Path:
         &#34;&#34;&#34;Return the absolute file path to the image, if it is provided.
 
         Examples
@@ -1755,7 +1749,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         return axes
 
     @property
-    def rawrois(self) -&gt; typing.Union[None, torch.Tensor]:
+    def rawrois(self) -&gt; None | torch.Tensor:
         &#34;&#34;&#34;Return the tensor of the raw rois of the spots.&#34;&#34;&#34;
         if not self.is_init():
             return None
@@ -1764,7 +1758,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         return rawshapes2rois(imgbboxes2raw(self.image, bboxes), bboxes[:, 2:])
 
     @property
-    def rois(self) -&gt; typing.Union[None, torch.Tensor]:
+    def rois(self) -&gt; None | torch.Tensor:
         &#34;&#34;&#34;Return the tensor of the provided rois of the spots.
 
         Examples
@@ -1928,7 +1922,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="laueimproc.classes.base_diagram.BaseDiagram.areas"><code class="name">var <span class="ident">areas</span> : Optional[None]</code></dt>
+<dt id="laueimproc.classes.base_diagram.BaseDiagram.areas"><code class="name">var <span class="ident">areas</span> : None | torch.Tensor</code></dt>
 <dd>
 <div class="desc"><p>Return the int32 area of each bboxes.</p>
 <h2 id="examples">Examples</h2>
@@ -1953,7 +1947,7 @@ tensor([289,  36,  33,  20,  40,  81,  49,  15,  36,  25,  36, 110,  49,  56,
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def areas(self) -&gt; typing.Union[None, torch.Tensor]:
+def areas(self) -&gt; None | torch.Tensor:
     &#34;&#34;&#34;Return the int32 area of each bboxes.
 
     Examples
@@ -1980,7 +1974,7 @@ def areas(self) -&gt; typing.Union[None, torch.Tensor]:
     return shapes[:, 0] * shapes[:, 1]</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.classes.base_diagram.BaseDiagram.bboxes"><code class="name">var <span class="ident">bboxes</span> : Optional[None]</code></dt>
+<dt id="laueimproc.classes.base_diagram.BaseDiagram.bboxes"><code class="name">var <span class="ident">bboxes</span> : None | torch.Tensor</code></dt>
 <dd>
 <div class="desc"><p>Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width).</p>
 <h2 id="examples">Examples</h2>
@@ -2005,7 +1999,7 @@ tensor([[   0,    0,   17,   17],
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def bboxes(self) -&gt; typing.Union[None, torch.Tensor]:
+def bboxes(self) -&gt; None | torch.Tensor:
     &#34;&#34;&#34;Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width).
 
     Examples
@@ -2063,15 +2057,19 @@ PosixPath('/.../laueimproc/io/ge.jp2')
         raise TypeError(msg) from None
     val = cache.get(self.attrname, _NOT_FOUND)
     if val is _NOT_FOUND:
-        val = self.func(instance)
-        try:
-            cache[self.attrname] = val
-        except TypeError:
-            msg = (
-                f&#34;The &#39;__dict__&#39; attribute on {type(instance).__name__!r} instance &#34;
-                f&#34;does not support item assignment for caching {self.attrname!r} property.&#34;
-            )
-            raise TypeError(msg) from None
+        with self.lock:
+            # check if another thread filled cache while we awaited lock
+            val = cache.get(self.attrname, _NOT_FOUND)
+            if val is _NOT_FOUND:
+                val = self.func(instance)
+                try:
+                    cache[self.attrname] = val
+                except TypeError:
+                    msg = (
+                        f&#34;The &#39;__dict__&#39; attribute on {type(instance).__name__!r} instance &#34;
+                        f&#34;does not support item assignment for caching {self.attrname!r} property.&#34;
+                    )
+                    raise TypeError(msg) from None
     return val</code></pre>
 </details>
 </dd>
@@ -2142,7 +2140,7 @@ def image(self) -&gt; torch.Tensor:
     return image</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.classes.base_diagram.BaseDiagram.rawrois"><code class="name">var <span class="ident">rawrois</span> : Optional[None]</code></dt>
+<dt id="laueimproc.classes.base_diagram.BaseDiagram.rawrois"><code class="name">var <span class="ident">rawrois</span> : None | torch.Tensor</code></dt>
 <dd>
 <div class="desc"><p>Return the tensor of the raw rois of the spots.</p></div>
 <details class="source">
@@ -2150,7 +2148,7 @@ def image(self) -&gt; torch.Tensor:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def rawrois(self) -&gt; typing.Union[None, torch.Tensor]:
+def rawrois(self) -&gt; None | torch.Tensor:
     &#34;&#34;&#34;Return the tensor of the raw rois of the spots.&#34;&#34;&#34;
     if not self.is_init():
         return None
@@ -2159,7 +2157,7 @@ def rawrois(self) -&gt; typing.Union[None, torch.Tensor]:
     return rawshapes2rois(imgbboxes2raw(self.image, bboxes), bboxes[:, 2:])</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.classes.base_diagram.BaseDiagram.rois"><code class="name">var <span class="ident">rois</span> : Optional[None]</code></dt>
+<dt id="laueimproc.classes.base_diagram.BaseDiagram.rois"><code class="name">var <span class="ident">rois</span> : None | torch.Tensor</code></dt>
 <dd>
 <div class="desc"><p>Return the tensor of the provided rois of the spots.</p>
 <h2 id="examples">Examples</h2>
@@ -2180,7 +2178,7 @@ tensor(True)
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def rois(self) -&gt; typing.Union[None, torch.Tensor]:
+def rois(self) -&gt; None | torch.Tensor:
     &#34;&#34;&#34;Return the tensor of the provided rois of the spots.
 
     Examples

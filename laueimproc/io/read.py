@@ -7,7 +7,6 @@ import logging
 import lzma
 import pathlib
 import time
-import typing
 import warnings
 
 import cv2
@@ -75,7 +74,7 @@ def extract_metadata(data: bytes) -> dict:
     return metadata
 
 
-def read_image(filename: typing.Union[str, pathlib.Path]) -> tuple[torch.Tensor, dict]:
+def read_image(filename: str | pathlib.Path) -> tuple[torch.Tensor, dict]:
     """Read and decode a grayscale image into a numpy array.
 
     Use cv2 as possible, and fabio if cv2 failed.
@@ -122,7 +121,7 @@ def read_image(filename: typing.Union[str, pathlib.Path]) -> tuple[torch.Tensor,
     return image, metadata
 
 
-def to_floattensor(data: typing.Union[torch.Tensor, np.ndarray]) -> torch.Tensor:
+def to_floattensor(data: torch.Tensor | np.ndarray) -> torch.Tensor:
     """Convert and shift tenso into float torch tensor.
 
     If the input is not in floating point, it is converting in float32

@@ -35,7 +35,6 @@
 import multiprocessing
 import pathlib
 import pickle
-import typing
 
 
 LOCK = multiprocessing.Lock()
@@ -84,9 +83,8 @@ def restore_dataset(filename: pathlib.Path, dataset=None):
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.pickle&#34;)
     assert dataset is None or isinstance(dataset, BaseDiagramsDataset), dataset.__class__.__name__
 
-    with LOCK:
-        with open(filename, &#34;rb&#34;) as raw:
-            new_dataset = pickle.load(raw)
+    with LOCK, open(filename, &#34;rb&#34;) as raw:
+        new_dataset = pickle.load(raw)
 
     if dataset is None:
         dataset = new_dataset
@@ -95,7 +93,7 @@ def restore_dataset(filename: pathlib.Path, dataset=None):
     return dataset
 
 
-def write_dataset(filename: typing.Union[str, pathlib.Path], dataset) -&gt; pathlib.Path:
+def write_dataset(filename: str | pathlib.Path, dataset) -&gt; pathlib.Path:
     &#34;&#34;&#34;Write the pickle file associate to the provided diagrams dataset.
 
     Parameters
@@ -118,9 +116,8 @@ def write_dataset(filename: typing.Union[str, pathlib.Path], dataset) -&gt; path
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.pickle&#34;)
     assert isinstance(dataset, BaseDiagramsDataset), dataset.__class__.__name__
 
-    with LOCK:
-        with open(filename, &#34;wb&#34;) as raw:
-            pickle.dump(dataset, raw)
+    with LOCK, open(filename, &#34;wb&#34;) as raw:
+        pickle.dump(dataset, raw)
 
     return filename</code></pre>
 </details>
@@ -217,9 +214,8 @@ True
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.pickle&#34;)
     assert dataset is None or isinstance(dataset, BaseDiagramsDataset), dataset.__class__.__name__
 
-    with LOCK:
-        with open(filename, &#34;rb&#34;) as raw:
-            new_dataset = pickle.load(raw)
+    with LOCK, open(filename, &#34;rb&#34;) as raw:
+        new_dataset = pickle.load(raw)
 
     if dataset is None:
         dataset = new_dataset
@@ -229,7 +225,7 @@ True
 </details>
 </dd>
 <dt id="laueimproc.io.save_dataset.write_dataset"><code class="name flex">
-<span>def <span class="ident">write_dataset</span></span>(<span>filename: Union[str, pathlib.Path], dataset) ‑> pathlib.Path</span>
+<span>def <span class="ident">write_dataset</span></span>(<span>filename: str | pathlib.Path, dataset) ‑> pathlib.Path</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Write the pickle file associate to the provided diagrams dataset.</p>
@@ -251,7 +247,7 @@ If a file is already existing, it is overwriten.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def write_dataset(filename: typing.Union[str, pathlib.Path], dataset) -&gt; pathlib.Path:
+<pre><code class="python">def write_dataset(filename: str | pathlib.Path, dataset) -&gt; pathlib.Path:
     &#34;&#34;&#34;Write the pickle file associate to the provided diagrams dataset.
 
     Parameters
@@ -274,9 +270,8 @@ If a file is already existing, it is overwriten.</dd>
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.pickle&#34;)
     assert isinstance(dataset, BaseDiagramsDataset), dataset.__class__.__name__
 
-    with LOCK:
-        with open(filename, &#34;wb&#34;) as raw:
-            pickle.dump(dataset, raw)
+    with LOCK, open(filename, &#34;wb&#34;) as raw:
+        pickle.dump(dataset, raw)
 
     return filename</code></pre>
 </details>

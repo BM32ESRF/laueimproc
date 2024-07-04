@@ -13,7 +13,7 @@ import yaml
 
 
 def write_jp2(
-    filename: typing.Union[str, pathlib.Path],
+    filename: str | pathlib.Path,
     image: torch.Tensor,
     metadata: typing.Optional[dict] = None,
 ):

@@ -7,10 +7,8 @@ https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position
 Bases
 -----
 
-* \(\mathcal{B^c}\): The orthonormal base of the cristal
+* \(\mathcal{B^c}\): The orthonormal base of the crystal
     \([\mathbf{C_1}, \mathbf{C_2}, \mathbf{C_3}]\).
-* \(\mathcal{B^s}\): The orthonormal base of the sample
-    \([\mathbf{S_1}, \mathbf{S_2}, \mathbf{S_3}]\).
 * \(\mathcal{B^l}\): The orthonormal base of the lab
     \([\mathbf{L_1}, \mathbf{L_2}, \mathbf{L_3}]\) in pyfai.
 
@@ -32,10 +30,10 @@ from .bragg import (
 )
 from .hkl import select_hkl
 from .lattice import lattice_to_primitive, primitive_to_lattice
-from .metric import compute_matching_rate
+from .metric import compute_matching_rate, compute_matching_rate_continuous
 from .projection import detector_to_ray, ray_to_detector
 from .reciprocal import primitive_to_reciprocal, reciprocal_to_primitive
-from .rotation import angle_to_rot, rotate_cristal
+from .rotation import angle_to_rot, rotate_crystal
 
 
 __all__ = [
@@ -43,8 +41,8 @@ __all__ = [
     "uf_to_uq", "uq_to_uf",
     "select_hkl",
     "lattice_to_primitive", "primitive_to_lattice",
-    "compute_matching_rate",
+    "compute_matching_rate", "compute_matching_rate_continuous",
     "detector_to_ray", "ray_to_detector",
     "primitive_to_reciprocal", "reciprocal_to_primitive",
-    "angle_to_rot", "rotate_cristal",
+    "angle_to_rot", "rotate_crystal",
 ]

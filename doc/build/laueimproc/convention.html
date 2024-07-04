@@ -63,18 +63,17 @@ In an image, the point (x=1, y=1) correspond to the middle of the top left pixel
 &#34;&#34;&#34;
 
 import functools
-import typing
 
 import numpy as np
 import torch
 
 
 def ij_to_xy(
-    array: typing.Union[torch.Tensor, np.ndarray],
+    array: torch.Tensor | np.ndarray,
     *,
-    i: typing.Union[tuple[int, slice, type(Ellipsis)], int, slice, type(Ellipsis)],
-    j: typing.Union[tuple[int, slice, type(Ellipsis)], int, slice, type(Ellipsis)],
-) -&gt; typing.Union[torch.Tensor, np.ndarray]:
+    i: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
+    j: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
+) -&gt; torch.Tensor | np.ndarray:
     &#34;&#34;&#34;Switch the axis i and j, and append 1/2 to all values.
 
     Parameters
@@ -136,8 +135,8 @@ def ij_to_xy(
 
 
 def ij_to_xy_decorator(
-    i: typing.Union[tuple[int, slice, type(Ellipsis)], int, slice, type(Ellipsis)],
-    j: typing.Union[tuple[int, slice, type(Ellipsis)], int, slice, type(Ellipsis)],
+    i: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
+    j: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
 ):
     &#34;&#34;&#34;Append the argument conv to a function to allow user switching convention.&#34;&#34;&#34;
     def decorator(func: callable):
@@ -161,7 +160,7 @@ def ij_to_xy_decorator(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="laueimproc.convention.ij_to_xy"><code class="name flex">
-<span>def <span class="ident">ij_to_xy</span></span>(<span>array: Union[torch.Tensor, numpy.ndarray], *, i: Union[tuple[int, slice, ellipsis], int, slice, ellipsis], j: Union[tuple[int, slice, ellipsis], int, slice, ellipsis]) ‑> Union[torch.Tensor, numpy.ndarray]</span>
+<span>def <span class="ident">ij_to_xy</span></span>(<span>array: torch.Tensor | numpy.ndarray, *, i: tuple[int, slice, ellipsis] | int | slice | ellipsis, j: tuple[int, slice, ellipsis] | int | slice | ellipsis) ‑> torch.Tensor | numpy.ndarray</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Switch the axis i and j, and append 1/2 to all values.</p>
@@ -216,11 +215,11 @@ True
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def ij_to_xy(
-    array: typing.Union[torch.Tensor, np.ndarray],
+    array: torch.Tensor | np.ndarray,
     *,
-    i: typing.Union[tuple[int, slice, type(Ellipsis)], int, slice, type(Ellipsis)],
-    j: typing.Union[tuple[int, slice, type(Ellipsis)], int, slice, type(Ellipsis)],
-) -&gt; typing.Union[torch.Tensor, np.ndarray]:
+    i: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
+    j: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
+) -&gt; torch.Tensor | np.ndarray:
     &#34;&#34;&#34;Switch the axis i and j, and append 1/2 to all values.
 
     Parameters
@@ -282,7 +281,7 @@ True
 </details>
 </dd>
 <dt id="laueimproc.convention.ij_to_xy_decorator"><code class="name flex">
-<span>def <span class="ident">ij_to_xy_decorator</span></span>(<span>i: Union[tuple[int, slice, ellipsis], int, slice, ellipsis], j: Union[tuple[int, slice, ellipsis], int, slice, ellipsis])</span>
+<span>def <span class="ident">ij_to_xy_decorator</span></span>(<span>i: tuple[int, slice, ellipsis] | int | slice | ellipsis, j: tuple[int, slice, ellipsis] | int | slice | ellipsis)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Append the argument conv to a function to allow user switching convention.</p></div>
@@ -291,8 +290,8 @@ True
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def ij_to_xy_decorator(
-    i: typing.Union[tuple[int, slice, type(Ellipsis)], int, slice, type(Ellipsis)],
-    j: typing.Union[tuple[int, slice, type(Ellipsis)], int, slice, type(Ellipsis)],
+    i: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
+    j: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
 ):
     &#34;&#34;&#34;Append the argument conv to a function to allow user switching convention.&#34;&#34;&#34;
     def decorator(func: callable):

@@ -35,7 +35,6 @@
 import datetime
 import math
 import pathlib
-import typing
 
 import torch
 
@@ -43,7 +42,7 @@ from laueimproc.classes.diagram import Diagram
 from laueimproc import __version__
 
 
-def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
+def write_dat(filename: str | pathlib.Path, diagram: Diagram):
     &#34;&#34;&#34;Write the dat file associate to the provided diagram.
 
     The file contains the following columns:
@@ -145,6 +144,7 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
         (65535*backgrounds).tolist(),
         diagram.compute_rois_pca().tolist(),
         (65535*torch.amax(diagram.rawrois, dim=(1, 2))).tolist(),
+        strict=True,
     ):
         file_content += (
             f&#34;{pos[0]:9.3f} {pos[1]:9.3f} &#34;
@@ -174,7 +174,7 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="laueimproc.io.write_dat.write_dat"><code class="name flex">
-<span>def <span class="ident">write_dat</span></span>(<span>filename: Union[str, pathlib.Path], diagram: <a title="laueimproc.classes.diagram.Diagram" href="../classes/diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>)</span>
+<span>def <span class="ident">write_dat</span></span>(<span>filename: str | pathlib.Path, diagram: <a title="laueimproc.classes.diagram.Diagram" href="../classes/diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Write the dat file associate to the provided diagram.</p>
@@ -255,7 +255,7 @@ If a file is already existing, it is overwriten.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
+<pre><code class="python">def write_dat(filename: str | pathlib.Path, diagram: Diagram):
     &#34;&#34;&#34;Write the dat file associate to the provided diagram.
 
     The file contains the following columns:
@@ -357,6 +357,7 @@ If a file is already existing, it is overwriten.</dd>
         (65535*backgrounds).tolist(),
         diagram.compute_rois_pca().tolist(),
         (65535*torch.amax(diagram.rawrois, dim=(1, 2))).tolist(),
+        strict=True,
     ):
         file_content += (
             f&#34;{pos[0]:9.3f} {pos[1]:9.3f} &#34;

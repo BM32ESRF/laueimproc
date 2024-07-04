@@ -19,8 +19,8 @@ except ImportError:
     c_dist = None
 
 
-SCALS_TYPE = typing.Union[dict[int, tuple[float, ...]], tuple[torch.Tensor, torch.Tensor]]
-DIAG2SCALS_TYPE = typing.Callable[[int], typing.Union[numbers.Real, tuple[numbers.Real, ...]]]
+SCALS_TYPE = dict[int, tuple[float, ...]] | tuple[torch.Tensor, torch.Tensor]
+DIAG2SCALS_TYPE = typing.Callable[[int], numbers.Real | tuple[numbers.Real, ...]]
 
 
 def _add_pos(pos: SCALS_TYPE, index: int, coords: tuple[float, ...]) -> SCALS_TYPE:
@@ -72,7 +72,7 @@ def _to_dict(pos: SCALS_TYPE) -> dict[int, tuple[float, ...]]:
     if isinstance(pos, dict):
         return pos
     indices, coords = pos
-    return {i: c for i, *c in zip(indices.tolist(), coords.tolist())}
+    return {i: c for i, *c in zip(indices.tolist(), coords.tolist(), strict=True)}
 
 
 def _to_torch(pos: SCALS_TYPE) -> tuple[torch.Tensor, torch.Tensor]:
@@ -84,7 +84,7 @@ def _to_torch(pos: SCALS_TYPE) -> tuple[torch.Tensor, torch.Tensor]:
     """
     if isinstance(pos, tuple):
         return pos
-    indices, coords = zip(*pos.items())
+    indices, coords = zip(*pos.items(), strict=True)
     indices_torch = torch.asarray(indices, dtype=torch.int32)
     coords_torch = torch.asarray(coords, dtype=torch.float32)
     return (indices_torch, coords_torch)
@@ -330,7 +330,7 @@ def select_closest(
 
     # reject items
     if tol is not None:
-        for i, (point_c, tol_c) in enumerate(zip(point, tol)):
+        for i, (point_c, tol_c) in enumerate(zip(point, tol, strict=True)):
             if tol is not None:
                 keep = coords[:, i] >= point_c - tol_c
                 indices, coords = indices[keep], coords[keep]
@@ -424,7 +424,7 @@ def select_closests(
     if point is None and tol is not None and isinstance(tol[0], tuple):
         point = tuple(0.5 * (e[0] + e[1]) for e in tol)
     if tol is not None and isinstance(tol[0], numbers.Real):  # points assumed to be not None
-        tol = tuple((p-e, p+e) for p, e in zip(point, tol))
+        tol = tuple((p-e, p+e) for p, e in zip(point, tol, strict=True))
     indices = torch.arange(len(coords), dtype=torch.int32, device=coords.device)
 
     # reject items

@@ -5,7 +5,6 @@
 import bz2
 import pathlib
 import pickle
-import typing
 
 from tqdm.autonotebook import tqdm
 import numpy as np
@@ -231,7 +230,7 @@ class Decoder(torch.nn.Module):
 class LMCodec(torch.nn.Module):
     """Encode and Decode Laue Max images."""
 
-    def __init__(self, weights: typing.Union[str, pathlib.Path]):
+    def __init__(self, weights: str | pathlib.Path):
         """Initialise the codec.
 
         Parameters
@@ -259,8 +258,8 @@ class LMCodec(torch.nn.Module):
             )
 
     def decode(
-        self, data: typing.Union[tuple[torch.Tensor, tuple[int, int, int, int]], bytes]
-    ) -> typing.Union[torch.Tensor, np.ndarray]:
+        self, data: tuple[torch.Tensor, tuple[int, int, int, int]] | bytes
+    ) -> torch.Tensor | np.ndarray:
         """Decode le compressed content.
 
         Parameters
@@ -308,8 +307,8 @@ class LMCodec(torch.nn.Module):
         return img_np
 
     def encode(
-        self, img: typing.Union[torch.Tensor, np.ndarray]
-    ) -> typing.Union[tuple[torch.Tensor, tuple[int, int, int, int]], bytes]:
+        self, img: torch.Tensor | np.ndarray
+    ) -> tuple[torch.Tensor, tuple[int, int, int, int]] | bytes:
         """Encode the image.
 
         Parameters
@@ -358,7 +357,7 @@ class LMCodec(torch.nn.Module):
         data = bz2.compress(data, compresslevel=9)
         return data
 
-    def forward(self, img: typing.Union[torch.Tensor, np.ndarray, bytes]) -> torch.Tensor:
+    def forward(self, img: torch.Tensor | np.ndarray | bytes) -> torch.Tensor:
         """Encode then decode the image.
 
         Parameters

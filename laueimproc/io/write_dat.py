@@ -5,7 +5,6 @@
 import datetime
 import math
 import pathlib
-import typing
 
 import torch
 
@@ -13,7 +12,7 @@ from laueimproc.classes.diagram import Diagram
 from laueimproc import __version__
 
 
-def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
+def write_dat(filename: str | pathlib.Path, diagram: Diagram):
     """Write the dat file associate to the provided diagram.
 
     The file contains the following columns:
@@ -115,6 +114,7 @@ def write_dat(filename: typing.Union[str, pathlib.Path], diagram: Diagram):
         (65535*backgrounds).tolist(),
         diagram.compute_rois_pca().tolist(),
         (65535*torch.amax(diagram.rawrois, dim=(1, 2))).tolist(),
+        strict=True,
     ):
         file_content += (
             f"{pos[0]:9.3f} {pos[1]:9.3f} "

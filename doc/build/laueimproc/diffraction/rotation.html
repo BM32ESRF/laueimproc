@@ -169,12 +169,12 @@ def angle_to_rot(
     return rot3 @ rot2 @ rot1  # broadcast
 
 
-def rotate_cristal(cristal: torch.Tensor, rot: torch.Tensor) -&gt; torch.Tensor:
+def rotate_crystal(crystal: torch.Tensor, rot: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Apply an active rotation to the crystal.
 
     Parameters
     ----------
-    cristal : torch.Tensor
+    crystal : torch.Tensor
         The primitive (\(\mathbf{A}\)) or reciprocal (\(\mathbf{B}\)) in the base \(\mathcal{B}\).
         The shape of this parameter is (*c, 3, 3).
     rot : torch.Tensor
@@ -182,21 +182,21 @@ def rotate_cristal(cristal: torch.Tensor, rot: torch.Tensor) -&gt; torch.Tensor:
 
     Returns
     -------
-    rotated_cristal: torch.Tensor
-        The batched matricial product `rot @ cristal` of shape (*c, *r, 3, 3).
+    rotated_crystal: torch.Tensor
+        The batched matricial product `rot @ crystal` of shape (*c, *r, 3, 3).
     &#34;&#34;&#34;
-    assert isinstance(cristal, torch.Tensor), cristal.__class__.__name__
-    assert cristal.shape[-2:] == (3, 3), cristal.shape
+    assert isinstance(crystal, torch.Tensor), crystal.__class__.__name__
+    assert crystal.shape[-2:] == (3, 3), crystal.shape
     assert isinstance(rot, torch.Tensor), rot.__class__.__name__
     assert rot.shape[-2:] == (3, 3), rot.shape
 
-    *batch_c, _, _ = cristal.shape
+    *batch_c, _, _ = crystal.shape
     *batch_r, _, _ = rot.shape
 
-    cristal = cristal[..., *((None,)*len(batch_r)), :, :]
+    crystal = crystal[..., *((None,)*len(batch_r)), :, :]
     rot = rot[*((None,)*len(batch_c)), ..., :, :]
 
-    return rot @ cristal</code></pre>
+    return rot @ crystal</code></pre>
 </details>
 </section>
 <section>
@@ -447,14 +447,14 @@ torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
     return rot3 @ rot2 @ rot1  # broadcast</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.diffraction.rotation.rotate_cristal"><code class="name flex">
-<span>def <span class="ident">rotate_cristal</span></span>(<span>cristal: torch.Tensor, rot: torch.Tensor) ‑> torch.Tensor</span>
+<dt id="laueimproc.diffraction.rotation.rotate_crystal"><code class="name flex">
+<span>def <span class="ident">rotate_crystal</span></span>(<span>crystal: torch.Tensor, rot: torch.Tensor) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Apply an active rotation to the crystal.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>cristal</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dt><strong><code>crystal</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The primitive ((\mathbf{A})) or reciprocal ((\mathbf{B})) in the base <span><span class="MathJax_Preview">\mathcal{B}</span><script type="math/tex">\mathcal{B}</script></span>.
 The shape of this parameter is (*c, 3, 3).</dd>
 <dt><strong><code>rot</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -462,19 +462,19 @@ The shape of this parameter is (*c, 3, 3).</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>rotated_cristal</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The batched matricial product <code>rot @ cristal</code> of shape (<em>c, </em>r, 3, 3).</dd>
+<dt><strong><code>rotated_crystal</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The batched matricial product <code>rot @ crystal</code> of shape (<em>c, </em>r, 3, 3).</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def rotate_cristal(cristal: torch.Tensor, rot: torch.Tensor) -&gt; torch.Tensor:
+<pre><code class="python">def rotate_crystal(crystal: torch.Tensor, rot: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Apply an active rotation to the crystal.
 
     Parameters
     ----------
-    cristal : torch.Tensor
+    crystal : torch.Tensor
         The primitive (\(\mathbf{A}\)) or reciprocal (\(\mathbf{B}\)) in the base \(\mathcal{B}\).
         The shape of this parameter is (*c, 3, 3).
     rot : torch.Tensor
@@ -482,21 +482,21 @@ The shape of this parameter is (*c, 3, 3).</dd>
 
     Returns
     -------
-    rotated_cristal: torch.Tensor
-        The batched matricial product `rot @ cristal` of shape (*c, *r, 3, 3).
+    rotated_crystal: torch.Tensor
+        The batched matricial product `rot @ crystal` of shape (*c, *r, 3, 3).
     &#34;&#34;&#34;
-    assert isinstance(cristal, torch.Tensor), cristal.__class__.__name__
-    assert cristal.shape[-2:] == (3, 3), cristal.shape
+    assert isinstance(crystal, torch.Tensor), crystal.__class__.__name__
+    assert crystal.shape[-2:] == (3, 3), crystal.shape
     assert isinstance(rot, torch.Tensor), rot.__class__.__name__
     assert rot.shape[-2:] == (3, 3), rot.shape
 
-    *batch_c, _, _ = cristal.shape
+    *batch_c, _, _ = crystal.shape
     *batch_r, _, _ = rot.shape
 
-    cristal = cristal[..., *((None,)*len(batch_r)), :, :]
+    crystal = crystal[..., *((None,)*len(batch_r)), :, :]
     rot = rot[*((None,)*len(batch_c)), ..., :, :]
 
-    return rot @ cristal</code></pre>
+    return rot @ crystal</code></pre>
 </details>
 </dd>
 </dl>
@@ -564,7 +564,7 @@ setTimeout(() => input.focus(), 100);
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="laueimproc.diffraction.rotation.angle_to_rot" href="#laueimproc.diffraction.rotation.angle_to_rot">angle_to_rot</a></code></li>
-<li><code><a title="laueimproc.diffraction.rotation.rotate_cristal" href="#laueimproc.diffraction.rotation.rotate_cristal">rotate_cristal</a></code></li>
+<li><code><a title="laueimproc.diffraction.rotation.rotate_crystal" href="#laueimproc.diffraction.rotation.rotate_crystal">rotate_crystal</a></code></li>
 </ul>
 </li>
 </ul>

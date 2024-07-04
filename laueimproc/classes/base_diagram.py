@@ -71,10 +71,7 @@ class BaseDiagram:
     """
 
     def __init__(
-        self,
-        data: typing.Union[np.ndarray, torch.Tensor, str, pathlib.Path],
-        *,
-        _check: bool = True,
+        self, data: np.ndarray | torch.Tensor | str | pathlib.Path, *, _check: bool = True
     ):
         """Create a new diagram with appropriated metadata.
 
@@ -88,9 +85,9 @@ class BaseDiagram:
         self._cache: tuple[threading.Lock, dict[str]] = (  # contains the optional cached data
             threading.Lock(), {}
         )
-        self._file_or_image: typing.Union[pathlib.Path, torch.Tensor]  # the path to the image file
+        self._file_or_image: pathlib.Path | torch.Tensor  # the path to the image file
         self._history: list[str] = []  # the history of the actions performed
-        self._properties: dict[str, tuple[typing.Union[None, str], object]] = {}  # the properties
+        self._properties: dict[str, tuple[None | str, object]] = {}  # the properties
         self._rois: typing.Optional[tuple[bytearray, torch.Tensor]] = None  # datarois, bboxes
         self._rois_lock = threading.Lock()  # make the rois acces thread safe
 
@@ -269,7 +266,7 @@ class BaseDiagram:
             self._properties[name] = ((self.state if erasable else None), value)
 
     @property
-    def areas(self) -> typing.Union[None, torch.Tensor]:
+    def areas(self) -> None | torch.Tensor:
         """Return the int32 area of each bboxes.
 
         Examples
@@ -296,7 +293,7 @@ class BaseDiagram:
         return shapes[:, 0] * shapes[:, 1]
 
     @property
-    def bboxes(self) -> typing.Union[None, torch.Tensor]:
+    def bboxes(self) -> None | torch.Tensor:
         """Return the tensor of the bounding boxes (anchor_i, anchor_j, height, width).
 
         Examples
@@ -409,7 +406,7 @@ class BaseDiagram:
         return removed
 
     @functools.cached_property
-    def file(self) -> typing.Union[None, pathlib.Path]:
+    def file(self) -> None | pathlib.Path:
         """Return the absolute file path to the image, if it is provided.
 
         Examples
@@ -760,7 +757,7 @@ class BaseDiagram:
         return axes
 
     @property
-    def rawrois(self) -> typing.Union[None, torch.Tensor]:
+    def rawrois(self) -> None | torch.Tensor:
         """Return the tensor of the raw rois of the spots."""
         if not self.is_init():
             return None
@@ -769,7 +766,7 @@ class BaseDiagram:
         return rawshapes2rois(imgbboxes2raw(self.image, bboxes), bboxes[:, 2:])
 
     @property
-    def rois(self) -> typing.Union[None, torch.Tensor]:
+    def rois(self) -> None | torch.Tensor:
         """Return the tensor of the provided rois of the spots.
 
         Examples

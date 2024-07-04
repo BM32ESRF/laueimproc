@@ -195,7 +195,9 @@ class VAESpotClassifier(torch.nn.Module):
 
         # case diagram
         batch = torch.empty((len(data), *self.shape), dtype=torch.float32, device=self.device)
-        for i, (roi, (height, width)) in enumerate(zip(data.rois, data.bboxes[:, 2:].tolist())):
+        for i, (roi, (height, width)) in enumerate(
+            zip(data.rois, data.bboxes[:, 2:].tolist(), strict=True)
+        ):
             batch[i] = self.dataaug(roi[:height, :width])
         mean, _ = self.encoder(batch.unsqueeze(1))
         return mean
@@ -499,7 +501,7 @@ class Decoder(torch.nn.Module):
     def plot_map(
         self,
         axe,
-        grid: typing.Union[numbers.Integral, tuple[numbers.Integral, numbers.Integral]] = 10,
+        grid: numbers.Integral | tuple[numbers.Integral, numbers.Integral] = 10,
     ):
         &#34;&#34;&#34;Generate and display spots from a regular sampling of latent space.
 
@@ -630,7 +632,7 @@ class Encoder(torch.nn.Module):
             ),
         ])
 
-    def forward(self, batch: torch.Tensor) -&gt; tuple[torch.Tensor, typing.Union[None, torch.Tensor]]:
+    def forward(self, batch: torch.Tensor) -&gt; tuple[torch.Tensor, None | torch.Tensor]:
         &#34;&#34;&#34;Extract the mean and the std for each images.
 
         Parameters
@@ -864,7 +866,7 @@ class Encoder(torch.nn.Module):
     def plot_map(
         self,
         axe,
-        grid: typing.Union[numbers.Integral, tuple[numbers.Integral, numbers.Integral]] = 10,
+        grid: numbers.Integral | tuple[numbers.Integral, numbers.Integral] = 10,
     ):
         &#34;&#34;&#34;Generate and display spots from a regular sampling of latent space.
 
@@ -1054,7 +1056,7 @@ The size is (n, latent_dim)</dd>
 </details>
 </dd>
 <dt id="laueimproc.nn.vae_spot_classifier.Decoder.plot_map"><code class="name flex">
-<span>def <span class="ident">plot_map</span></span>(<span>self, axe, grid: Union[numbers.Integral, tuple[numbers.Integral, numbers.Integral]] = 10)</span>
+<span>def <span class="ident">plot_map</span></span>(<span>self, axe, grid: numbers.Integral | tuple[numbers.Integral, numbers.Integral] = 10)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Generate and display spots from a regular sampling of latent space.</p>
@@ -1074,7 +1076,7 @@ The 2 coordinates corresponds respectively to the number of lines and columns.</
 <pre><code class="python">def plot_map(
     self,
     axe,
-    grid: typing.Union[numbers.Integral, tuple[numbers.Integral, numbers.Integral]] = 10,
+    grid: numbers.Integral | tuple[numbers.Integral, numbers.Integral] = 10,
 ):
     &#34;&#34;&#34;Generate and display spots from a regular sampling of latent space.
 
@@ -1228,7 +1230,7 @@ The 2 coordinates corresponds respectively to the number of lines and columns.</
             ),
         ])
 
-    def forward(self, batch: torch.Tensor) -&gt; tuple[torch.Tensor, typing.Union[None, torch.Tensor]]:
+    def forward(self, batch: torch.Tensor) -&gt; tuple[torch.Tensor, None | torch.Tensor]:
         &#34;&#34;&#34;Extract the mean and the std for each images.
 
         Parameters
@@ -1332,7 +1334,7 @@ def parent(self) -&gt; VAESpotClassifier:
 <h3>Methods</h3>
 <dl>
 <dt id="laueimproc.nn.vae_spot_classifier.Encoder.forward"><code class="name flex">
-<span>def <span class="ident">forward</span></span>(<span>self, batch: torch.Tensor) ‑> tuple[torch.Tensor, typing.Optional[torch.Tensor]]</span>
+<span>def <span class="ident">forward</span></span>(<span>self, batch: torch.Tensor) ‑> tuple[torch.Tensor, None | torch.Tensor]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Extract the mean and the std for each images.</p>
@@ -1355,7 +1357,7 @@ If the model is in eval mode, it computes only the mean and gives the value None
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def forward(self, batch: torch.Tensor) -&gt; tuple[torch.Tensor, typing.Union[None, torch.Tensor]]:
+<pre><code class="python">def forward(self, batch: torch.Tensor) -&gt; tuple[torch.Tensor, None | torch.Tensor]:
     &#34;&#34;&#34;Extract the mean and the std for each images.
 
     Parameters
@@ -1642,7 +1644,9 @@ as they will be resized and reinterpolated to a constant shape.</dd>
 
         # case diagram
         batch = torch.empty((len(data), *self.shape), dtype=torch.float32, device=self.device)
-        for i, (roi, (height, width)) in enumerate(zip(data.rois, data.bboxes[:, 2:].tolist())):
+        for i, (roi, (height, width)) in enumerate(
+            zip(data.rois, data.bboxes[:, 2:].tolist(), strict=True)
+        ):
             batch[i] = self.dataaug(roi[:height, :width])
         mean, _ = self.encoder(batch.unsqueeze(1))
         return mean
@@ -2006,7 +2010,9 @@ The generated image of shape (n, height, width) otherwise.</dd>
 
     # case diagram
     batch = torch.empty((len(data), *self.shape), dtype=torch.float32, device=self.device)
-    for i, (roi, (height, width)) in enumerate(zip(data.rois, data.bboxes[:, 2:].tolist())):
+    for i, (roi, (height, width)) in enumerate(
+        zip(data.rois, data.bboxes[:, 2:].tolist(), strict=True)
+    ):
         batch[i] = self.dataaug(roi[:height, :width])
     mean, _ = self.encoder(batch.unsqueeze(1))
     return mean</code></pre>

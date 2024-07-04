@@ -6,7 +6,6 @@ import functools
 import numbers
 import pathlib
 import re
-import typing
 
 
 def bytes2human(size: numbers.Real) -> str:
@@ -53,7 +52,7 @@ def get_project_root() -> pathlib.Path:
     return pathlib.Path(__file__).resolve().parent
 
 
-def time2sec(time: typing.Union[numbers.Real, str], /) -> float:
+def time2sec(time: numbers.Real | str, /) -> float:
     """Parse a time duration expression and return it in seconds.
 
     Raises

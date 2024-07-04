@@ -18,18 +18,17 @@ In an image, the point (x=1, y=1) correspond to the middle of the top left pixel
 """
 
 import functools
-import typing
 
 import numpy as np
 import torch
 
 
 def ij_to_xy(
-    array: typing.Union[torch.Tensor, np.ndarray],
+    array: torch.Tensor | np.ndarray,
     *,
-    i: typing.Union[tuple[int, slice, type(Ellipsis)], int, slice, type(Ellipsis)],
-    j: typing.Union[tuple[int, slice, type(Ellipsis)], int, slice, type(Ellipsis)],
-) -> typing.Union[torch.Tensor, np.ndarray]:
+    i: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
+    j: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
+) -> torch.Tensor | np.ndarray:
     """Switch the axis i and j, and append 1/2 to all values.
 
     Parameters
@@ -91,8 +90,8 @@ def ij_to_xy(
 
 
 def ij_to_xy_decorator(
-    i: typing.Union[tuple[int, slice, type(Ellipsis)], int, slice, type(Ellipsis)],
-    j: typing.Union[tuple[int, slice, type(Ellipsis)], int, slice, type(Ellipsis)],
+    i: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
+    j: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
 ):
     """Append the argument conv to a function to allow user switching convention."""
     def decorator(func: callable):
