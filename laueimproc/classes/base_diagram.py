@@ -92,7 +92,7 @@ class BaseDiagram:
         self._rois_lock = threading.Lock()  # make the rois acces thread safe
 
         # initialisation
-        if isinstance(data, (str, pathlib.Path)):
+        if isinstance(data, str | pathlib.Path):
             self._file_or_image = data
             if _check:
                 self._file_or_image = pathlib.Path(self._file_or_image).expanduser().resolve()
@@ -828,9 +828,9 @@ class BaseDiagram:
 
         def unfold(iterable):
             if (
-                isinstance(iterable, (set, frozenset))
+                isinstance(iterable, set | frozenset)
                 or (
-                    isinstance(iterable, (tuple, list))
+                    isinstance(iterable, tuple | list)
                     and not (
                         (  # bboxes
                             len(iterable) == 4
@@ -840,7 +840,7 @@ class BaseDiagram:
                             len(iterable) == 3
                             and isinstance(iterable[0], numbers.Integral)
                             and isinstance(iterable[1], numbers.Integral)
-                            and isinstance(iterable[2], (np.ndarray, torch.Tensor))
+                            and isinstance(iterable[2], np.ndarray | torch.Tensor)
                         )
                     )
                 )
@@ -871,7 +871,7 @@ class BaseDiagram:
                 datarois_l.append(imgbboxes2raw(self.image, item))
                 bboxes_l.append(item)
                 continue
-            if isinstance(item, (tuple, list)):  # case anchor and roi
+            if isinstance(item, tuple | list):  # case anchor and roi
                 datarois = item[2]
                 datarois = to_floattensor(datarois)
                 if isinstance(datarois, torch.Tensor):

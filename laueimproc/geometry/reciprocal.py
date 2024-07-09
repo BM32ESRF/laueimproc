@@ -25,7 +25,7 @@ def primitive_to_reciprocal(primitive: torch.Tensor) -> torch.Tensor:
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.diffraction.reciprocal import primitive_to_reciprocal
+    >>> from laueimproc.geometry.reciprocal import primitive_to_reciprocal
     >>> primitive = torch.tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
     ...                           [ 0.0000e+00,  3.2909e-10,  8.6603e-10],
     ...                           [ 0.0000e+00,  0.0000e+00,  1.2247e-09]])

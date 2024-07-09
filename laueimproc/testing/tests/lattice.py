@@ -4,7 +4,7 @@
 
 import torch
 
-from laueimproc.diffraction.lattice import lattice_to_primitive, primitive_to_lattice
+from laueimproc.geometry.lattice import lattice_to_primitive, primitive_to_lattice
 
 LATTICE = torch.tensor([1.0, 1.0, 1.0, torch.pi/2, torch.pi/2, torch.pi/2])  # cubic
 BATCH_LATTICE = (7, 8, 9)

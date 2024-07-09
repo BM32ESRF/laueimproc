@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>laueimproc.diffraction.metric API documentation</title>
+<title>laueimproc.geometry.metric API documentation</title>
 <meta name="description" content="Implement some loss functions." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -20,7 +20,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>laueimproc.diffraction.metric</code></h1>
+<h1 class="title">Module <code>laueimproc.geometry.metric</code></h1>
 </header>
 <section id="section-intro">
 <p>Implement some loss functions.</p>
@@ -43,10 +43,10 @@ import numpy as np
 import torch
 
 try:
-    from laueimproc.diffraction import c_metric
+    from laueimproc.geometry import c_metric
 except ImportError:
     logging.warning(
-        &#34;failed to import laueimproc.diffraction.c_metric, a slow python version is used instead&#34;
+        &#34;failed to import laueimproc.geometry.c_metric, a slow python version is used instead&#34;
     )
     c_metric = None
 from .projection import detector_to_ray
@@ -164,7 +164,7 @@ def compute_matching_rate(
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.diffraction.metric import compute_matching_rate
+    &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate
     &gt;&gt;&gt; exp_uq = torch.randn(1000, 3)
     &gt;&gt;&gt; exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
     &gt;&gt;&gt; theo_uq = torch.randn(5000, 3)
@@ -228,7 +228,7 @@ def compute_matching_rate_continuous(
     r&#34;&#34;&#34;Compute the matching rate.
 
     This is a continuity extension of the disctere function
-    ``laueimproc.diffraction.metric.compute_matching_rate``.
+    ``laueimproc.geometry.metric.compute_matching_rate``.
     Let \(\phi\) be the angle between two rays.
     The matching rate is defined with \(r = \sum f(\phi_i)\)
     with \(f(\phi) = e^{-\frac{\log(2)}{\phi_{max}}\phi}\).
@@ -250,7 +250,7 @@ def compute_matching_rate_continuous(
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.diffraction.metric import compute_matching_rate_continuous
+    &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate_continuous
     &gt;&gt;&gt; exp_uq = torch.randn(1000, 3)
     &gt;&gt;&gt; exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
     &gt;&gt;&gt; theo_uq = torch.randn(5000, 3)
@@ -323,7 +323,7 @@ def compute_matching_rate_continuous(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="laueimproc.diffraction.metric.compute_matching_rate"><code class="name flex">
+<dt id="laueimproc.geometry.metric.compute_matching_rate"><code class="name flex">
 <span>def <span class="ident">compute_matching_rate</span></span>(<span>exp_uq: torch.Tensor, theo_uq: torch.Tensor, phi_max: numbers.Real) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
@@ -345,7 +345,7 @@ def compute_matching_rate_continuous(
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.diffraction.metric import compute_matching_rate
+&gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate
 &gt;&gt;&gt; exp_uq = torch.randn(1000, 3)
 &gt;&gt;&gt; exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
 &gt;&gt;&gt; theo_uq = torch.randn(5000, 3)
@@ -381,7 +381,7 @@ def compute_matching_rate_continuous(
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.diffraction.metric import compute_matching_rate
+    &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate
     &gt;&gt;&gt; exp_uq = torch.randn(1000, 3)
     &gt;&gt;&gt; exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
     &gt;&gt;&gt; theo_uq = torch.randn(5000, 3)
@@ -439,13 +439,13 @@ def compute_matching_rate_continuous(
     return rate</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.diffraction.metric.compute_matching_rate_continuous"><code class="name flex">
+<dt id="laueimproc.geometry.metric.compute_matching_rate_continuous"><code class="name flex">
 <span>def <span class="ident">compute_matching_rate_continuous</span></span>(<span>exp_uq: torch.Tensor, theo_uq: torch.Tensor, phi_max: numbers.Real) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute the matching rate.</p>
 <p>This is a continuity extension of the disctere function
-<code><a title="laueimproc.diffraction.metric.compute_matching_rate" href="#laueimproc.diffraction.metric.compute_matching_rate">compute_matching_rate()</a></code>.
+<code><a title="laueimproc.geometry.metric.compute_matching_rate" href="#laueimproc.geometry.metric.compute_matching_rate">compute_matching_rate()</a></code>.
 Let <span><span class="MathJax_Preview">\phi</span><script type="math/tex">\phi</script></span> be the angle between two rays.
 The matching rate is defined with <span><span class="MathJax_Preview">r = \sum f(\phi_i)</span><script type="math/tex">r = \sum f(\phi_i)</script></span>
 with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}}\phi}</span><script type="math/tex">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}}\phi}</script></span>.</p>
@@ -465,7 +465,7 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.diffraction.metric import compute_matching_rate_continuous
+&gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate_continuous
 &gt;&gt;&gt; exp_uq = torch.randn(1000, 3)
 &gt;&gt;&gt; exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
 &gt;&gt;&gt; theo_uq = torch.randn(5000, 3)
@@ -483,7 +483,7 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
     r&#34;&#34;&#34;Compute the matching rate.
 
     This is a continuity extension of the disctere function
-    ``laueimproc.diffraction.metric.compute_matching_rate``.
+    ``laueimproc.geometry.metric.compute_matching_rate``.
     Let \(\phi\) be the angle between two rays.
     The matching rate is defined with \(r = \sum f(\phi_i)\)
     with \(f(\phi) = e^{-\frac{\log(2)}{\phi_{max}}\phi}\).
@@ -505,7 +505,7 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.diffraction.metric import compute_matching_rate_continuous
+    &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate_continuous
     &gt;&gt;&gt; exp_uq = torch.randn(1000, 3)
     &gt;&gt;&gt; exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
     &gt;&gt;&gt; theo_uq = torch.randn(5000, 3)
@@ -571,7 +571,7 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
     return rate</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.diffraction.metric.raydotdist"><code class="name flex">
+<dt id="laueimproc.geometry.metric.raydotdist"><code class="name flex">
 <span>def <span class="ident">raydotdist</span></span>(<span>ray_point_1: torch.Tensor, ray_point_2: torch.Tensor, poni: None | torch.Tensor = None) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
@@ -702,14 +702,14 @@ setTimeout(() => input.focus(), 100);
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="laueimproc.diffraction" href="index.html">laueimproc.diffraction</a></code></li>
+<li><code><a title="laueimproc.geometry" href="index.html">laueimproc.geometry</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.diffraction.metric.compute_matching_rate" href="#laueimproc.diffraction.metric.compute_matching_rate">compute_matching_rate</a></code></li>
-<li><code><a title="laueimproc.diffraction.metric.compute_matching_rate_continuous" href="#laueimproc.diffraction.metric.compute_matching_rate_continuous">compute_matching_rate_continuous</a></code></li>
-<li><code><a title="laueimproc.diffraction.metric.raydotdist" href="#laueimproc.diffraction.metric.raydotdist">raydotdist</a></code></li>
+<li><code><a title="laueimproc.geometry.metric.compute_matching_rate" href="#laueimproc.geometry.metric.compute_matching_rate">compute_matching_rate</a></code></li>
+<li><code><a title="laueimproc.geometry.metric.compute_matching_rate_continuous" href="#laueimproc.geometry.metric.compute_matching_rate_continuous">compute_matching_rate_continuous</a></code></li>
+<li><code><a title="laueimproc.geometry.metric.raydotdist" href="#laueimproc.geometry.metric.raydotdist">raydotdist</a></code></li>
 </ul>
 </li>
 </ul>

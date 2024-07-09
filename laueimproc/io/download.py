@@ -66,7 +66,7 @@ def download(
         The path of the final data.
     """
     assert isinstance(url, str), url.__class__.__name__
-    assert isinstance(folder, (str, pathlib.Path)), folder.__class__.__name__
+    assert isinstance(folder, str | pathlib.Path), folder.__class__.__name__
     assert isinstance(force_download, bool), force_download.__class__.__name__
 
     # prepare env

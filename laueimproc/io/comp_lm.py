@@ -238,7 +238,7 @@ class LMCodec(torch.nn.Module):
         weights : pathlike
             The filename of the model data.
         """
-        assert isinstance(weights, (str, pathlib.Path)), weights.__class__.__name__
+        assert isinstance(weights, str | pathlib.Path), weights.__class__.__name__
         weights = pathlib.Path(weights).expanduser().resolve()
         assert not weights.is_dir(), weights
 

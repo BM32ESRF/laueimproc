@@ -187,7 +187,7 @@ def patch(
             [  0,   0,   0,   0,   0,   0,   0,   0,   0,   0]], dtype=torch.uint8)
     >>>
     """
-    assert isinstance(image, (torch.Tensor, np.ndarray)), image.__class__.__name__
+    assert isinstance(image, torch.Tensor | np.ndarray), image.__class__.__name__
 
     # case cast homogeneous
     if isinstance(image, np.ndarray):
@@ -201,7 +201,7 @@ def patch(
     assert image.ndim == 2, image.shape
     assert image.shape[0] >= 1, image.shape
     assert image.shape[1] >= 1, image.shape
-    assert isinstance(shape, (tuple, list)), shape.__class__.__name__
+    assert isinstance(shape, tuple | list), shape.__class__.__name__
     assert len(shape) == 2, len(shape)
     assert all(isinstance(s, numbers.Integral) for s in shape), shape
     assert shape >= (1, 1), shape

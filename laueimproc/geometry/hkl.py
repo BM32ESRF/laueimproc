@@ -73,7 +73,7 @@ def select_hkl(
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.diffraction.hkl import select_hkl
+    >>> from laueimproc.geometry.hkl import select_hkl
     >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
     >>> select_hkl(lattice)
     tensor([[  0, -18,   0],

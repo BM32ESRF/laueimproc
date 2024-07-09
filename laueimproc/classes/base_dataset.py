@@ -42,7 +42,7 @@ NCPU = len(psutil.Process().cpu_affinity())
 
 def _excepthook(args):
     """Raise the exceptions comming from a BaseDiagramsDataset thread."""
-    if isinstance(args.thread, (BaseDiagramsDataset, _ChainThread)):
+    if isinstance(args.thread, BaseDiagramsDataset | _ChainThread):
         traceback.print_tb(args.exc_traceback)
         raise args.exc_value
 
@@ -229,7 +229,7 @@ class BaseDiagramsDataset(threading.Thread):
             item = range(*item.indices(max(self._diagrams)+1))
         if isinstance(item, range):  # faster than torch.asarray
             item = np.fromiter(item, dtype=np.int64)
-        if isinstance(item, (list, np.ndarray, torch.Tensor)):
+        if isinstance(item, list | np.ndarray | torch.Tensor):
             item = torch.asarray(item).reshape(-1)
             if item.dtype is torch.bool:
                 item = torch.arange(len(item), dtype=torch.int64, device=item.device)[item]
@@ -609,10 +609,10 @@ class BaseDiagramsDataset(threading.Thread):
                     self.start()
             else:
                 self.add_diagram(Diagram(new_diagrams))  # case file
-        elif isinstance(new_diagrams, (str, bytes)):
+        elif isinstance(new_diagrams, str | bytes):
             self.add_diagrams(pathlib.Path(new_diagrams))
         elif isinstance(
-            new_diagrams, (tuple, list, set, frozenset, typing.Generator, self.__class__)
+            new_diagrams, tuple | list | set | frozenset | typing.Generator | self.__class__
         ):
             for new_diagram in new_diagrams:
                 self.add_diagrams(new_diagram)
@@ -736,7 +736,7 @@ class BaseDiagramsDataset(threading.Thread):
         """
         from laueimproc.io.save_dataset import write_dataset
 
-        assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+        assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
         filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".pickle")
 
         filename = write_dataset(filename, self)
@@ -930,7 +930,7 @@ class BaseDiagramsDataset(threading.Thread):
             The name of the persistant file.
         """
         from laueimproc.io.save_dataset import restore_dataset
-        assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+        assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
         filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".pickle")
         if filename.exists():
             restore_dataset(filename, self)

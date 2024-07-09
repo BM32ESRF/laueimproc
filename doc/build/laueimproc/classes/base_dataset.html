@@ -72,7 +72,7 @@ NCPU = len(psutil.Process().cpu_affinity())
 
 def _excepthook(args):
     &#34;&#34;&#34;Raise the exceptions comming from a BaseDiagramsDataset thread.&#34;&#34;&#34;
-    if isinstance(args.thread, (BaseDiagramsDataset, _ChainThread)):
+    if isinstance(args.thread, BaseDiagramsDataset | _ChainThread):
         traceback.print_tb(args.exc_traceback)
         raise args.exc_value
 
@@ -259,7 +259,7 @@ class BaseDiagramsDataset(threading.Thread):
             item = range(*item.indices(max(self._diagrams)+1))
         if isinstance(item, range):  # faster than torch.asarray
             item = np.fromiter(item, dtype=np.int64)
-        if isinstance(item, (list, np.ndarray, torch.Tensor)):
+        if isinstance(item, list | np.ndarray | torch.Tensor):
             item = torch.asarray(item).reshape(-1)
             if item.dtype is torch.bool:
                 item = torch.arange(len(item), dtype=torch.int64, device=item.device)[item]
@@ -639,10 +639,10 @@ class BaseDiagramsDataset(threading.Thread):
                     self.start()
             else:
                 self.add_diagram(Diagram(new_diagrams))  # case file
-        elif isinstance(new_diagrams, (str, bytes)):
+        elif isinstance(new_diagrams, str | bytes):
             self.add_diagrams(pathlib.Path(new_diagrams))
         elif isinstance(
-            new_diagrams, (tuple, list, set, frozenset, typing.Generator, self.__class__)
+            new_diagrams, tuple | list | set | frozenset | typing.Generator | self.__class__
         ):
             for new_diagram in new_diagrams:
                 self.add_diagrams(new_diagram)
@@ -766,7 +766,7 @@ class BaseDiagramsDataset(threading.Thread):
         &#34;&#34;&#34;
         from laueimproc.io.save_dataset import write_dataset
 
-        assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+        assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
         filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.pickle&#34;)
 
         filename = write_dataset(filename, self)
@@ -960,7 +960,7 @@ class BaseDiagramsDataset(threading.Thread):
             The name of the persistant file.
         &#34;&#34;&#34;
         from laueimproc.io.save_dataset import restore_dataset
-        assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+        assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
         filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.pickle&#34;)
         if filename.exists():
             restore_dataset(filename, self)
@@ -1221,7 +1221,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
             item = range(*item.indices(max(self._diagrams)+1))
         if isinstance(item, range):  # faster than torch.asarray
             item = np.fromiter(item, dtype=np.int64)
-        if isinstance(item, (list, np.ndarray, torch.Tensor)):
+        if isinstance(item, list | np.ndarray | torch.Tensor):
             item = torch.asarray(item).reshape(-1)
             if item.dtype is torch.bool:
                 item = torch.arange(len(item), dtype=torch.int64, device=item.device)[item]
@@ -1601,10 +1601,10 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
                     self.start()
             else:
                 self.add_diagram(Diagram(new_diagrams))  # case file
-        elif isinstance(new_diagrams, (str, bytes)):
+        elif isinstance(new_diagrams, str | bytes):
             self.add_diagrams(pathlib.Path(new_diagrams))
         elif isinstance(
-            new_diagrams, (tuple, list, set, frozenset, typing.Generator, self.__class__)
+            new_diagrams, tuple | list | set | frozenset | typing.Generator | self.__class__
         ):
             for new_diagram in new_diagrams:
                 self.add_diagrams(new_diagram)
@@ -1728,7 +1728,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
         &#34;&#34;&#34;
         from laueimproc.io.save_dataset import write_dataset
 
-        assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+        assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
         filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.pickle&#34;)
 
         filename = write_dataset(filename, self)
@@ -1922,7 +1922,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
             The name of the persistant file.
         &#34;&#34;&#34;
         from laueimproc.io.save_dataset import restore_dataset
-        assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+        assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
         filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.pickle&#34;)
         if filename.exists():
             restore_dataset(filename, self)
@@ -2241,10 +2241,10 @@ def state(self) -&gt; str:
                 self.start()
         else:
             self.add_diagram(Diagram(new_diagrams))  # case file
-    elif isinstance(new_diagrams, (str, bytes)):
+    elif isinstance(new_diagrams, str | bytes):
         self.add_diagrams(pathlib.Path(new_diagrams))
     elif isinstance(
-        new_diagrams, (tuple, list, set, frozenset, typing.Generator, self.__class__)
+        new_diagrams, tuple | list | set | frozenset | typing.Generator | self.__class__
     ):
         for new_diagram in new_diagrams:
             self.add_diagrams(new_diagram)
@@ -2482,7 +2482,7 @@ The supported formats are defined in <code><a title="laueimproc.common.time2sec"
     &#34;&#34;&#34;
     from laueimproc.io.save_dataset import write_dataset
 
-    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.pickle&#34;)
 
     filename = write_dataset(filename, self)
@@ -2748,7 +2748,7 @@ Based on <code><a title="laueimproc.io.save_dataset.restore_dataset" href="../io
         The name of the persistant file.
     &#34;&#34;&#34;
     from laueimproc.io.save_dataset import restore_dataset
-    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.pickle&#34;)
     if filename.exists():
         restore_dataset(filename, self)</code></pre>

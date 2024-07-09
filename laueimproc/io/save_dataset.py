@@ -82,7 +82,7 @@ def write_dataset(filename: str | pathlib.Path, dataset) -> pathlib.Path:
     """
     from laueimproc.classes.base_dataset import BaseDiagramsDataset
 
-    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".pickle")
     assert isinstance(dataset, BaseDiagramsDataset), dataset.__class__.__name__
 

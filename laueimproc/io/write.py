@@ -51,7 +51,7 @@ def write_jp2(
     True
     >>>
     """
-    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".jp2")
     assert isinstance(image, torch.Tensor), image.__class__.__name__
     assert metadata is None or isinstance(metadata, dict), metadata.__class__.__name__

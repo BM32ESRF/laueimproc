@@ -9,13 +9,13 @@ CELERITY_C = 3.00e8
 
 
 def hkl_reciprocal_to_energy(hkl: torch.Tensor, reciprocal: torch.Tensor) -> torch.Tensor:
-    """Alias to ``laueimproc.diffraction.bragg.hkl_reciprocal_to_uq_energy``."""
+    """Alias to ``laueimproc.geometry.bragg.hkl_reciprocal_to_uq_energy``."""
     _, energy = hkl_reciprocal_to_uq_energy(hkl, reciprocal, _return_uq=False)
     return energy
 
 
 def hkl_reciprocal_to_uq(hkl: torch.Tensor, reciprocal: torch.Tensor) -> torch.Tensor:
-    """Alias to ``laueimproc.diffraction.bragg.hkl_reciprocal_to_uq_energy``."""
+    """Alias to ``laueimproc.geometry.bragg.hkl_reciprocal_to_uq_energy``."""
     u_q, _ = hkl_reciprocal_to_uq_energy(hkl, reciprocal, _return_energy=False)
     return u_q
 
@@ -26,9 +26,6 @@ def hkl_reciprocal_to_uq_energy(
 ) -> tuple[torch.Tensor, torch.Tensor]:
     r"""Thanks to the bragg relation, compute the energy of each diffracted ray.
 
-    The incidient ray \(u_i\) is assumed to be \(\mathbf{L_1}\),
-    ie \([0, 0, 1]\) in the lab base \(\mathcal{B^l}\).
-
     Parameters
     ----------
     hkl : torch.Tensor
@@ -38,7 +35,7 @@ def hkl_reciprocal_to_uq_energy(
 
     Returns
     -------
-    uq : torch.Tensor
+    u_q : torch.Tensor
         All the unitary diffracting plane normal vector of shape (*n, *r, 3).
         The vectors are expressed in the same base as the reciprocal space.
     energy : torch.Tensor
@@ -49,10 +46,14 @@ def hkl_reciprocal_to_uq_energy(
             \sin(\theta) = \left| \langle u_i, u_q \rangle \right| \\
         \end{cases}\)
 
+    Notes
+    -----
+    * According the pyfai convention, \(u_i = \mathbf{L_1}\).
+
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.diffraction.bragg import hkl_reciprocal_to_uq_energy
+    >>> from laueimproc.geometry.bragg import hkl_reciprocal_to_uq_energy
     >>> reciprocal = torch.torch.tensor([[ 1.6667e+09,  0.0000e+00,  0.0000e+00],
     ...                                  [ 9.6225e+08,  3.0387e+09, -0.0000e+00],
     ...                                  [-6.8044e+08, -2.1488e+09,  8.1653e+08]])
@@ -95,19 +96,23 @@ def hkl_reciprocal_to_uq_energy(
 def uf_to_uq(u_f: torch.Tensor) -> torch.Tensor:
     r"""Calculate the vector normal to the diffracting planes.
 
-    Bijection of ``uq_to_uf``.
+    Bijection of ``laueimproc.geometry.bragg.uq_to_uf``.
 
     \(u_q \propto u_f - u_i\)
 
     Parameters
     ----------
     u_f : torch.Tensor
-        The normalized diffracted rays of shape (..., 3).
+        The unitary diffracted rays of shape (..., 3) in the lab base \(\mathcal{B^l}\).
 
     Returns
     -------
     u_q : torch.Tensor
-        The normalized normals of shape (..., 3).
+        The unitary normals of shape (..., 3) in the lab base \(\mathcal{B^l}\).
+
+    Notes
+    -----
+    * According the pyfai convention, \(u_i = \mathbf{L_1}\).
     """
     assert isinstance(u_f, torch.Tensor), u_f.__class__.__name__
     assert u_f.shape[-1:] == (3,), u_f.shape
@@ -124,7 +129,7 @@ def uf_to_uq(u_f: torch.Tensor) -> torch.Tensor:
 def uq_to_uf(u_q: torch.Tensor) -> torch.Tensor:
     r"""Calculate the diffracted ray from q vector.
 
-    Bijection of ``uf_to_uq``.
+    Bijection of ``laueimproc.geometry.bragg.uf_to_uq``.
 
     \(\begin{cases}
         u_f - u_i = \eta u_q \\
@@ -134,16 +139,17 @@ def uq_to_uf(u_q: torch.Tensor) -> torch.Tensor:
     Parameters
     ----------
     u_q : torch.Tensor
-        The normalized q vectors of shape (..., 3).
+        The unitary q vectors of shape (..., 3) in the lab base \(\mathcal{B^l}\).
 
     Returns
     -------
     u_f : torch.Tensor
-        The normalized diffracted ray of shape (..., 3).
+        The unitary diffracted ray of shape (..., 3) in the lab base \(\mathcal{B^l}\).
 
     Notes
     -----
     * \(u_f\) is not sensitive to the \(u_q\) orientation.
+    * According the pyfai convention, \(u_i = \mathbf{L_1}\).
     """
     assert isinstance(u_q, torch.Tensor), u_q.__class__.__name__
     assert u_q.shape[-1:] == (3,), u_q.shape

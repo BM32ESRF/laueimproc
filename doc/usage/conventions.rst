@@ -11,7 +11,7 @@ The origin is set at the corner of a pixel as shown in the figure below for a si
     :width: 512
 
 * Each pixel n starts at the coordinated n (included) and goes to the coordinate n+1 (excluded). The center of any pixel is at half integer pixel coordinate.
-* The default convention is called `"ij"` and the `LaueTools convention <https://lauetools.readthedocs.io/en/latest/conventions.html>_` is called `"xy"`.
+* The default convention is called `"ij"` and the `LaueTools convention <https://lauetools.readthedocs.io/en/latest/conventions.html>`_ is called `"xy"`.
 * In the `"ij"` convention, the orgin (i=0, j=0) corresponds to the top left corner of the to left pixel of the image.
 * In the `"xy"` convention, the orgin (x=1, y=1) corresponds to the center of the to left pixel of the image.
 
@@ -46,31 +46,29 @@ In a more general case, you can use the function `ij_to_xy <../../laueimproc/con
 Crystalography
 --------------
 
-All functions are available in the `laueimproc.diffraction <../../laueimproc/diffraction.html>`_ module.
+All functions are available in the `laueimproc.geometry <../../laueimproc/geometry.html>`_ module.
 
 Lattice Parameters
 ^^^^^^^^^^^^^^^^^^
 
 As shown in the figure below, the parameters a, b, c, alpha, gamma and beta are such that:
 
-* $<e_1, e_2> = cos(\alpha)$
-* $<e_1, e_3> = cos(\beta)$
-* $<e_1, e_2> = cos(\gamma)$
+* alpha is the anglee between e2 and e3
+* beta is the anglee between e1 and e3
+* gamma is the anglee between e1 and e2
 
 .. image:: /build/media/IMGLattice.avif
     :alt: lattice parameters
     :width: 512
 
-Here is the convention adopted for projecting the primitive vectors $e_1$, $e_2$ and $e_3$
-into the orthonormal base of the christal $C_1$, $C_2$ and $C_3$.
-The matrix of the primitive vectors is called $\mathbf{A}$ and the base $\mathcal{B^c}$.
+As shown in the figure below, the primitive vectors are projected into an orthonormal base such that:
+
+* e1 is collinear with C1
+* e2 in the plane C1 C2
 
 .. video:: /build/media/ANIMLatticeBc.webm
     :alt: projection of lattice in crystal base
     :width: 512
-
-* $e_1$ is collinear with $C_1$.
-* $e_2$ in in the plane $C_1, C_2$.
 
 Reciprocal Space
 ^^^^^^^^^^^^^^^^

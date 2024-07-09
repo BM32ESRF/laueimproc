@@ -4,7 +4,7 @@
 
 import torch
 
-from laueimproc.diffraction.reciprocal import primitive_to_reciprocal, reciprocal_to_primitive
+from laueimproc.geometry.reciprocal import primitive_to_reciprocal, reciprocal_to_primitive
 
 
 PRIMITIVE = torch.eye(3)  # cubic in Bc

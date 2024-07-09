@@ -2,7 +2,7 @@
 from manim import *
 import torch
 
-from laueimproc.diffraction import lattice_to_primitive, primitive_to_reciprocal
+from laueimproc.geometry import lattice_to_primitive, primitive_to_reciprocal
 
 config.frame_width = 3
 config.frame_height = 3

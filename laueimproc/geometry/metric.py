@@ -13,10 +13,10 @@ import numpy as np
 import torch
 
 try:
-    from laueimproc.diffraction import c_metric
+    from laueimproc.geometry import c_metric
 except ImportError:
     logging.warning(
-        "failed to import laueimproc.diffraction.c_metric, a slow python version is used instead"
+        "failed to import laueimproc.geometry.c_metric, a slow python version is used instead"
     )
     c_metric = None
 from .projection import detector_to_ray
@@ -134,7 +134,7 @@ def compute_matching_rate(
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.diffraction.metric import compute_matching_rate
+    >>> from laueimproc.geometry.metric import compute_matching_rate
     >>> exp_uq = torch.randn(1000, 3)
     >>> exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
     >>> theo_uq = torch.randn(5000, 3)
@@ -198,7 +198,7 @@ def compute_matching_rate_continuous(
     r"""Compute the matching rate.
 
     This is a continuity extension of the disctere function
-    ``laueimproc.diffraction.metric.compute_matching_rate``.
+    ``laueimproc.geometry.metric.compute_matching_rate``.
     Let \(\phi\) be the angle between two rays.
     The matching rate is defined with \(r = \sum f(\phi_i)\)
     with \(f(\phi) = e^{-\frac{\log(2)}{\phi_{max}}\phi}\).
@@ -220,7 +220,7 @@ def compute_matching_rate_continuous(
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.diffraction.metric import compute_matching_rate_continuous
+    >>> from laueimproc.geometry.metric import compute_matching_rate_continuous
     >>> exp_uq = torch.randn(1000, 3)
     >>> exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
     >>> theo_uq = torch.randn(5000, 3)

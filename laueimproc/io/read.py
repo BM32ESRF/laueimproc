@@ -96,7 +96,7 @@ def read_image(filename: str | pathlib.Path) -> tuple[torch.Tensor, dict]:
     OSError
         If the given path is not a file, or if the image reading failed.
     """
-    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve()
     if not filename.is_file():
         raise OSError(f"the filename {filename} is not a file")

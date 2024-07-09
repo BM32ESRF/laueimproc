@@ -25,7 +25,7 @@ def lattice_to_primitive(lattice: torch.Tensor) -> torch.Tensor:
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.diffraction.lattice import lattice_to_primitive
+    >>> from laueimproc.geometry.lattice import lattice_to_primitive
     >>> lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2*torch.pi/3])
     >>> lattice_to_primitive(lattice)  # quartz lattice
     tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
@@ -82,7 +82,7 @@ def primitive_to_lattice(primitive: torch.Tensor) -> torch.Tensor:
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.diffraction.lattice import primitive_to_lattice
+    >>> from laueimproc.geometry.lattice import primitive_to_lattice
     >>> primitive = torch.tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
     ...                           [ 0.0000e+00,  3.2909e-10,  8.6603e-10],
     ...                           [ 0.0000e+00,  0.0000e+00,  1.2247e-09]])

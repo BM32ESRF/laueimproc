@@ -112,7 +112,7 @@ def write_dataset(filename: str | pathlib.Path, dataset) -&gt; pathlib.Path:
     &#34;&#34;&#34;
     from laueimproc.classes.base_dataset import BaseDiagramsDataset
 
-    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.pickle&#34;)
     assert isinstance(dataset, BaseDiagramsDataset), dataset.__class__.__name__
 
@@ -266,7 +266,7 @@ If a file is already existing, it is overwriten.</dd>
     &#34;&#34;&#34;
     from laueimproc.classes.base_dataset import BaseDiagramsDataset
 
-    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.pickle&#34;)
     assert isinstance(dataset, BaseDiagramsDataset), dataset.__class__.__name__
 

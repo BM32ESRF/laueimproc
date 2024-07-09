@@ -435,7 +435,7 @@ def mse_cost_and_grad(
 #     det, inv_cov = cov.det(), cancel(cov.inv())
 #     mean_center = obs - mean
 #     scalar = (mean_center.T @ inv_cov @ mean_center)[0, 0]
-#     prob = exp(-scalar/2) / sqrt(4*pi**2*det)
+#     prob = exp(-scalar/2)# / sqrt(4*pi**2*det)
 #     # print("single gaussian expression:")
 #     # pprint(prob)
 

@@ -20,7 +20,7 @@ def angle_to_rot(
     Parameters
     ----------
     theta1 : torch.Tensor or float
-        The first rotation angle of shape (*a,).
+        The first rotation angle of shape (\*a,).
         \(
             rot_1 =
             \begin{pmatrix}
@@ -30,7 +30,7 @@ def angle_to_rot(
             \end{pmatrix}
         \)
     theta2 : torch.Tensor or float
-        The second rotation angle of shape (*b,).
+        The second rotation angle of shape (\*b,).
         \(
             rot_2 =
             \begin{pmatrix}
@@ -40,7 +40,7 @@ def angle_to_rot(
             \end{pmatrix}
         \)
     theta3 : torch.Tensor or float
-        The third rotation angle of shape (*c,). (inverse of pyfai convention)
+        The third rotation angle of shape (\*c,). (inverse of pyfai convention)
         \(
             rot_3 =
             \begin{pmatrix}
@@ -51,9 +51,9 @@ def angle_to_rot(
         \)
     meshgrid : boolean, default=True
         If set to True, batch all rotation in a different dim,
-        shuch as final dim is (*a, *b, *c, 3, 3).
+        shuch as final dim is (\*a, \*b, \*c, 3, 3).
         Overwise, apply rotation elementwise and len(a), len(b) and len(c)
-        must be equal such as final dim is (*broadcast(a, b, c), 3, 3).
+        must be equal such as final dim is (\*broadcast(a, b, c), 3, 3).
 
     Returns
     -------
@@ -63,7 +63,7 @@ def angle_to_rot(
     Examples
     --------
     >>> import torch
-    >>> from laueimproc.diffraction.rotation import angle_to_rot
+    >>> from laueimproc.geometry.rotation import angle_to_rot
     >>> angle_to_rot(theta1=torch.pi/6)
     tensor([[ 1.0000,  0.0000,  0.0000],
             [ 0.0000,  0.8660, -0.5000],
@@ -139,21 +139,89 @@ def angle_to_rot(
     return rot3 @ rot2 @ rot1  # broadcast
 
 
+def rot_to_angle(rot: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    r"""Extract the rotation angles from a fulle rotation matrix.
+
+    Bijection of ``laueimproc.geometry.rotation.angle_to_rot``.
+
+    Parameters
+    ----------
+    rot : torch.Tensor
+        The rotation matrix \(rot_3 . rot_2 . rot_1\) of shape (..., 3, 3).
+
+    Returns
+    -------
+    theta1 : torch.Tensor or float
+        The first rotation angle of shape (...). \(\theta_1 \in [-\pi, \pi]\)
+        \(
+            rot_1 =
+            \begin{pmatrix}
+                1 & 0              &               0 \\
+                0 & \cos(\theta_1) & -\sin(\theta_1) \\
+                c & \sin(\theta_1) &  \cos(\theta_1) \\
+            \end{pmatrix}
+        \)
+    theta2 : torch.Tensor or float
+        The second rotation angle of shape (...). \(\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]\)
+        \(
+            rot_2 =
+            \begin{pmatrix}
+                 \cos(\theta_2) & 0 & \sin(\theta_2) \\
+                              0 & 1 &              0 \\
+                -\sin(\theta_2) & 0 & \cos(\theta_2) \\
+            \end{pmatrix}
+        \)
+    theta3 : torch.Tensor or float
+        The third rotation angle of shape (...). (inverse of pyfai convention)
+        \(\theta_3 \in [-\pi, \pi]\)
+        \(
+            rot_3 =
+            \begin{pmatrix}
+                \cos(\theta_3) & -\sin(\theta_3) & 0 \\
+                \sin(\theta_3) &  \cos(\theta_3) & 0 \\
+                             0 &               0 & 1 \\
+            \end{pmatrix}
+        \)
+
+    Examples
+    --------
+    >>> import torch
+    >>> from laueimproc.geometry.rotation import rot_to_angle
+    >>> rot = torch.tensor([[ 0.7500, -0.2165,  0.6250],
+    ...                     [ 0.4330,  0.8750, -0.2165],
+    ...                     [-0.5000,  0.4330,  0.7500]])
+    >>> theta1, theta2, theta3 = rot_to_angle(rot)
+    >>> torch.rad2deg(theta1).round()
+    tensor(30.)
+    >>> torch.rad2deg(theta2).round()
+    tensor(30.)
+    >>> torch.rad2deg(theta3).round()
+    tensor(30.)
+    >>>
+    """
+    assert isinstance(rot, torch.Tensor), rot.__class__.__name__
+    assert rot.shape[-2:] == (3, 3), rot.shape
+    theta1 = torch.atan2(rot[..., 2, 1], rot[..., 2, 2])
+    theta2 = -torch.asin(rot[..., 2, 0])
+    theta3 = torch.atan2(rot[..., 1, 0], rot[..., 0, 0])
+    return theta1, theta2, theta3
+
+
 def rotate_crystal(crystal: torch.Tensor, rot: torch.Tensor) -> torch.Tensor:
     r"""Apply an active rotation to the crystal.
 
     Parameters
     ----------
     crystal : torch.Tensor
-        The primitive (\(\mathbf{A}\)) or reciprocal (\(\mathbf{B}\)) in the base \(\mathcal{B}\).
-        The shape of this parameter is (*c, 3, 3).
+        The primitive \((\mathbf{A})\) or reciprocal \((\mathbf{B})\) in the base \(\mathcal{B}\).
+        The shape of this parameter is (\*c, 3, 3).
     rot : torch.Tensor
-        The active rotation matrix, of shape (*r, 3, 3).
+        The active rotation matrix, of shape (\*r, 3, 3).
 
     Returns
     -------
     rotated_crystal: torch.Tensor
-        The batched matricial product `rot @ crystal` of shape (*c, *r, 3, 3).
+        The batched matricial product `rot @ crystal` of shape (\*c, \*r, 3, 3).
     """
     assert isinstance(crystal, torch.Tensor), crystal.__class__.__name__
     assert crystal.shape[-2:] == (3, 3), crystal.shape

@@ -121,7 +121,7 @@ def write_dat(filename: str | pathlib.Path, diagram: Diagram):
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     # verification
-    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.dat&#34;)
     assert isinstance(diagram, Diagram), diagram.__class__.__name__
 
@@ -334,7 +334,7 @@ If a file is already existing, it is overwriten.</dd>
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     # verification
-    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(&#34;.dat&#34;)
     assert isinstance(diagram, Diagram), diagram.__class__.__name__
 

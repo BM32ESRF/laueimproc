@@ -91,7 +91,7 @@ def write_dat(filename: str | pathlib.Path, diagram: Diagram):
     >>>
     """
     # verification
-    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve().with_suffix(".dat")
     assert isinstance(diagram, Diagram), diagram.__class__.__name__
 

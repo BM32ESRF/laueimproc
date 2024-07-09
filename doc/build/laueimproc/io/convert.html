@@ -93,7 +93,7 @@ def converter_decorator(func: typing.Callable):
         else:
             raise TypeError(f&#34;only pathlike or iterable supproted, not {src.__class__.__name__}&#34;)
         if dst_dir is not None:
-            assert isinstance(dst_dir, (pathlib.Path, str)), dst_dir.__class__.__name__
+            assert isinstance(dst_dir, str | pathlib.Path), dst_dir.__class__.__name__
             dst_dir = pathlib.Path(dst_dir)
             assert dst_dir.is_dir(), f&#34;the output directpty {dst_dir} has to exists&#34;
 
@@ -184,7 +184,7 @@ def to_jp2(src_file: pathlib.Path, dst_dir: pathlib.Path, metadata: bool) -&gt; 
         else:
             raise TypeError(f&#34;only pathlike or iterable supproted, not {src.__class__.__name__}&#34;)
         if dst_dir is not None:
-            assert isinstance(dst_dir, (pathlib.Path, str)), dst_dir.__class__.__name__
+            assert isinstance(dst_dir, str | pathlib.Path), dst_dir.__class__.__name__
             dst_dir = pathlib.Path(dst_dir)
             assert dst_dir.is_dir(), f&#34;the output directpty {dst_dir} has to exists&#34;
 

@@ -167,7 +167,7 @@ def getsizeof(obj: object, *, _processed: set = None) -> int:
     _processed.add(id(obj))
     if isinstance(obj, torch.Tensor):
         return mem + obj.element_size() * obj.nelement()
-    if isinstance(obj, (list, tuple, set, frozenset)):
+    if isinstance(obj, list | tuple | set | frozenset):
         return mem + sum(getsizeof(o, _processed=_processed) for o in obj)
     if isinstance(obj, dict):
         return mem + sum(

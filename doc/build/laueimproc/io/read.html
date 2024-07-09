@@ -126,7 +126,7 @@ def read_image(filename: str | pathlib.Path) -&gt; tuple[torch.Tensor, dict]:
     OSError
         If the given path is not a file, or if the image reading failed.
     &#34;&#34;&#34;
-    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve()
     if not filename.is_file():
         raise OSError(f&#34;the filename {filename} is not a file&#34;)
@@ -322,7 +322,7 @@ def to_floattensor(data: torch.Tensor | np.ndarray) -&gt; torch.Tensor:
     OSError
         If the given path is not a file, or if the image reading failed.
     &#34;&#34;&#34;
-    assert isinstance(filename, (str, pathlib.Path)), filename.__class__.__name__
+    assert isinstance(filename, str | pathlib.Path), filename.__class__.__name__
     filename = pathlib.Path(filename).expanduser().resolve()
     if not filename.is_file():
         raise OSError(f&#34;the filename {filename} is not a file&#34;)

@@ -9,20 +9,20 @@ from .rotation import angle_to_rot
 
 
 def detector_to_ray(point: torch.Tensor, poni: torch.Tensor) -> torch.Tensor:
-    """Find light ray witch intersected on the detector.
+    r"""Find light ray witch intersected on the detector.
 
     Parameters
     ----------
     point : torch.Tensor
-        The 2d point in the referencial of the detector of shape (*r, *p, 2).
+        The 2d point in the referencial of the detector of shape (\*r, \*p, 2).
     poni : torch.Tensor
         The point of normal incidence, callibration parameters according the pyfai convention.
-        Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (*p', 6).
+        Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\*p', 6).
 
     Returns
     -------
     ray : torch.Tensor
-        The unitary rays vectors of shape (*r, *broadcast(p, p'), 3).
+        The unitary ray vector of shape (\*r, \*broadcast(p, p'), 3).
     """
     assert isinstance(point, torch.Tensor), point.__class__.__name__
     assert point.shape[-1:] == (2,), point.shape

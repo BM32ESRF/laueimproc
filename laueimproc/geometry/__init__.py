@@ -17,7 +17,7 @@ Lattice parameters
 
 https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png
 
-* \([a, b, c, \alpha, \beta, \gamma]\): The latice parameters.
+* \([a, b, c, \alpha, \beta, \gamma]\): The lattice parameters.
 * \(\mathbf{A}\): The primitive column vectors \([\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]\)
     in an orthonormal base.
 * \(\mathbf{B}\): The reciprocal column vectors \([\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]\)
@@ -33,7 +33,8 @@ from .lattice import lattice_to_primitive, primitive_to_lattice
 from .metric import compute_matching_rate, compute_matching_rate_continuous
 from .projection import detector_to_ray, ray_to_detector
 from .reciprocal import primitive_to_reciprocal, reciprocal_to_primitive
-from .rotation import angle_to_rot, rotate_crystal
+from .rotation import angle_to_rot, rot_to_angle, rotate_crystal
+from .thetachi import thetachi_to_uf, uf_to_thetachi
 
 
 __all__ = [
@@ -44,5 +45,6 @@ __all__ = [
     "compute_matching_rate", "compute_matching_rate_continuous",
     "detector_to_ray", "ray_to_detector",
     "primitive_to_reciprocal", "reciprocal_to_primitive",
-    "angle_to_rot", "rotate_crystal",
+    "angle_to_rot", "rot_to_angle", "rotate_crystal",
+    "thetachi_to_uf", "uf_to_thetachi",
 ]

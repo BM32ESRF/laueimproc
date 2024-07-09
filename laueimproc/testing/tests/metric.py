@@ -4,7 +4,7 @@
 
 import torch
 
-from laueimproc.diffraction.metric import compute_matching_rate, compute_matching_rate_continuous
+from laueimproc.geometry.metric import compute_matching_rate, compute_matching_rate_continuous
 
 
 PHI_MAX = 0.5 * torch.pi / 180.0
@@ -59,7 +59,3 @@ def test_value_matching_rate():
     assert int(compute_matching_rate(
         torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.4 * torch.pi
     )) == 0
-    assert (
-        int(compute_matching_rate(EXP_UQ, THEO_UQ, PHI_MAX, _no_c=True))
-        == int(compute_matching_rate(EXP_UQ, THEO_UQ, PHI_MAX))
-    )

@@ -63,7 +63,7 @@ def converter_decorator(func: typing.Callable):
         else:
             raise TypeError(f"only pathlike or iterable supproted, not {src.__class__.__name__}")
         if dst_dir is not None:
-            assert isinstance(dst_dir, (pathlib.Path, str)), dst_dir.__class__.__name__
+            assert isinstance(dst_dir, str | pathlib.Path), dst_dir.__class__.__name__
             dst_dir = pathlib.Path(dst_dir)
             assert dst_dir.is_dir(), f"the output directpty {dst_dir} has to exists"
 

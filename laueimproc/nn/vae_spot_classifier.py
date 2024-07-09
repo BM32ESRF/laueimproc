@@ -151,7 +151,7 @@ class VAESpotClassifier(torch.nn.Module):
             The generated image of shape (n, height, width) otherwise.
         """
         from laueimproc.classes.base_diagram import BaseDiagram
-        assert isinstance(data, (torch.Tensor, BaseDiagram)), data.__class__.__name__
+        assert isinstance(data, torch.Tensor | BaseDiagram), data.__class__.__name__
 
         # case tensor
         if isinstance(data, torch.Tensor):

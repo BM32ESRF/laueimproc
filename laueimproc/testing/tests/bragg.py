@@ -4,7 +4,7 @@
 
 import torch
 
-from laueimproc.diffraction.bragg import (
+from laueimproc.geometry.bragg import (
     hkl_reciprocal_to_energy, hkl_reciprocal_to_uq, uf_to_uq, uq_to_uf
 )
 

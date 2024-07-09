@@ -15,7 +15,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Conventions &mdash; laueimproc 1.5.0 documentation</title>
+  <title>Conventions &mdash; laueimproc 1.5.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -23,14 +23,14 @@
       <link rel="stylesheet" type="text/css" href="../_static/dark_mode_css/general.css?v=c0a7eb24" />
       <link rel="stylesheet" type="text/css" href="../_static/dark_mode_css/dark.css?v=70edf1c7" />
 
-  
+
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
+
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=e0a75244"></script>
+        <script src="../_static/documentation_options.js?v=44dfd65d"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -42,22 +42,22 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Developer’s Guide" href="developer.html" />
-    <link rel="prev" title="Installation" href="installation.html" /> 
+    <link rel="prev" title="Installation" href="installation.html" />
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-          
-          
+
+
           <a href="../index.html" class="icon icon-home">
             laueimproc
           </a>
               <div class="version">
-                1.5.0
+                1.5.1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -108,7 +108,7 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+
   <section id="conventions">
 <h1>Conventions<a class="headerlink" href="#conventions" title="Link to this heading"></a></h1>
 <section id="pixel-coordinates">
@@ -117,7 +117,7 @@
 <a class="reference internal image-reference" href="../_images/IMGConvIJXY.avif"><img alt="image convention `&quot;ij&quot;` and `&quot;xy&quot;`" src="../_images/IMGConvIJXY.avif" style="width: 512px;" /></a>
 <ul class="simple">
 <li><p>Each pixel n starts at the coordinated n (included) and goes to the coordinate n+1 (excluded). The center of any pixel is at half integer pixel coordinate.</p></li>
-<li><p>The default convention is called <cite>“ij”</cite> and the <cite>LaueTools convention &lt;https://lauetools.readthedocs.io/en/latest/conventions.html&gt;_</cite> is called <cite>“xy”</cite>.</p></li>
+<li><p>The default convention is called <cite>“ij”</cite> and the <a class="reference external" href="https://lauetools.readthedocs.io/en/latest/conventions.html">LaueTools convention</a> is called <cite>“xy”</cite>.</p></li>
 <li><p>In the <cite>“ij”</cite> convention, the orgin (i=0, j=0) corresponds to the top left corner of the to left pixel of the image.</p></li>
 <li><p>In the <cite>“xy”</cite> convention, the orgin (x=1, y=1) corresponds to the center of the to left pixel of the image.</p></li>
 </ul>
@@ -144,24 +144,22 @@
 </section>
 <section id="crystalography">
 <h2>Crystalography<a class="headerlink" href="#crystalography" title="Link to this heading"></a></h2>
-<p>All functions are available in the <a class="reference external" href="../../laueimproc/diffraction.html">laueimproc.diffraction</a> module.</p>
+<p>All functions are available in the <a class="reference external" href="../../laueimproc/diffraction.html">laueimproc.geometry</a> module.</p>
 <section id="lattice-parameters">
 <h3>Lattice Parameters<a class="headerlink" href="#lattice-parameters" title="Link to this heading"></a></h3>
 <p>As shown in the figure below, the parameters a, b, c, alpha, gamma and beta are such that:</p>
 <ul class="simple">
-<li><p>$&lt;e_1, e_2&gt; = cos(alpha)$</p></li>
-<li><p>$&lt;e_1, e_3&gt; = cos(beta)$</p></li>
-<li><p>$&lt;e_1, e_2&gt; = cos(gamma)$</p></li>
+<li><p>alpha is the anglee between e2 and e3</p></li>
+<li><p>beta is the anglee between e1 and e3</p></li>
+<li><p>gamma is the anglee between e1 and e2</p></li>
 </ul>
 <a class="reference internal image-reference" href="../_images/IMGLattice.avif"><img alt="lattice parameters" src="../_images/IMGLattice.avif" style="width: 512px;" /></a>
-<p>Here is the convention adopted for projecting the primitive vectors $e_1$, $e_2$ and $e_3$
-into the orthonormal base of the christal $C_1$, $C_2$ and $C_3$.
-The matrix of the primitive vectors is called $mathbf{A}$ and the base $mathcal{B^c}$.</p>
-<video controls="True" preload="auto" width="512"><source src="../_images/ANIMLatticeBc.webm" type="video/webm">projection of lattice in crystal base</video><ul class="simple">
-<li><p>$e_1$ is collinear with $C_1$.</p></li>
-<li><p>$e_2$ in in the plane $C_1, C_2$.</p></li>
+<p>As shown in the figure below, the primitive vectors are projected into an orthonormal base such that:</p>
+<ul class="simple">
+<li><p>e1 is collinear with C1</p></li>
+<li><p>e2 in the plane C1 C2</p></li>
 </ul>
-</section>
+<video controls="True" preload="auto" width="512"><source src="../_images/ANIMLatticeBc.webm" type="video/webm">projection of lattice in crystal base</video></section>
 <section id="reciprocal-space">
 <h3>Reciprocal Space<a class="headerlink" href="#reciprocal-space" title="Link to this heading"></a></h3>
 <p>Wheter in primitive or reciprocal space, the crystalline mesh is representetd by a 3 x 3 matrix, the concatenation of 3 colums vectors.
@@ -188,7 +186,7 @@ The information carried by these matricies are invariant by rotation. In other w
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+
 
 </footer>
         </div>
@@ -199,7 +197,7 @@ The information carried by these matricies are invariant by rotation. In other w
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
 
 </body>
 </html>
