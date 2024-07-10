@@ -12,6 +12,10 @@ import torch
 def thetachi_to_uf(theta: torch.Tensor, chi: torch.Tensor) -> torch.Tensor:
     r"""Reconstruct the diffracted ray from the deviation angles.
 
+    Bijection of ``laueimproc.geometry.thetachi.uf_to_thetachi``.
+
+    .. image:: ../../build/media/IMGThetaChi.avif
+
     Parameters
     ----------
     theta : torch.Tensor
@@ -58,6 +62,10 @@ def thetachi_to_uf(theta: torch.Tensor, chi: torch.Tensor) -> torch.Tensor:
 
 def uf_to_thetachi(u_f: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     r"""Find the angular deviation of the dffracted ray.
+
+    Bijection of ``laueimproc.geometry.thetachi.thetachi_to_uf``.
+
+    .. image:: ../../build/media/IMGThetaChi.avif
 
     Parameters
     ----------

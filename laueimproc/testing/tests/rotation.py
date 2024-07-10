@@ -11,7 +11,7 @@ def test_bij_angle_to_rot_to_angle():
     theta1 = 2.0 * torch.pi * torch.rand(1_000_000, dtype=torch.float64) - torch.pi
     theta2 = torch.pi * torch.rand(1_000_000, dtype=torch.float64) - torch.pi / 2
     theta3 = 2.0 * torch.pi * torch.rand(1_000_000, dtype=torch.float64) - torch.pi
-    rot = angle_to_rot(theta1, theta2, theta3, meshgrid=False)
+    rot = angle_to_rot(theta1, theta2, theta3, cartesian_product=False)
     theta1_bis, theta2_bis, theta3_bis = rot_to_angle(rot)
     assert torch.allclose(theta1, theta1_bis)
     assert torch.allclose(theta2, theta2_bis)

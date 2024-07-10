@@ -55,7 +55,7 @@ def select_hkl(
     Parameters
     ----------
     lattice : torch.Tensor, optional
-        If provided, the lattices parameters \([a, b, c, \alpha, \beta, \gamma]]\) of shape (..., 6)
+        If provided, the lattices parameters \([a, b, c, \alpha, \beta, \gamma]\) of shape (..., 6)
         are used to simulate the hkl energy for a large number of rotation.
     max_hkl : int
         The maximum absolute hkl sum such as |h| + |k| + |l| <= max_hkl.

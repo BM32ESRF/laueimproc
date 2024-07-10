@@ -2,7 +2,6 @@
 requires = ["setuptools", "numpy"]
 build-backend = "setuptools.build_meta"
 
-
 [project]
 name = "laueimproc"
 dynamic = ["version"]

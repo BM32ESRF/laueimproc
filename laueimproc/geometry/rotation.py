@@ -11,7 +11,7 @@ def angle_to_rot(
     theta1: torch.Tensor | numbers.Real = 0,
     theta2: torch.Tensor | numbers.Real = 0,
     theta3: torch.Tensor | numbers.Real = 0,
-    meshgrid: bool = True,
+    *, cartesian_product: bool = True,
 ) -> torch.Tensor:
     r"""Generate a rotation matrix from the given angles.
 
@@ -49,11 +49,12 @@ def angle_to_rot(
                              0 &               0 & 1 \\
             \end{pmatrix}
         \)
-    meshgrid : boolean, default=True
-        If set to True, batch all rotation in a different dim,
-        shuch as final dim is (\*a, \*b, \*c, 3, 3).
-        Overwise, apply rotation elementwise and len(a), len(b) and len(c)
-        must be equal such as final dim is (\*broadcast(a, b, c), 3, 3).
+    cartesian_product : boolean, default=True
+        If True (default value), batch dimensions are iterated independently like neasted for loop.
+        Overwise, the batch dimensions are broadcasted like a zip.
+
+        * True: The final shape is (\*a, \*b, \*c, 3, 3).
+        * False: The final shape is (\*broadcast(a, b, c), 3, 3).
 
     Returns
     -------
@@ -87,7 +88,7 @@ def angle_to_rot(
     assert isinstance(theta1, torch.Tensor | numbers.Real), theta1.__class__.__name__
     assert isinstance(theta2, torch.Tensor | numbers.Real), theta2.__class__.__name__
     assert isinstance(theta3, torch.Tensor | numbers.Real), theta3.__class__.__name__
-    assert isinstance(meshgrid, bool), meshgrid.__class__.__name__
+    assert isinstance(cartesian_product, bool), cartesian_product.__class__.__name__
 
     # find dtype and device
     dtype = (
@@ -131,7 +132,7 @@ def angle_to_rot(
     rot3[..., 2, 0], rot3[..., 2, 1], rot3[..., 2, 2] = 0.0, 0.0, 1.0
 
     # expand dims
-    if meshgrid:
+    if cartesian_product:
         rot1 = rot1[..., *((None,)*(len(theta2.shape))), *((None,)*(len(theta3.shape))), :, :]
         rot2 = rot2[*((None,)*(len(theta1.shape))), ..., *((None,)*(len(theta3.shape))), :, :]
         rot3 = rot3[*((None,)*(len(theta1.shape))), *((None,)*(len(theta2.shape))), ..., :, :]
@@ -207,7 +208,11 @@ def rot_to_angle(rot: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.T
     return theta1, theta2, theta3
 
 
-def rotate_crystal(crystal: torch.Tensor, rot: torch.Tensor) -> torch.Tensor:
+def rotate_crystal(
+    crystal: torch.Tensor,
+    rot: torch.Tensor,
+    *, cartesian_product: bool = True,
+) -> torch.Tensor:
     r"""Apply an active rotation to the crystal.
 
     Parameters
@@ -217,21 +222,28 @@ def rotate_crystal(crystal: torch.Tensor, rot: torch.Tensor) -> torch.Tensor:
         The shape of this parameter is (\*c, 3, 3).
     rot : torch.Tensor
         The active rotation matrix, of shape (\*r, 3, 3).
+    cartesian_product : boolean, default=True
+        If True (default value), batch dimensions are iterated independently like neasted for loop.
+        Overwise, the batch dimensions are broadcasted like a zip.
+
+        * True: The final shape is (\*c, \*r, 3, 3).
+        * False: The final shape is (\*broadcast(c, r), 3, 3).
 
     Returns
     -------
     rotated_crystal: torch.Tensor
-        The batched matricial product `rot @ crystal` of shape (\*c, \*r, 3, 3).
+        The batched matricial product `rot @ crystal`.
     """
     assert isinstance(crystal, torch.Tensor), crystal.__class__.__name__
     assert crystal.shape[-2:] == (3, 3), crystal.shape
     assert isinstance(rot, torch.Tensor), rot.__class__.__name__
     assert rot.shape[-2:] == (3, 3), rot.shape
+    assert isinstance(cartesian_product, bool), cartesian_product.__class__.__name__
 
-    *batch_c, _, _ = crystal.shape
-    *batch_r, _, _ = rot.shape
-
-    crystal = crystal[..., *((None,)*len(batch_r)), :, :]
-    rot = rot[*((None,)*len(batch_c)), ..., :, :]
+    if cartesian_product:
+        *batch_c, _, _ = crystal.shape
+        *batch_r, _, _ = rot.shape
+        crystal = crystal[..., *((None,)*len(batch_r)), :, :]
+        rot = rot[*((None,)*len(batch_c)), ..., :, :]
 
     return rot @ crystal

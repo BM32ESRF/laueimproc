@@ -1,21 +1,6 @@
 #!/usr/bin/env python3
 
-"""Provide tools for switching convention.
-
-The two pixel conventions supported are:
-
-* `ij`: Extension by continuity (N -> R) of the numpy convention (height, width).
-The first axis iterates on lines from top to bottom, the second on columns from left to right.
-In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel.
-It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).
-
-* `xy`: A transposition and a translation of the origin of the `ij` convention.
-The first axis iterates on columns from left to right, the second on lines from top to bottom.
-In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.
-
-.. image:: ../../build/media/IMGConvIJXY.avif
-    :width: 256
-"""
+"""Provide tools for switching convention."""
 
 import functools
 import numbers
@@ -113,6 +98,18 @@ def ij_to_xy(
 ) -> torch.Tensor | np.ndarray:
     """Switch the axis i and j, and append 1/2 to all values.
 
+    * `ij`: Extension by continuity (N -> R) of the numpy convention (height, width).
+    The first axis iterates on lines from top to bottom, the second on columns from left to right.
+    In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel.
+    It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).
+
+    * `xy`: A transposition and a translation of the origin of the `ij` convention.
+    The first axis iterates on columns from left to right, the second on lines from top to bottom.
+    In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.
+
+
+    .. image:: ../../build/media/IMGConvIJXY.avif
+
     Parameters
     ----------
     array : torch.Tensor or np.ndarray
@@ -194,6 +191,8 @@ def lauetools_to_or(vect_lauetools: torch.Tensor, dim: numbers.Integral = -1) ->
 
     Bijection of ``laueimproc.convention.or_to_lauetools``.
 
+    .. image:: ../../build/media/IMGLauetoolsOr.avif
+
     Parameters
     ----------
     vect_lauetools : torch.Tensor
@@ -234,6 +233,8 @@ def lauetools_to_pyfai(vect_lauetools: torch.Tensor, dim: numbers.Integral = -1)
     """Active convertion of the vectors from lauetools base to pyfai base.
 
     Bijection of ``laueimproc.convention.pyfai_to_lauetools``.
+
+    .. image:: ../../build/media/IMGPyfaiLauetools.avif
 
     Parameters
     ----------
@@ -276,6 +277,8 @@ def or_to_lauetools(vect_or: torch.Tensor, dim: numbers.Integral = -1) -> torch.
 
     Bijection of ``laueimproc.convention.lauetools_to_or``.
 
+    .. image:: ../../build/media/IMGLauetoolsOr.avif
+
     Parameters
     ----------
     vect_or : torch.Tensor
@@ -315,7 +318,7 @@ def or_to_lauetools(vect_or: torch.Tensor, dim: numbers.Integral = -1) -> torch.
 def poni_to_det(poni: torch.Tensor, pixelsize: torch.Tensor) -> torch.Tensor:
     """Convert a .det config into a .poni config.
 
-    Bijection of ``laueimproc.convemtion.det_to_poni``.
+    Bijection of ``laueimproc.convention.det_to_poni``.
 
     Parameters
     ----------
@@ -377,6 +380,8 @@ def pyfai_to_lauetools(vect_pyfai: torch.Tensor, dim: numbers.Integral = -1) -> 
     """Active convertion of the vectors from pyfai base to lauetools base.
 
     Bijection of ``laueimproc.convention.lauetools_to_pyfai``.
+
+    .. image:: ../../build/media/IMGPyfaiLauetools.avif
 
     Parameters
     ----------

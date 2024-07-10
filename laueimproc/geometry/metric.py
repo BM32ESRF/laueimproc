@@ -73,20 +73,20 @@ def raydotdist(
     Parameters
     ----------
     ray_point_1 : torch.Tensor
-        The 2d point associated to uf in the referencial of the detector of shape (*n, r1, 2).
-        Could be directly the unitary ray vector uf or uq of shape (*n, r1, 3).
+        The 2d point associated to uf in the referencial of the detector of shape (\*n, r1, 2).
+        Could be directly the unitary ray vector uf or uq of shape (\*n, r1, 3).
     ray_point_2 : torch.Tensor
-        The 2d point associated to uf in the referencial of the detector of shape (*n', r2, 2)).
-        Could be directly the unitary ray vector uf or uq of shape (*n', r2, 3).
+        The 2d point associated to uf in the referencial of the detector of shape (\*n', r2, 2)).
+        Could be directly the unitary ray vector uf or uq of shape (\*n', r2, 3).
     poni : torch.Tensor, optional
         Only use if the ray are projected points.
         The point of normal incidence, callibration parameters according the pyfai convention.
-        Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (*p, 6).
+        Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\*p, 6).
 
     Returns
     -------
     dist : torch.Tensor
-        The distance matrix \(\cos(\phi)\) of shape (*broadcast(n, n'), *p, r1, r2).
+        The distance matrix \(\cos(\phi)\) of shape (\*broadcast(n, n'), \*p, r1, r2).
     """
     assert isinstance(ray_point_1, torch.Tensor), ray_point_1.__class__.__name__
     assert isinstance(ray_point_2, torch.Tensor), ray_point_2.__class__.__name__
@@ -113,16 +113,16 @@ def raydotdist(
 def compute_matching_rate(
     exp_uq: torch.Tensor, theo_uq: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
 ) -> torch.Tensor:
-    """Compute the matching rate.
+    r"""Compute the matching rate.
 
     It is the number of ray in ``theo_uq``, close engouth to at least one ray of ``exp_uq``.
 
     Parameters
     ----------
     exp_uq : torch.Tensor
-        The unitary experimental uq vector of shape (*n, e, 3).
+        The unitary experimental uq vector of shape (\*n, e, 3).
     theo_uq : torch.Tensor
-        The unitary simulated theorical uq vector of shape (*n', t, 3).
+        The unitary simulated theorical uq vector of shape (\*n', t, 3).
     phi_max : float
         The maximum positive angular distance in radian to consider that the rays are closed enough.
 
@@ -206,9 +206,9 @@ def compute_matching_rate_continuous(
     Parameters
     ----------
     exp_uq : torch.Tensor
-        The unitary experimental uq vector of shape (*n, e, 3).
+        The unitary experimental uq vector of shape (\*n, e, 3).
     theo_uq : torch.Tensor
-        The unitary simulated theorical uq vector of shape (*n', t, 3).
+        The unitary simulated theorical uq vector of shape (\*n', t, 3).
     phi_max : float
         The maximum positive angular distance in radian to consider that the rays are closed enough.
 

@@ -8,38 +8,44 @@ PLANK_H = 6.63e-34
 CELERITY_C = 3.00e8
 
 
-def hkl_reciprocal_to_energy(hkl: torch.Tensor, reciprocal: torch.Tensor) -> torch.Tensor:
+def hkl_reciprocal_to_energy(hkl: torch.Tensor, reciprocal: torch.Tensor, **kwargs) -> torch.Tensor:
     """Alias to ``laueimproc.geometry.bragg.hkl_reciprocal_to_uq_energy``."""
-    _, energy = hkl_reciprocal_to_uq_energy(hkl, reciprocal, _return_uq=False)
+    _, energy = hkl_reciprocal_to_uq_energy(hkl, reciprocal, _return_uq=False, **kwargs)
     return energy
 
 
-def hkl_reciprocal_to_uq(hkl: torch.Tensor, reciprocal: torch.Tensor) -> torch.Tensor:
+def hkl_reciprocal_to_uq(hkl: torch.Tensor, reciprocal: torch.Tensor, **kwargs) -> torch.Tensor:
     """Alias to ``laueimproc.geometry.bragg.hkl_reciprocal_to_uq_energy``."""
-    u_q, _ = hkl_reciprocal_to_uq_energy(hkl, reciprocal, _return_energy=False)
+    u_q, _ = hkl_reciprocal_to_uq_energy(hkl, reciprocal, _return_energy=False, **kwargs)
     return u_q
 
 
 def hkl_reciprocal_to_uq_energy(
     hkl: torch.Tensor, reciprocal: torch.Tensor,
-    *, _return_uq: bool = True, _return_energy: bool = True
+    *, cartesian_product: bool = True, _return_uq: bool = True, _return_energy: bool = True
 ) -> tuple[torch.Tensor, torch.Tensor]:
     r"""Thanks to the bragg relation, compute the energy of each diffracted ray.
 
     Parameters
     ----------
     hkl : torch.Tensor
-        The h, k, l indices of shape (*n, 3) we want to mesure.
+        The h, k, l indices of shape (\*n, 3) we want to mesure.
     reciprocal : torch.Tensor
-        Matrix \(\mathbf{B}\) of shape (*r, 3, 3) in the lab base \(\mathcal{B^l}\).
+        Matrix \(\mathbf{B}\) of shape (\*r, 3, 3) in the lab base \(\mathcal{B^l}\).
+    cartesian_product : boolean, default=True
+        If True (default value), batch dimensions are iterated independently like neasted for loop.
+        Overwise, the batch dimensions are broadcasted like a zip.
+
+        * True: The final shape are (\*n, \*r, 3) and (\*n, \*r).
+        * False: The final shape are (\*broadcast(n, r), 3) and broadcast(n, r).
 
     Returns
     -------
     u_q : torch.Tensor
-        All the unitary diffracting plane normal vector of shape (*n, *r, 3).
+        All the unitary diffracting plane normal vector of shape (..., 3).
         The vectors are expressed in the same base as the reciprocal space.
     energy : torch.Tensor
-        The energy of each ray in J as a tensor of shape (*n, *r).
+        The energy of each ray in J as a tensor of shape (...).
         \(\begin{cases}
             E = \frac{hc}{\lambda} \\
             \lambda = 2d\sin(\theta) \\
@@ -70,20 +76,23 @@ def hkl_reciprocal_to_uq_energy(
     assert isinstance(hkl, torch.Tensor), hkl.__class__.__name__
     assert hkl.shape[-1:] == (3,), hkl.shape
     assert not hkl.dtype.is_complex and not hkl.dtype.is_floating_point, hkl.dtype
+    assert isinstance(cartesian_product, bool), cartesian_product.__class__.__name__
 
-    *batch_r, _, _ = reciprocal.shape
-    *batch_n, _ = hkl.shape
+    if cartesian_product:
+        *batch_r, _, _ = reciprocal.shape
+        *batch_n, _ = hkl.shape
+        reciprocal = reciprocal[*((None,)*len(batch_n)), ..., :, :]  # (*n, *r, 3, 3)
+        hkl = hkl[..., *((None,)*len(batch_r)), :]  # (*n, *r, 3)
 
-    reciprocal = reciprocal[*((None,)*len(batch_n)), ..., :, :]  # (*n, *r, 3, 3)
-    hkl = hkl[..., *((None,)*len(batch_r)), :, None]  # (*n, *r, 3, 1)
-    u_q = reciprocal @ hkl.to(reciprocal.device, reciprocal.dtype)  # (*n, *r, 3, 1)
-    inv_d_square = u_q.mT @ u_q  # (*n, *r, 1, 1)
-    u_q = u_q.squeeze(-1)  # (*n, *r, 3)
-    inv_d_square = inv_d_square.squeeze(-1)  # (*n, *r, 1)
+    hkl = hkl[..., :, None]  # (..., 3, 1)
+    u_q = reciprocal @ hkl.to(reciprocal.device, reciprocal.dtype)  # (..., 3, 1)
+    inv_d_square = u_q.mT @ u_q  # (..., 1, 1)
+    u_q = u_q.squeeze(-1)  # (..., 3)
+    inv_d_square = inv_d_square.squeeze(-1)  # (..., 1)
 
     energy = None
     if _return_energy:
-        ui_dot_uq = u_q[..., 2]  # (*n, *r)
+        ui_dot_uq = u_q[..., 2]  # (...)
         inv_d_sin_theta = inv_d_square.squeeze(-1) / ui_dot_uq
         energy = torch.abs((0.5 * PLANK_H * CELERITY_C) * inv_d_sin_theta)
 

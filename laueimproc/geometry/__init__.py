@@ -15,8 +15,6 @@ Bases
 Lattice parameters
 ------------------
 
-https://en.wikipedia.org/wiki/Lattice_constant#/media/File:UnitCell.png
-
 * \([a, b, c, \alpha, \beta, \gamma]\): The lattice parameters.
 * \(\mathbf{A}\): The primitive column vectors \([\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]\)
     in an orthonormal base.

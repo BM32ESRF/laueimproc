@@ -9,7 +9,6 @@ def lattice_to_primitive(lattice: torch.Tensor) -> torch.Tensor:
     r"""Convert the lattice parameters into primitive vectors.
 
     .. image:: ../../../build/media/IMGLatticeBc.avif
-        :width: 256
 
     Parameters
     ----------
@@ -27,7 +26,7 @@ def lattice_to_primitive(lattice: torch.Tensor) -> torch.Tensor:
     >>> import torch
     >>> from laueimproc.geometry.lattice import lattice_to_primitive
     >>> lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2*torch.pi/3])
-    >>> lattice_to_primitive(lattice)  # quartz lattice
+    >>> lattice_to_primitive(lattice)
     tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
             [ 0.0000e+00,  3.2909e-10,  8.6603e-10],
             [ 0.0000e+00,  0.0000e+00,  1.2247e-09]])
@@ -60,7 +59,6 @@ def primitive_to_lattice(primitive: torch.Tensor) -> torch.Tensor:
     r"""Convert the primitive vectors to the lattice parameters.
 
     .. image:: ../../../build/media/IMGLattice.avif
-        :width: 256
 
     Parameters
     ----------
@@ -71,12 +69,12 @@ def primitive_to_lattice(primitive: torch.Tensor) -> torch.Tensor:
     -------
     lattice : torch.Tensor
         The array of lattice parameters of shape (..., 6).
-        Values are \([a, b, c, \alpha, \beta, \gamma]]\).
+        Values are \([a, b, c, \alpha, \beta, \gamma]\).
 
     Notes
     -----
     We have `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
-    but it is not the case for the composition inverse because the numerical
+    but it is not allways the case for the inverse composition because the numerical
     value of \(\mathbf{A}\) is base dependent.
 
     Examples
