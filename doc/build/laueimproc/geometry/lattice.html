@@ -88,7 +88,7 @@ def lattice_to_primitive(lattice: torch.Tensor) -&gt; torch.Tensor:
 def primitive_to_lattice(primitive: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Convert the primitive vectors to the lattice parameters.
 
-    Bijection of ``laueimproc.geometry.reciprocal.lattice_to_primitive``.
+    Bijection of ``laueimproc.geometry.lattice.lattice_to_primitive``.
 
     .. image:: ../../../build/media/IMGLattice.avif
 
@@ -105,8 +105,8 @@ def primitive_to_lattice(primitive: torch.Tensor) -&gt; torch.Tensor:
 
     Notes
     -----
-    We have allways `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
-    but it is not allways the case for the inverse composition because the numerical
+    We have always `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
+    but it is not always the case for the inverse composition because the numerical
     value of \(\mathbf{A}\) is expressed in the crystal base \(\mathcal{B^c}\).
 
     Examples
@@ -225,7 +225,7 @@ tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
 </code></dt>
 <dd>
 <div class="desc"><p>Convert the primitive vectors to the lattice parameters.</p>
-<p>Bijection of <code>laueimproc.geometry.reciprocal.lattice_to_primitive</code>.</p>
+<p>Bijection of <code><a title="laueimproc.geometry.lattice.lattice_to_primitive" href="#laueimproc.geometry.lattice.lattice_to_primitive">lattice_to_primitive()</a></code>.</p>
 <p><img alt="" src="../../../build/media/IMGLattice.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -239,8 +239,8 @@ tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
 Values are <span><span class="MathJax_Preview">[a, b, c, \alpha, \beta, \gamma]</span><script type="math/tex">[a, b, c, \alpha, \beta, \gamma]</script></span> in meters and radians.</dd>
 </dl>
 <h2 id="notes">Notes</h2>
-<p>We have allways <code>primitive_to_lattice(lattice_to_primitive(lattice)) == lattice</code>,
-but it is not allways the case for the inverse composition because the numerical
+<p>We have always <code>primitive_to_lattice(lattice_to_primitive(lattice)) == lattice</code>,
+but it is not always the case for the inverse composition because the numerical
 value of <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> is expressed in the crystal base <span><span class="MathJax_Preview">\mathcal{B^c}</span><script type="math/tex">\mathcal{B^c}</script></span>.</p>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
@@ -259,7 +259,7 @@ tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00])
 <pre><code class="python">def primitive_to_lattice(primitive: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Convert the primitive vectors to the lattice parameters.
 
-    Bijection of ``laueimproc.geometry.reciprocal.lattice_to_primitive``.
+    Bijection of ``laueimproc.geometry.lattice.lattice_to_primitive``.
 
     .. image:: ../../../build/media/IMGLattice.avif
 
@@ -276,8 +276,8 @@ tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00])
 
     Notes
     -----
-    We have allways `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
-    but it is not allways the case for the inverse composition because the numerical
+    We have always `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
+    but it is not always the case for the inverse composition because the numerical
     value of \(\mathbf{A}\) is expressed in the crystal base \(\mathcal{B^c}\).
 
     Examples

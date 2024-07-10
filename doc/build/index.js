@@ -64,13 +64,13 @@ URLS=[
 "laueimproc/common.html",
 "laueimproc/geometry/index.html",
 "laueimproc/geometry/rotation.html",
-"laueimproc/geometry/projection.html",
 "laueimproc/geometry/metric.html",
 "laueimproc/geometry/hkl.html",
 "laueimproc/geometry/bragg.html",
 "laueimproc/geometry/thetachi.html",
-"laueimproc/geometry/lattice.html",
 "laueimproc/geometry/reciprocal.html",
+"laueimproc/geometry/projection.html",
+"laueimproc/geometry/lattice.html",
 "laueimproc/convention.html"
 ];
 INDEX=[
@@ -2410,7 +2410,7 @@ INDEX=[
 {
 "ref":"laueimproc.geometry",
 "url":63,
-"doc":"Implement the Bragg diffraction rules. https: www.silx.org/doc/pyFAI/latest/geometry.html detector-position Bases   -  \\(\\mathcal{B^c}\\): The orthonormal base of the crystal \\([\\mathbf{C_1}, \\mathbf{C_2}, \\mathbf{C_3}]\\).  \\(\\mathcal{B^l}\\): The orthonormal base of the lab \\([\\mathbf{L_1}, \\mathbf{L_2}, \\mathbf{L_3}]\\) in pyfai. Lattice parameters           \\([a, b, c, \\alpha, \\beta, \\gamma]\\): The lattice parameters.  \\(\\mathbf{A}\\): The primitive column vectors \\([\\mathbf{e_1}, \\mathbf{e_2}, \\mathbf{e_3}]\\) in an orthonormal base.  \\(\\mathbf{B}\\): The reciprocal column vectors \\([\\mathbf{e_1^ }, \\mathbf{e_2^ }, \\mathbf{e_3^ }]\\) in an orthonormal base."
+"doc":"Implement the Bragg diffraction rules. Bases   -  \\(\\mathcal{B^c}\\): The orthonormal base of the crystal \\([\\mathbf{C_1}, \\mathbf{C_2}, \\mathbf{C_3}]\\).  \\(\\mathcal{B^l}\\): The orthonormal base of the lab \\([\\mathbf{L_1}, \\mathbf{L_2}, \\mathbf{L_3}]\\) in pyfai. Lattice parameters           \\([a, b, c, \\alpha, \\beta, \\gamma]\\): The lattice scalars parameters.  \\(\\mathbf{A}\\): The primitive column vectors \\([\\mathbf{e_1}, \\mathbf{e_2}, \\mathbf{e_3}]\\) in an orthonormal base.  \\(\\mathbf{B}\\): The reciprocal column vectors \\([\\mathbf{e_1^ }, \\mathbf{e_2^ }, \\mathbf{e_3^ }]\\) in an orthonormal base."
 },
 {
 "ref":"laueimproc.geometry.hkl_reciprocal_to_energy",
@@ -2457,7 +2457,7 @@ INDEX=[
 {
 "ref":"laueimproc.geometry.primitive_to_lattice",
 "url":63,
-"doc":"Convert the primitive vectors to the lattice parameters. Bijection of  laueimproc.geometry.reciprocal.lattice_to_primitive .  image  / / /build/media/IMGLattice.avif Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma]\\) in meters and radians. Notes   - We have allways  primitive_to_lattice(lattice_to_primitive(lattice  lattice , but it is not allways the case for the inverse composition because the numerical value of \\(\\mathbf{A}\\) is expressed in the crystal base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.geometry.lattice import primitive_to_lattice >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_lattice(primitive)  quartz lattice tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00]) >>>",
+"doc":"Convert the primitive vectors to the lattice parameters. Bijection of  laueimproc.geometry.lattice.lattice_to_primitive .  image  / / /build/media/IMGLattice.avif Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma]\\) in meters and radians. Notes   - We have always  primitive_to_lattice(lattice_to_primitive(lattice  lattice , but it is not always the case for the inverse composition because the numerical value of \\(\\mathbf{A}\\) is expressed in the crystal base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.geometry.lattice import primitive_to_lattice >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_lattice(primitive)  quartz lattice tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00]) >>>",
 "func":1
 },
 {
@@ -2475,13 +2475,13 @@ INDEX=[
 {
 "ref":"laueimproc.geometry.detector_to_ray",
 "url":63,
-"doc":"Find light ray witch intersected on the detector. Parameters      point : torch.Tensor The 2d point in the referencial of the detector of shape (\\ r, \\ p, 2). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\\ p', 6). Returns    - ray : torch.Tensor The unitary ray vector of shape (\\ r, \\ broadcast(p, p'), 3).",
+"doc":"Find light ray witch intersected on the detector. Bijection of  laueimproc.geometry.projection.ray_to_detector . Parameters      point : torch.Tensor The 2d point in meter in the referencial of the detector of shape (\\ r, \\ p, 2). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\\ p', 6). Returns    - ray : torch.Tensor The unitary ray vector of shape (\\ r, \\ broadcast(p, p'), 3).",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.ray_to_detector",
 "url":63,
-"doc":"Find the intersection of the light ray with the detector. Parameters      ray : torch.Tensor The unitary ray vector of shape (\\ r, 3). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\\ p, 6). cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape are (\\ r, \\ p, 2) and (\\ r, \\ p).  False: The final shape are (\\ broadcast(r, p), 2) and broadcast(r, p). Returns    - point : torch.Tensor The 2d points in the referencial of the detector of shape ( ., 2). dist : torch.Tensor The algebrical distance of the ray between the sample and the detector. a positive value means that the beam crashs on the detector. A negative value means it is moving away. The shape is ( .).",
+"doc":"Find the intersection of the light ray with the detector. Bijection of  laueimproc.geometry.projection.detector_to_ray . Parameters      ray : torch.Tensor The unitary ray vector of shape (\\ r, 3). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\\ p, 6). cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape are (\\ r, \\ p, 2) and (\\ r, \\ p).  False: The final shape are (\\ broadcast(r, p), 2) and broadcast(r, p). Returns    - point : torch.Tensor The 2d points in meter in the referencial of the detector of shape ( ., 2). dist : torch.Tensor The algebrical distance of the ray between the sample and the detector. a positive value means that the beam crashs on the detector. A negative value means it is moving away. The shape is ( .).",
 "func":1
 },
 {
@@ -2550,140 +2550,140 @@ INDEX=[
 "func":1
 },
 {
-"ref":"laueimproc.geometry.projection",
-"url":65,
-"doc":"Project rays on a physical or virtual plane."
-},
-{
-"ref":"laueimproc.geometry.projection.detector_to_ray",
-"url":65,
-"doc":"Find light ray witch intersected on the detector. Parameters      point : torch.Tensor The 2d point in the referencial of the detector of shape (\\ r, \\ p, 2). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\\ p', 6). Returns    - ray : torch.Tensor The unitary ray vector of shape (\\ r, \\ broadcast(p, p'), 3).",
-"func":1
-},
-{
-"ref":"laueimproc.geometry.projection.ray_to_detector",
-"url":65,
-"doc":"Find the intersection of the light ray with the detector. Parameters      ray : torch.Tensor The unitary ray vector of shape (\\ r, 3). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\\ p, 6). cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape are (\\ r, \\ p, 2) and (\\ r, \\ p).  False: The final shape are (\\ broadcast(r, p), 2) and broadcast(r, p). Returns    - point : torch.Tensor The 2d points in the referencial of the detector of shape ( ., 2). dist : torch.Tensor The algebrical distance of the ray between the sample and the detector. a positive value means that the beam crashs on the detector. A negative value means it is moving away. The shape is ( .).",
-"func":1
-},
-{
 "ref":"laueimproc.geometry.metric",
-"url":66,
+"url":65,
 "doc":"Implement some loss functions."
 },
 {
 "ref":"laueimproc.geometry.metric.raydotdist",
-"url":66,
+"url":65,
 "doc":"Compute the scalar product matrix of the rays pairwise. Parameters      ray_point_1 : torch.Tensor The 2d point associated to uf in the referencial of the detector of shape (\\ n, r1, 2). Could be directly the unitary ray vector uf or uq of shape (\\ n, r1, 3). ray_point_2 : torch.Tensor The 2d point associated to uf in the referencial of the detector of shape (\\ n', r2, 2 . Could be directly the unitary ray vector uf or uq of shape (\\ n', r2, 3). poni : torch.Tensor, optional Only use if the ray are projected points. The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\\ p, 6). Returns    - dist : torch.Tensor The distance matrix \\(\\cos(\\phi)\\) of shape (\\ broadcast(n, n'), \\ p, r1, r2).",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.metric.compute_matching_rate",
-"url":66,
+"url":65,
 "doc":"Compute the matching rate. It is the number of ray in  theo_uq , close engouth to at least one ray of  exp_uq . Parameters      exp_uq : torch.Tensor The unitary experimental uq vector of shape (\\ n, e, 3). theo_uq : torch.Tensor The unitary simulated theorical uq vector of shape (\\ n', t, 3). phi_max : float The maximum positive angular distance in radian to consider that the rays are closed enough. Returns    - match : torch.Tensor The matching rate of shape broadcast(n, n'). Examples     >>> import torch >>> from laueimproc.geometry.metric import compute_matching_rate >>> exp_uq = torch.randn(1000, 3) >>> exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True) >>> theo_uq = torch.randn(5000, 3) >>> theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True) >>> rate = compute_matching_rate(exp_uq, theo_uq, 0.5  torch.pi/180) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.metric.compute_matching_rate_continuous",
-"url":66,
+"url":65,
 "doc":"Compute the matching rate. This is a continuity extension of the disctere function  laueimproc.geometry.metric.compute_matching_rate . Let \\(\\phi\\) be the angle between two rays. The matching rate is defined with \\(r = \\sum f(\\phi_i)\\) with \\(f(\\phi) = e^{-\\frac{\\log(2)}{\\phi_{max \\phi}\\). Parameters      exp_uq : torch.Tensor The unitary experimental uq vector of shape (\\ n, e, 3). theo_uq : torch.Tensor The unitary simulated theorical uq vector of shape (\\ n', t, 3). phi_max : float The maximum positive angular distance in radian to consider that the rays are closed enough. Returns    - rate : torch.Tensor The continuous matching rate of shape broadcast(n, n'). Examples     >>> import torch >>> from laueimproc.geometry.metric import compute_matching_rate_continuous >>> exp_uq = torch.randn(1000, 3) >>> exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True) >>> theo_uq = torch.randn(5000, 3) >>> theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True) >>> rate = compute_matching_rate_continuous(exp_uq, theo_uq, 0.5  torch.pi/180) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.hkl",
-"url":67,
+"url":66,
 "doc":"Help to select the hkl indices."
 },
 {
 "ref":"laueimproc.geometry.hkl.select_hkl",
-"url":67,
+"url":66,
 "doc":"Reject the hkl sistematicaly out of energy band. Parameters      lattice : torch.Tensor, optional If provided, the lattices parameters \\([a, b, c, \\alpha, \\beta, \\gamma]\\) of shape ( ., 6) are used to simulate the hkl energy for a large number of rotation. max_hkl : int The maximum absolute hkl sum such as |h| + |k| + |l|  >> import torch >>> from laueimproc.geometry.hkl import select_hkl >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2]) >>> select_hkl(lattice) tensor( 0, -18, 0], [ 0, -17, -1], [ 0, -17, 0],  ., [ 17, 0, 1], [ 17, 1, 0], [ 18, 0, 0 , dtype=torch.int16) >>> len(_) 4578 >>> select_hkl(lattice, keep_harmonics=False) tensor( 0, -17, -1], [ 0, -17, 1], [ 0, -16, -1],  ., [ 17, 0, -1], [ 17, 0, 1], [ 17, 1, 0 , dtype=torch.int16) >>> len(_) 3661 >>> select_hkl(lattice, e_max=20e3  1.60e-19)  20 keV tensor( 0, -11, -3], [ 0, -11, -2], [ 0, -11, -1],  ., [ 11, 3, 0], [ 11, 3, 1], [ 11, 3, 2 , dtype=torch.int16) >>> len(_) 3399 >>>",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.bragg",
-"url":68,
+"url":67,
 "doc":"Simulation of the bragg diffraction."
 },
 {
 "ref":"laueimproc.geometry.bragg.hkl_reciprocal_to_energy",
-"url":68,
+"url":67,
 "doc":"Alias to  laueimproc.geometry.bragg.hkl_reciprocal_to_uq_energy .",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.bragg.hkl_reciprocal_to_uq",
-"url":68,
+"url":67,
 "doc":"Alias to  laueimproc.geometry.bragg.hkl_reciprocal_to_uq_energy .",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.bragg.hkl_reciprocal_to_uq_energy",
-"url":68,
+"url":67,
 "doc":"Thanks to the bragg relation, compute the energy of each diffracted ray. Parameters      hkl : torch.Tensor The h, k, l indices of shape (\\ n, 3) we want to mesure. reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) of shape (\\ r, 3, 3) in the lab base \\(\\mathcal{B^l}\\). cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape are (\\ n, \\ r, 3) and (\\ n, \\ r).  False: The final shape are (\\ broadcast(n, r), 3) and broadcast(n, r). Returns    - u_q : torch.Tensor All the unitary diffracting plane normal vector of shape ( ., 3). The vectors are expressed in the same base as the reciprocal space. energy : torch.Tensor The energy of each ray in J as a tensor of shape ( .). \\(\\begin{cases} E = \\frac{hc}{\\lambda}  \\lambda = 2d\\sin(\\theta)  \\sin(\\theta) = \\left| \\langle u_i, u_q \\rangle \\right|  \\end{cases}\\) Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\). Examples     >>> import torch >>> from laueimproc.geometry.bragg import hkl_reciprocal_to_uq_energy >>> reciprocal = torch.torch.tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00],  . [ 9.6225e+08, 3.0387e+09, -0.0000e+00],  . [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>> hkl = torch.tensor([1, 2, -1]) >>> u_q, energy = hkl_reciprocal_to_uq_energy(hkl, reciprocal) >>> u_q tensor([ 0.1798, 0.7595, -0.6252]) >>> 6.24e18  energy  convertion J -> eV tensor(9200.6816) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.bragg.uf_to_uq",
-"url":68,
+"url":67,
 "doc":"Calculate the vector normal to the diffracting planes. Bijection of  laueimproc.geometry.bragg.uq_to_uf . \\(u_q \\propto u_f - u_i\\) Parameters      u_f : torch.Tensor The unitary diffracted rays of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - u_q : torch.Tensor The unitary normals of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.bragg.uq_to_uf",
-"url":68,
+"url":67,
 "doc":"Calculate the diffracted ray from q vector. Bijection of  laueimproc.geometry.bragg.uf_to_uq . \\(\\begin{cases} u_f - u_i = \\eta u_q  \\eta = 2 \\langle u_q, -u_i \\rangle  \\end{cases}\\) Parameters      u_q : torch.Tensor The unitary q vectors of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - u_f : torch.Tensor The unitary diffracted ray of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Notes   -  \\(u_f\\) is not sensitive to the \\(u_q\\) orientation.  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.thetachi",
-"url":69,
+"url":68,
 "doc":"Convertion of diffracted ray to angles. Do not use these functions for intensive calculation, they should only be used for final conversion, not for a calculation step."
 },
 {
 "ref":"laueimproc.geometry.thetachi.thetachi_to_uf",
-"url":69,
+"url":68,
 "doc":"Reconstruct the diffracted ray from the deviation angles. Bijection of  laueimproc.geometry.thetachi.uf_to_thetachi .  image  / /build/media/IMGThetaChi.avif Parameters      theta : torch.Tensor The half deviation angle in radian, with \\(\\theta \\in [0, \\frac{\\pi}{2}]\\). chi : torch.Tensor The rotation angle in radian from the vertical plan \\ \\mathbf{L_1}, \\mathbf{L_3})\\) to the plan \\ u_i, \\mathcal{B^l_z})\\), with \\(\\chi \\in [-\\pi, \\pi]\\). Returns    - u_f : torch.Tensor The unitary diffracted ray of shape ( broadcast(theta.shape, chi.shape), 3). It is expressed in the lab base \\(\\mathcal{B^l}\\). Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).  This function is slow, use  laueimproc.geometry.bragg.uq_to_uf if you can. Examples     >>> import torch >>> from laueimproc.geometry.thetachi import thetachi_to_uf >>> theta = torch.deg2rad(torch.tensor([15., 30., 45.] >>> chi = torch.deg2rad(torch.tensor([ -0., 90., -45.] >>> thetachi_to_uf(theta, chi).round(decimals=4) tensor( 0.5000, 0.0000, 0.8660], [-0.0000, -0.8660, 0.5000], [ 0.7071, 0.7071, -0.0000 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.thetachi.uf_to_thetachi",
-"url":69,
+"url":68,
 "doc":"Find the angular deviation of the dffracted ray. Bijection of  laueimproc.geometry.thetachi.thetachi_to_uf .  image  / /build/media/IMGThetaChi.avif Parameters      u_f : torch.Tensor The unitary diffracted ray of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - theta : torch.Tensor The half deviation angle in radian, of shape ( .). \\(\\theta \\in [0, \\frac{\\pi}{2}]\\) chi : torch.Tensor The counterclockwise (trigonometric) rotation of the diffracted ray if you look as u_i. It is the angle from the vertical plan \\ \\mathbf{L_1}, \\mathbf{L_3})\\) to the plan \\ u_i, \\mathcal{B^l_z})\\). The shape is ( .) as well. \\(\\chi \\in [-\\pi, \\pi]\\) Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).  This function is slow, use  laueimproc.geometry.bragg.uf_to_uq if you can. Examples     >>> import torch >>> from laueimproc.geometry.thetachi import uf_to_thetachi >>> u_f = torch.tensor( 1/2, 0, 3 (1/2)/2], [0, -3 (1/2)/2, 1/2], [2 (1/2), 2 (1/2), 0 ) >>> theta, chi = uf_to_thetachi(u_f) >>> torch.rad2deg(theta).round() tensor([15., 30., 45.]) >>> torch.rad2deg(chi).round() tensor([ -0., 90., -45.]) >>>",
 "func":1
 },
 {
-"ref":"laueimproc.geometry.lattice",
-"url":70,
-"doc":"Link the lattice parameters and the primitive vectors \\(\\mathbf{A}\\)."
-},
-{
-"ref":"laueimproc.geometry.lattice.lattice_to_primitive",
-"url":70,
-"doc":"Convert the lattice parameters into primitive vectors.  image  / / /build/media/IMGLatticeBc.avif Parameters      lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\) in meters and radians. Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) of shape ( ., 3, 3) in the crystal base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.geometry.lattice import lattice_to_primitive >>> lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2 torch.pi/3]) >>> lattice_to_primitive(lattice) tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17], [ 0.0000e+00, 3.2909e-10, 8.6603e-10], [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>>",
-"func":1
-},
-{
-"ref":"laueimproc.geometry.lattice.primitive_to_lattice",
-"url":70,
-"doc":"Convert the primitive vectors to the lattice parameters. Bijection of  laueimproc.geometry.reciprocal.lattice_to_primitive .  image  / / /build/media/IMGLattice.avif Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma]\\) in meters and radians. Notes   - We have allways  primitive_to_lattice(lattice_to_primitive(lattice  lattice , but it is not allways the case for the inverse composition because the numerical value of \\(\\mathbf{A}\\) is expressed in the crystal base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.geometry.lattice import primitive_to_lattice >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_lattice(primitive)  quartz lattice tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00]) >>>",
-"func":1
-},
-{
 "ref":"laueimproc.geometry.reciprocal",
-"url":71,
+"url":69,
 "doc":"Enables communication between primitive \\(\\mathbf{A}\\) and reciprocal space \\(\\mathbf{B}\\)."
 },
 {
 "ref":"laueimproc.geometry.reciprocal.primitive_to_reciprocal",
-"url":71,
+"url":69,
 "doc":"Convert the primitive vectors into the reciprocal base vectors. Bijection of  laueimproc.geometry.reciprocal.reciprocal_to_primitive .  image  / / /build/media/IMGPrimitiveReciprocal.avif Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) in the same orthonormal base. Examples     >>> import torch >>> from laueimproc.geometry.reciprocal import primitive_to_reciprocal >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_reciprocal(primitive) tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00], [ 9.6225e+08, 3.0387e+09, -0.0000e+00], [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.reciprocal.reciprocal_to_primitive",
-"url":71,
+"url":69,
 "doc":"Convert the reciprocal vectors into the primitive base vectors. Bijection of  laueimproc.geometry.reciprocal.primitive_to_reciprocal .  image  / / /build/media/IMGPrimitiveReciprocal.avif Parameters      reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) in any orthonormal base. Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in the same orthonormal base.",
+"func":1
+},
+{
+"ref":"laueimproc.geometry.projection",
+"url":70,
+"doc":"Project rays on a physical or virtual plane."
+},
+{
+"ref":"laueimproc.geometry.projection.detector_to_ray",
+"url":70,
+"doc":"Find light ray witch intersected on the detector. Bijection of  laueimproc.geometry.projection.ray_to_detector . Parameters      point : torch.Tensor The 2d point in meter in the referencial of the detector of shape (\\ r, \\ p, 2). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\\ p', 6). Returns    - ray : torch.Tensor The unitary ray vector of shape (\\ r, \\ broadcast(p, p'), 3).",
+"func":1
+},
+{
+"ref":"laueimproc.geometry.projection.ray_to_detector",
+"url":70,
+"doc":"Find the intersection of the light ray with the detector. Bijection of  laueimproc.geometry.projection.detector_to_ray . Parameters      ray : torch.Tensor The unitary ray vector of shape (\\ r, 3). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\\ p, 6). cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape are (\\ r, \\ p, 2) and (\\ r, \\ p).  False: The final shape are (\\ broadcast(r, p), 2) and broadcast(r, p). Returns    - point : torch.Tensor The 2d points in meter in the referencial of the detector of shape ( ., 2). dist : torch.Tensor The algebrical distance of the ray between the sample and the detector. a positive value means that the beam crashs on the detector. A negative value means it is moving away. The shape is ( .).",
+"func":1
+},
+{
+"ref":"laueimproc.geometry.lattice",
+"url":71,
+"doc":"Link the lattice parameters and the primitive vectors \\(\\mathbf{A}\\)."
+},
+{
+"ref":"laueimproc.geometry.lattice.lattice_to_primitive",
+"url":71,
+"doc":"Convert the lattice parameters into primitive vectors.  image  / / /build/media/IMGLatticeBc.avif Parameters      lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\) in meters and radians. Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) of shape ( ., 3, 3) in the crystal base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.geometry.lattice import lattice_to_primitive >>> lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2 torch.pi/3]) >>> lattice_to_primitive(lattice) tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17], [ 0.0000e+00, 3.2909e-10, 8.6603e-10], [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>>",
+"func":1
+},
+{
+"ref":"laueimproc.geometry.lattice.primitive_to_lattice",
+"url":71,
+"doc":"Convert the primitive vectors to the lattice parameters. Bijection of  laueimproc.geometry.lattice.lattice_to_primitive .  image  / / /build/media/IMGLattice.avif Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma]\\) in meters and radians. Notes   - We have always  primitive_to_lattice(lattice_to_primitive(lattice  lattice , but it is not always the case for the inverse composition because the numerical value of \\(\\mathbf{A}\\) is expressed in the crystal base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.geometry.lattice import primitive_to_lattice >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_lattice(primitive)  quartz lattice tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00]) >>>",
 "func":1
 },
 {

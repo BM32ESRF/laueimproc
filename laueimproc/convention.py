@@ -100,7 +100,7 @@ def ij_to_xy(
 
     * `ij`: Extension by continuity (N -> R) of the numpy convention (height, width).
     The first axis iterates on lines from top to bottom, the second on columns from left to right.
-    In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel.
+    The origin (i=0, j=0) correspond to the top left image corner of the top left pixel.
     It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).
 
     * `xy`: A transposition and a translation of the origin of the `ij` convention.

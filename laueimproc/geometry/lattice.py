@@ -58,7 +58,7 @@ def lattice_to_primitive(lattice: torch.Tensor) -> torch.Tensor:
 def primitive_to_lattice(primitive: torch.Tensor) -> torch.Tensor:
     r"""Convert the primitive vectors to the lattice parameters.
 
-    Bijection of ``laueimproc.geometry.reciprocal.lattice_to_primitive``.
+    Bijection of ``laueimproc.geometry.lattice.lattice_to_primitive``.
 
     .. image:: ../../../build/media/IMGLattice.avif
 
@@ -75,8 +75,8 @@ def primitive_to_lattice(primitive: torch.Tensor) -> torch.Tensor:
 
     Notes
     -----
-    We have allways `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
-    but it is not allways the case for the inverse composition because the numerical
+    We have always `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
+    but it is not always the case for the inverse composition because the numerical
     value of \(\mathbf{A}\) is expressed in the crystal base \(\mathcal{B^c}\).
 
     Examples

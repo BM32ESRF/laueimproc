@@ -11,10 +11,12 @@ from .rotation import angle_to_rot
 def detector_to_ray(point: torch.Tensor, poni: torch.Tensor) -> torch.Tensor:
     r"""Find light ray witch intersected on the detector.
 
+    Bijection of ``laueimproc.geometry.projection.ray_to_detector``.
+
     Parameters
     ----------
     point : torch.Tensor
-        The 2d point in the referencial of the detector of shape (\*r, \*p, 2).
+        The 2d point in meter in the referencial of the detector of shape (\*r, \*p, 2).
     poni : torch.Tensor
         The point of normal incidence, callibration parameters according the pyfai convention.
         Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\*p', 6).
@@ -52,6 +54,8 @@ def ray_to_detector(
 ) -> tuple[torch.Tensor, torch.Tensor]:
     r"""Find the intersection of the light ray with the detector.
 
+    Bijection of ``laueimproc.geometry.projection.detector_to_ray``.
+
     Parameters
     ----------
     ray : torch.Tensor
@@ -69,7 +73,7 @@ def ray_to_detector(
     Returns
     -------
     point : torch.Tensor
-        The 2d points in the referencial of the detector of shape (..., 2).
+        The 2d points in meter in the referencial of the detector of shape (..., 2).
     dist : torch.Tensor
         The algebrical distance of the ray between the sample and the detector.
         a positive value means that the beam crashs on the detector.

@@ -2,8 +2,6 @@
 
 r"""Implement the Bragg diffraction rules.
 
-https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position
-
 Bases
 -----
 
@@ -15,7 +13,7 @@ Bases
 Lattice parameters
 ------------------
 
-* \([a, b, c, \alpha, \beta, \gamma]\): The lattice parameters.
+* \([a, b, c, \alpha, \beta, \gamma]\): The lattice scalars parameters.
 * \(\mathbf{A}\): The primitive column vectors \([\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]\)
     in an orthonormal base.
 * \(\mathbf{B}\): The reciprocal column vectors \([\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]\)

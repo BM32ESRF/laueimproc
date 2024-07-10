@@ -24,7 +24,6 @@
 </header>
 <section id="section-intro">
 <p>Implement the Bragg diffraction rules.</p>
-<p><a href="https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position">https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position</a></p>
 <h2 id="bases">Bases</h2>
 <ul>
 <li><span><span class="MathJax_Preview">\mathcal{B^c}</span><script type="math/tex">\mathcal{B^c}</script></span>: The orthonormal base of the crystal
@@ -34,7 +33,7 @@
 </ul>
 <h2 id="lattice-parameters">Lattice Parameters</h2>
 <ul>
-<li><span><span class="MathJax_Preview">[a, b, c, \alpha, \beta, \gamma]</span><script type="math/tex">[a, b, c, \alpha, \beta, \gamma]</script></span>: The lattice parameters.</li>
+<li><span><span class="MathJax_Preview">[a, b, c, \alpha, \beta, \gamma]</span><script type="math/tex">[a, b, c, \alpha, \beta, \gamma]</script></span>: The lattice scalars parameters.</li>
 <li><span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span>: The primitive column vectors <span><span class="MathJax_Preview">[\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]</span><script type="math/tex">[\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]</script></span>
 in an orthonormal base.</li>
 <li><span><span class="MathJax_Preview">\mathbf{B}</span><script type="math/tex">\mathbf{B}</script></span>: The reciprocal column vectors <span><span class="MathJax_Preview">[\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]</span><script type="math/tex">[\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]</script></span>
@@ -48,8 +47,6 @@ in an orthonormal base.</li>
 
 r&#34;&#34;&#34;Implement the Bragg diffraction rules.
 
-https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position
-
 Bases
 -----
 
@@ -61,7 +58,7 @@ Bases
 Lattice parameters
 ------------------
 
-* \([a, b, c, \alpha, \beta, \gamma]\): The lattice parameters.
+* \([a, b, c, \alpha, \beta, \gamma]\): The lattice scalars parameters.
 * \(\mathbf{A}\): The primitive column vectors \([\mathbf{e_1}, \mathbf{e_2}, \mathbf{e_3}]\)
     in an orthonormal base.
 * \(\mathbf{B}\): The reciprocal column vectors \([\mathbf{e_1^*}, \mathbf{e_2^*}, \mathbf{e_3^*}]\)
@@ -635,10 +632,11 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
 </code></dt>
 <dd>
 <div class="desc"><p>Find light ray witch intersected on the detector.</p>
+<p>Bijection of <code><a title="laueimproc.geometry.projection.ray_to_detector" href="projection.html#laueimproc.geometry.projection.ray_to_detector">ray_to_detector()</a></code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>point</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The 2d point in the referencial of the detector of shape (*r, *p, 2).</dd>
+<dd>The 2d point in meter in the referencial of the detector of shape (*r, *p, 2).</dd>
 <dt><strong><code>poni</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The point of normal incidence, callibration parameters according the pyfai convention.
 Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (*p', 6).</dd>
@@ -655,10 +653,12 @@ Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (*p', 6).</dd>
 <pre><code class="python">def detector_to_ray(point: torch.Tensor, poni: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Find light ray witch intersected on the detector.
 
+    Bijection of ``laueimproc.geometry.projection.ray_to_detector``.
+
     Parameters
     ----------
     point : torch.Tensor
-        The 2d point in the referencial of the detector of shape (\*r, \*p, 2).
+        The 2d point in meter in the referencial of the detector of shape (\*r, \*p, 2).
     poni : torch.Tensor
         The point of normal incidence, callibration parameters according the pyfai convention.
         Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\*p&#39;, 6).
@@ -947,7 +947,7 @@ tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
 </code></dt>
 <dd>
 <div class="desc"><p>Convert the primitive vectors to the lattice parameters.</p>
-<p>Bijection of <code>laueimproc.geometry.reciprocal.lattice_to_primitive</code>.</p>
+<p>Bijection of <code><a title="laueimproc.geometry.lattice.lattice_to_primitive" href="lattice.html#laueimproc.geometry.lattice.lattice_to_primitive">lattice_to_primitive()</a></code>.</p>
 <p><img alt="" src="../../../build/media/IMGLattice.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -961,8 +961,8 @@ tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
 Values are <span><span class="MathJax_Preview">[a, b, c, \alpha, \beta, \gamma]</span><script type="math/tex">[a, b, c, \alpha, \beta, \gamma]</script></span> in meters and radians.</dd>
 </dl>
 <h2 id="notes">Notes</h2>
-<p>We have allways <code>primitive_to_lattice(lattice_to_primitive(lattice)) == lattice</code>,
-but it is not allways the case for the inverse composition because the numerical
+<p>We have always <code>primitive_to_lattice(lattice_to_primitive(lattice)) == lattice</code>,
+but it is not always the case for the inverse composition because the numerical
 value of <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> is expressed in the crystal base <span><span class="MathJax_Preview">\mathcal{B^c}</span><script type="math/tex">\mathcal{B^c}</script></span>.</p>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
@@ -981,7 +981,7 @@ tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00])
 <pre><code class="python">def primitive_to_lattice(primitive: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Convert the primitive vectors to the lattice parameters.
 
-    Bijection of ``laueimproc.geometry.reciprocal.lattice_to_primitive``.
+    Bijection of ``laueimproc.geometry.lattice.lattice_to_primitive``.
 
     .. image:: ../../../build/media/IMGLattice.avif
 
@@ -998,8 +998,8 @@ tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00])
 
     Notes
     -----
-    We have allways `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
-    but it is not allways the case for the inverse composition because the numerical
+    We have always `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
+    but it is not always the case for the inverse composition because the numerical
     value of \(\mathbf{A}\) is expressed in the crystal base \(\mathcal{B^c}\).
 
     Examples
@@ -1106,6 +1106,7 @@ tensor([[ 1.6667e+09,  0.0000e+00,  0.0000e+00],
 </code></dt>
 <dd>
 <div class="desc"><p>Find the intersection of the light ray with the detector.</p>
+<p>Bijection of <code><a title="laueimproc.geometry.projection.detector_to_ray" href="projection.html#laueimproc.geometry.projection.detector_to_ray">detector_to_ray()</a></code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>ray</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -1126,7 +1127,7 @@ Overwise, the batch dimensions are broadcasted like a zip.</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>point</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The 2d points in the referencial of the detector of shape (&hellip;, 2).</dd>
+<dd>The 2d points in meter in the referencial of the detector of shape (&hellip;, 2).</dd>
 <dt><strong><code>dist</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The algebrical distance of the ray between the sample and the detector.
 a positive value means that the beam crashs on the detector.
@@ -1142,6 +1143,8 @@ A negative value means it is moving away. The shape is (&hellip;).</dd>
     *, cartesian_product: bool = True,
 ) -&gt; tuple[torch.Tensor, torch.Tensor]:
     r&#34;&#34;&#34;Find the intersection of the light ray with the detector.
+
+    Bijection of ``laueimproc.geometry.projection.detector_to_ray``.
 
     Parameters
     ----------
@@ -1160,7 +1163,7 @@ A negative value means it is moving away. The shape is (&hellip;).</dd>
     Returns
     -------
     point : torch.Tensor
-        The 2d points in the referencial of the detector of shape (..., 2).
+        The 2d points in meter in the referencial of the detector of shape (..., 2).
     dist : torch.Tensor
         The algebrical distance of the ray between the sample and the detector.
         a positive value means that the beam crashs on the detector.
