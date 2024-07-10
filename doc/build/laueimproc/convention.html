@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>laueimproc.convention API documentation</title>
-<meta name="description" content="Provide tools for switching convention …" />
+<meta name="description" content="Provide tools for switching convention." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -24,43 +24,13 @@
 </header>
 <section id="section-intro">
 <p>Provide tools for switching convention.</p>
-<p>The two pixel conventions supported are:</p>
-<ul>
-<li>
-<p><code>ij</code>: Extension by continuity (N -&gt; R) of the numpy convention (height, width).
-The first axis iterates on lines from top to bottom, the second on columns from left to right.
-In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel.
-It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).</p>
-</li>
-<li>
-<p><code>xy</code>: A transposition and a translation of the origin of the <code>ij</code> convention.
-The first axis iterates on columns from left to right, the second on lines from top to bottom.
-In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.</p>
-</li>
-</ul>
-<p><img alt=":width: 256" src="../../build/media/IMGConvIJXY.avif"></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!/usr/bin/env python3
 
-&#34;&#34;&#34;Provide tools for switching convention.
-
-The two pixel conventions supported are:
-
-* `ij`: Extension by continuity (N -&gt; R) of the numpy convention (height, width).
-The first axis iterates on lines from top to bottom, the second on columns from left to right.
-In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel.
-It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).
-
-* `xy`: A transposition and a translation of the origin of the `ij` convention.
-The first axis iterates on columns from left to right, the second on lines from top to bottom.
-In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.
-
-.. image:: ../../build/media/IMGConvIJXY.avif
-    :width: 256
-&#34;&#34;&#34;
+&#34;&#34;&#34;Provide tools for switching convention.&#34;&#34;&#34;
 
 import functools
 import numbers
@@ -72,7 +42,7 @@ import torch
 def det_to_poni(det: torch.Tensor) -&gt; torch.Tensor:
     &#34;&#34;&#34;Convert a .det config into a .poni config.
 
-    Bijection of ``laueimproc.convemtion.poni_to_det``.
+    Bijection of ``laueimproc.convention.poni_to_det``.
 
     Parameters
     ----------
@@ -158,6 +128,18 @@ def ij_to_xy(
 ) -&gt; torch.Tensor | np.ndarray:
     &#34;&#34;&#34;Switch the axis i and j, and append 1/2 to all values.
 
+    * `ij`: Extension by continuity (N -&gt; R) of the numpy convention (height, width).
+    The first axis iterates on lines from top to bottom, the second on columns from left to right.
+    In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel.
+    It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).
+
+    * `xy`: A transposition and a translation of the origin of the `ij` convention.
+    The first axis iterates on columns from left to right, the second on lines from top to bottom.
+    In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.
+
+
+    .. image:: ../../build/media/IMGConvIJXY.avif
+
     Parameters
     ----------
     array : torch.Tensor or np.ndarray
@@ -239,6 +221,8 @@ def lauetools_to_or(vect_lauetools: torch.Tensor, dim: numbers.Integral = -1) -&
 
     Bijection of ``laueimproc.convention.or_to_lauetools``.
 
+    .. image:: ../../build/media/IMGLauetoolsOr.avif
+
     Parameters
     ----------
     vect_lauetools : torch.Tensor
@@ -279,6 +263,8 @@ def lauetools_to_pyfai(vect_lauetools: torch.Tensor, dim: numbers.Integral = -1)
     &#34;&#34;&#34;Active convertion of the vectors from lauetools base to pyfai base.
 
     Bijection of ``laueimproc.convention.pyfai_to_lauetools``.
+
+    .. image:: ../../build/media/IMGPyfaiLauetools.avif
 
     Parameters
     ----------
@@ -321,6 +307,8 @@ def or_to_lauetools(vect_or: torch.Tensor, dim: numbers.Integral = -1) -&gt; tor
 
     Bijection of ``laueimproc.convention.lauetools_to_or``.
 
+    .. image:: ../../build/media/IMGLauetoolsOr.avif
+
     Parameters
     ----------
     vect_or : torch.Tensor
@@ -338,7 +326,7 @@ def or_to_lauetools(vect_or: torch.Tensor, dim: numbers.Integral = -1) -&gt; tor
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.convention import lauetools_to_or, or_to_lauetools
     &gt;&gt;&gt; vect_or = torch.tensor([[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]])
-    &gt;&gt;&gt; or_to_lauetools(vect_odile, dim=0)
+    &gt;&gt;&gt; or_to_lauetools(vect_or, dim=0)
     tensor([[ 0,  1,  0,  1],
             [-1,  0,  0, -1],
             [ 0,  0,  1,  1]])
@@ -360,7 +348,7 @@ def or_to_lauetools(vect_or: torch.Tensor, dim: numbers.Integral = -1) -&gt; tor
 def poni_to_det(poni: torch.Tensor, pixelsize: torch.Tensor) -&gt; torch.Tensor:
     &#34;&#34;&#34;Convert a .det config into a .poni config.
 
-    Bijection of ``laueimproc.convemtion.det_to_poni``.
+    Bijection of ``laueimproc.convention.det_to_poni``.
 
     Parameters
     ----------
@@ -423,6 +411,8 @@ def pyfai_to_lauetools(vect_pyfai: torch.Tensor, dim: numbers.Integral = -1) -&g
 
     Bijection of ``laueimproc.convention.lauetools_to_pyfai``.
 
+    .. image:: ../../build/media/IMGPyfaiLauetools.avif
+
     Parameters
     ----------
     vect_pyfai : torch.Tensor
@@ -471,7 +461,7 @@ def pyfai_to_lauetools(vect_pyfai: torch.Tensor, dim: numbers.Integral = -1) -&g
 </code></dt>
 <dd>
 <div class="desc"><p>Convert a .det config into a .poni config.</p>
-<p>Bijection of <code>laueimproc.convemtion.poni_to_det</code>.</p>
+<p>Bijection of <code><a title="laueimproc.convention.poni_to_det" href="#laueimproc.convention.poni_to_det">poni_to_det()</a></code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>det</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -542,7 +532,7 @@ def pyfai_to_lauetools(vect_pyfai: torch.Tensor, dim: numbers.Integral = -1) -&g
 <pre><code class="python">def det_to_poni(det: torch.Tensor) -&gt; torch.Tensor:
     &#34;&#34;&#34;Convert a .det config into a .poni config.
 
-    Bijection of ``laueimproc.convemtion.poni_to_det``.
+    Bijection of ``laueimproc.convention.poni_to_det``.
 
     Parameters
     ----------
@@ -625,6 +615,20 @@ def pyfai_to_lauetools(vect_pyfai: torch.Tensor, dim: numbers.Integral = -1) -&g
 </code></dt>
 <dd>
 <div class="desc"><p>Switch the axis i and j, and append 1/2 to all values.</p>
+<ul>
+<li>
+<p><code>ij</code>: Extension by continuity (N -&gt; R) of the numpy convention (height, width).
+The first axis iterates on lines from top to bottom, the second on columns from left to right.
+In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel.
+It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).</p>
+</li>
+<li>
+<p><code>xy</code>: A transposition and a translation of the origin of the <code>ij</code> convention.
+The first axis iterates on columns from left to right, the second on lines from top to bottom.
+In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.</p>
+</li>
+</ul>
+<p><img alt="" src="../../build/media/IMGConvIJXY.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>array</code></strong> :&ensp;<code>torch.Tensor</code> or <code>np.ndarray</code></dt>
@@ -682,6 +686,18 @@ True
     j: tuple[int, slice, type(Ellipsis)] | int | slice | type(Ellipsis),
 ) -&gt; torch.Tensor | np.ndarray:
     &#34;&#34;&#34;Switch the axis i and j, and append 1/2 to all values.
+
+    * `ij`: Extension by continuity (N -&gt; R) of the numpy convention (height, width).
+    The first axis iterates on lines from top to bottom, the second on columns from left to right.
+    In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel.
+    It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).
+
+    * `xy`: A transposition and a translation of the origin of the `ij` convention.
+    The first axis iterates on columns from left to right, the second on lines from top to bottom.
+    In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.
+
+
+    .. image:: ../../build/media/IMGConvIJXY.avif
 
     Parameters
     ----------
@@ -774,6 +790,7 @@ True
 <dd>
 <div class="desc"><p>Active convertion of the vectors from lauetools base to odile base.</p>
 <p>Bijection of <code><a title="laueimproc.convention.or_to_lauetools" href="#laueimproc.convention.or_to_lauetools">or_to_lauetools()</a></code>.</p>
+<p><img alt="" src="../../build/media/IMGLauetoolsOr.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>vect_lauetools</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -808,6 +825,8 @@ tensor([[1, 0, 0, 1],
     &#34;&#34;&#34;Active convertion of the vectors from lauetools base to odile base.
 
     Bijection of ``laueimproc.convention.or_to_lauetools``.
+
+    .. image:: ../../build/media/IMGLauetoolsOr.avif
 
     Parameters
     ----------
@@ -851,6 +870,7 @@ tensor([[1, 0, 0, 1],
 <dd>
 <div class="desc"><p>Active convertion of the vectors from lauetools base to pyfai base.</p>
 <p>Bijection of <code><a title="laueimproc.convention.pyfai_to_lauetools" href="#laueimproc.convention.pyfai_to_lauetools">pyfai_to_lauetools()</a></code>.</p>
+<p><img alt="" src="../../build/media/IMGPyfaiLauetools.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>vect_lauetools</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -885,6 +905,8 @@ tensor([[1, 0, 0, 1],
     &#34;&#34;&#34;Active convertion of the vectors from lauetools base to pyfai base.
 
     Bijection of ``laueimproc.convention.pyfai_to_lauetools``.
+
+    .. image:: ../../build/media/IMGPyfaiLauetools.avif
 
     Parameters
     ----------
@@ -928,6 +950,7 @@ tensor([[1, 0, 0, 1],
 <dd>
 <div class="desc"><p>Active convertion of the vectors from odile base to lauetools base.</p>
 <p>Bijection of <code><a title="laueimproc.convention.lauetools_to_or" href="#laueimproc.convention.lauetools_to_or">lauetools_to_or()</a></code>.</p>
+<p><img alt="" src="../../build/media/IMGLauetoolsOr.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>vect_or</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -944,7 +967,7 @@ tensor([[1, 0, 0, 1],
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.convention import lauetools_to_or, or_to_lauetools
 &gt;&gt;&gt; vect_or = torch.tensor([[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]])
-&gt;&gt;&gt; or_to_lauetools(vect_odile, dim=0)
+&gt;&gt;&gt; or_to_lauetools(vect_or, dim=0)
 tensor([[ 0,  1,  0,  1],
         [-1,  0,  0, -1],
         [ 0,  0,  1,  1]])
@@ -963,6 +986,8 @@ tensor([[1, 0, 0, 1],
 
     Bijection of ``laueimproc.convention.lauetools_to_or``.
 
+    .. image:: ../../build/media/IMGLauetoolsOr.avif
+
     Parameters
     ----------
     vect_or : torch.Tensor
@@ -980,7 +1005,7 @@ tensor([[1, 0, 0, 1],
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.convention import lauetools_to_or, or_to_lauetools
     &gt;&gt;&gt; vect_or = torch.tensor([[1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1]])
-    &gt;&gt;&gt; or_to_lauetools(vect_odile, dim=0)
+    &gt;&gt;&gt; or_to_lauetools(vect_or, dim=0)
     tensor([[ 0,  1,  0,  1],
             [-1,  0,  0, -1],
             [ 0,  0,  1,  1]])
@@ -1004,7 +1029,7 @@ tensor([[1, 0, 0, 1],
 </code></dt>
 <dd>
 <div class="desc"><p>Convert a .det config into a .poni config.</p>
-<p>Bijection of <code>laueimproc.convemtion.det_to_poni</code>.</p>
+<p>Bijection of <code><a title="laueimproc.convention.det_to_poni" href="#laueimproc.convention.det_to_poni">det_to_poni()</a></code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>poni</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -1052,7 +1077,7 @@ True
 <pre><code class="python">def poni_to_det(poni: torch.Tensor, pixelsize: torch.Tensor) -&gt; torch.Tensor:
     &#34;&#34;&#34;Convert a .det config into a .poni config.
 
-    Bijection of ``laueimproc.convemtion.det_to_poni``.
+    Bijection of ``laueimproc.convention.det_to_poni``.
 
     Parameters
     ----------
@@ -1116,6 +1141,7 @@ True
 <dd>
 <div class="desc"><p>Active convertion of the vectors from pyfai base to lauetools base.</p>
 <p>Bijection of <code><a title="laueimproc.convention.lauetools_to_pyfai" href="#laueimproc.convention.lauetools_to_pyfai">lauetools_to_pyfai()</a></code>.</p>
+<p><img alt="" src="../../build/media/IMGPyfaiLauetools.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>vect_pyfai</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -1150,6 +1176,8 @@ tensor([[1, 0, 0, 1],
     &#34;&#34;&#34;Active convertion of the vectors from pyfai base to lauetools base.
 
     Bijection of ``laueimproc.convention.lauetools_to_pyfai``.
+
+    .. image:: ../../build/media/IMGPyfaiLauetools.avif
 
     Parameters
     ----------

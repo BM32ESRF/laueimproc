@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>laueimproc.diffraction.thetachi API documentation</title>
+<title>laueimproc.geometry.thetachi API documentation</title>
 <meta name="description" content="Convertion of diffracted ray to angles …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -20,7 +20,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>laueimproc.diffraction.thetachi</code></h1>
+<h1 class="title">Module <code>laueimproc.geometry.thetachi</code></h1>
 </header>
 <section id="section-intro">
 <p>Convertion of diffracted ray to angles.</p>
@@ -44,6 +44,10 @@ import torch
 def thetachi_to_uf(theta: torch.Tensor, chi: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Reconstruct the diffracted ray from the deviation angles.
 
+    Bijection of ``laueimproc.geometry.thetachi.uf_to_thetachi``.
+
+    .. image:: ../../build/media/IMGThetaChi.avif
+
     Parameters
     ----------
     theta : torch.Tensor
@@ -61,15 +65,14 @@ def thetachi_to_uf(theta: torch.Tensor, chi: torch.Tensor) -&gt; torch.Tensor:
     Notes
     -----
     * According the pyfai convention, \(u_i = \mathbf{L_1}\).
-    * This function is slow, use ``laueimproc.diffraction.bragg.uq_to_uf`` if you can.
+    * This function is slow, use ``laueimproc.geometry.bragg.uq_to_uf`` if you can.
 
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.diffraction.thetachi import thetachi_to_uf
+    &gt;&gt;&gt; from laueimproc.geometry.thetachi import thetachi_to_uf
     &gt;&gt;&gt; theta = torch.deg2rad(torch.tensor([15., 30., 45.]))
     &gt;&gt;&gt; chi = torch.deg2rad(torch.tensor([ -0.,  90., -45.]))
-    &gt;&gt;&gt; thetachi_to_uf(theta, chi)
     &gt;&gt;&gt; thetachi_to_uf(theta, chi).round(decimals=4)
     tensor([[ 0.5000,  0.0000,  0.8660],
             [-0.0000, -0.8660,  0.5000],
@@ -92,6 +95,10 @@ def thetachi_to_uf(theta: torch.Tensor, chi: torch.Tensor) -&gt; torch.Tensor:
 def uf_to_thetachi(u_f: torch.Tensor) -&gt; tuple[torch.Tensor, torch.Tensor]:
     r&#34;&#34;&#34;Find the angular deviation of the dffracted ray.
 
+    Bijection of ``laueimproc.geometry.thetachi.thetachi_to_uf``.
+
+    .. image:: ../../build/media/IMGThetaChi.avif
+
     Parameters
     ----------
     u_f : torch.Tensor
@@ -110,12 +117,12 @@ def uf_to_thetachi(u_f: torch.Tensor) -&gt; tuple[torch.Tensor, torch.Tensor]:
     Notes
     -----
     * According the pyfai convention, \(u_i = \mathbf{L_1}\).
-    * This function is slow, use ``laueimproc.diffraction.bragg.uf_to_uq`` if you can.
+    * This function is slow, use ``laueimproc.geometry.bragg.uf_to_uq`` if you can.
 
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.diffraction.thetachi import uf_to_thetachi
+    &gt;&gt;&gt; from laueimproc.geometry.thetachi import uf_to_thetachi
     &gt;&gt;&gt; u_f = torch.tensor([[1/2, 0, 3**(1/2)/2], [0, -3**(1/2)/2, 1/2], [2**(1/2), 2**(1/2), 0]])
     &gt;&gt;&gt; theta, chi = uf_to_thetachi(u_f)
     &gt;&gt;&gt; torch.rad2deg(theta).round()
@@ -140,11 +147,13 @@ def uf_to_thetachi(u_f: torch.Tensor) -&gt; tuple[torch.Tensor, torch.Tensor]:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="laueimproc.diffraction.thetachi.thetachi_to_uf"><code class="name flex">
+<dt id="laueimproc.geometry.thetachi.thetachi_to_uf"><code class="name flex">
 <span>def <span class="ident">thetachi_to_uf</span></span>(<span>theta: torch.Tensor, chi: torch.Tensor) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reconstruct the diffracted ray from the deviation angles.</p>
+<p>Bijection of <code><a title="laueimproc.geometry.thetachi.uf_to_thetachi" href="#laueimproc.geometry.thetachi.uf_to_thetachi">uf_to_thetachi()</a></code>.</p>
+<p><img alt="" src="../../build/media/IMGThetaChi.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>theta</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -162,14 +171,13 @@ It is expressed in the lab base <span><span class="MathJax_Preview">\mathcal{B^l
 <h2 id="notes">Notes</h2>
 <ul>
 <li>According the pyfai convention, <span><span class="MathJax_Preview">u_i = \mathbf{L_1}</span><script type="math/tex">u_i = \mathbf{L_1}</script></span>.</li>
-<li>This function is slow, use <code><a title="laueimproc.diffraction.bragg.uq_to_uf" href="bragg.html#laueimproc.diffraction.bragg.uq_to_uf">uq_to_uf()</a></code> if you can.</li>
+<li>This function is slow, use <code><a title="laueimproc.geometry.bragg.uq_to_uf" href="bragg.html#laueimproc.geometry.bragg.uq_to_uf">uq_to_uf()</a></code> if you can.</li>
 </ul>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.diffraction.thetachi import thetachi_to_uf
+&gt;&gt;&gt; from laueimproc.geometry.thetachi import thetachi_to_uf
 &gt;&gt;&gt; theta = torch.deg2rad(torch.tensor([15., 30., 45.]))
 &gt;&gt;&gt; chi = torch.deg2rad(torch.tensor([ -0.,  90., -45.]))
-&gt;&gt;&gt; thetachi_to_uf(theta, chi)
 &gt;&gt;&gt; thetachi_to_uf(theta, chi).round(decimals=4)
 tensor([[ 0.5000,  0.0000,  0.8660],
         [-0.0000, -0.8660,  0.5000],
@@ -182,6 +190,10 @@ tensor([[ 0.5000,  0.0000,  0.8660],
 </summary>
 <pre><code class="python">def thetachi_to_uf(theta: torch.Tensor, chi: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Reconstruct the diffracted ray from the deviation angles.
+
+    Bijection of ``laueimproc.geometry.thetachi.uf_to_thetachi``.
+
+    .. image:: ../../build/media/IMGThetaChi.avif
 
     Parameters
     ----------
@@ -200,15 +212,14 @@ tensor([[ 0.5000,  0.0000,  0.8660],
     Notes
     -----
     * According the pyfai convention, \(u_i = \mathbf{L_1}\).
-    * This function is slow, use ``laueimproc.diffraction.bragg.uq_to_uf`` if you can.
+    * This function is slow, use ``laueimproc.geometry.bragg.uq_to_uf`` if you can.
 
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.diffraction.thetachi import thetachi_to_uf
+    &gt;&gt;&gt; from laueimproc.geometry.thetachi import thetachi_to_uf
     &gt;&gt;&gt; theta = torch.deg2rad(torch.tensor([15., 30., 45.]))
     &gt;&gt;&gt; chi = torch.deg2rad(torch.tensor([ -0.,  90., -45.]))
-    &gt;&gt;&gt; thetachi_to_uf(theta, chi)
     &gt;&gt;&gt; thetachi_to_uf(theta, chi).round(decimals=4)
     tensor([[ 0.5000,  0.0000,  0.8660],
             [-0.0000, -0.8660,  0.5000],
@@ -228,11 +239,13 @@ tensor([[ 0.5000,  0.0000,  0.8660],
     return torch.cat([proj1.unsqueeze(-1), proj2.unsqueeze(-1), proj3.unsqueeze(-1)], dim=-1)</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.diffraction.thetachi.uf_to_thetachi"><code class="name flex">
+<dt id="laueimproc.geometry.thetachi.uf_to_thetachi"><code class="name flex">
 <span>def <span class="ident">uf_to_thetachi</span></span>(<span>u_f: torch.Tensor) ‑> tuple[torch.Tensor, torch.Tensor]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Find the angular deviation of the dffracted ray.</p>
+<p>Bijection of <code><a title="laueimproc.geometry.thetachi.thetachi_to_uf" href="#laueimproc.geometry.thetachi.thetachi_to_uf">thetachi_to_uf()</a></code>.</p>
+<p><img alt="" src="../../build/media/IMGThetaChi.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>u_f</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -251,11 +264,11 @@ The shape is (&hellip;) as well. <span><span class="MathJax_Preview">\chi \in [-
 <h2 id="notes">Notes</h2>
 <ul>
 <li>According the pyfai convention, <span><span class="MathJax_Preview">u_i = \mathbf{L_1}</span><script type="math/tex">u_i = \mathbf{L_1}</script></span>.</li>
-<li>This function is slow, use <code><a title="laueimproc.diffraction.bragg.uf_to_uq" href="bragg.html#laueimproc.diffraction.bragg.uf_to_uq">uf_to_uq()</a></code> if you can.</li>
+<li>This function is slow, use <code><a title="laueimproc.geometry.bragg.uf_to_uq" href="bragg.html#laueimproc.geometry.bragg.uf_to_uq">uf_to_uq()</a></code> if you can.</li>
 </ul>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.diffraction.thetachi import uf_to_thetachi
+&gt;&gt;&gt; from laueimproc.geometry.thetachi import uf_to_thetachi
 &gt;&gt;&gt; u_f = torch.tensor([[1/2, 0, 3**(1/2)/2], [0, -3**(1/2)/2, 1/2], [2**(1/2), 2**(1/2), 0]])
 &gt;&gt;&gt; theta, chi = uf_to_thetachi(u_f)
 &gt;&gt;&gt; torch.rad2deg(theta).round()
@@ -270,6 +283,10 @@ tensor([ -0.,  90., -45.])
 </summary>
 <pre><code class="python">def uf_to_thetachi(u_f: torch.Tensor) -&gt; tuple[torch.Tensor, torch.Tensor]:
     r&#34;&#34;&#34;Find the angular deviation of the dffracted ray.
+
+    Bijection of ``laueimproc.geometry.thetachi.thetachi_to_uf``.
+
+    .. image:: ../../build/media/IMGThetaChi.avif
 
     Parameters
     ----------
@@ -289,12 +306,12 @@ tensor([ -0.,  90., -45.])
     Notes
     -----
     * According the pyfai convention, \(u_i = \mathbf{L_1}\).
-    * This function is slow, use ``laueimproc.diffraction.bragg.uf_to_uq`` if you can.
+    * This function is slow, use ``laueimproc.geometry.bragg.uf_to_uq`` if you can.
 
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.diffraction.thetachi import uf_to_thetachi
+    &gt;&gt;&gt; from laueimproc.geometry.thetachi import uf_to_thetachi
     &gt;&gt;&gt; u_f = torch.tensor([[1/2, 0, 3**(1/2)/2], [0, -3**(1/2)/2, 1/2], [2**(1/2), 2**(1/2), 0]])
     &gt;&gt;&gt; theta, chi = uf_to_thetachi(u_f)
     &gt;&gt;&gt; torch.rad2deg(theta).round()
@@ -371,13 +388,13 @@ setTimeout(() => input.focus(), 100);
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="laueimproc.diffraction" href="index.html">laueimproc.diffraction</a></code></li>
+<li><code><a title="laueimproc.geometry" href="index.html">laueimproc.geometry</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.diffraction.thetachi.thetachi_to_uf" href="#laueimproc.diffraction.thetachi.thetachi_to_uf">thetachi_to_uf</a></code></li>
-<li><code><a title="laueimproc.diffraction.thetachi.uf_to_thetachi" href="#laueimproc.diffraction.thetachi.uf_to_thetachi">uf_to_thetachi</a></code></li>
+<li><code><a title="laueimproc.geometry.thetachi.thetachi_to_uf" href="#laueimproc.geometry.thetachi.thetachi_to_uf">thetachi_to_uf</a></code></li>
+<li><code><a title="laueimproc.geometry.thetachi.uf_to_thetachi" href="#laueimproc.geometry.thetachi.uf_to_thetachi">uf_to_thetachi</a></code></li>
 </ul>
 </li>
 </ul>

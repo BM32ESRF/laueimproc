@@ -39,25 +39,24 @@ def lattice_to_primitive(lattice: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Convert the lattice parameters into primitive vectors.
 
     .. image:: ../../../build/media/IMGLatticeBc.avif
-        :width: 256
 
     Parameters
     ----------
     lattice : torch.Tensor
         The array of lattice parameters of shape (..., 6).
-        Values are \([a, b, c, \alpha, \beta, \gamma]]\).
+        Values are \([a, b, c, \alpha, \beta, \gamma]]\) in meters and radians.
 
     Returns
     -------
     primitive : torch.Tensor
-        Matrix \(\mathbf{A}\) of shape (..., 3, 3) in the base \(\mathcal{B^c}\).
+        Matrix \(\mathbf{A}\) of shape (..., 3, 3) in the crystal base \(\mathcal{B^c}\).
 
     Examples
     --------
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.geometry.lattice import lattice_to_primitive
     &gt;&gt;&gt; lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2*torch.pi/3])
-    &gt;&gt;&gt; lattice_to_primitive(lattice)  # quartz lattice
+    &gt;&gt;&gt; lattice_to_primitive(lattice)
     tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
             [ 0.0000e+00,  3.2909e-10,  8.6603e-10],
             [ 0.0000e+00,  0.0000e+00,  1.2247e-09]])
@@ -89,8 +88,9 @@ def lattice_to_primitive(lattice: torch.Tensor) -&gt; torch.Tensor:
 def primitive_to_lattice(primitive: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Convert the primitive vectors to the lattice parameters.
 
+    Bijection of ``laueimproc.geometry.reciprocal.lattice_to_primitive``.
+
     .. image:: ../../../build/media/IMGLattice.avif
-        :width: 256
 
     Parameters
     ----------
@@ -101,13 +101,13 @@ def primitive_to_lattice(primitive: torch.Tensor) -&gt; torch.Tensor:
     -------
     lattice : torch.Tensor
         The array of lattice parameters of shape (..., 6).
-        Values are \([a, b, c, \alpha, \beta, \gamma]]\).
+        Values are \([a, b, c, \alpha, \beta, \gamma]\) in meters and radians.
 
     Notes
     -----
-    We have `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
-    but it is not the case for the composition inverse because the numerical
-    value of \(\mathbf{A}\) is base dependent.
+    We have allways `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
+    but it is not allways the case for the inverse composition because the numerical
+    value of \(\mathbf{A}\) is expressed in the crystal base \(\mathcal{B^c}\).
 
     Examples
     --------
@@ -144,23 +144,23 @@ def primitive_to_lattice(primitive: torch.Tensor) -&gt; torch.Tensor:
 </code></dt>
 <dd>
 <div class="desc"><p>Convert the lattice parameters into primitive vectors.</p>
-<p><img alt=":width: 256" src="../../../build/media/IMGLatticeBc.avif"></p>
+<p><img alt="" src="../../../build/media/IMGLatticeBc.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>lattice</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The array of lattice parameters of shape (&hellip;, 6).
-Values are <span><span class="MathJax_Preview">[a, b, c, \alpha, \beta, \gamma]]</span><script type="math/tex">[a, b, c, \alpha, \beta, \gamma]]</script></span>.</dd>
+Values are <span><span class="MathJax_Preview">[a, b, c, \alpha, \beta, \gamma]]</span><script type="math/tex">[a, b, c, \alpha, \beta, \gamma]]</script></span> in meters and radians.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>primitive</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>Matrix <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> of shape (&hellip;, 3, 3) in the base <span><span class="MathJax_Preview">\mathcal{B^c}</span><script type="math/tex">\mathcal{B^c}</script></span>.</dd>
+<dd>Matrix <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> of shape (&hellip;, 3, 3) in the crystal base <span><span class="MathJax_Preview">\mathcal{B^c}</span><script type="math/tex">\mathcal{B^c}</script></span>.</dd>
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.geometry.lattice import lattice_to_primitive
 &gt;&gt;&gt; lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2*torch.pi/3])
-&gt;&gt;&gt; lattice_to_primitive(lattice)  # quartz lattice
+&gt;&gt;&gt; lattice_to_primitive(lattice)
 tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
         [ 0.0000e+00,  3.2909e-10,  8.6603e-10],
         [ 0.0000e+00,  0.0000e+00,  1.2247e-09]])
@@ -174,25 +174,24 @@ tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
     r&#34;&#34;&#34;Convert the lattice parameters into primitive vectors.
 
     .. image:: ../../../build/media/IMGLatticeBc.avif
-        :width: 256
 
     Parameters
     ----------
     lattice : torch.Tensor
         The array of lattice parameters of shape (..., 6).
-        Values are \([a, b, c, \alpha, \beta, \gamma]]\).
+        Values are \([a, b, c, \alpha, \beta, \gamma]]\) in meters and radians.
 
     Returns
     -------
     primitive : torch.Tensor
-        Matrix \(\mathbf{A}\) of shape (..., 3, 3) in the base \(\mathcal{B^c}\).
+        Matrix \(\mathbf{A}\) of shape (..., 3, 3) in the crystal base \(\mathcal{B^c}\).
 
     Examples
     --------
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.geometry.lattice import lattice_to_primitive
     &gt;&gt;&gt; lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2*torch.pi/3])
-    &gt;&gt;&gt; lattice_to_primitive(lattice)  # quartz lattice
+    &gt;&gt;&gt; lattice_to_primitive(lattice)
     tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
             [ 0.0000e+00,  3.2909e-10,  8.6603e-10],
             [ 0.0000e+00,  0.0000e+00,  1.2247e-09]])
@@ -226,7 +225,8 @@ tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
 </code></dt>
 <dd>
 <div class="desc"><p>Convert the primitive vectors to the lattice parameters.</p>
-<p><img alt=":width: 256" src="../../../build/media/IMGLattice.avif"></p>
+<p>Bijection of <code>laueimproc.geometry.reciprocal.lattice_to_primitive</code>.</p>
+<p><img alt="" src="../../../build/media/IMGLattice.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>primitive</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -236,12 +236,12 @@ tensor([[ 6.0000e-10, -1.9000e-10, -6.5567e-17],
 <dl>
 <dt><strong><code>lattice</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The array of lattice parameters of shape (&hellip;, 6).
-Values are <span><span class="MathJax_Preview">[a, b, c, \alpha, \beta, \gamma]]</span><script type="math/tex">[a, b, c, \alpha, \beta, \gamma]]</script></span>.</dd>
+Values are <span><span class="MathJax_Preview">[a, b, c, \alpha, \beta, \gamma]</span><script type="math/tex">[a, b, c, \alpha, \beta, \gamma]</script></span> in meters and radians.</dd>
 </dl>
 <h2 id="notes">Notes</h2>
-<p>We have <code>primitive_to_lattice(lattice_to_primitive(lattice)) == lattice</code>,
-but it is not the case for the composition inverse because the numerical
-value of <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> is base dependent.</p>
+<p>We have allways <code>primitive_to_lattice(lattice_to_primitive(lattice)) == lattice</code>,
+but it is not allways the case for the inverse composition because the numerical
+value of <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> is expressed in the crystal base <span><span class="MathJax_Preview">\mathcal{B^c}</span><script type="math/tex">\mathcal{B^c}</script></span>.</p>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.geometry.lattice import primitive_to_lattice
@@ -259,8 +259,9 @@ tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00])
 <pre><code class="python">def primitive_to_lattice(primitive: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Convert the primitive vectors to the lattice parameters.
 
+    Bijection of ``laueimproc.geometry.reciprocal.lattice_to_primitive``.
+
     .. image:: ../../../build/media/IMGLattice.avif
-        :width: 256
 
     Parameters
     ----------
@@ -271,13 +272,13 @@ tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00])
     -------
     lattice : torch.Tensor
         The array of lattice parameters of shape (..., 6).
-        Values are \([a, b, c, \alpha, \beta, \gamma]]\).
+        Values are \([a, b, c, \alpha, \beta, \gamma]\) in meters and radians.
 
     Notes
     -----
-    We have `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
-    but it is not the case for the composition inverse because the numerical
-    value of \(\mathbf{A}\) is base dependent.
+    We have allways `primitive_to_lattice(lattice_to_primitive(lattice)) == lattice`,
+    but it is not allways the case for the inverse composition because the numerical
+    value of \(\mathbf{A}\) is expressed in the crystal base \(\mathcal{B^c}\).
 
     Examples
     --------

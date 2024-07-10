@@ -8,7 +8,7 @@ The origin is set at the corner of a pixel as shown in the figure below for a si
 
 .. image:: /build/media/IMGConvIJXY.avif
     :alt: image convention `"ij"` and `"xy"`
-    :width: 512
+    :width: 512px
 
 * Each pixel n starts at the coordinated n (included) and goes to the coordinate n+1 (excluded). The center of any pixel is at half integer pixel coordinate.
 * The default convention is called `"ij"` and the `LaueTools convention <https://lauetools.readthedocs.io/en/latest/conventions.html>`_ is called `"xy"`.
@@ -24,7 +24,7 @@ Motivation
 
 .. video:: /build/media/ANIMConvIJNumpyContinuity.webm
     :alt: continuity numpy to `"ij"`
-    :width: 512
+    :width: 512px
 
 Convertion `"ij"` <=> `"xy"`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -43,6 +43,18 @@ Most of the proposed methods support the `conv` argument:
 In a more general case, you can use the function `ij_to_xy <../../laueimproc/convention.html#laueimproc.convention.ij_to_xy>`_.
 
 
+Geometry
+--------
+
+This module follow the `PyFai <https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position>`_ convention.
+
+It means that the incoming ray is along L3.
+
+.. image:: /build/media/IMGBragg.avif
+    :alt: image convention `"ij"` and `"xy"`
+    :width: 512px
+
+
 Crystalography
 --------------
 
@@ -56,19 +68,14 @@ As shown in the figure below, the parameters a, b, c, alpha, gamma and beta are 
 * alpha is the anglee between e2 and e3
 * beta is the anglee between e1 and e3
 * gamma is the anglee between e1 and e2
-
-.. image:: /build/media/IMGLattice.avif
-    :alt: lattice parameters
-    :width: 512
-
-As shown in the figure below, the primitive vectors are projected into an orthonormal base such that:
-
 * e1 is collinear with C1
 * e2 in the plane C1 C2
 
 .. video:: /build/media/ANIMLatticeBc.webm
     :alt: projection of lattice in crystal base
     :width: 512
+    :autoplay:
+    :loop:
 
 Reciprocal Space
 ^^^^^^^^^^^^^^^^
@@ -81,3 +88,5 @@ Let see how works the reciprocal transformation by the example bellow:
 .. video:: /build/media/ANIMPrimitiveReciprocal.webm
     :alt: primitive to reciprocal transformation
     :width: 512
+    :autoplay:
+    :loop:

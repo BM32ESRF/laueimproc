@@ -6,7 +6,7 @@ config.frame_height = 5
 config.pixel_height, config.pixel_width = 1024, 1024
 config.frame_rate = 25
 
-config.output_file = "_"  # solve strage name with -a option
+config.output_file = "_"  # solve strange name with -a option
 
 
 class IMGConvIJXY(Scene):

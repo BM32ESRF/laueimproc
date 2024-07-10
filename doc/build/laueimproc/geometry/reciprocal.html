@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>laueimproc.geometry.reciprocal API documentation</title>
-<meta name="description" content="Enables communication between primitive \(\mathbf{A}\) and reciprocal space \(\mathbf{B}\) …" />
+<meta name="description" content="Enables communication between primitive \(\mathbf{A}\) and reciprocal space \(\mathbf{B}\)." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -24,24 +24,23 @@
 </header>
 <section id="section-intro">
 <p>Enables communication between primitive <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> and reciprocal space <span><span class="MathJax_Preview">\mathbf{B}</span><script type="math/tex">\mathbf{B}</script></span>.</p>
-<p><img alt=":width: 256" src="../../../build/media/IMGPrimitiveReciprocal.avif"></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!/usr/bin/env python3
 
-r&#34;&#34;&#34;Enables communication between primitive \(\mathbf{A}\) and reciprocal space \(\mathbf{B}\).
-
-.. image:: ../../../build/media/IMGPrimitiveReciprocal.avif
-        :width: 256
-&#34;&#34;&#34;
+r&#34;&#34;&#34;Enables communication between primitive \(\mathbf{A}\) and reciprocal space \(\mathbf{B}\).&#34;&#34;&#34;
 
 import torch
 
 
 def primitive_to_reciprocal(primitive: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Convert the primitive vectors into the reciprocal base vectors.
+
+    Bijection of ``laueimproc.geometry.reciprocal.reciprocal_to_primitive``.
+
+    .. image:: ../../../build/media/IMGPrimitiveReciprocal.avif
 
     Parameters
     ----------
@@ -82,6 +81,10 @@ def primitive_to_reciprocal(primitive: torch.Tensor) -&gt; torch.Tensor:
 def reciprocal_to_primitive(reciprocal: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Convert the reciprocal vectors into the primitive base vectors.
 
+    Bijection of ``laueimproc.geometry.reciprocal.primitive_to_reciprocal``.
+
+    .. image:: ../../../build/media/IMGPrimitiveReciprocal.avif
+
     Parameters
     ----------
     reciprocal : torch.Tensor
@@ -107,6 +110,8 @@ def reciprocal_to_primitive(reciprocal: torch.Tensor) -&gt; torch.Tensor:
 </code></dt>
 <dd>
 <div class="desc"><p>Convert the primitive vectors into the reciprocal base vectors.</p>
+<p>Bijection of <code><a title="laueimproc.geometry.reciprocal.reciprocal_to_primitive" href="#laueimproc.geometry.reciprocal.reciprocal_to_primitive">reciprocal_to_primitive()</a></code>.</p>
+<p><img alt="" src="../../../build/media/IMGPrimitiveReciprocal.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>primitive</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -135,6 +140,10 @@ tensor([[ 1.6667e+09,  0.0000e+00,  0.0000e+00],
 </summary>
 <pre><code class="python">def primitive_to_reciprocal(primitive: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Convert the primitive vectors into the reciprocal base vectors.
+
+    Bijection of ``laueimproc.geometry.reciprocal.reciprocal_to_primitive``.
+
+    .. image:: ../../../build/media/IMGPrimitiveReciprocal.avif
 
     Parameters
     ----------
@@ -177,6 +186,8 @@ tensor([[ 1.6667e+09,  0.0000e+00,  0.0000e+00],
 </code></dt>
 <dd>
 <div class="desc"><p>Convert the reciprocal vectors into the primitive base vectors.</p>
+<p>Bijection of <code><a title="laueimproc.geometry.reciprocal.primitive_to_reciprocal" href="#laueimproc.geometry.reciprocal.primitive_to_reciprocal">primitive_to_reciprocal()</a></code>.</p>
+<p><img alt="" src="../../../build/media/IMGPrimitiveReciprocal.avif"></p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>reciprocal</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -193,6 +204,10 @@ tensor([[ 1.6667e+09,  0.0000e+00,  0.0000e+00],
 </summary>
 <pre><code class="python">def reciprocal_to_primitive(reciprocal: torch.Tensor) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Convert the reciprocal vectors into the primitive base vectors.
+
+    Bijection of ``laueimproc.geometry.reciprocal.primitive_to_reciprocal``.
+
+    .. image:: ../../../build/media/IMGPrimitiveReciprocal.avif
 
     Parameters
     ----------

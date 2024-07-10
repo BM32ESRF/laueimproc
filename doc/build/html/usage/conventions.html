@@ -15,7 +15,7 @@
 <meta name="twitter:card" content="summary_large_image" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Conventions &mdash; laueimproc 1.5.1 documentation</title>
+  <title>Conventions &mdash; laueimproc 1.5.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -23,14 +23,14 @@
       <link rel="stylesheet" type="text/css" href="../_static/dark_mode_css/general.css?v=c0a7eb24" />
       <link rel="stylesheet" type="text/css" href="../_static/dark_mode_css/dark.css?v=70edf1c7" />
 
-
+  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-
+  
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=44dfd65d"></script>
+        <script src="../_static/documentation_options.js?v=73275c37"></script>
         <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -42,22 +42,22 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Developer’s Guide" href="developer.html" />
-    <link rel="prev" title="Installation" href="installation.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
 
-
-
+          
+          
           <a href="../index.html" class="icon icon-home">
             laueimproc
           </a>
               <div class="version">
-                1.5.1
+                1.5.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -75,6 +75,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#convertion-ij-xy">Convertion <cite>“ij”</cite> &lt;=&gt; <cite>“xy”</cite></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#geometry">Geometry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#crystalography">Crystalography</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#lattice-parameters">Lattice Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#reciprocal-space">Reciprocal Space</a></li>
@@ -108,7 +109,7 @@
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-
+             
   <section id="conventions">
 <h1>Conventions<a class="headerlink" href="#conventions" title="Link to this heading"></a></h1>
 <section id="pixel-coordinates">
@@ -127,7 +128,7 @@
 <p class="admonition-title">Note</p>
 <p>The convention <cite>“ij”</cite> is the extension by continuity of the numpy and torch convention, as shown in the below animation.</p>
 </div>
-<video controls="True" preload="auto" width="512"><source src="../_images/ANIMConvIJNumpyContinuity.webm" type="video/webm">continuity numpy to `"ij"`</video></section>
+<video controls="True" preload="auto"><source src="../_images/ANIMConvIJNumpyContinuity.webm" type="video/webm">continuity numpy to `"ij"`</video></section>
 <section id="convertion-ij-xy">
 <h3>Convertion <cite>“ij”</cite> &lt;=&gt; <cite>“xy”</cite><a class="headerlink" href="#convertion-ij-xy" title="Link to this heading"></a></h3>
 <p>Most of the proposed methods support the <cite>conv</cite> argument:</p>
@@ -142,9 +143,15 @@
 <p>In a more general case, you can use the function <a class="reference external" href="../../laueimproc/convention.html#laueimproc.convention.ij_to_xy">ij_to_xy</a>.</p>
 </section>
 </section>
+<section id="geometry">
+<h2>Geometry<a class="headerlink" href="#geometry" title="Link to this heading"></a></h2>
+<p>This module follow the <a class="reference external" href="https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position">PyFai</a> convention.</p>
+<p>It means that the incoming ray is along L3.</p>
+<a class="reference internal image-reference" href="../_images/IMGBragg.avif"><img alt="image convention `&quot;ij&quot;` and `&quot;xy&quot;`" src="../_images/IMGBragg.avif" style="width: 512px;" /></a>
+</section>
 <section id="crystalography">
 <h2>Crystalography<a class="headerlink" href="#crystalography" title="Link to this heading"></a></h2>
-<p>All functions are available in the <a class="reference external" href="../../laueimproc/diffraction.html">laueimproc.geometry</a> module.</p>
+<p>All functions are available in the <a class="reference external" href="../../laueimproc/geometry.html">laueimproc.geometry</a> module.</p>
 <section id="lattice-parameters">
 <h3>Lattice Parameters<a class="headerlink" href="#lattice-parameters" title="Link to this heading"></a></h3>
 <p>As shown in the figure below, the parameters a, b, c, alpha, gamma and beta are such that:</p>
@@ -152,20 +159,16 @@
 <li><p>alpha is the anglee between e2 and e3</p></li>
 <li><p>beta is the anglee between e1 and e3</p></li>
 <li><p>gamma is the anglee between e1 and e2</p></li>
-</ul>
-<a class="reference internal image-reference" href="../_images/IMGLattice.avif"><img alt="lattice parameters" src="../_images/IMGLattice.avif" style="width: 512px;" /></a>
-<p>As shown in the figure below, the primitive vectors are projected into an orthonormal base such that:</p>
-<ul class="simple">
 <li><p>e1 is collinear with C1</p></li>
 <li><p>e2 in the plane C1 C2</p></li>
 </ul>
-<video controls="True" preload="auto" width="512"><source src="../_images/ANIMLatticeBc.webm" type="video/webm">projection of lattice in crystal base</video></section>
+<video autoplay="True" controls="True" loop="True" preload="auto" width="512"><source src="../_images/ANIMLatticeBc.webm" type="video/webm">projection of lattice in crystal base</video></section>
 <section id="reciprocal-space">
 <h3>Reciprocal Space<a class="headerlink" href="#reciprocal-space" title="Link to this heading"></a></h3>
 <p>Wheter in primitive or reciprocal space, the crystalline mesh is representetd by a 3 x 3 matrix, the concatenation of 3 colums vectors.
 The information carried by these matricies are invariant by rotation. In other words, you can express it in any orthonormal base.</p>
 <p>Let see how works the reciprocal transformation by the example bellow:</p>
-<video controls="True" preload="auto" width="512"><source src="../_images/ANIMPrimitiveReciprocal.webm" type="video/webm">primitive to reciprocal transformation</video></section>
+<video autoplay="True" controls="True" loop="True" preload="auto" width="512"><source src="../_images/ANIMPrimitiveReciprocal.webm" type="video/webm">primitive to reciprocal transformation</video></section>
 </section>
 </section>
 
@@ -186,7 +189,7 @@ The information carried by these matricies are invariant by rotation. In other w
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>.
-
+   
 
 </footer>
         </div>
@@ -197,7 +200,7 @@ The information carried by these matricies are invariant by rotation. In other w
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
+  </script> 
 
 </body>
 </html>

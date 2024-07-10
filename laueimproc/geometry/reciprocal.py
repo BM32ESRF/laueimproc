@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
-r"""Enables communication between primitive \(\mathbf{A}\) and reciprocal space \(\mathbf{B}\).
-
-.. image:: ../../../build/media/IMGPrimitiveReciprocal.avif
-        :width: 256
-"""
+r"""Enables communication between primitive \(\mathbf{A}\) and reciprocal space \(\mathbf{B}\)."""
 
 import torch
 
 
 def primitive_to_reciprocal(primitive: torch.Tensor) -> torch.Tensor:
     r"""Convert the primitive vectors into the reciprocal base vectors.
+
+    Bijection of ``laueimproc.geometry.reciprocal.reciprocal_to_primitive``.
+
+    .. image:: ../../../build/media/IMGPrimitiveReciprocal.avif
 
     Parameters
     ----------
@@ -50,6 +50,10 @@ def primitive_to_reciprocal(primitive: torch.Tensor) -> torch.Tensor:
 
 def reciprocal_to_primitive(reciprocal: torch.Tensor) -> torch.Tensor:
     r"""Convert the reciprocal vectors into the primitive base vectors.
+
+    Bijection of ``laueimproc.geometry.reciprocal.primitive_to_reciprocal``.
+
+    .. image:: ../../../build/media/IMGPrimitiveReciprocal.avif
 
     Parameters
     ----------
