@@ -101,63 +101,63 @@ class SimulatorUf2Cam(GeneralSimulator):
 #                 raise NotImplementedError("this configuration is not yet implemented")
 
 
-# class FullSimulator(torch.nn.Module):
-#     """Full simulation from lattice parameters to final laue diagram."""
+class FullSimulator(torch.nn.Module):
+    """Full simulation from lattice parameters to final laue diagram."""
 
-#     def __init__(
-#         self,
-#         lattice: torch.Tensor | None = None,
-#         rot: torch.Tensor | None = None,
-#         poni: torch.Tensor | None = None,
-#     ):
-#         """Initialise the model.
+    def __init__(
+        self,
+        lattice: torch.Tensor | None = None,
+        rot: torch.Tensor | None = None,
+        poni: torch.Tensor | None = None,
+    ):
+        """Initialise the model.
 
-#         Parameters
-#         ----------
-#         lattice : torch.Tensor, optional
-#             The lattice parameters of the grains to be simulated, shape (..., 6).
-#         rot : torch.Tensor, optional
-#             The rotation matrix of the different grains, shape (..., 3, 3).
-#         poni : torch.Tensor, optional
-#             The camera calibration parameters, shape (..., 6).
-#         """
-#         super().__init__()
-#         if lattice is not None:
-#             assert isinstance(lattice, torch.Tensor), lattice.__class__.__name__
-#             assert lattice.shape[-1:] == (6,), lattice.shape
-#         if rot is not None:
-#             assert isinstance(rot, torch.Tensor), rot.__class__.__name__
-#             assert rot.shape[-2:] == (3, 3), rot.shape
-#         if poni is not None:
-#             assert isinstance(poni, torch.Tensor), poni.__class__.__name__
-#             assert poni.shape[-1:] == (6,), poni.shape
+        Parameters
+        ----------
+        lattice : torch.Tensor, optional
+            The lattice parameters of the grains to be simulated, shape (..., 6).
+        rot : torch.Tensor, optional
+            The rotation matrix of the different grains, shape (..., 3, 3).
+        poni : torch.Tensor, optional
+            The camera calibration parameters, shape (..., 6).
+        """
+        super().__init__()
+        if lattice is not None:
+            assert isinstance(lattice, torch.Tensor), lattice.__class__.__name__
+            assert lattice.shape[-1:] == (6,), lattice.shape
+        if rot is not None:
+            assert isinstance(rot, torch.Tensor), rot.__class__.__name__
+            assert rot.shape[-2:] == (3, 3), rot.shape
+        if poni is not None:
+            assert isinstance(poni, torch.Tensor), poni.__class__.__name__
+            assert poni.shape[-1:] == (6,), poni.shape
 
-#         self._lattice = lattice
-#         self._rot = rot
-#         self._poni = poni
+        self._lattice = lattice
+        self._rot = rot
+        self._poni = poni
 
-#     def forward(self) -> torch.Tensor:
-#         """Simulate the grains.
+    def forward(self) -> torch.Tensor:
+        """Simulate the grains.
 
-#         Examples
-#         --------
-#         >>> import torch
-#         >>> from laueimproc.geometry.model import FullSimulator
-#         >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
-#         >>> poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
-#         >>> rot = torch.eye(3)
-#         >>> simulator = FullSimulator(lattice, rot, poni)
-#         >>> # simulator()
-#         """
-#         primitive = lattice_to_primitive(self._lattice)
-#         reciprocal = primitive_to_reciprocal(primitive)
-#         reciprocal = rotate_crystal(reciprocal, self._rot, cartesian_product=False)
-#         hkl = select_hkl(reciprocal, e_max=20e3 * 1.60e-19)  # 20 keV
-#         u_q, energy = hkl_reciprocal_to_uq_energy(hkl, reciprocal, cartesian_product=False)
-#         u_f = uq_to_uf(u_q)
-#         point, dist = ray_to_detector(u_f, self._poni, cartesian_product=False)
+        Examples
+        --------
+        >>> import torch
+        >>> from laueimproc.geometry.model import FullSimulator
+        >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
+        >>> poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
+        >>> rot = torch.eye(3)
+        >>> simulator = FullSimulator(lattice, rot, poni)
+        >>> # simulator()
+        """
+        primitive = lattice_to_primitive(self._lattice)
+        reciprocal = primitive_to_reciprocal(primitive)
+        reciprocal = rotate_crystal(reciprocal, self._rot, cartesian_product=False)
+        hkl = select_hkl(reciprocal, e_max=20e3 * 1.60e-19)  # 20 keV
+        u_q, energy = hkl_reciprocal_to_uq_energy(hkl, reciprocal, cartesian_product=False)
+        u_f = uq_to_uf(u_q)
+        point, dist = ray_to_detector(u_f, self._poni, cartesian_product=False)
 
-#         cond = dist > 0
-#         hkl, energy, point = hkl[cond], energy[cond], point[cond]
+        cond = dist > 0
+        hkl, energy, point = hkl[cond], energy[cond], point[cond]
 
-#         return hkl, energy, point
+        return hkl, energy, point
