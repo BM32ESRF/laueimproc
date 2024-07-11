@@ -100,7 +100,7 @@ Install all dependencies
 In developer mode, more dependencies are required. You can install them by adding the ``[all]`` option to ``pip``.
 
 .. warning::
-    Make shure you are in a virtual environement ``pyenv activate laueenv`` before excecuting the next lines!
+    Make sure you are in a virtual environement ``pyenv activate laueenv`` before excecuting the next lines!
 
 .. code-block:: shell
 
@@ -123,7 +123,7 @@ Test Bench
 ----------
 
 .. warning::
-    Before pushing your changes to GitHub, make shure the test bench is working.
+    Before pushing your changes to GitHub, make sure the test bench is working.
 
 You must also complete the test bench by adding the tests corresponding to your contribution.
 
