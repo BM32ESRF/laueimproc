@@ -105,17 +105,17 @@ def select_hkl(
             [ 11,   3,   1],
             [ 11,   3,   2]], dtype=torch.int16)
     >>> len(_)
-    1463
+    3519
     >>> select_hkl(reciprocal, e_max=20e3 * 1.60e-19, keep_harmonics=False)  # 20 keV
-    tensor([[  0, -11,  -1],
-            [  0, -11,   1],
-            [  0, -10,  -1],
+    tensor([[  0, -11,  -3],
+            [  0, -11,  -2],
+            [  0, -11,  -1],
             ...,
-            [ 11,   0,  -1],
-            [ 11,   0,   1],
-            [ 11,   1,   0]], dtype=torch.int16)
+            [ 11,   3,   0],
+            [ 11,   3,   1],
+            [ 11,   3,   2]], dtype=torch.int16)
     >>> len(_)
-    1149
+    2889
     >>>
     """
     assert isinstance(max_hkl, numbers.Integral | None), max_hkl.__class__.__name__
@@ -129,7 +129,7 @@ def select_hkl(
         assert reciprocal is not None and e_max < torch.inf, \
             "you have to provide 'max_hkl' or 'reciprocal' and 'energy'"
         q_norm = math.sqrt(float(torch.min(torch.sum(reciprocal * reciprocal, dim=-2))))
-        max_hkl = math.ceil(2.0 * e_max / (CELERITY_C * PLANK_H * q_norm))  # |q| < 2*e_max / (H*C)
+        max_hkl = math.ceil(3.47 * e_max / (CELERITY_C * PLANK_H * q_norm))  # |q| < 2*e_max / (H*C)
 
     hkl = _select_all_hkl(int(max_hkl))  # (n, 3)
     if reciprocal is not None:
