@@ -96,6 +96,6 @@ def compute_rois_nb_peaks(
         rois.unsqueeze(1), kernel_large, padding=1
     ) >= 0
     cond_2 = torch.all(cond_2, dim=1)  # (n, h-2, w-2)
-    cond = torch.logical_and(cond_1, cond_2)
+    cond = cond_1 & cond_2
     nb_peaks = torch.sum(cond, dim=(1, 2), dtype=torch.int16)  # (n,)
     return nb_peaks

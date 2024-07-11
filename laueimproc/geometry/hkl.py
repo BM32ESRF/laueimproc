@@ -3,13 +3,12 @@
 """Help to select the hkl indices."""
 
 import functools
+import math
 import numbers
 
 import torch
 
 from .bragg import PLANK_H, CELERITY_C
-from .lattice import lattice_to_primitive
-from .reciprocal import primitive_to_reciprocal
 
 
 @functools.lru_cache(maxsize=8)
@@ -44,9 +43,9 @@ def _select_all_hkl(max_hkl: int) -> torch.Tensor:
 
 
 def select_hkl(
-    lattice: torch.Tensor | None = None,
+    reciprocal: torch.Tensor | None = None,
     *,
-    max_hkl: numbers.Integral = 18,
+    max_hkl: numbers.Integral | None = None,
     e_max: numbers.Real = torch.inf,
     keep_harmonics: bool = True,
 ) -> torch.Tensor:
@@ -54,11 +53,11 @@ def select_hkl(
 
     Parameters
     ----------
-    lattice : torch.Tensor, optional
-        If provided, the lattices parameters \([a, b, c, \alpha, \beta, \gamma]\) of shape (..., 6)
-        are used to simulate the hkl energy for a large number of rotation.
-    max_hkl : int
+    reciprocal : torch.Tensor, optional
+        Matrix \(\mathbf{B}\) in any orthonormal base.
+    max_hkl : int, optional
         The maximum absolute hkl sum such as |h| + |k| + |l| <= max_hkl.
+        If it is not provided, it is automaticaly find with the max energy.
     e_max : float, optional
         Indicies that systematicaly have an energy strictely greater than `e_max` in J are rejected.
     keep_harmonics : boolean, default=True
@@ -74,8 +73,10 @@ def select_hkl(
     --------
     >>> import torch
     >>> from laueimproc.geometry.hkl import select_hkl
-    >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
-    >>> select_hkl(lattice)
+    >>> reciprocal = torch.tensor([[2.7778e9,        0,        0],
+    ...                            [1.2142e2, 2.7778e9,        0],
+    ...                            [1.2142e2, 1.2142e2, 2.7778e9]])
+    >>> select_hkl(max_hkl=18)
     tensor([[  0, -18,   0],
             [  0, -17,  -1],
             [  0, -17,   0],
@@ -85,7 +86,7 @@ def select_hkl(
             [ 18,   0,   0]], dtype=torch.int16)
     >>> len(_)
     4578
-    >>> select_hkl(lattice, keep_harmonics=False)
+    >>> select_hkl(max_hkl=18, keep_harmonics=False)
     tensor([[  0, -17,  -1],
             [  0, -17,   1],
             [  0, -16,  -1],
@@ -95,7 +96,7 @@ def select_hkl(
             [ 17,   1,   0]], dtype=torch.int16)
     >>> len(_)
     3661
-    >>> select_hkl(lattice, e_max=20e3 * 1.60e-19)  # 20 keV
+    >>> select_hkl(reciprocal, e_max=20e3 * 1.60e-19)  # 20 keV
     tensor([[  0, -11,  -3],
             [  0, -11,  -2],
             [  0, -11,  -1],
@@ -104,27 +105,41 @@ def select_hkl(
             [ 11,   3,   1],
             [ 11,   3,   2]], dtype=torch.int16)
     >>> len(_)
-    3399
+    1463
+    >>> select_hkl(reciprocal, e_max=20e3 * 1.60e-19, keep_harmonics=False)  # 20 keV
+    tensor([[  0, -11,  -1],
+            [  0, -11,   1],
+            [  0, -10,  -1],
+            ...,
+            [ 11,   0,  -1],
+            [ 11,   0,   1],
+            [ 11,   1,   0]], dtype=torch.int16)
+    >>> len(_)
+    1149
     >>>
     """
-    assert isinstance(max_hkl, numbers.Integral), max_hkl.__class__.__name__
-    assert 0 < max_hkl <= torch.iinfo(torch.int16).max, max_hkl
+    assert isinstance(max_hkl, numbers.Integral | None), max_hkl.__class__.__name__
+    assert max_hkl is None or 0 < max_hkl <= torch.iinfo(torch.int16).max, max_hkl
     assert isinstance(e_max, numbers.Real), e_max.__class__.__name__
     assert isinstance(keep_harmonics, bool), keep_harmonics.__class__.__name__
-    assert isinstance(lattice, torch.Tensor | None), lattice.__class__.__name__
-    assert lattice is None or lattice.shape[-1:] == (6,), lattice.shape
+    assert isinstance(reciprocal, torch.Tensor | None), reciprocal.__class__.__name__
+    assert reciprocal is None or reciprocal.shape[-2:] == (3, 3), reciprocal.shape
+
+    if max_hkl is None:
+        assert reciprocal is not None and e_max < torch.inf, \
+            "you have to provide 'max_hkl' or 'reciprocal' and 'energy'"
+        q_norm = math.sqrt(float(torch.min(torch.sum(reciprocal * reciprocal, dim=-2))))
+        max_hkl = math.ceil(2.0 * e_max / (CELERITY_C * PLANK_H * q_norm))  # |q| < 2*e_max / (H*C)
 
     hkl = _select_all_hkl(int(max_hkl))  # (n, 3)
-    if lattice is not None:
-        hkl = hkl.to(lattice.device)
+    if reciprocal is not None:
+        hkl = hkl.to(reciprocal.device)
 
-    if lattice is not None and e_max < torch.inf:
-        reciprocal = primitive_to_reciprocal(lattice_to_primitive(lattice))  # (..., 3, 3)
+    if reciprocal is not None and e_max < torch.inf:
         u_q = reciprocal[..., None, :, :] @ hkl[..., None].to(reciprocal.device, reciprocal.dtype)
         inv_d_square = u_q.mT @ u_q  # (..., n, 1, 1)
         energy = 0.5 * CELERITY_C * PLANK_H * torch.sqrt(inv_d_square[..., :, 0, 0])  # (..., n)
         energy = energy.reshape(-1, len(hkl))
-        # import ipdb; ipdb.set_trace()
         hkl = hkl[torch.any(energy <= e_max, dim=0)]  # energy corresponds to the energy max
     else:
         energy = None

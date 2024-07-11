@@ -203,7 +203,7 @@ To install the lastest development version from `GitHub <https://github.com/BM32
         cd ~/laueimproc_git/
         git pull
     fi
-    pyenv activate laueenv  # be sure to be in a virtual env
+    pyenv activate laueenv  # to be sure to be in a virtual env
     pip install --upgrade pip setuptools wheel
     pip -v install --editable .  # compilation and linkage
 

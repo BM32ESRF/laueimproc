@@ -14,7 +14,7 @@ def thetachi_to_uf(theta: torch.Tensor, chi: torch.Tensor) -> torch.Tensor:
 
     Bijection of ``laueimproc.geometry.thetachi.uf_to_thetachi``.
 
-    .. image:: ../../build/media/IMGThetaChi.avif
+    .. image:: ../../../build/media/IMGThetaChi.avif
 
     Parameters
     ----------
@@ -65,7 +65,7 @@ def uf_to_thetachi(u_f: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
 
     Bijection of ``laueimproc.geometry.thetachi.thetachi_to_uf``.
 
-    .. image:: ../../build/media/IMGThetaChi.avif
+    .. image:: ../../../build/media/IMGThetaChi.avif
 
     Parameters
     ----------

@@ -12,10 +12,10 @@ URLS=[
 "laueimproc/io/comp_lm.html",
 "laueimproc/improc/index.html",
 "laueimproc/improc/spot/index.html",
-"laueimproc/improc/spot/extrema.html",
 "laueimproc/improc/spot/basic.html",
 "laueimproc/improc/spot/pca.html",
 "laueimproc/improc/spot/fit.html",
+"laueimproc/improc/spot/extrema.html",
 "laueimproc/improc/morpho.html",
 "laueimproc/improc/find_bboxes.html",
 "laueimproc/improc/peaks_search.html",
@@ -37,7 +37,6 @@ URLS=[
 "laueimproc/gmm/gmm.html",
 "laueimproc/testing/index.html",
 "laueimproc/testing/install.html",
-"laueimproc/testing/coding_style.html",
 "laueimproc/testing/tests/index.html",
 "laueimproc/testing/tests/inter_batch.html",
 "laueimproc/testing/tests/set_spots.html",
@@ -48,6 +47,7 @@ URLS=[
 "laueimproc/testing/tests/reciprocal.html",
 "laueimproc/testing/tests/rotation.html",
 "laueimproc/testing/run.html",
+"laueimproc/testing/coding_style.html",
 "laueimproc/nn/index.html",
 "laueimproc/nn/dataaug/index.html",
 "laueimproc/nn/dataaug/scale.html",
@@ -63,14 +63,15 @@ URLS=[
 "laueimproc/immix/inter.html",
 "laueimproc/common.html",
 "laueimproc/geometry/index.html",
-"laueimproc/geometry/rotation.html",
 "laueimproc/geometry/metric.html",
-"laueimproc/geometry/hkl.html",
 "laueimproc/geometry/bragg.html",
-"laueimproc/geometry/thetachi.html",
 "laueimproc/geometry/reciprocal.html",
 "laueimproc/geometry/projection.html",
 "laueimproc/geometry/lattice.html",
+"laueimproc/geometry/rotation.html",
+"laueimproc/geometry/thetachi.html",
+"laueimproc/geometry/hkl.html",
+"laueimproc/geometry/model.html",
 "laueimproc/convention.html"
 ];
 INDEX=[
@@ -535,71 +536,71 @@ INDEX=[
 "doc":"Implement image processing tools to annalyse the spots."
 },
 {
-"ref":"laueimproc.improc.spot.extrema",
-"url":13,
-"doc":"Search the number of extremums in each rois."
-},
-{
-"ref":"laueimproc.improc.spot.extrema.compute_rois_nb_peaks",
-"url":13,
-"doc":"Find the number of extremums in each roi. Parameters      data : bytearray The raw data \\(\\alpha_i\\) of the concatenated not padded float32 rois. bboxes : torch.Tensor The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width) for each spots, of shape (n, 4). It doesn't have to be c contiguous. Returns    - nbr : torch.Tensor The number of extremum in each roi of shape (n,) and dtype int16. The detection is based on canny filtering. Examples     >>> import torch >>> from laueimproc.improc.spot.extrema import compute_rois_nb_peaks >>> patches = [  . torch.tensor( .5 ),  . torch.tensor( .5, .5], [.5, .5 ),  . torch.tensor( .5, .5, .5], [.5, .5, .5], [.5, .5, .5 ),  . torch.tensor( .1, .0, .1, .2, .3, .3, .2, .1, .1],  . [.0, .2, .1, .2, .3, .2, .1, .1, .1],  . [.0, .1, .2, .2, .2, .1, .1, .0, .0],  . [.1, .0, .1, .1, .2, .1, .0, .0, .0],  . [.2, .1, .2, .3, .4, .6, 4., .3, .1],  . [.3, .2, .3, .5, .8, .8, .8, .6, .3],  . [.4, .3, .5, .8, .8, .8, .8, .7, .3],  . [.2, .3, .5, .7, .8, .8, .7, .6, .3],  . [.2, .2, .4, .6, .7, .7, .5, .3, .2 ),  . ] >>> data = bytearray(torch.cat([p.ravel() for p in patches]).numpy().tobytes( >>> bboxes = torch.tensor( 0, 0, 1, 1],  . [ 0, 0, 2, 2],  . [ 0, 0, 3, 3],  . [ 0, 0, 9, 9 , dtype=torch.int16) >>> print(compute_rois_nb_peaks(data, bboxes tensor([1, 1, 1, 5], dtype=torch.int16) >>> (  . compute_rois_nb_peaks(data, bboxes)  compute_rois_nb_peaks(data, bboxes, _no_c=True)  . ).all() tensor(True) >>>",
-"func":1
-},
-{
 "ref":"laueimproc.improc.spot.basic",
-"url":14,
+"url":13,
 "doc":"Give simple information on spots."
 },
 {
 "ref":"laueimproc.improc.spot.basic.compute_rois_centroid",
-"url":14,
+"url":13,
 "doc":"Find the weighted barycenter of each roi. Parameters      data : bytearray The raw data \\(\\alpha_i\\) of the concatenated not padded float32 rois. bboxes : torch.Tensor The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width) for each spots, of shape (n, 4). It doesn't have to be c contiguous. Returns    - positions : torch.Tensor The position of the height and width barycenter for each roi of shape (n, 2). Examples     >>> import torch >>> from laueimproc.improc.spot.basic import compute_rois_centroid >>> patches = [  . torch.tensor( 0.5 ),  . torch.tensor( 0.5, 0.5], [0.5, 1.0 ),  . torch.tensor( 0.0, 0.0, 0.5, 0.0, 0.0 ),  . ]  2 >>> data = bytearray(torch.cat([p.ravel() for p in patches]).numpy().tobytes( >>> bboxes = torch.tensor( 0, 0, 1, 1],  . [ 0, 0, 2, 2],  . [ 0, 0, 1, 5],  . [10, 10, 1, 1],  . [10, 10, 2, 2],  . [10, 10, 1, 5 , dtype=torch.int16) >>> print(compute_rois_centroid(data, bboxes tensor( 0.5000, 0.5000], [ 1.1000, 1.1000], [ 0.5000, 2.5000], [10.5000, 10.5000], [11.1000, 11.1000], [10.5000, 12.5000 ) >>> torch.allclose(  . compute_rois_centroid(data, bboxes),  . compute_rois_centroid(data, bboxes, _no_c=True),  . ) True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.improc.spot.basic.compute_rois_inertia",
-"url":14,
+"url":13,
 "doc":"Return the order 2 momentum centered along the barycenter. Parameters      data : bytearray The raw data \\(\\alpha_i\\) of the concatenated not padded float32 rois. bboxes : torch.Tensor The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width) for each spots, of shape (n, 4). It doesn't have to be c contiguous. Returns    - inertia : torch.Tensor The order 2 momentum centered along the barycenter (shape (n, . Examples     >>> import torch >>> from laueimproc.improc.spot.basic import compute_rois_inertia >>> patches = [  . torch.tensor( 0.5 ),  . torch.tensor( 1.0 ),  . torch.tensor( 0.5, 0.5], [0.5, 0.5 ),  . torch.tensor( 0.2, 0.0, 1.0, 0.0, 0.2 ),  . ] >>> data = bytearray(torch.cat([p.ravel() for p in patches]).numpy().tobytes( >>> bboxes = torch.tensor( 0, 0, 1, 1],  . [ 0, 0, 1, 1],  . [ 0, 0, 2, 2],  . [ 0, 0, 1, 5 , dtype=torch.int16) >>> print(compute_rois_inertia(data, bboxes tensor([0.0000, 0.0000, 1.0000, 1.6000]) >>> torch.allclose(  . compute_rois_inertia(data, bboxes),  . compute_rois_inertia(data, bboxes, _no_c=True),  . ) True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.improc.spot.basic.compute_rois_max",
-"url":14,
+"url":13,
 "doc":"Return the argmax of the intensity and the intensity max of each roi. Parameters      data : bytearray The raw data \\(\\alpha_i\\) of the concatenated not padded float32 rois. bboxes : torch.Tensor The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width) for each spots, of shape (n, 4). It doesn't have to be c contiguous. Returns    - pos1_pos2_imax : torch.Tensor The concatenation of the colum vectors of the argmax along i axis, argmax along j axis and the max intensity. The shape is (n, 3). Examples     >>> import torch >>> from laueimproc.improc.spot.basic import compute_rois_max >>> patches = [  . torch.tensor( 0.5 ),  . torch.tensor( 0.5, 0.5], [0.5, 1.0 ),  . torch.tensor( 0.0, 0.0, 0.5, 0.0, 0.0 ),  . ]  2 >>> data = bytearray(torch.cat([p.ravel() for p in patches]).numpy().tobytes( >>> bboxes = torch.tensor( 0, 0, 1, 1],  . [ 0, 0, 2, 2],  . [ 0, 0, 1, 5],  . [10, 10, 1, 1],  . [10, 10, 2, 2],  . [10, 10, 1, 5 , dtype=torch.int16) >>> print(compute_rois_max(data, bboxes tensor( 0.5000, 0.5000, 0.5000], [ 1.5000, 1.5000, 1.0000], [ 0.5000, 2.5000, 0.5000], [10.5000, 10.5000, 0.5000], [11.5000, 11.5000, 1.0000], [10.5000, 12.5000, 0.5000 ) >>> torch.allclose(  . compute_rois_max(data, bboxes),  . compute_rois_max(data, bboxes, _no_c=True),  . ) True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.improc.spot.basic.compute_rois_sum",
-"url":14,
+"url":13,
 "doc":"Return the intensity of each roi, sum of the pixels. Parameters      data : bytearray The raw data \\(\\alpha_i\\) of the concatenated not padded float32 rois. bboxes : torch.Tensor The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width) for each spots, of shape (n, 4). It doesn't have to be c contiguous. Returns    - intensity : torch.Tensor The vector of the intensity of shape (n,). Examples     >>> import torch >>> from laueimproc.improc.spot.basic import compute_rois_sum >>> patches = [  . torch.tensor( 0.5 ),  . torch.tensor( 0.5, 0.5], [0.5, 1.0 ),  . torch.tensor( 0.0, 0.0, 0.5, 0.0, 0.0 ),  . ] >>> data = bytearray(torch.cat([p.ravel() for p in patches]).numpy().tobytes( >>> bboxes = torch.tensor( 0, 0, 1, 1],  . [ 0, 0, 2, 2],  . [ 0, 0, 1, 5 , dtype=torch.int16) >>> print(compute_rois_sum(data, bboxes tensor([0.5000, 2.5000, 0.5000]) >>> torch.allclose(  . compute_rois_sum(data, bboxes),  . compute_rois_sum(data, bboxes, _no_c=True),  . ) True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.improc.spot.pca",
-"url":15,
+"url":14,
 "doc":"Efficient Principal Componant Annalysis on spots."
 },
 {
 "ref":"laueimproc.improc.spot.pca.compute_rois_pca",
-"url":15,
+"url":14,
 "doc":"Compute the PCA for each spot. See  laueimproc.gmm for terminology. Parameters      data : bytearray The raw data \\(\\alpha_i\\) of the concatenated not padded float32 rois. bboxes : torch.Tensor The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width) for each spots, of shape (n, 4). It doesn't have to be c contiguous. Returns    - pca : torch.Tensor The concatenation of the colum vectors of the std in pixel and the angle in radian \\( \\left[ \\sqrt{\\lambda_1}, \\sqrt{\\lambda_2}, \\theta \\right] \\) of shape (n, 3). The diagonalization of \\(\\mathbf{\\Sigma}\\) is performed with  laueimproc.gmm.linalg.cov2d_to_eigtheta . Examples     >>> from math import cos, sin >>> import numpy as np >>> import torch >>> from laueimproc.improc.spot.pca import compute_rois_pca >>> >>> lambda1, lambda2, theta = 100 2, 50 2, 0.3 >>> rot = torch.asarray( cos(theta), -sin(theta)], [sin(theta), cos(theta) ) >>> diag = torch.asarray( lambda1, 0.0], [0.0, lambda2 ) >>> cov = rot @ diag @ rot.mT >>> cov = 0.5  (cov + cov.mT)  solve warn covariance is not symmetric positive-semidefinite >>> np.random.seed(0) >>> points = torch.from_numpy(np.random.multivariate_normal([0, 0], cov, 1_000_000 .to(int) >>> points -= points.amin(dim=0).unsqueeze(0) >>> height, width = int(points[:, 0].max() + 1), int(points[:, 1].max() + 1) >>> rois = points[:, 0] width + points[:, 1] >>> rois = torch.bincount(rois, minlength=height width).to(torch.float32) >>> rois /= rois.max()  in [0, 1] >>> rois = rois.reshape(1, height, width) >>> compute_rois_pca(  . bytearray(rois.numpy().tobytes( ,  . torch.asarray( 0, 0, height, width , dtype=torch.int16)  . ) tensor( 99.4283, 49.6513, 0.2973 ) >>> >>> rois = np.zeros 4, 5, 5), np.float32) >>> rois[0, :, 2] = 1 >>> rois[1, range(5), range(5)] = 1 >>> rois[2, 2, :] = 1 >>> rois[3, :, 2] = 1 >>> rois[3, 2, 1:4] = 1 >>> rois array( [0., 0., 1., 0., 0.], [0., 0., 1., 0., 0.], [0., 0., 1., 0., 0.], [0., 0., 1., 0., 0.], [0., 0., 1., 0., 0. ,   1., 0., 0., 0., 0.], [0., 1., 0., 0., 0.], [0., 0., 1., 0., 0.], [0., 0., 0., 1., 0.], [0., 0., 0., 0., 1. ,   0., 0., 0., 0., 0.], [0., 0., 0., 0., 0.], [1., 1., 1., 1., 1.], [0., 0., 0., 0., 0.], [0., 0., 0., 0., 0. ,   0., 0., 1., 0., 0.], [0., 0., 1., 0., 0.], [0., 1., 1., 1., 0.], [0., 0., 1., 0., 0.], [0., 0., 1., 0., 0. ], dtype=float32) >>> data = bytearray(rois.tobytes( >>> bboxes = torch.asarray( 0, 0, 5, 5  4, dtype=torch.int16) >>> compute_rois_pca(data, bboxes) tensor( 1.4142, 0.0000, 0.0000], [2.0000, 0.0000, 0.7854], [1.4142, 0.0000, 1.5708], [1.1952, 0.5345, 0.0000 ) >>> >>> torch.allclose(_, compute_rois_pca(data, bboxes, _no_c=True True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.improc.spot.fit",
-"url":16,
+"url":15,
 "doc":"Fit the spot by one gaussian."
 },
 {
 "ref":"laueimproc.improc.spot.fit.fit_gaussians_em",
-"url":16,
+"url":15,
 "doc":"Fit each roi by \\(K\\) gaussians. See  laueimproc.gmm for terminology. Parameters      data : bytearray The raw data \\(\\alpha_i\\) of the concatenated not padded float32 rois. bboxes : torch.Tensor The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width) for each spots, of shape (n, 4). It doesn't have to be c contiguous. nbr_clusters, nbr_tries : int Transmitted to  laueimproc.gmm.fit.fit_em . aic, bic, log_likelihood : boolean, default=False If set to True, the metric is happend into  infodict . The metrics are computed in the  laueimproc.gmm.metric module.  aic: Akaike Information Criterion of shape ( .,). \\(aic = 2p-2\\log(L_{\\alpha,\\omega})\\), \\(p\\) is the number of free parameters and \\(L_{\\alpha,\\omega}\\) the likelihood.  bic: Bayesian Information Criterion of shape ( .,). \\(bic = \\log(N)p-2\\log(L_{\\alpha,\\omega})\\), \\(p\\) is the number of free parameters and \\(L_{\\alpha,\\omega}\\) the likelihood.  log_likelihood of shape ( .,): \\( \\log\\left(L_{\\alpha,\\omega}\\right) = \\log\\left( \\prod\\limits_{i=1}^N \\sum\\limits_{j=1}^K \\eta_j \\left( \\mathcal{N}_{(\\mathbf{\\mu}_j,\\frac{1}{\\omega_i}\\mathbf{\\Sigma}_j)}(\\mathbf{x}_i) \\right)^{\\alpha_i} \\right) \\) Returns    - mean : torch.Tensor The vectors \\(\\mathbf{\\mu}\\). Shape (n, \\(K\\), 2). In the absolute diagram base. cov : torch.Tensor The matrices \\(\\mathbf{\\Sigma}\\). Shape (n, \\(K\\), 2, 2). eta : torch.Tensor The relative mass \\(\\eta\\). Shape (n, \\(K\\ . infodict : dict[str] A dictionary of optional outputs. Examples     >>> import torch >>> from laueimproc.gmm.linalg import multivariate_normal >>> from laueimproc.improc.spot.fit import fit_gaussians_em >>> >>> cov_ref = torch.asarray( [2, 1], [1, 4 ,  3, -3], [-3, 9 ,  4, 0], [0, 4 ]) >>> cov_ref = cov_ref.to(torch.float32) >>> mean_ref = torch.asarray( [10.0, 15.0], [20.0, 15.0], [15.0, 20.0 ]) >>> obs = multivariate_normal(cov_ref, 3_000_000) + mean_ref >>> obs = obs.to(torch.int32).reshape(-1, 2) >>> height, width = 35, 35 >>> rois = obs[:, 0] width + obs[:, 1] >>> rois = rois[torch.logical_and(rois >= 0, rois  >> rois = torch.bincount(rois, minlength=height width).to(torch.float32) >>> rois = rois.reshape(1, height, width) / rois.max() >>> >>> data = bytearray(rois.to(torch.float32).numpy().tobytes( >>> bboxes = torch.asarray( 0, 0, height, width , dtype=torch.int16) >>> mean, cov, eta, infodict = fit_gaussians_em(  . data, bboxes, nbr_clusters=3, aic=True, bic=True, log_likelihood=True  . ) >>> any(torch.allclose(mu, mean_ref[0, 0], atol=0.5) for mu in mean[0]) True >>> any(torch.allclose(mu, mean_ref[0, 1], atol=0.5) for mu in mean[0]) True >>> any(torch.allclose(mu, mean_ref[0, 2], atol=0.5) for mu in mean[0]) True >>> any(torch.allclose(c, cov_ref[0], atol=1.0) for c in cov[0]) True >>> any(torch.allclose(c, cov_ref[1], atol=1.0) for c in cov[0]) True >>> any(torch.allclose(c, cov_ref[2], atol=1.0) for c in cov[0]) True >>> >>>  import matplotlib.pyplot as plt >>>  _ = plt.imshow(rois[0], extent=(0, width, height, 0 >>>  _ = plt.scatter(mean[ ., 1].ravel(), mean[ ., 0].ravel( >>>  plt.show() >>>",
 "func":1
 },
 {
 "ref":"laueimproc.improc.spot.fit.fit_gaussians_mse",
-"url":16,
+"url":15,
 "doc":"Fit each roi by \\(K\\) gaussians by minimising the mean square error. See  laueimproc.gmm for terminology. Parameters      data : bytearray The raw data \\(\\alpha_i\\) of the concatenated not padded float32 rois. bboxes : torch.Tensor The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width) for each spots, of shape (n, 4). It doesn't have to be c contiguous. nbr_clusters, nbr_tries : int Transmitted to  laueimproc.gmm.fit.fit_mse . mse : boolean, default=False If set to True, the metric is happend into  infodict . The metrics are computed in the  laueimproc.gmm.metric module.  mse: Mean Square Error of shape ( .,). \\( mse = \\frac{1}{N}\\sum\\limits_{i=1}^N \\left(\\left(\\sum\\limits_{j=1}^K \\eta_j \\left( \\mathcal{N}_{(\\mathbf{\\mu}_j,\\frac{1}{\\omega_i}\\mathbf{\\Sigma}_j)}(\\mathbf{x}_i) \\right)\\right) - \\alpha_i\\right)^2 \\) Returns    - mean : torch.Tensor The vectors \\(\\mathbf{\\mu}\\). Shape (n, \\(K\\), 2). In the absolute diagram base. cov : torch.Tensor The matrices \\(\\mathbf{\\Sigma}\\). Shape (n, \\(K\\), 2, 2). mag : torch.Tensor The absolute magnitude \\(\\eta\\). Shape (n, \\(K\\ . infodict : dict[str] A dictionary of optional outputs. Examples     >>> import torch >>> from laueimproc.gmm.linalg import multivariate_normal >>> from laueimproc.improc.spot.fit import fit_gaussians_mse >>> >>> cov_ref = torch.asarray( [2, 1], [1, 4 ,  3, -3], [-3, 9 ]) >>> cov_ref = cov_ref.to(torch.float32) >>> mean_ref = torch.asarray( [10.0, 15.0], [20.0, 15.0 ]) >>> obs = multivariate_normal(cov_ref, 2_000_000) + mean_ref >>> obs = obs.to(torch.int32).reshape(-1, 2) >>> height, width = 30, 30 >>> rois = obs[:, 0] width + obs[:, 1] >>> rois = rois[torch.logical_and(rois >= 0, rois  >> rois = torch.bincount(rois, minlength=height width).to(torch.float32) >>> rois = rois.reshape(1, height, width) / rois.max() >>> >>> data = bytearray(rois.to(torch.float32).numpy().tobytes( >>> bboxes = torch.asarray( 0, 0, height, width , dtype=torch.int16) >>> mean, cov, mag, _ = fit_gaussians_mse(data, bboxes, nbr_clusters=2) >>> any(torch.allclose(mu, mean_ref[0, 0], atol=0.5) for mu in mean[0]) True >>> any(torch.allclose(mu, mean_ref[0, 1], atol=0.5) for mu in mean[0]) True >>> >>>  import matplotlib.pyplot as plt >>>  _ = plt.imshow(rois[0], extent=(0, width, height, 0 >>>  _ = plt.scatter(mean[ ., 1].ravel(), mean[ ., 0].ravel( >>>  plt.show() >>>",
+"func":1
+},
+{
+"ref":"laueimproc.improc.spot.extrema",
+"url":16,
+"doc":"Search the number of extremums in each rois."
+},
+{
+"ref":"laueimproc.improc.spot.extrema.compute_rois_nb_peaks",
+"url":16,
+"doc":"Find the number of extremums in each roi. Parameters      data : bytearray The raw data \\(\\alpha_i\\) of the concatenated not padded float32 rois. bboxes : torch.Tensor The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width) for each spots, of shape (n, 4). It doesn't have to be c contiguous. Returns    - nbr : torch.Tensor The number of extremum in each roi of shape (n,) and dtype int16. The detection is based on canny filtering. Examples     >>> import torch >>> from laueimproc.improc.spot.extrema import compute_rois_nb_peaks >>> patches = [  . torch.tensor( .5 ),  . torch.tensor( .5, .5], [.5, .5 ),  . torch.tensor( .5, .5, .5], [.5, .5, .5], [.5, .5, .5 ),  . torch.tensor( .1, .0, .1, .2, .3, .3, .2, .1, .1],  . [.0, .2, .1, .2, .3, .2, .1, .1, .1],  . [.0, .1, .2, .2, .2, .1, .1, .0, .0],  . [.1, .0, .1, .1, .2, .1, .0, .0, .0],  . [.2, .1, .2, .3, .4, .6, 4., .3, .1],  . [.3, .2, .3, .5, .8, .8, .8, .6, .3],  . [.4, .3, .5, .8, .8, .8, .8, .7, .3],  . [.2, .3, .5, .7, .8, .8, .7, .6, .3],  . [.2, .2, .4, .6, .7, .7, .5, .3, .2 ),  . ] >>> data = bytearray(torch.cat([p.ravel() for p in patches]).numpy().tobytes( >>> bboxes = torch.tensor( 0, 0, 1, 1],  . [ 0, 0, 2, 2],  . [ 0, 0, 3, 3],  . [ 0, 0, 9, 9 , dtype=torch.int16) >>> print(compute_rois_nb_peaks(data, bboxes tensor([1, 1, 1, 5], dtype=torch.int16) >>> (  . compute_rois_nb_peaks(data, bboxes)  compute_rois_nb_peaks(data, bboxes, _no_c=True)  . ).all() tensor(True) >>>",
 "func":1
 },
 {
@@ -1782,322 +1783,322 @@ INDEX=[
 "func":1
 },
 {
-"ref":"laueimproc.testing.coding_style",
-"url":38,
-"doc":"Executes analyser of code quality."
-},
-{
-"ref":"laueimproc.testing.coding_style.test_mccabe_pycodestyle_pydocstyle_pyflakes",
-"url":38,
-"doc":"Run these linters throw pylama on laueimproc.",
-"func":1
-},
-{
-"ref":"laueimproc.testing.coding_style.test_pylint",
-"url":38,
-"doc":"Run pylint throw pylama on laueimproc.",
-"func":1
-},
-{
 "ref":"laueimproc.testing.tests",
-"url":39,
+"url":38,
 "doc":""
 },
 {
 "ref":"laueimproc.testing.tests.inter_batch",
-"url":40,
+"url":39,
 "doc":"Test the median function."
 },
 {
 "ref":"laueimproc.testing.tests.inter_batch.test_tol_random",
-"url":40,
+"url":39,
 "doc":"Create a random dataset, and compute the median.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.set_spots",
-"url":41,
+"url":40,
 "doc":"Test the set_spots function."
 },
 {
 "ref":"laueimproc.testing.tests.set_spots.test_from_anchors_rois_numpy",
-"url":41,
+"url":40,
 "doc":"Init a diagram from anchors and rois.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.set_spots.test_from_anchors_rois_torch",
-"url":41,
+"url":40,
 "doc":"Init a diagram from anchors and rois.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.set_spots.test_from_bboxes_list",
-"url":41,
+"url":40,
 "doc":"Init a diagram from bboxes.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.set_spots.test_from_bboxes_numpy",
-"url":41,
+"url":40,
 "doc":"Init a diagram from bboxes.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.set_spots.test_from_bboxes_set",
-"url":41,
+"url":40,
 "doc":"Init a diagram from bboxes.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.set_spots.test_from_bboxes_torch",
-"url":41,
+"url":40,
 "doc":"Init a diagram from bboxes.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.set_spots.test_from_bboxes_tuple",
-"url":41,
+"url":40,
 "doc":"Init a diagram from bboxes.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.set_spots.test_from_diagram",
-"url":41,
+"url":40,
 "doc":"Init a diagram from an other.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.set_spots.test_reset",
-"url":41,
+"url":40,
 "doc":"Init diagram with empty data.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg",
-"url":42,
+"url":41,
 "doc":"Test the function of bragg diffraction."
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_batch_hkl_reciprocal_to_energy",
-"url":42,
+"url":41,
 "doc":"Test batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_batch_hkl_reciprocal_to_uq",
-"url":42,
+"url":41,
 "doc":"Test batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_batch_uf_to_uq",
-"url":42,
+"url":41,
 "doc":"Test batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_batch_uq_to_uf",
-"url":42,
+"url":41,
 "doc":"Test batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_bij_uf_to_uq_to_uf",
-"url":42,
+"url":41,
 "doc":"Test uf -> uq -> uf = uf.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_bij_uq_to_uf_to_uq",
-"url":42,
+"url":41,
 "doc":"Test uq -> uf -> uq = uq.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_jac_hkl_reciprocal_to_energy",
-"url":42,
+"url":41,
 "doc":"Test compute jacobian.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_jac_hkl_reciprocal_to_uq",
-"url":42,
+"url":41,
 "doc":"Test compute jacobian.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_normalization_hkl_reciprocal_to_uq",
-"url":42,
+"url":41,
 "doc":"Test norm is 1.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_normalization_uf_to_uq",
-"url":42,
+"url":41,
 "doc":"Test norm is 1.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_normalization_uq_to_uf",
-"url":42,
+"url":41,
 "doc":"Test norm is 1.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.bragg.test_sign_uq",
-"url":42,
+"url":41,
 "doc":"Test uf is not sensitive to the uq orientation.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.lattice",
-"url":43,
+"url":42,
 "doc":"Test the convertion between lattice and primitive space."
 },
 {
 "ref":"laueimproc.testing.tests.lattice.test_batch_lattice_to_primitive",
-"url":43,
+"url":42,
 "doc":"Tests batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.lattice.test_jac_lattice_to_primitive",
-"url":43,
+"url":42,
 "doc":"Tests compute jacobian.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.lattice.test_batch_primitive_to_lattice",
-"url":43,
+"url":42,
 "doc":"Tests batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.lattice.test_jac_primitive_to_lattice",
-"url":43,
+"url":42,
 "doc":"Tests compute jacobian.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.lattice.test_bij_lattice_to_primitive_to_lattice",
-"url":43,
+"url":42,
 "doc":"Test is the transformation is reverible.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.metric",
-"url":44,
+"url":43,
 "doc":"Test if the matching rate is ok."
 },
 {
 "ref":"laueimproc.testing.tests.metric.test_batch_matching_rate",
-"url":44,
+"url":43,
 "doc":"Test batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.metric.test_batch_matching_rate_continuous",
-"url":44,
+"url":43,
 "doc":"Test batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.metric.test_grad_matching_rate_continuous",
-"url":44,
+"url":43,
 "doc":"Test the continuous matching rate is differenciable.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.metric.test_value_matching_rate",
-"url":44,
+"url":43,
 "doc":"Test if the result of the matching rate is correct.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.projection",
-"url":45,
+"url":44,
 "doc":"Test the convertion between ray and detector position."
 },
 {
 "ref":"laueimproc.testing.tests.projection.test_batch_detector_to_ray",
-"url":45,
+"url":44,
 "doc":"Tests batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.projection.test_batch_ray_to_detector",
-"url":45,
+"url":44,
 "doc":"Tests batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.projection.test_bij_ray_to_point_to_ray",
-"url":45,
+"url":44,
 "doc":"Test ray -> point -> ray = ray.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.projection.test_jac_detector_to_ray",
-"url":45,
+"url":44,
 "doc":"Tests compute jacobian.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.projection.test_jac_ray_to_detector",
-"url":45,
+"url":44,
 "doc":"Tests compute jacobian.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.projection.test_normalization_detector_to_ray",
-"url":45,
+"url":44,
 "doc":"Test norm is 1.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.reciprocal",
-"url":46,
+"url":45,
 "doc":"Test the convertion between primitive and reciprocal."
 },
 {
 "ref":"laueimproc.testing.tests.reciprocal.test_batch_primitive_to_reciprocal",
-"url":46,
+"url":45,
 "doc":"Tests batch dimension.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.reciprocal.test_jac_primitive_to_reciprocal",
-"url":46,
+"url":45,
 "doc":"Tests compute jacobian.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.reciprocal.test_bij",
-"url":46,
+"url":45,
 "doc":"Test is the transformation is reversible.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.tests.rotation",
-"url":47,
+"url":46,
 "doc":"Test the rotation function."
 },
 {
 "ref":"laueimproc.testing.tests.rotation.test_bij_angle_to_rot_to_angle",
-"url":47,
+"url":46,
 "doc":"Test if the function is bijective.",
 "func":1
 },
 {
 "ref":"laueimproc.testing.run",
-"url":48,
+"url":47,
 "doc":"Executes all the tests via the  pytest module."
 },
 {
 "ref":"laueimproc.testing.run.run_tests",
-"url":48,
+"url":47,
 "doc":"Perform all unit tests.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.coding_style",
+"url":48,
+"doc":"Execute tools to estimate the coding style quiality."
+},
+{
+"ref":"laueimproc.testing.coding_style.test_mccabe_pycodestyle_pydocstyle_pyflakes",
+"url":48,
+"doc":"Run these linters throw pylama on laueimproc.",
+"func":1
+},
+{
+"ref":"laueimproc.testing.coding_style.test_pylint",
+"url":48,
+"doc":"Run pylint throw pylama on laueimproc.",
 "func":1
 },
 {
@@ -2445,7 +2446,7 @@ INDEX=[
 {
 "ref":"laueimproc.geometry.select_hkl",
 "url":63,
-"doc":"Reject the hkl sistematicaly out of energy band. Parameters      lattice : torch.Tensor, optional If provided, the lattices parameters \\([a, b, c, \\alpha, \\beta, \\gamma]\\) of shape ( ., 6) are used to simulate the hkl energy for a large number of rotation. max_hkl : int The maximum absolute hkl sum such as |h| + |k| + |l|  >> import torch >>> from laueimproc.geometry.hkl import select_hkl >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2]) >>> select_hkl(lattice) tensor( 0, -18, 0], [ 0, -17, -1], [ 0, -17, 0],  ., [ 17, 0, 1], [ 17, 1, 0], [ 18, 0, 0 , dtype=torch.int16) >>> len(_) 4578 >>> select_hkl(lattice, keep_harmonics=False) tensor( 0, -17, -1], [ 0, -17, 1], [ 0, -16, -1],  ., [ 17, 0, -1], [ 17, 0, 1], [ 17, 1, 0 , dtype=torch.int16) >>> len(_) 3661 >>> select_hkl(lattice, e_max=20e3  1.60e-19)  20 keV tensor( 0, -11, -3], [ 0, -11, -2], [ 0, -11, -1],  ., [ 11, 3, 0], [ 11, 3, 1], [ 11, 3, 2 , dtype=torch.int16) >>> len(_) 3399 >>>",
+"doc":"Reject the hkl sistematicaly out of energy band. Parameters      reciprocal : torch.Tensor, optional Matrix \\(\\mathbf{B}\\) in any orthonormal base. max_hkl : int, optional The maximum absolute hkl sum such as |h| + |k| + |l|  >> import torch >>> from laueimproc.geometry.hkl import select_hkl >>> reciprocal = torch.tensor( 2.7778e9, 0, 0],  . [1.2142e2, 2.7778e9, 0],  . [1.2142e2, 1.2142e2, 2.7778e9 ) >>> select_hkl(max_hkl=18) tensor( 0, -18, 0], [ 0, -17, -1], [ 0, -17, 0],  ., [ 17, 0, 1], [ 17, 1, 0], [ 18, 0, 0 , dtype=torch.int16) >>> len(_) 4578 >>> select_hkl(max_hkl=18, keep_harmonics=False) tensor( 0, -17, -1], [ 0, -17, 1], [ 0, -16, -1],  ., [ 17, 0, -1], [ 17, 0, 1], [ 17, 1, 0 , dtype=torch.int16) >>> len(_) 3661 >>> select_hkl(reciprocal, e_max=20e3  1.60e-19)  20 keV tensor( 0, -11, -3], [ 0, -11, -2], [ 0, -11, -1],  ., [ 11, 3, 0], [ 11, 3, 1], [ 11, 3, 2 , dtype=torch.int16) >>> len(_) 1463 >>> select_hkl(reciprocal, e_max=20e3  1.60e-19, keep_harmonics=False)  20 keV tensor( 0, -11, -1], [ 0, -11, 1], [ 0, -10, -1],  ., [ 11, 0, -1], [ 11, 0, 1], [ 11, 1, 0 , dtype=torch.int16) >>> len(_) 1149 >>>",
 "func":1
 },
 {
@@ -2499,7 +2500,7 @@ INDEX=[
 {
 "ref":"laueimproc.geometry.angle_to_rot",
 "url":63,
-"doc":"Generate a rotation matrix from the given angles. The rotation are following the pyfai convention. Parameters      theta1 : torch.Tensor or float The first rotation angle of shape (\\ a,). \\( rot_1 = \\begin{pmatrix} 1 & 0 & 0  0 & \\cos(\\theta_1) & -\\sin(\\theta_1)  c & \\sin(\\theta_1) & \\cos(\\theta_1)  \\end{pmatrix} \\) theta2 : torch.Tensor or float The second rotation angle of shape (\\ b,). \\( rot_2 = \\begin{pmatrix} \\cos(\\theta_2) & 0 & \\sin(\\theta_2)  0 & 1 & 0  -\\sin(\\theta_2) & 0 & \\cos(\\theta_2)  \\end{pmatrix} \\) theta3 : torch.Tensor or float The third rotation angle of shape (\\ c,). (inverse of pyfai convention) \\( rot_3 = \\begin{pmatrix} \\cos(\\theta_3) & -\\sin(\\theta_3) & 0  \\sin(\\theta_3) & \\cos(\\theta_3) & 0  0 & 0 & 1  \\end{pmatrix} \\) cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape is (\\ a, \\ b, \\ c, 3, 3).  False: The final shape is (\\ broadcast(a, b, c), 3, 3). Returns    - rot : torch.Tensor The global rotation \\(rot_3 . rot_2 . rot_1\\). Examples     >>> import torch >>> from laueimproc.geometry.rotation import angle_to_rot >>> angle_to_rot(theta1=torch.pi/6) tensor( 1.0000, 0.0000, 0.0000], [ 0.0000, 0.8660, -0.5000], [ 0.0000, 0.5000, 0.8660 ) >>> angle_to_rot(theta2=torch.pi/6) tensor( 0.8660, 0.0000, 0.5000], [ 0.0000, 1.0000, 0.0000], [-0.5000, 0.0000, 0.8660 ) >>> angle_to_rot(theta3=torch.pi/6) tensor( 0.8660, -0.5000, 0.0000], [ 0.5000, 0.8660, 0.0000], [ 0.0000, 0.0000, 1.0000 ) >>> angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6) tensor( 0.7500, -0.2165, 0.6250], [ 0.4330, 0.8750, -0.2165], [-0.5000, 0.4330, 0.7500 ) >>> angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9 .shape torch.Size([4, 5, 6, 7, 8, 9, 3, 3]) >>>",
+"doc":"Generate a rotation matrix from the given angles. The rotation are following the pyfai convention. Parameters      theta1 : torch.Tensor or float The first rotation angle of shape (\\ a,). \\( rot_1 = \\begin{pmatrix} 1 & 0 & 0  0 & \\cos(\\theta_1) & -\\sin(\\theta_1)  c & \\sin(\\theta_1) & \\cos(\\theta_1)  \\end{pmatrix} \\) theta2 : torch.Tensor or float The second rotation angle of shape (\\ b,). \\( rot_2 = \\begin{pmatrix} \\cos(\\theta_2) & 0 & \\sin(\\theta_2)  0 & 1 & 0  -\\sin(\\theta_2) & 0 & \\cos(\\theta_2)  \\end{pmatrix} \\) theta3 : torch.Tensor or float The third rotation angle of shape (\\ c,). (inverse of pyfai convention) \\( rot_3 = \\begin{pmatrix} \\cos(\\theta_3) & -\\sin(\\theta_3) & 0  \\sin(\\theta_3) & \\cos(\\theta_3) & 0  0 & 0 & 1  \\end{pmatrix} \\) cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape is (\\ a, \\ b, \\ c, 3, 3).  False: The final shape is (\\ broadcast(a, b, c), 3, 3). Returns    - rot : torch.Tensor The global rotation \\(rot_3 . rot_2 . rot_1\\). Examples     >>> import torch >>> from laueimproc.geometry.rotation import angle_to_rot >>> angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6) tensor( 0.7500, -0.2165, 0.6250], [ 0.4330, 0.8750, -0.2165], [-0.5000, 0.4330, 0.7500 ) >>> angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9 .shape torch.Size([4, 5, 6, 7, 8, 9, 3, 3]) >>>",
 "func":1
 },
 {
@@ -2517,225 +2518,297 @@ INDEX=[
 {
 "ref":"laueimproc.geometry.thetachi_to_uf",
 "url":63,
-"doc":"Reconstruct the diffracted ray from the deviation angles. Bijection of  laueimproc.geometry.thetachi.uf_to_thetachi .  image  / /build/media/IMGThetaChi.avif Parameters      theta : torch.Tensor The half deviation angle in radian, with \\(\\theta \\in [0, \\frac{\\pi}{2}]\\). chi : torch.Tensor The rotation angle in radian from the vertical plan \\ \\mathbf{L_1}, \\mathbf{L_3})\\) to the plan \\ u_i, \\mathcal{B^l_z})\\), with \\(\\chi \\in [-\\pi, \\pi]\\). Returns    - u_f : torch.Tensor The unitary diffracted ray of shape ( broadcast(theta.shape, chi.shape), 3). It is expressed in the lab base \\(\\mathcal{B^l}\\). Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).  This function is slow, use  laueimproc.geometry.bragg.uq_to_uf if you can. Examples     >>> import torch >>> from laueimproc.geometry.thetachi import thetachi_to_uf >>> theta = torch.deg2rad(torch.tensor([15., 30., 45.] >>> chi = torch.deg2rad(torch.tensor([ -0., 90., -45.] >>> thetachi_to_uf(theta, chi).round(decimals=4) tensor( 0.5000, 0.0000, 0.8660], [-0.0000, -0.8660, 0.5000], [ 0.7071, 0.7071, -0.0000 ) >>>",
+"doc":"Reconstruct the diffracted ray from the deviation angles. Bijection of  laueimproc.geometry.thetachi.uf_to_thetachi .  image  / / /build/media/IMGThetaChi.avif Parameters      theta : torch.Tensor The half deviation angle in radian, with \\(\\theta \\in [0, \\frac{\\pi}{2}]\\). chi : torch.Tensor The rotation angle in radian from the vertical plan \\ \\mathbf{L_1}, \\mathbf{L_3})\\) to the plan \\ u_i, \\mathcal{B^l_z})\\), with \\(\\chi \\in [-\\pi, \\pi]\\). Returns    - u_f : torch.Tensor The unitary diffracted ray of shape ( broadcast(theta.shape, chi.shape), 3). It is expressed in the lab base \\(\\mathcal{B^l}\\). Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).  This function is slow, use  laueimproc.geometry.bragg.uq_to_uf if you can. Examples     >>> import torch >>> from laueimproc.geometry.thetachi import thetachi_to_uf >>> theta = torch.deg2rad(torch.tensor([15., 30., 45.] >>> chi = torch.deg2rad(torch.tensor([ -0., 90., -45.] >>> thetachi_to_uf(theta, chi).round(decimals=4) tensor( 0.5000, 0.0000, 0.8660], [-0.0000, -0.8660, 0.5000], [ 0.7071, 0.7071, -0.0000 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.uf_to_thetachi",
 "url":63,
-"doc":"Find the angular deviation of the dffracted ray. Bijection of  laueimproc.geometry.thetachi.thetachi_to_uf .  image  / /build/media/IMGThetaChi.avif Parameters      u_f : torch.Tensor The unitary diffracted ray of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - theta : torch.Tensor The half deviation angle in radian, of shape ( .). \\(\\theta \\in [0, \\frac{\\pi}{2}]\\) chi : torch.Tensor The counterclockwise (trigonometric) rotation of the diffracted ray if you look as u_i. It is the angle from the vertical plan \\ \\mathbf{L_1}, \\mathbf{L_3})\\) to the plan \\ u_i, \\mathcal{B^l_z})\\). The shape is ( .) as well. \\(\\chi \\in [-\\pi, \\pi]\\) Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).  This function is slow, use  laueimproc.geometry.bragg.uf_to_uq if you can. Examples     >>> import torch >>> from laueimproc.geometry.thetachi import uf_to_thetachi >>> u_f = torch.tensor( 1/2, 0, 3 (1/2)/2], [0, -3 (1/2)/2, 1/2], [2 (1/2), 2 (1/2), 0 ) >>> theta, chi = uf_to_thetachi(u_f) >>> torch.rad2deg(theta).round() tensor([15., 30., 45.]) >>> torch.rad2deg(chi).round() tensor([ -0., 90., -45.]) >>>",
-"func":1
-},
-{
-"ref":"laueimproc.geometry.rotation",
-"url":64,
-"doc":"Help for making rotation matrix."
-},
-{
-"ref":"laueimproc.geometry.rotation.angle_to_rot",
-"url":64,
-"doc":"Generate a rotation matrix from the given angles. The rotation are following the pyfai convention. Parameters      theta1 : torch.Tensor or float The first rotation angle of shape (\\ a,). \\( rot_1 = \\begin{pmatrix} 1 & 0 & 0  0 & \\cos(\\theta_1) & -\\sin(\\theta_1)  c & \\sin(\\theta_1) & \\cos(\\theta_1)  \\end{pmatrix} \\) theta2 : torch.Tensor or float The second rotation angle of shape (\\ b,). \\( rot_2 = \\begin{pmatrix} \\cos(\\theta_2) & 0 & \\sin(\\theta_2)  0 & 1 & 0  -\\sin(\\theta_2) & 0 & \\cos(\\theta_2)  \\end{pmatrix} \\) theta3 : torch.Tensor or float The third rotation angle of shape (\\ c,). (inverse of pyfai convention) \\( rot_3 = \\begin{pmatrix} \\cos(\\theta_3) & -\\sin(\\theta_3) & 0  \\sin(\\theta_3) & \\cos(\\theta_3) & 0  0 & 0 & 1  \\end{pmatrix} \\) cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape is (\\ a, \\ b, \\ c, 3, 3).  False: The final shape is (\\ broadcast(a, b, c), 3, 3). Returns    - rot : torch.Tensor The global rotation \\(rot_3 . rot_2 . rot_1\\). Examples     >>> import torch >>> from laueimproc.geometry.rotation import angle_to_rot >>> angle_to_rot(theta1=torch.pi/6) tensor( 1.0000, 0.0000, 0.0000], [ 0.0000, 0.8660, -0.5000], [ 0.0000, 0.5000, 0.8660 ) >>> angle_to_rot(theta2=torch.pi/6) tensor( 0.8660, 0.0000, 0.5000], [ 0.0000, 1.0000, 0.0000], [-0.5000, 0.0000, 0.8660 ) >>> angle_to_rot(theta3=torch.pi/6) tensor( 0.8660, -0.5000, 0.0000], [ 0.5000, 0.8660, 0.0000], [ 0.0000, 0.0000, 1.0000 ) >>> angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6) tensor( 0.7500, -0.2165, 0.6250], [ 0.4330, 0.8750, -0.2165], [-0.5000, 0.4330, 0.7500 ) >>> angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9 .shape torch.Size([4, 5, 6, 7, 8, 9, 3, 3]) >>>",
-"func":1
-},
-{
-"ref":"laueimproc.geometry.rotation.rot_to_angle",
-"url":64,
-"doc":"Extract the rotation angles from a fulle rotation matrix. Bijection of  laueimproc.geometry.rotation.angle_to_rot . Parameters      rot : torch.Tensor The rotation matrix \\(rot_3 . rot_2 . rot_1\\) of shape ( ., 3, 3). Returns    - theta1 : torch.Tensor or float The first rotation angle of shape ( .). \\(\\theta_1 \\in [-\\pi, \\pi]\\) \\( rot_1 = \\begin{pmatrix} 1 & 0 & 0  0 & \\cos(\\theta_1) & -\\sin(\\theta_1)  c & \\sin(\\theta_1) & \\cos(\\theta_1)  \\end{pmatrix} \\) theta2 : torch.Tensor or float The second rotation angle of shape ( .). \\(\\theta_2 \\in [-\\frac{\\pi}{2}, \\frac{\\pi}{2}]\\) \\( rot_2 = \\begin{pmatrix} \\cos(\\theta_2) & 0 & \\sin(\\theta_2)  0 & 1 & 0  -\\sin(\\theta_2) & 0 & \\cos(\\theta_2)  \\end{pmatrix} \\) theta3 : torch.Tensor or float The third rotation angle of shape ( .). (inverse of pyfai convention) \\(\\theta_3 \\in [-\\pi, \\pi]\\) \\( rot_3 = \\begin{pmatrix} \\cos(\\theta_3) & -\\sin(\\theta_3) & 0  \\sin(\\theta_3) & \\cos(\\theta_3) & 0  0 & 0 & 1  \\end{pmatrix} \\) Examples     >>> import torch >>> from laueimproc.geometry.rotation import rot_to_angle >>> rot = torch.tensor( 0.7500, -0.2165, 0.6250],  . [ 0.4330, 0.8750, -0.2165],  . [-0.5000, 0.4330, 0.7500 ) >>> theta1, theta2, theta3 = rot_to_angle(rot) >>> torch.rad2deg(theta1).round() tensor(30.) >>> torch.rad2deg(theta2).round() tensor(30.) >>> torch.rad2deg(theta3).round() tensor(30.) >>>",
-"func":1
-},
-{
-"ref":"laueimproc.geometry.rotation.rotate_crystal",
-"url":64,
-"doc":"Apply an active rotation to the crystal. Parameters      crystal : torch.Tensor The primitive \\ \\mathbf{A})\\) or reciprocal \\ \\mathbf{B})\\) in the base \\(\\mathcal{B}\\). The shape of this parameter is (\\ c, 3, 3). rot : torch.Tensor The active rotation matrix, of shape (\\ r, 3, 3). cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape is (\\ c, \\ r, 3, 3).  False: The final shape is (\\ broadcast(c, r), 3, 3). Returns    - rotated_crystal: torch.Tensor The batched matricial product  rot @ crystal .",
+"doc":"Find the angular deviation of the dffracted ray. Bijection of  laueimproc.geometry.thetachi.thetachi_to_uf .  image  / / /build/media/IMGThetaChi.avif Parameters      u_f : torch.Tensor The unitary diffracted ray of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - theta : torch.Tensor The half deviation angle in radian, of shape ( .). \\(\\theta \\in [0, \\frac{\\pi}{2}]\\) chi : torch.Tensor The counterclockwise (trigonometric) rotation of the diffracted ray if you look as u_i. It is the angle from the vertical plan \\ \\mathbf{L_1}, \\mathbf{L_3})\\) to the plan \\ u_i, \\mathcal{B^l_z})\\). The shape is ( .) as well. \\(\\chi \\in [-\\pi, \\pi]\\) Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).  This function is slow, use  laueimproc.geometry.bragg.uf_to_uq if you can. Examples     >>> import torch >>> from laueimproc.geometry.thetachi import uf_to_thetachi >>> u_f = torch.tensor( 1/2, 0, 3 (1/2)/2], [0, -3 (1/2)/2, 1/2], [2 (1/2), 2 (1/2), 0 ) >>> theta, chi = uf_to_thetachi(u_f) >>> torch.rad2deg(theta).round() tensor([15., 30., 45.]) >>> torch.rad2deg(chi).round() tensor([ -0., 90., -45.]) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.metric",
-"url":65,
+"url":64,
 "doc":"Implement some loss functions."
 },
 {
 "ref":"laueimproc.geometry.metric.raydotdist",
-"url":65,
+"url":64,
 "doc":"Compute the scalar product matrix of the rays pairwise. Parameters      ray_point_1 : torch.Tensor The 2d point associated to uf in the referencial of the detector of shape (\\ n, r1, 2). Could be directly the unitary ray vector uf or uq of shape (\\ n, r1, 3). ray_point_2 : torch.Tensor The 2d point associated to uf in the referencial of the detector of shape (\\ n', r2, 2 . Could be directly the unitary ray vector uf or uq of shape (\\ n', r2, 3). poni : torch.Tensor, optional Only use if the ray are projected points. The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\\ p, 6). Returns    - dist : torch.Tensor The distance matrix \\(\\cos(\\phi)\\) of shape (\\ broadcast(n, n'), \\ p, r1, r2).",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.metric.compute_matching_rate",
-"url":65,
+"url":64,
 "doc":"Compute the matching rate. It is the number of ray in  theo_uq , close engouth to at least one ray of  exp_uq . Parameters      exp_uq : torch.Tensor The unitary experimental uq vector of shape (\\ n, e, 3). theo_uq : torch.Tensor The unitary simulated theorical uq vector of shape (\\ n', t, 3). phi_max : float The maximum positive angular distance in radian to consider that the rays are closed enough. Returns    - match : torch.Tensor The matching rate of shape broadcast(n, n'). Examples     >>> import torch >>> from laueimproc.geometry.metric import compute_matching_rate >>> exp_uq = torch.randn(1000, 3) >>> exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True) >>> theo_uq = torch.randn(5000, 3) >>> theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True) >>> rate = compute_matching_rate(exp_uq, theo_uq, 0.5  torch.pi/180) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.metric.compute_matching_rate_continuous",
-"url":65,
+"url":64,
 "doc":"Compute the matching rate. This is a continuity extension of the disctere function  laueimproc.geometry.metric.compute_matching_rate . Let \\(\\phi\\) be the angle between two rays. The matching rate is defined with \\(r = \\sum f(\\phi_i)\\) with \\(f(\\phi) = e^{-\\frac{\\log(2)}{\\phi_{max \\phi}\\). Parameters      exp_uq : torch.Tensor The unitary experimental uq vector of shape (\\ n, e, 3). theo_uq : torch.Tensor The unitary simulated theorical uq vector of shape (\\ n', t, 3). phi_max : float The maximum positive angular distance in radian to consider that the rays are closed enough. Returns    - rate : torch.Tensor The continuous matching rate of shape broadcast(n, n'). Examples     >>> import torch >>> from laueimproc.geometry.metric import compute_matching_rate_continuous >>> exp_uq = torch.randn(1000, 3) >>> exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True) >>> theo_uq = torch.randn(5000, 3) >>> theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True) >>> rate = compute_matching_rate_continuous(exp_uq, theo_uq, 0.5  torch.pi/180) >>>",
 "func":1
 },
 {
-"ref":"laueimproc.geometry.hkl",
-"url":66,
-"doc":"Help to select the hkl indices."
-},
-{
-"ref":"laueimproc.geometry.hkl.select_hkl",
-"url":66,
-"doc":"Reject the hkl sistematicaly out of energy band. Parameters      lattice : torch.Tensor, optional If provided, the lattices parameters \\([a, b, c, \\alpha, \\beta, \\gamma]\\) of shape ( ., 6) are used to simulate the hkl energy for a large number of rotation. max_hkl : int The maximum absolute hkl sum such as |h| + |k| + |l|  >> import torch >>> from laueimproc.geometry.hkl import select_hkl >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2]) >>> select_hkl(lattice) tensor( 0, -18, 0], [ 0, -17, -1], [ 0, -17, 0],  ., [ 17, 0, 1], [ 17, 1, 0], [ 18, 0, 0 , dtype=torch.int16) >>> len(_) 4578 >>> select_hkl(lattice, keep_harmonics=False) tensor( 0, -17, -1], [ 0, -17, 1], [ 0, -16, -1],  ., [ 17, 0, -1], [ 17, 0, 1], [ 17, 1, 0 , dtype=torch.int16) >>> len(_) 3661 >>> select_hkl(lattice, e_max=20e3  1.60e-19)  20 keV tensor( 0, -11, -3], [ 0, -11, -2], [ 0, -11, -1],  ., [ 11, 3, 0], [ 11, 3, 1], [ 11, 3, 2 , dtype=torch.int16) >>> len(_) 3399 >>>",
-"func":1
-},
-{
 "ref":"laueimproc.geometry.bragg",
-"url":67,
+"url":65,
 "doc":"Simulation of the bragg diffraction."
 },
 {
 "ref":"laueimproc.geometry.bragg.hkl_reciprocal_to_energy",
-"url":67,
+"url":65,
 "doc":"Alias to  laueimproc.geometry.bragg.hkl_reciprocal_to_uq_energy .",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.bragg.hkl_reciprocal_to_uq",
-"url":67,
+"url":65,
 "doc":"Alias to  laueimproc.geometry.bragg.hkl_reciprocal_to_uq_energy .",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.bragg.hkl_reciprocal_to_uq_energy",
-"url":67,
+"url":65,
 "doc":"Thanks to the bragg relation, compute the energy of each diffracted ray. Parameters      hkl : torch.Tensor The h, k, l indices of shape (\\ n, 3) we want to mesure. reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) of shape (\\ r, 3, 3) in the lab base \\(\\mathcal{B^l}\\). cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape are (\\ n, \\ r, 3) and (\\ n, \\ r).  False: The final shape are (\\ broadcast(n, r), 3) and broadcast(n, r). Returns    - u_q : torch.Tensor All the unitary diffracting plane normal vector of shape ( ., 3). The vectors are expressed in the same base as the reciprocal space. energy : torch.Tensor The energy of each ray in J as a tensor of shape ( .). \\(\\begin{cases} E = \\frac{hc}{\\lambda}  \\lambda = 2d\\sin(\\theta)  \\sin(\\theta) = \\left| \\langle u_i, u_q \\rangle \\right|  \\end{cases}\\) Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\). Examples     >>> import torch >>> from laueimproc.geometry.bragg import hkl_reciprocal_to_uq_energy >>> reciprocal = torch.torch.tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00],  . [ 9.6225e+08, 3.0387e+09, -0.0000e+00],  . [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>> hkl = torch.tensor([1, 2, -1]) >>> u_q, energy = hkl_reciprocal_to_uq_energy(hkl, reciprocal) >>> u_q tensor([ 0.1798, 0.7595, -0.6252]) >>> 6.24e18  energy  convertion J -> eV tensor(9200.6816) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.bragg.uf_to_uq",
-"url":67,
+"url":65,
 "doc":"Calculate the vector normal to the diffracting planes. Bijection of  laueimproc.geometry.bragg.uq_to_uf . \\(u_q \\propto u_f - u_i\\) Parameters      u_f : torch.Tensor The unitary diffracted rays of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - u_q : torch.Tensor The unitary normals of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.bragg.uq_to_uf",
-"url":67,
+"url":65,
 "doc":"Calculate the diffracted ray from q vector. Bijection of  laueimproc.geometry.bragg.uf_to_uq . \\(\\begin{cases} u_f - u_i = \\eta u_q  \\eta = 2 \\langle u_q, -u_i \\rangle  \\end{cases}\\) Parameters      u_q : torch.Tensor The unitary q vectors of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - u_f : torch.Tensor The unitary diffracted ray of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Notes   -  \\(u_f\\) is not sensitive to the \\(u_q\\) orientation.  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).",
 "func":1
 },
 {
-"ref":"laueimproc.geometry.thetachi",
-"url":68,
-"doc":"Convertion of diffracted ray to angles. Do not use these functions for intensive calculation, they should only be used for final conversion, not for a calculation step."
-},
-{
-"ref":"laueimproc.geometry.thetachi.thetachi_to_uf",
-"url":68,
-"doc":"Reconstruct the diffracted ray from the deviation angles. Bijection of  laueimproc.geometry.thetachi.uf_to_thetachi .  image  / /build/media/IMGThetaChi.avif Parameters      theta : torch.Tensor The half deviation angle in radian, with \\(\\theta \\in [0, \\frac{\\pi}{2}]\\). chi : torch.Tensor The rotation angle in radian from the vertical plan \\ \\mathbf{L_1}, \\mathbf{L_3})\\) to the plan \\ u_i, \\mathcal{B^l_z})\\), with \\(\\chi \\in [-\\pi, \\pi]\\). Returns    - u_f : torch.Tensor The unitary diffracted ray of shape ( broadcast(theta.shape, chi.shape), 3). It is expressed in the lab base \\(\\mathcal{B^l}\\). Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).  This function is slow, use  laueimproc.geometry.bragg.uq_to_uf if you can. Examples     >>> import torch >>> from laueimproc.geometry.thetachi import thetachi_to_uf >>> theta = torch.deg2rad(torch.tensor([15., 30., 45.] >>> chi = torch.deg2rad(torch.tensor([ -0., 90., -45.] >>> thetachi_to_uf(theta, chi).round(decimals=4) tensor( 0.5000, 0.0000, 0.8660], [-0.0000, -0.8660, 0.5000], [ 0.7071, 0.7071, -0.0000 ) >>>",
-"func":1
-},
-{
-"ref":"laueimproc.geometry.thetachi.uf_to_thetachi",
-"url":68,
-"doc":"Find the angular deviation of the dffracted ray. Bijection of  laueimproc.geometry.thetachi.thetachi_to_uf .  image  / /build/media/IMGThetaChi.avif Parameters      u_f : torch.Tensor The unitary diffracted ray of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - theta : torch.Tensor The half deviation angle in radian, of shape ( .). \\(\\theta \\in [0, \\frac{\\pi}{2}]\\) chi : torch.Tensor The counterclockwise (trigonometric) rotation of the diffracted ray if you look as u_i. It is the angle from the vertical plan \\ \\mathbf{L_1}, \\mathbf{L_3})\\) to the plan \\ u_i, \\mathcal{B^l_z})\\). The shape is ( .) as well. \\(\\chi \\in [-\\pi, \\pi]\\) Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).  This function is slow, use  laueimproc.geometry.bragg.uf_to_uq if you can. Examples     >>> import torch >>> from laueimproc.geometry.thetachi import uf_to_thetachi >>> u_f = torch.tensor( 1/2, 0, 3 (1/2)/2], [0, -3 (1/2)/2, 1/2], [2 (1/2), 2 (1/2), 0 ) >>> theta, chi = uf_to_thetachi(u_f) >>> torch.rad2deg(theta).round() tensor([15., 30., 45.]) >>> torch.rad2deg(chi).round() tensor([ -0., 90., -45.]) >>>",
-"func":1
-},
-{
 "ref":"laueimproc.geometry.reciprocal",
-"url":69,
+"url":66,
 "doc":"Enables communication between primitive \\(\\mathbf{A}\\) and reciprocal space \\(\\mathbf{B}\\)."
 },
 {
 "ref":"laueimproc.geometry.reciprocal.primitive_to_reciprocal",
-"url":69,
+"url":66,
 "doc":"Convert the primitive vectors into the reciprocal base vectors. Bijection of  laueimproc.geometry.reciprocal.reciprocal_to_primitive .  image  / / /build/media/IMGPrimitiveReciprocal.avif Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) in the same orthonormal base. Examples     >>> import torch >>> from laueimproc.geometry.reciprocal import primitive_to_reciprocal >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_reciprocal(primitive) tensor( 1.6667e+09, 0.0000e+00, 0.0000e+00], [ 9.6225e+08, 3.0387e+09, -0.0000e+00], [-6.8044e+08, -2.1488e+09, 8.1653e+08 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.reciprocal.reciprocal_to_primitive",
-"url":69,
+"url":66,
 "doc":"Convert the reciprocal vectors into the primitive base vectors. Bijection of  laueimproc.geometry.reciprocal.primitive_to_reciprocal .  image  / / /build/media/IMGPrimitiveReciprocal.avif Parameters      reciprocal : torch.Tensor Matrix \\(\\mathbf{B}\\) in any orthonormal base. Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in the same orthonormal base.",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.projection",
-"url":70,
+"url":67,
 "doc":"Project rays on a physical or virtual plane."
 },
 {
 "ref":"laueimproc.geometry.projection.detector_to_ray",
-"url":70,
+"url":67,
 "doc":"Find light ray witch intersected on the detector. Bijection of  laueimproc.geometry.projection.ray_to_detector . Parameters      point : torch.Tensor The 2d point in meter in the referencial of the detector of shape (\\ r, \\ p, 2). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\\ p', 6). Returns    - ray : torch.Tensor The unitary ray vector of shape (\\ r, \\ broadcast(p, p'), 3).",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.projection.ray_to_detector",
-"url":70,
+"url":67,
 "doc":"Find the intersection of the light ray with the detector. Bijection of  laueimproc.geometry.projection.detector_to_ray . Parameters      ray : torch.Tensor The unitary ray vector of shape (\\ r, 3). poni : torch.Tensor The point of normal incidence, callibration parameters according the pyfai convention. Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\\ p, 6). cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape are (\\ r, \\ p, 2) and (\\ r, \\ p).  False: The final shape are (\\ broadcast(r, p), 2) and broadcast(r, p). Returns    - point : torch.Tensor The 2d points in meter in the referencial of the detector of shape ( ., 2). dist : torch.Tensor The algebrical distance of the ray between the sample and the detector. a positive value means that the beam crashs on the detector. A negative value means it is moving away. The shape is ( .).",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.lattice",
-"url":71,
+"url":68,
 "doc":"Link the lattice parameters and the primitive vectors \\(\\mathbf{A}\\)."
 },
 {
 "ref":"laueimproc.geometry.lattice.lattice_to_primitive",
-"url":71,
+"url":68,
 "doc":"Convert the lattice parameters into primitive vectors.  image  / / /build/media/IMGLatticeBc.avif Parameters      lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma \\) in meters and radians. Returns    - primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) of shape ( ., 3, 3) in the crystal base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.geometry.lattice import lattice_to_primitive >>> lattice = torch.tensor([6.0e-10, 3.8e-10, 15e-10, torch.pi/3, torch.pi/2, 2 torch.pi/3]) >>> lattice_to_primitive(lattice) tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17], [ 0.0000e+00, 3.2909e-10, 8.6603e-10], [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.geometry.lattice.primitive_to_lattice",
-"url":71,
+"url":68,
 "doc":"Convert the primitive vectors to the lattice parameters. Bijection of  laueimproc.geometry.lattice.lattice_to_primitive .  image  / / /build/media/IMGLattice.avif Parameters      primitive : torch.Tensor Matrix \\(\\mathbf{A}\\) in any orthonormal base. Returns    - lattice : torch.Tensor The array of lattice parameters of shape ( ., 6). Values are \\([a, b, c, \\alpha, \\beta, \\gamma]\\) in meters and radians. Notes   - We have always  primitive_to_lattice(lattice_to_primitive(lattice  lattice , but it is not always the case for the inverse composition because the numerical value of \\(\\mathbf{A}\\) is expressed in the crystal base \\(\\mathcal{B^c}\\). Examples     >>> import torch >>> from laueimproc.geometry.lattice import primitive_to_lattice >>> primitive = torch.tensor( 6.0000e-10, -1.9000e-10, -6.5567e-17],  . [ 0.0000e+00, 3.2909e-10, 8.6603e-10],  . [ 0.0000e+00, 0.0000e+00, 1.2247e-09 ) >>> primitive_to_lattice(primitive)  quartz lattice tensor([6.0000e-10, 3.8000e-10, 1.5000e-09, 1.0472e+00, 1.5708e+00, 2.0944e+00]) >>>",
 "func":1
 },
 {
-"ref":"laueimproc.convention",
+"ref":"laueimproc.geometry.rotation",
+"url":69,
+"doc":"Help for making rotation matrix."
+},
+{
+"ref":"laueimproc.geometry.rotation.angle_to_rot",
+"url":69,
+"doc":"Generate a rotation matrix from the given angles. The rotation are following the pyfai convention. Parameters      theta1 : torch.Tensor or float The first rotation angle of shape (\\ a,). \\( rot_1 = \\begin{pmatrix} 1 & 0 & 0  0 & \\cos(\\theta_1) & -\\sin(\\theta_1)  c & \\sin(\\theta_1) & \\cos(\\theta_1)  \\end{pmatrix} \\) theta2 : torch.Tensor or float The second rotation angle of shape (\\ b,). \\( rot_2 = \\begin{pmatrix} \\cos(\\theta_2) & 0 & \\sin(\\theta_2)  0 & 1 & 0  -\\sin(\\theta_2) & 0 & \\cos(\\theta_2)  \\end{pmatrix} \\) theta3 : torch.Tensor or float The third rotation angle of shape (\\ c,). (inverse of pyfai convention) \\( rot_3 = \\begin{pmatrix} \\cos(\\theta_3) & -\\sin(\\theta_3) & 0  \\sin(\\theta_3) & \\cos(\\theta_3) & 0  0 & 0 & 1  \\end{pmatrix} \\) cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape is (\\ a, \\ b, \\ c, 3, 3).  False: The final shape is (\\ broadcast(a, b, c), 3, 3). Returns    - rot : torch.Tensor The global rotation \\(rot_3 . rot_2 . rot_1\\). Examples     >>> import torch >>> from laueimproc.geometry.rotation import angle_to_rot >>> angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6) tensor( 0.7500, -0.2165, 0.6250], [ 0.4330, 0.8750, -0.2165], [-0.5000, 0.4330, 0.7500 ) >>> angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9 .shape torch.Size([4, 5, 6, 7, 8, 9, 3, 3]) >>>",
+"func":1
+},
+{
+"ref":"laueimproc.geometry.rotation.rot_to_angle",
+"url":69,
+"doc":"Extract the rotation angles from a fulle rotation matrix. Bijection of  laueimproc.geometry.rotation.angle_to_rot . Parameters      rot : torch.Tensor The rotation matrix \\(rot_3 . rot_2 . rot_1\\) of shape ( ., 3, 3). Returns    - theta1 : torch.Tensor or float The first rotation angle of shape ( .). \\(\\theta_1 \\in [-\\pi, \\pi]\\) \\( rot_1 = \\begin{pmatrix} 1 & 0 & 0  0 & \\cos(\\theta_1) & -\\sin(\\theta_1)  c & \\sin(\\theta_1) & \\cos(\\theta_1)  \\end{pmatrix} \\) theta2 : torch.Tensor or float The second rotation angle of shape ( .). \\(\\theta_2 \\in [-\\frac{\\pi}{2}, \\frac{\\pi}{2}]\\) \\( rot_2 = \\begin{pmatrix} \\cos(\\theta_2) & 0 & \\sin(\\theta_2)  0 & 1 & 0  -\\sin(\\theta_2) & 0 & \\cos(\\theta_2)  \\end{pmatrix} \\) theta3 : torch.Tensor or float The third rotation angle of shape ( .). (inverse of pyfai convention) \\(\\theta_3 \\in [-\\pi, \\pi]\\) \\( rot_3 = \\begin{pmatrix} \\cos(\\theta_3) & -\\sin(\\theta_3) & 0  \\sin(\\theta_3) & \\cos(\\theta_3) & 0  0 & 0 & 1  \\end{pmatrix} \\) Examples     >>> import torch >>> from laueimproc.geometry.rotation import rot_to_angle >>> rot = torch.tensor( 0.7500, -0.2165, 0.6250],  . [ 0.4330, 0.8750, -0.2165],  . [-0.5000, 0.4330, 0.7500 ) >>> theta1, theta2, theta3 = rot_to_angle(rot) >>> torch.rad2deg(theta1).round() tensor(30.) >>> torch.rad2deg(theta2).round() tensor(30.) >>> torch.rad2deg(theta3).round() tensor(30.) >>>",
+"func":1
+},
+{
+"ref":"laueimproc.geometry.rotation.rotate_crystal",
+"url":69,
+"doc":"Apply an active rotation to the crystal. Parameters      crystal : torch.Tensor The primitive \\ \\mathbf{A})\\) or reciprocal \\ \\mathbf{B})\\) in the base \\(\\mathcal{B}\\). The shape of this parameter is (\\ c, 3, 3). rot : torch.Tensor The active rotation matrix, of shape (\\ r, 3, 3). cartesian_product : boolean, default=True If True (default value), batch dimensions are iterated independently like neasted for loop. Overwise, the batch dimensions are broadcasted like a zip.  True: The final shape is (\\ c, \\ r, 3, 3).  False: The final shape is (\\ broadcast(c, r), 3, 3). Returns    - rotated_crystal: torch.Tensor The batched matricial product  rot @ crystal .",
+"func":1
+},
+{
+"ref":"laueimproc.geometry.thetachi",
+"url":70,
+"doc":"Convertion of diffracted ray to angles. Do not use these functions for intensive calculation, they should only be used for final conversion, not for a calculation step."
+},
+{
+"ref":"laueimproc.geometry.thetachi.thetachi_to_uf",
+"url":70,
+"doc":"Reconstruct the diffracted ray from the deviation angles. Bijection of  laueimproc.geometry.thetachi.uf_to_thetachi .  image  / / /build/media/IMGThetaChi.avif Parameters      theta : torch.Tensor The half deviation angle in radian, with \\(\\theta \\in [0, \\frac{\\pi}{2}]\\). chi : torch.Tensor The rotation angle in radian from the vertical plan \\ \\mathbf{L_1}, \\mathbf{L_3})\\) to the plan \\ u_i, \\mathcal{B^l_z})\\), with \\(\\chi \\in [-\\pi, \\pi]\\). Returns    - u_f : torch.Tensor The unitary diffracted ray of shape ( broadcast(theta.shape, chi.shape), 3). It is expressed in the lab base \\(\\mathcal{B^l}\\). Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).  This function is slow, use  laueimproc.geometry.bragg.uq_to_uf if you can. Examples     >>> import torch >>> from laueimproc.geometry.thetachi import thetachi_to_uf >>> theta = torch.deg2rad(torch.tensor([15., 30., 45.] >>> chi = torch.deg2rad(torch.tensor([ -0., 90., -45.] >>> thetachi_to_uf(theta, chi).round(decimals=4) tensor( 0.5000, 0.0000, 0.8660], [-0.0000, -0.8660, 0.5000], [ 0.7071, 0.7071, -0.0000 ) >>>",
+"func":1
+},
+{
+"ref":"laueimproc.geometry.thetachi.uf_to_thetachi",
+"url":70,
+"doc":"Find the angular deviation of the dffracted ray. Bijection of  laueimproc.geometry.thetachi.thetachi_to_uf .  image  / / /build/media/IMGThetaChi.avif Parameters      u_f : torch.Tensor The unitary diffracted ray of shape ( ., 3) in the lab base \\(\\mathcal{B^l}\\). Returns    - theta : torch.Tensor The half deviation angle in radian, of shape ( .). \\(\\theta \\in [0, \\frac{\\pi}{2}]\\) chi : torch.Tensor The counterclockwise (trigonometric) rotation of the diffracted ray if you look as u_i. It is the angle from the vertical plan \\ \\mathbf{L_1}, \\mathbf{L_3})\\) to the plan \\ u_i, \\mathcal{B^l_z})\\). The shape is ( .) as well. \\(\\chi \\in [-\\pi, \\pi]\\) Notes   -  According the pyfai convention, \\(u_i = \\mathbf{L_1}\\).  This function is slow, use  laueimproc.geometry.bragg.uf_to_uq if you can. Examples     >>> import torch >>> from laueimproc.geometry.thetachi import uf_to_thetachi >>> u_f = torch.tensor( 1/2, 0, 3 (1/2)/2], [0, -3 (1/2)/2, 1/2], [2 (1/2), 2 (1/2), 0 ) >>> theta, chi = uf_to_thetachi(u_f) >>> torch.rad2deg(theta).round() tensor([15., 30., 45.]) >>> torch.rad2deg(chi).round() tensor([ -0., 90., -45.]) >>>",
+"func":1
+},
+{
+"ref":"laueimproc.geometry.hkl",
+"url":71,
+"doc":"Help to select the hkl indices."
+},
+{
+"ref":"laueimproc.geometry.hkl.select_hkl",
+"url":71,
+"doc":"Reject the hkl sistematicaly out of energy band. Parameters      reciprocal : torch.Tensor, optional Matrix \\(\\mathbf{B}\\) in any orthonormal base. max_hkl : int, optional The maximum absolute hkl sum such as |h| + |k| + |l|  >> import torch >>> from laueimproc.geometry.hkl import select_hkl >>> reciprocal = torch.tensor( 2.7778e9, 0, 0],  . [1.2142e2, 2.7778e9, 0],  . [1.2142e2, 1.2142e2, 2.7778e9 ) >>> select_hkl(max_hkl=18) tensor( 0, -18, 0], [ 0, -17, -1], [ 0, -17, 0],  ., [ 17, 0, 1], [ 17, 1, 0], [ 18, 0, 0 , dtype=torch.int16) >>> len(_) 4578 >>> select_hkl(max_hkl=18, keep_harmonics=False) tensor( 0, -17, -1], [ 0, -17, 1], [ 0, -16, -1],  ., [ 17, 0, -1], [ 17, 0, 1], [ 17, 1, 0 , dtype=torch.int16) >>> len(_) 3661 >>> select_hkl(reciprocal, e_max=20e3  1.60e-19)  20 keV tensor( 0, -11, -3], [ 0, -11, -2], [ 0, -11, -1],  ., [ 11, 3, 0], [ 11, 3, 1], [ 11, 3, 2 , dtype=torch.int16) >>> len(_) 1463 >>> select_hkl(reciprocal, e_max=20e3  1.60e-19, keep_harmonics=False)  20 keV tensor( 0, -11, -1], [ 0, -11, 1], [ 0, -10, -1],  ., [ 11, 0, -1], [ 11, 0, 1], [ 11, 1, 0 , dtype=torch.int16) >>> len(_) 1149 >>>",
+"func":1
+},
+{
+"ref":"laueimproc.geometry.model",
 "url":72,
+"doc":"Full model for complete simulation. Combines the various elementary functions into a torch module."
+},
+{
+"ref":"laueimproc.geometry.model.GeneralSimulator",
+"url":72,
+"doc":"General simulation class. Attributes      lattice : None | torch.Tensor The lattice parameters of shape ( ., 6). phi : None | tuple[torch.Tensor, torch.Tensor, torch.Tensor] The decomposition of rot in elementary angles. rot : None | torch.Tensor The rotation matrix of shape ( ., 3, 3). Initialize internal Module state, shared by both nn.Module and ScriptModule."
+},
+{
+"ref":"laueimproc.geometry.model.GeneralSimulator.lattice",
+"url":72,
+"doc":"Return the lattice parameters of shape ( ., 6)."
+},
+{
+"ref":"laueimproc.geometry.model.GeneralSimulator.phi",
+"url":72,
+"doc":"Return the decomposition of rot in elementary angles."
+},
+{
+"ref":"laueimproc.geometry.model.GeneralSimulator.rot",
+"url":72,
+"doc":"Return the rotation matrix of shape ( ., 3, 3)."
+},
+{
+"ref":"laueimproc.geometry.model.SimulatorUf2Cam",
+"url":72,
+"doc":"Simulation from u_f to camera. Initialize internal Module state, shared by both nn.Module and ScriptModule."
+},
+{
+"ref":"laueimproc.geometry.model.SimulatorUf2Cam.u_f",
+"url":72,
+"doc":"Return the \\(u_f\\) vector."
+},
+{
+"ref":"laueimproc.geometry.model.SimulatorUf2Cam.forward",
+"url":72,
+"doc":"Simulate.",
+"func":1
+},
+{
+"ref":"laueimproc.geometry.model.SimulatorUf2Cam.lattice",
+"url":72,
+"doc":"Return the lattice parameters of shape ( ., 6)."
+},
+{
+"ref":"laueimproc.geometry.model.SimulatorUf2Cam.phi",
+"url":72,
+"doc":"Return the decomposition of rot in elementary angles."
+},
+{
+"ref":"laueimproc.geometry.model.SimulatorUf2Cam.rot",
+"url":72,
+"doc":"Return the rotation matrix of shape ( ., 3, 3)."
+},
+{
+"ref":"laueimproc.geometry.model.Simulator",
+"url":72,
+"doc":"Simulate a full multigrain laue diagram."
+},
+{
+"ref":"laueimproc.geometry.model.FullSimulator",
+"url":72,
+"doc":"Full simulation from lattice parameters to final laue diagram. Initialise the model. Parameters      lattice : torch.Tensor, optional The lattice parameters of the grains to be simulated, shape ( ., 6). rot : torch.Tensor, optional The rotation matrix of the different grains, shape ( ., 3, 3). poni : torch.Tensor, optional The camera calibration parameters, shape ( ., 6)."
+},
+{
+"ref":"laueimproc.geometry.model.FullSimulator.forward",
+"url":72,
+"doc":"Simulate the grains. Examples     >>> import torch >>> from laueimproc.geometry.model import FullSimulator >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2]) >>> poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0]) >>> rot = torch.eye(3) >>> simulator = FullSimulator(lattice, rot, poni) >>> simulator()",
+"func":1
+},
+{
+"ref":"laueimproc.convention",
+"url":73,
 "doc":"Provide tools for switching convention."
 },
 {
 "ref":"laueimproc.convention.det_to_poni",
-"url":72,
+"url":73,
 "doc":"Convert a .det config into a .poni config. Bijection of  laueimproc.convention.poni_to_det . Parameters      det : torch.Tensor The 5 + 1 ordered .det calibration parameters as a tensor of shape ( ., 6):   dd : The distance sample to the point of normal incidence in mm.   xcen : The x coordinate of point of normal incidence in pixel.   ycen : The y coordinate of point of normal incidence in pixel.   xbet : One of the angle of rotation in degrees.   xgam : The other angle of rotation in degrees.   pixelsize : The size of one pixel in mm. Returns    - poni : torch.Tensor The 6 ordered .poni calibration parameters as a tensor of shape ( ., 6):   dist : The distance sample to the point of normal incidence in m.   poni1 : The coordinate of the point of normal incidence along d1 in m.   poni2 : The coordinate of the point of normal incidence along d2 in m.   rot1 : The first rotation in radian.   rot2 : The second rotation in radian.   rot1 : The third rotation in radian. Examples     >>> import torch >>> from laueimproc.convention import det_to_poni, lauetools_to_pyfai, or_to_lauetools >>> from laueimproc.geometry.projection import ray_to_detector >>> uf_or = torch.randn(1000, 3) >>> uf_or  = torch.rsqrt(uf_or.sum(dim=1, keepdim=True >>> det = torch.tensor([77.0, 800.0, 1200.0, 20.0, 20.0, 0.08]) >>> >>>  using lauetools >>> uf_pyfai = lauetools_to_pyfai(or_to_lauetools(uf_or >>> poni = det_to_poni(det) >>> xy_improc, _ = ray_to_detector(uf_pyfai, poni) >>> x_improc, y_improc = xy_improc[:, 0], xy_improc[:, 1] >>> cond = (x_improc > -1) & (x_improc  -1) & (y_improc  >> x_improc, y_improc = x_improc[cond], y_improc[cond] >>> >>>  using laueimproc >>> try:  . from LaueTools.LaueGeometry import calc_xycam  . except ImportError:  . pass  . else:  . x_tools, y_tools, _ = calc_xycam(  . uf_or.numpy(force=True), det[:-1].numpy(force=True), pixelsize=float(det[5])  . )  . x_tools = torch.asarray(x_tools, dtype=x_improc.dtype)[cond]  . y_tools = torch.asarray(y_tools, dtype=y_improc.dtype)[cond]  . x_tools, y_tools = det[5]  1e-3  x_tools, det[5]  1e-3  y_tools  . assert torch.allclose(x_improc, x_tools)  . assert torch.allclose(y_improc, y_tools)  . >>>",
 "func":1
 },
 {
 "ref":"laueimproc.convention.ij_to_xy",
-"url":72,
-"doc":"Switch the axis i and j, and append 1/2 to all values.   ij : Extension by continuity (N -> R) of the numpy convention (height, width). The first axis iterates on lines from top to bottom, the second on columns from left to right. In an image, the origin (i=0, j=0) correspond to the top left image corner of the top left pixel. It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).   xy : A transposition and a translation of the origin of the  ij convention. The first axis iterates on columns from left to right, the second on lines from top to bottom. In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.  image  / /build/media/IMGConvIJXY.avif Parameters      array : torch.Tensor or np.ndarray The data in ij convention. i, j : tuple, int, slice or Ellipsis The indexing of the i subdata and j subdata. Returns    - array : torch.Tensor or np.ndarray A reference to the ij_array, with the axis converted in xy convention. Notes   - Input and output data are shared in place. Examples     >>> import torch >>> from laueimproc.convention import ij_to_xy >>> array = torch.zeros 10, 2 >>> array[:, 0] = torch.linspace(0, 1, 10)  i axis >>> array[:, 1] = torch.linspace(2, 1, 10)  j axis >>> array tensor( 0.0000, 2.0000], [0.1111, 1.8889], [0.2222, 1.7778], [0.3333, 1.6667], [0.4444, 1.5556], [0.5556, 1.4444], [0.6667, 1.3333], [0.7778, 1.2222], [0.8889, 1.1111], [1.0000, 1.0000 ) >>> ij_to_xy(array, i=( ., 0), j=( ., 1 tensor( 2.5000, 0.5000], [2.3889, 0.6111], [2.2778, 0.7222], [2.1667, 0.8333], [2.0556, 0.9444], [1.9444, 1.0556], [1.8333, 1.1667], [1.7222, 1.2778], [1.6111, 1.3889], [1.5000, 1.5000 ) >>> _ is array  inplace True >>>",
+"url":73,
+"doc":"Switch the axis i and j, and append 1/2 to all values.   ij : Extension by continuity (N -> R) of the numpy convention (height, width). The first axis iterates on lines from top to bottom, the second on columns from left to right. The origin (i=0, j=0) correspond to the top left image corner of the top left pixel. It means that the center of the top left pixel has the coordinate (i=1/2, j=1/2).   xy : A transposition and a translation of the origin of the  ij convention. The first axis iterates on columns from left to right, the second on lines from top to bottom. In an image, the point (x=1, y=1) correspond to the middle of the top left pixel.  image  / /build/media/IMGConvIJXY.avif Parameters      array : torch.Tensor or np.ndarray The data in ij convention. i, j : tuple, int, slice or Ellipsis The indexing of the i subdata and j subdata. Returns    - array : torch.Tensor or np.ndarray A reference to the ij_array, with the axis converted in xy convention. Notes   - Input and output data are shared in place. Examples     >>> import torch >>> from laueimproc.convention import ij_to_xy >>> array = torch.zeros 10, 2 >>> array[:, 0] = torch.linspace(0, 1, 10)  i axis >>> array[:, 1] = torch.linspace(2, 1, 10)  j axis >>> array tensor( 0.0000, 2.0000], [0.1111, 1.8889], [0.2222, 1.7778], [0.3333, 1.6667], [0.4444, 1.5556], [0.5556, 1.4444], [0.6667, 1.3333], [0.7778, 1.2222], [0.8889, 1.1111], [1.0000, 1.0000 ) >>> ij_to_xy(array, i=( ., 0), j=( ., 1 tensor( 2.5000, 0.5000], [2.3889, 0.6111], [2.2778, 0.7222], [2.1667, 0.8333], [2.0556, 0.9444], [1.9444, 1.0556], [1.8333, 1.1667], [1.7222, 1.2778], [1.6111, 1.3889], [1.5000, 1.5000 ) >>> _ is array  inplace True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.convention.ij_to_xy_decorator",
-"url":72,
+"url":73,
 "doc":"Append the argument conv to a function to allow user switching convention.",
 "func":1
 },
 {
 "ref":"laueimproc.convention.lauetools_to_or",
-"url":72,
+"url":73,
 "doc":"Active convertion of the vectors from lauetools base to odile base. Bijection of  laueimproc.convention.or_to_lauetools .  image  / /build/media/IMGLauetoolsOr.avif Parameters      vect_lauetools : torch.Tensor The vector of shape ( ., 3,  .) in the lauetools orthonormal base. dim : int, default=-1 The axis index of the non batch dimension, such that vect.shape[dim] = 3. Returns    - vect_or : torch.Tensor The input vect, with the axis converted in the odile base. Examples     >>> import torch >>> from laueimproc.convention import lauetools_to_or, or_to_lauetools >>> vect_odile = torch.tensor( 1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1 ) >>> lauetools_to_or(vect_odile, dim=0) tensor( 0, -1, 0, -1], [ 1, 0, 0, 1], [ 0, 0, 1, 1 ) >>> or_to_lauetools(_, dim=0) tensor( 1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.convention.lauetools_to_pyfai",
-"url":72,
+"url":73,
 "doc":"Active convertion of the vectors from lauetools base to pyfai base. Bijection of  laueimproc.convention.pyfai_to_lauetools .  image  / /build/media/IMGPyfaiLauetools.avif Parameters      vect_lauetools : torch.Tensor The vector of shape ( ., 3,  .) in the lauetools orthonormal base. dim : int, default=-1 The axis index of the non batch dimension, such that vect.shape[dim] = 3. Returns    - vect_pyfai : torch.Tensor The input vect, with the axis converted in the pyfai base. Examples     >>> import torch >>> from laueimproc.convention import lauetools_to_pyfai, pyfai_to_lauetools >>> vect_pyfai = torch.tensor( 1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1 ) >>> lauetools_to_pyfai(vect_pyfai, dim=0) tensor( 0, 0, 1, 1], [ 0, -1, 0, -1], [ 1, 0, 0, 1 ) >>> pyfai_to_lauetools(_, dim=0) tensor( 1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.convention.or_to_lauetools",
-"url":72,
+"url":73,
 "doc":"Active convertion of the vectors from odile base to lauetools base. Bijection of  laueimproc.convention.lauetools_to_or .  image  / /build/media/IMGLauetoolsOr.avif Parameters      vect_or : torch.Tensor The vector of shape ( ., 3,  .) in the odile orthonormal base. dim : int, default=-1 The axis index of the non batch dimension, such that vect.shape[dim] = 3. Returns    - vect_lauetools : torch.Tensor The input vect, with the axis converted in the lauetools base. Examples     >>> import torch >>> from laueimproc.convention import lauetools_to_or, or_to_lauetools >>> vect_or = torch.tensor( 1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1 ) >>> or_to_lauetools(vect_or, dim=0) tensor( 0, 1, 0, 1], [-1, 0, 0, -1], [ 0, 0, 1, 1 ) >>> lauetools_to_or(_, dim=0) tensor( 1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1 ) >>>",
 "func":1
 },
 {
 "ref":"laueimproc.convention.poni_to_det",
-"url":72,
+"url":73,
 "doc":"Convert a .det config into a .poni config. Bijection of  laueimproc.convention.det_to_poni . Parameters      poni : torch.Tensor The 6 ordered .poni calibration parameters as a tensor of shape ( ., 6):   dist : The distance sample to the point of normal incidence in m.   poni1 : The coordinate of the point of normal incidence along d1 in m.   poni2 : The coordinate of the point of normal incidence along d2 in m.   rot1 : The first rotation in radian.   rot2 : The second rotation in radian.   rot1 : The third rotation in radian. pixelsize : torch.Tensor The size of one pixel in mm of shape ( .). Returns    - det : torch.Tensor The 5 + 1 ordered .det calibration parameters as a tensor of shape ( ., 6):   dd : The distance sample to the point of normal incidence in mm.   xcen : The x coordinate of point of normal incidence in pixel.   ycen : The y coordinate of point of normal incidence in pixel.   xbet : One of the angle of rotation in degrees.   xgam : The other angle of rotation in degrees.   pixelsize : The size of one pixel in mm. Examples     >>> import torch >>> from laueimproc.convention import det_to_poni, poni_to_det >>> det = torch.tensor([77.0, 800.0, 1200.0, 20.0, 20.0, 0.08]) >>> torch.allclose(det, poni_to_det(det_to_poni(det), det[5] True >>>",
 "func":1
 },
 {
 "ref":"laueimproc.convention.pyfai_to_lauetools",
-"url":72,
+"url":73,
 "doc":"Active convertion of the vectors from pyfai base to lauetools base. Bijection of  laueimproc.convention.lauetools_to_pyfai .  image  / /build/media/IMGPyfaiLauetools.avif Parameters      vect_pyfai : torch.Tensor The vector of shape ( ., 3,  .) in the pyfai orthonormal base. dim : int, default=-1 The axis index of the non batch dimension, such that vect.shape[dim] = 3. Returns    - vect_lauetools : torch.Tensor The input vect, with the axis converted in the lauetools base. Examples     >>> import torch >>> from laueimproc.convention import lauetools_to_pyfai, pyfai_to_lauetools >>> vect_pyfai = torch.tensor( 1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1 ) >>> pyfai_to_lauetools(vect_pyfai, dim=0) tensor( 0, 0, 1, 1], [ 0, -1, 0, -1], [ 1, 0, 0, 1 ) >>> lauetools_to_pyfai(_, dim=0) tensor( 1, 0, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1 ) >>>",
 "func":1
 }

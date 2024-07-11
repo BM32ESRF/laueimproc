@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Executes analyser of code quality."""
+"""Execute tools to estimate the coding style quiality."""
 
 try:
     from pylama.main import shell
