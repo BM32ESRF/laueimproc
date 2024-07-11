@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 """Link serveral diagrams together."""
-
+import multiprocessing.pool
 import numbers
+import pathlib
 
 import torch
+
+from tqdm.autonotebook import tqdm
 
 from laueimproc.ml.dataset_dist import select_closest, select_closests
 from .base_dataset import BaseDiagramsDataset
@@ -55,6 +58,64 @@ class DiagramsDataset(BaseDiagramsDataset):
                 return sort_stack(self, *args, **kwargs)
             case _:
                 raise ValueError(f"method can only be 'snowflake' or 'sort', not {method}")
+
+    def save_alldatfiles(self, folder: str | pathlib.Path):
+        """Save peaklist .dat files of all diagrams of the dataset.
+
+        Parameters
+        ----------
+        folder : pathlike
+            see  ``laueimproc.io.write_dat.write_dat``.
+
+        Examples
+        --------
+        >>> import tempfile
+        >>> import laueimproc
+        >>> dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())
+        >>> def init(diagram: laueimproc.Diagram):
+        ...     diagram.find_spots()
+        ...     #diagram.filter_spots(range(10))  # to reduce the number of spots
+        ...
+        >>> _ = dataset.apply(init)
+        >>> dataset.save_alldatfiles(tempfile.mkdtemp())
+        """
+        assert isinstance(folder, str | pathlib.Path), folder.__class__.__name__
+        folder = pathlib.Path(folder).expanduser().resolve()
+        assert folder.is_dir(), f"{folder} is not a folder"
+
+        from laueimproc.io.write_dat import write_dat
+
+        
+        # for i, diag in enumerate(self):
+        #     diag.add_property('myindex',i)
+        #     # filename = diag.file or pathlib.Path(f"notimg_{diag.get_property('myindex'):04d}")
+        #     # filename = folder / filename.with_suffix('.dat').name
+        #     # write_dat(filename, diag)
+
+        # def writesinglefile(diagram : Diagram, folder: pathlib.Path):
+        #     filename = diag.file or pathlib.Path(f"notimg_{diag.get_property('myindex'):04d}")
+        #     filename = folder / filename.with_suffix('.dat').name
+        #     write_dat(filename, diag)
+
+        # self.apply(writesinglefile,args=(folder,))
+
+        def writesinglefile2(arg):
+                diag, folder, i = arg
+                filename = diag.file or pathlib.Path(f"notimg_{i:04d}")
+                filename = folder / filename.with_suffix('.dat').name
+                write_dat(filename, diag)
+        
+        with multiprocessing.pool.ThreadPool() as pool:
+            for _ in tqdm(
+                pool.imap_unordered(
+                    writesinglefile2,
+                    ((diag, folder, i) for i, diag in enumerate(self))
+                ), total=len(self), desc='saving .dat files'
+            ):
+                pass
+
+
+
 
     def select_closest(self, *args, no_raise: bool = False, **kwargs) -> None | Diagram:
         """Select the closest diagram to a given set of phisical parameters.
