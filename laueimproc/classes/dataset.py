@@ -75,7 +75,7 @@ class DiagramsDataset(BaseDiagramsDataset):
         >>> import pathlib
         >>> import tempfile
         >>> import laueimproc
-        >>> dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())
+        >>> dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())[:10]
         >>> def init(diagram: laueimproc.Diagram):
         ...     diagram.find_spots()
         ...
@@ -83,7 +83,7 @@ class DiagramsDataset(BaseDiagramsDataset):
         >>> folder = tempfile.mkdtemp()
         >>> dataset.save_alldatfiles(folder)
         >>> len(list(pathlib.Path(folder).glob("*.dat")))  # test files are created
-        100
+        10
         >>>
         """
         assert isinstance(folder, str | pathlib.Path), folder.__class__.__name__

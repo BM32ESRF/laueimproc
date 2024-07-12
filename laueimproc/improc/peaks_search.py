@@ -76,6 +76,7 @@ def peaks_search(
     density: typing.Optional[numbers.Real] = None,
     threshold: typing.Optional[numbers.Real] = None,
     radius_aglo: numbers.Real = 2,
+    mask: bool = False,
     *, _check: bool = True,
     **kwargs,
 ) -> tuple[torch.Tensor, torch.Tensor]:
@@ -94,11 +95,14 @@ def peaks_search(
         It corresponds to the lowest density such as the pixel is considered as a spot.
         The threshold is appled after having removed the background.
         It evolves between ]0, 1[.
-    radius_aglo : float, default = 2
+    radius_aglo : float, default=2
         The structurant element radius used for the aglomeration of close grain
         by morhpological dilatation applied on the thresholed image.
         If it is not provided a circle of diameter 5 pixels is taken.
         Bigger is the kernel, higher are the number of aglomerated spots but slower the proccess is.
+    mask : boolean, default=False
+        If True, all the pixels out of the binary mask are set to 0.0,
+        otherwise the rois contains the entire image.
     **kwargs : dict
         Transmitted to ``estimate_background``.
 
@@ -145,6 +149,7 @@ def peaks_search(
     assert brut_image.dtype == torch.float32, brut_image.dtype
     assert density is None or isinstance(density, numbers.Real), density.__class__.__type__
     assert threshold is None or isinstance(threshold, numbers.Real), threshold.__class__.__type__
+    assert isinstance(mask, bool), mask.__class__.__name__
 
     # peaks search
     bg_image = estimate_background(brut_image, **kwargs)
@@ -163,6 +168,8 @@ def peaks_search(
 
     binary = (fg_image > threshold).view(torch.uint8)
     binary = morpho_dilate(binary, radius=radius_aglo)
+    if mask:
+        fg_image.where(binary.view(torch.bool), 0.0)
     bboxes = find_bboxes(binary.numpy(force=True)).to(brut_image.device)
     datarois = imgbboxes2raw(fg_image, bboxes)
     return datarois, bboxes
