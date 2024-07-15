@@ -187,7 +187,7 @@ class StupidIndexator(torch.nn.Module):
         rate = compute_matching_rate(uq_exp, uq_theo, angle_max_matching)
         return rate
 
-    @torch.compile(dynamic=False)
+    # @torch.compile(dynamic=False)
     def _compute_uq(self, angles: torch.Tensor) -> torch.Tensor:
         """Help for ``_compute_rate``."""
         rot = angle_to_rot(*angles.movedim(1, 0), cartesian_product=False)  # (m, 3, 3)
