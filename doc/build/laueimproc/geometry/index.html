@@ -71,7 +71,7 @@ from .bragg import (
 )
 from .hkl import select_hkl
 from .lattice import lattice_to_primitive, primitive_to_lattice
-from .metric import compute_matching_rate, compute_matching_rate_continuous
+from .metric import compute_matching_rate, compute_matching_rate_continuous, raydotdist
 from .projection import detector_to_ray, ray_to_detector
 from .reciprocal import primitive_to_reciprocal, reciprocal_to_primitive
 from .rotation import angle_to_rot, rot_to_angle, rotate_crystal
@@ -83,7 +83,7 @@ __all__ = [
     &#34;uf_to_uq&#34;, &#34;uq_to_uf&#34;,
     &#34;select_hkl&#34;,
     &#34;lattice_to_primitive&#34;, &#34;primitive_to_lattice&#34;,
-    &#34;compute_matching_rate&#34;, &#34;compute_matching_rate_continuous&#34;,
+    &#34;compute_matching_rate&#34;, &#34;compute_matching_rate_continuous&#34;, &#34;raydotdist&#34;,
     &#34;detector_to_ray&#34;, &#34;ray_to_detector&#34;,
     &#34;primitive_to_reciprocal&#34;, &#34;reciprocal_to_primitive&#34;,
     &#34;angle_to_rot&#34;, &#34;rot_to_angle&#34;, &#34;rotate_crystal&#34;,
@@ -101,6 +101,10 @@ __all__ = [
 <dt><code class="name"><a title="laueimproc.geometry.hkl" href="hkl.html">laueimproc.geometry.hkl</a></code></dt>
 <dd>
 <div class="desc"><p>Help to select the hkl indices.</p></div>
+</dd>
+<dt><code class="name"><a title="laueimproc.geometry.indexation" href="indexation.html">laueimproc.geometry.indexation</a></code></dt>
+<dd>
+<div class="desc"><p>Helper for brute force and nn indexation.</p></div>
 </dd>
 <dt><code class="name"><a title="laueimproc.geometry.lattice" href="lattice.html">laueimproc.geometry.lattice</a></code></dt>
 <dd>
@@ -125,6 +129,10 @@ __all__ = [
 <dt><code class="name"><a title="laueimproc.geometry.rotation" href="rotation.html">laueimproc.geometry.rotation</a></code></dt>
 <dd>
 <div class="desc"><p>Help for making rotation matrix.</p></div>
+</dd>
+<dt><code class="name"><a title="laueimproc.geometry.symmetry" href="symmetry.html">laueimproc.geometry.symmetry</a></code></dt>
+<dd>
+<div class="desc"><p>Find the cristal symmetries and equivalence.</p></div>
 </dd>
 <dt><code class="name"><a title="laueimproc.geometry.thetachi" href="thetachi.html">laueimproc.geometry.thetachi</a></code></dt>
 <dd>
@@ -359,33 +367,34 @@ torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
 </details>
 </dd>
 <dt id="laueimproc.geometry.compute_matching_rate"><code class="name flex">
-<span>def <span class="ident">compute_matching_rate</span></span>(<span>exp_uq: torch.Tensor, theo_uq: torch.Tensor, phi_max: numbers.Real) ‑> torch.Tensor</span>
+<span>def <span class="ident">compute_matching_rate</span></span>(<span>uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute the matching rate.</p>
-<p>It is the number of ray in <code>theo_uq</code>, close engouth to at least one ray of <code>exp_uq</code>.</p>
+<p>It is the number of ray in <code>uq_theo</code>, close engouth to at least one ray of <code>uq_exp</code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>exp_uq</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dt><strong><code>uq_exp</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The unitary experimental uq vector of shape (*n, e, 3).</dd>
-<dt><strong><code>theo_uq</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The unitary simulated theorical uq vector of shape (*n', t, 3).</dd>
+<dt><strong><code>uq_theo</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The unitary simulated theorical uq vector of shape (*n', t, 3).
+It can be in any device.</dd>
 <dt><strong><code>phi_max</code></strong> :&ensp;<code>float</code></dt>
 <dd>The maximum positive angular distance in radian to consider that the rays are closed enough.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>match</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The matching rate of shape broadcast(n, n').</dd>
+<dd>The matching rate of shape broadcast(n, n') in the <code>uq_exp</code> device.</dd>
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate
-&gt;&gt;&gt; exp_uq = torch.randn(1000, 3)
-&gt;&gt;&gt; exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
-&gt;&gt;&gt; theo_uq = torch.randn(5000, 3)
-&gt;&gt;&gt; theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True)
-&gt;&gt;&gt; rate = compute_matching_rate(exp_uq, theo_uq, 0.5 * torch.pi/180)
+&gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
+&gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
+&gt;&gt;&gt; uq_theo = torch.randn(5000, 3)
+&gt;&gt;&gt; uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
+&gt;&gt;&gt; rate = compute_matching_rate(uq_exp, uq_theo, 0.5 * torch.pi/180)
 &gt;&gt;&gt;
 </code></pre></div>
 <details class="source">
@@ -393,52 +402,53 @@ torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def compute_matching_rate(
-    exp_uq: torch.Tensor, theo_uq: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
+    uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
 ) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Compute the matching rate.
 
-    It is the number of ray in ``theo_uq``, close engouth to at least one ray of ``exp_uq``.
+    It is the number of ray in ``uq_theo``, close engouth to at least one ray of ``uq_exp``.
 
     Parameters
     ----------
-    exp_uq : torch.Tensor
+    uq_exp : torch.Tensor
         The unitary experimental uq vector of shape (\*n, e, 3).
-    theo_uq : torch.Tensor
+    uq_theo : torch.Tensor
         The unitary simulated theorical uq vector of shape (\*n&#39;, t, 3).
+        It can be in any device.
     phi_max : float
         The maximum positive angular distance in radian to consider that the rays are closed enough.
 
     Returns
     -------
     match : torch.Tensor
-        The matching rate of shape broadcast(n, n&#39;).
+        The matching rate of shape broadcast(n, n&#39;) in the ``uq_exp`` device.
 
     Examples
     --------
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate
-    &gt;&gt;&gt; exp_uq = torch.randn(1000, 3)
-    &gt;&gt;&gt; exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
-    &gt;&gt;&gt; theo_uq = torch.randn(5000, 3)
-    &gt;&gt;&gt; theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True)
-    &gt;&gt;&gt; rate = compute_matching_rate(exp_uq, theo_uq, 0.5 * torch.pi/180)
+    &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
+    &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
+    &gt;&gt;&gt; uq_theo = torch.randn(5000, 3)
+    &gt;&gt;&gt; uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
+    &gt;&gt;&gt; rate = compute_matching_rate(uq_exp, uq_theo, 0.5 * torch.pi/180)
     &gt;&gt;&gt;
     &#34;&#34;&#34;
-    assert isinstance(exp_uq, torch.Tensor), exp_uq.__class__.__name__
-    assert exp_uq.ndim &gt;= 2 and exp_uq.shape[-1] == 3, exp_uq.shape
-    assert isinstance(theo_uq, torch.Tensor), theo_uq.__class__.__name__
-    assert theo_uq.ndim &gt;= 2 and theo_uq.shape[-1] == 3, theo_uq.shape
-    *batch_exp, size_e, _ = exp_uq.shape
-    *batch_theo, size_t, _ = theo_uq.shape
+    assert isinstance(uq_exp, torch.Tensor), uq_exp.__class__.__name__
+    assert uq_exp.ndim &gt;= 2 and uq_exp.shape[-1] == 3, uq_exp.shape
+    assert isinstance(uq_theo, torch.Tensor), uq_theo.__class__.__name__
+    assert uq_theo.ndim &gt;= 2 and uq_theo.shape[-1] == 3, uq_theo.shape
+    *batch_exp, size_e, _ = uq_exp.shape
+    *batch_theo, size_t, _ = uq_theo.shape
     assert size_e * size_t, &#34;can not compute distance of empty matrix&#34;
 
     if not _no_c and c_metric is not None:
         batch_n = torch.broadcast_shapes(batch_exp, batch_theo)
-        exp_uq = torch.broadcast_to(
-            exp_uq, batch_n + (size_e, 3)
+        uq_exp = torch.broadcast_to(
+            uq_exp, batch_n + (size_e, 3)
         ).reshape(int(np.prod(batch_n)), size_e, 3)
-        theo_uq = torch.broadcast_to(
-            theo_uq, batch_n + (size_t, 3)
+        uq_theo = torch.broadcast_to(
+            uq_theo, batch_n + (size_t, 3)
         ).reshape(int(np.prod(batch_n)), size_t, 3)
         if threading.current_thread().name == &#34;MainThread&#34;:
             with multiprocessing.pool.ThreadPool() as pool:
@@ -451,7 +461,7 @@ torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
                             4.0*phi_max,
                             ray_to_table(exp, 4.0*phi_max),
                         )
-                        for theo, exp in zip(theo_uq, exp_uq)
+                        for theo, exp in zip(uq_theo, uq_exp)
                     ),
                 )
         else:
@@ -460,13 +470,13 @@ torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
                     theo.numpy(force=True), phi_max, exp.numpy(force=True), 4.0*phi_max,
                     ray_to_table(exp, 4.0*phi_max),
                 )
-                for theo, exp in zip(theo_uq, exp_uq)
+                for theo, exp in zip(uq_theo, uq_exp)
             ]
-        return torch.asarray(rate, dtype=torch.int32, device=theo_uq.device).reshape(batch_n)
+        return torch.asarray(rate, dtype=torch.int32, device=uq_exp.device).reshape(batch_n)
 
     assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
     assert 0 &lt;= phi_max &lt; math.pi, phi_max
-    dist = raydotdist(exp_uq, theo_uq)  # (*n, e, t)
+    dist = raydotdist(uq_exp, uq_theo.to(uq_exp.device))  # (*n, e, t)
     dist = dist &gt; math.cos(phi_max)
     dist = torch.any(dist, dim=-2)  # (*n, t)
     rate = torch.count_nonzero(dist, dim=-1)  # (*n,)
@@ -475,7 +485,7 @@ torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
 </details>
 </dd>
 <dt id="laueimproc.geometry.compute_matching_rate_continuous"><code class="name flex">
-<span>def <span class="ident">compute_matching_rate_continuous</span></span>(<span>exp_uq: torch.Tensor, theo_uq: torch.Tensor, phi_max: numbers.Real) ‑> torch.Tensor</span>
+<span>def <span class="ident">compute_matching_rate_continuous</span></span>(<span>uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute the matching rate.</p>
@@ -486,9 +496,9 @@ The matching rate is defined with <span><span class="MathJax_Preview">r = \sum f
 with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}}\phi}</span><script type="math/tex">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}}\phi}</script></span>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>exp_uq</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dt><strong><code>uq_exp</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The unitary experimental uq vector of shape (*n, e, 3).</dd>
-<dt><strong><code>theo_uq</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dt><strong><code>uq_theo</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The unitary simulated theorical uq vector of shape (*n', t, 3).</dd>
 <dt><strong><code>phi_max</code></strong> :&ensp;<code>float</code></dt>
 <dd>The maximum positive angular distance in radian to consider that the rays are closed enough.</dd>
@@ -501,11 +511,11 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate_continuous
-&gt;&gt;&gt; exp_uq = torch.randn(1000, 3)
-&gt;&gt;&gt; exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
-&gt;&gt;&gt; theo_uq = torch.randn(5000, 3)
-&gt;&gt;&gt; theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True)
-&gt;&gt;&gt; rate = compute_matching_rate_continuous(exp_uq, theo_uq, 0.5 * torch.pi/180)
+&gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
+&gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
+&gt;&gt;&gt; uq_theo = torch.randn(5000, 3)
+&gt;&gt;&gt; uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
+&gt;&gt;&gt; rate = compute_matching_rate_continuous(uq_exp, uq_theo, 0.5 * torch.pi/180)
 &gt;&gt;&gt;
 </code></pre></div>
 <details class="source">
@@ -513,7 +523,7 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def compute_matching_rate_continuous(
-    exp_uq: torch.Tensor, theo_uq: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
+    uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
 ) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Compute the matching rate.
 
@@ -525,9 +535,9 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
 
     Parameters
     ----------
-    exp_uq : torch.Tensor
+    uq_exp : torch.Tensor
         The unitary experimental uq vector of shape (\*n, e, 3).
-    theo_uq : torch.Tensor
+    uq_theo : torch.Tensor
         The unitary simulated theorical uq vector of shape (\*n&#39;, t, 3).
     phi_max : float
         The maximum positive angular distance in radian to consider that the rays are closed enough.
@@ -541,28 +551,28 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
     --------
     &gt;&gt;&gt; import torch
     &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate_continuous
-    &gt;&gt;&gt; exp_uq = torch.randn(1000, 3)
-    &gt;&gt;&gt; exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
-    &gt;&gt;&gt; theo_uq = torch.randn(5000, 3)
-    &gt;&gt;&gt; theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True)
-    &gt;&gt;&gt; rate = compute_matching_rate_continuous(exp_uq, theo_uq, 0.5 * torch.pi/180)
+    &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
+    &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
+    &gt;&gt;&gt; uq_theo = torch.randn(5000, 3)
+    &gt;&gt;&gt; uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
+    &gt;&gt;&gt; rate = compute_matching_rate_continuous(uq_exp, uq_theo, 0.5 * torch.pi/180)
     &gt;&gt;&gt;
     &#34;&#34;&#34;
-    assert isinstance(exp_uq, torch.Tensor), exp_uq.__class__.__name__
-    assert exp_uq.ndim &gt;= 2 and exp_uq.shape[-1] == 3, exp_uq.shape
-    assert isinstance(theo_uq, torch.Tensor), theo_uq.__class__.__name__
-    assert theo_uq.ndim &gt;= 2 and theo_uq.shape[-1] == 3, theo_uq.shape
-    *batch_exp, size_e, _ = exp_uq.shape
-    *batch_theo, size_t, _ = theo_uq.shape
+    assert isinstance(uq_exp, torch.Tensor), uq_exp.__class__.__name__
+    assert uq_exp.ndim &gt;= 2 and uq_exp.shape[-1] == 3, uq_exp.shape
+    assert isinstance(uq_theo, torch.Tensor), uq_theo.__class__.__name__
+    assert uq_theo.ndim &gt;= 2 and uq_theo.shape[-1] == 3, uq_theo.shape
+    *batch_exp, size_e, _ = uq_exp.shape
+    *batch_theo, size_t, _ = uq_theo.shape
     assert size_e * size_t, &#34;can not compute distance of empty matrix&#34;
 
     if not _no_c and c_metric is not None:
         batch_n = torch.broadcast_shapes(batch_exp, batch_theo)
-        exp_uq = torch.broadcast_to(
-            exp_uq, batch_n + (size_e, 3)
+        uq_exp = torch.broadcast_to(
+            uq_exp, batch_n + (size_e, 3)
         ).reshape(int(np.prod(batch_n)), size_e, 3)
-        theo_uq = torch.broadcast_to(
-            theo_uq, batch_n + (size_t, 3)
+        uq_theo = torch.broadcast_to(
+            uq_theo, batch_n + (size_t, 3)
         ).reshape(int(np.prod(batch_n)), size_t, 3)
         if threading.current_thread().name == &#34;MainThread&#34;:
             with multiprocessing.pool.ThreadPool() as pool:
@@ -575,7 +585,7 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
                             4.0*phi_max,
                             ray_to_table(exp, 4.0*phi_max),
                         )
-                        for theo, exp in zip(theo_uq, exp_uq)
+                        for theo, exp in zip(uq_theo, uq_exp)
                     ),
                 )
         else:
@@ -584,21 +594,21 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
                     theo.numpy(force=True), phi_max, exp.numpy(force=True), 4.0*phi_max,
                     ray_to_table(exp, 4.0*phi_max),
                 )
-                for theo, exp in zip(theo_uq, exp_uq)
+                for theo, exp in zip(uq_theo, uq_exp)
             ]
-        if theo_uq.requires_grad:
+        if uq_theo.requires_grad:
             dist = [
                 torch.sum(theo[pair[:, 0]] * exp[pair[:, 1]], dim=1)  # sum of scalar product
-                for (pair, _), theo, exp in zip(pair_dist, theo_uq, exp_uq)
+                for (pair, _), theo, exp in zip(pair_dist, uq_theo, uq_exp)
             ]
         else:
             dist = [torch.from_numpy(d) for _, d in pair_dist]
         dist = [torch.exp(-math.log(2.0)/phi_max * torch.acos(d)).sum().unsqueeze(0) for d in dist]
-        return torch.cat(dist).to(dtype=theo_uq.dtype, device=theo_uq.device).reshape(batch_n)
+        return torch.cat(dist).to(dtype=uq_theo.dtype, device=uq_theo.device).reshape(batch_n)
 
     assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
     assert 0 &lt;= phi_max &lt; math.pi, phi_max
-    dist = raydotdist(exp_uq, theo_uq)  # (*n, e, t)
+    dist = raydotdist(uq_exp, uq_theo)  # (*n, e, t)
     dist = torch.amax(dist, dim=-2)  # (*n, t)
     dist = torch.exp(-math.log(2.0)/phi_max * torch.acos(dist))
     dist[dist &lt; 0.5] = 0  # (*n, t)
@@ -725,7 +735,7 @@ Overwise, the batch dimensions are broadcasted like a zip.</p>
 <dd>All the unitary diffracting plane normal vector of shape (&hellip;, 3).
 The vectors are expressed in the same base as the reciprocal space.</dd>
 <dt><strong><code>energy</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The energy of each ray in J as a tensor of shape (&hellip;).
+<dd>The energy of each ray in J as a tensor of shape (&hellip;,).
 <span><span class="MathJax_Preview">\begin{cases}
 E = \frac{hc}{\lambda} \\
 \lambda = 2d\sin(\theta) \\
@@ -783,7 +793,7 @@ tensor(9200.6816)
         All the unitary diffracting plane normal vector of shape (..., 3).
         The vectors are expressed in the same base as the reciprocal space.
     energy : torch.Tensor
-        The energy of each ray in J as a tensor of shape (...).
+        The energy of each ray in J as a tensor of shape (...,).
         \(\begin{cases}
             E = \frac{hc}{\lambda} \\
             \lambda = 2d\sin(\theta) \\
@@ -830,7 +840,7 @@ tensor(9200.6816)
 
     energy = None
     if _return_energy:
-        ui_dot_uq = u_q[..., 2]  # (...)
+        ui_dot_uq = u_q[..., 2]  # (...,)
         inv_d_sin_theta = inv_d_square.squeeze(-1) / ui_dot_uq
         energy = torch.abs((0.5 * PLANK_H * CELERITY_C) * inv_d_sin_theta)
 
@@ -1110,7 +1120,7 @@ Overwise, the batch dimensions are broadcasted like a zip.</p>
 <dt><strong><code>dist</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The algebrical distance of the ray between the sample and the detector.
 a positive value means that the beam crashs on the detector.
-A negative value means it is moving away. The shape is (&hellip;).</dd>
+A negative value means it is moving away. The shape is (&hellip;,).</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1146,7 +1156,7 @@ A negative value means it is moving away. The shape is (&hellip;).</dd>
     dist : torch.Tensor
         The algebrical distance of the ray between the sample and the detector.
         a positive value means that the beam crashs on the detector.
-        A negative value means it is moving away. The shape is (...).
+        A negative value means it is moving away. The shape is (...,).
     &#34;&#34;&#34;
     assert isinstance(ray, torch.Tensor), ray.__class__.__name__
     assert ray.shape[-1:] == (3,), ray.shape
@@ -1166,6 +1176,80 @@ A negative value means it is moving away. The shape is (&hellip;).</dd>
     point = point + poni[..., 1:3]  # detector shift
 
     return point, ray_dist</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.raydotdist"><code class="name flex">
+<span>def <span class="ident">raydotdist</span></span>(<span>ray_point_1: torch.Tensor, ray_point_2: torch.Tensor, poni: None | torch.Tensor = None) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the scalar product matrix of the rays pairwise.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ray_point_1</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 2d point associated to uf in the referencial of the detector of shape (*n, r1, 2).
+Could be directly the unitary ray vector uf or uq of shape (*n, r1, 3).</dd>
+<dt><strong><code>ray_point_2</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 2d point associated to uf in the referencial of the detector of shape (*n', r2, 2)).
+Could be directly the unitary ray vector uf or uq of shape (*n', r2, 3).</dd>
+<dt><strong><code>poni</code></strong> :&ensp;<code>torch.Tensor</code>, optional</dt>
+<dd>Only use if the ray are projected points.
+The point of normal incidence, callibration parameters according the pyfai convention.
+Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (*p, 6).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dist</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The distance matrix <span><span class="MathJax_Preview">\cos(\phi)</span><script type="math/tex">\cos(\phi)</script></span> of shape (*broadcast(n, n'), *p, r1, r2).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def raydotdist(
+    ray_point_1: torch.Tensor, ray_point_2: torch.Tensor, poni: torch.Tensor | None = None
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Compute the scalar product matrix of the rays pairwise.
+
+    Parameters
+    ----------
+    ray_point_1 : torch.Tensor
+        The 2d point associated to uf in the referencial of the detector of shape (\*n, r1, 2).
+        Could be directly the unitary ray vector uf or uq of shape (\*n, r1, 3).
+    ray_point_2 : torch.Tensor
+        The 2d point associated to uf in the referencial of the detector of shape (\*n&#39;, r2, 2)).
+        Could be directly the unitary ray vector uf or uq of shape (\*n&#39;, r2, 3).
+    poni : torch.Tensor, optional
+        Only use if the ray are projected points.
+        The point of normal incidence, callibration parameters according the pyfai convention.
+        Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\*p, 6).
+
+    Returns
+    -------
+    dist : torch.Tensor
+        The distance matrix \(\cos(\phi)\) of shape (\*broadcast(n, n&#39;), \*p, r1, r2).
+    &#34;&#34;&#34;
+    assert isinstance(ray_point_1, torch.Tensor), ray_point_1.__class__.__name__
+    assert isinstance(ray_point_2, torch.Tensor), ray_point_2.__class__.__name__
+
+    if ray_point_1.shape[-1] == 2:
+        assert poni is not None
+        ray_1 = detector_to_ray(ray_point_1, poni)  # (*broadcast(p, p&#39;), *r1, 3)
+    elif ray_point_1.shape[-1] == 3:
+        ray_1 = ray_point_1
+    else:
+        raise ValueError(&#34;only shape 2 and 3 allow&#34;)
+    if ray_point_2.shape[-1] == 2:
+        assert poni is not None
+        ray_2 = detector_to_ray(ray_point_2, poni)  # (*broadcast(p, p&#39;), *r2, 3)
+    elif ray_point_2.shape[-1] == 3:
+        ray_2 = ray_point_2
+    else:
+        raise ValueError(&#34;only shape 2 and 3 allow&#34;)
+
+    ray_1 = ray_1[..., :, None, :]
+    ray_2 = ray_2[..., None, :, :]
+    dist = torch.sum(ray_1 * ray_2, dim=-1)  # &lt;ray_1, ray_2&gt; = cos(angle(ray_1, ray_2)) = cos(phi)
+    return dist</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.geometry.reciprocal_to_primitive"><code class="name flex">
@@ -1223,7 +1307,7 @@ A negative value means it is moving away. The shape is (&hellip;).</dd>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>theta1</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
-<dd>The first rotation angle of shape (&hellip;). <span><span class="MathJax_Preview">\theta_1 \in [-\pi, \pi]</span><script type="math/tex">\theta_1 \in [-\pi, \pi]</script></span>
+<dd>The first rotation angle of shape (&hellip;,). <span><span class="MathJax_Preview">\theta_1 \in [-\pi, \pi]</span><script type="math/tex">\theta_1 \in [-\pi, \pi]</script></span>
 <span><span class="MathJax_Preview">
 rot_1 =
 \begin{pmatrix}
@@ -1246,7 +1330,7 @@ c & \sin(\theta_1) &
 \end{pmatrix}
 </script></span></dd>
 <dt><strong><code>theta2</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
-<dd>The second rotation angle of shape (&hellip;). <span><span class="MathJax_Preview">\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]</span><script type="math/tex">\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]</script></span>
+<dd>The second rotation angle of shape (&hellip;,). <span><span class="MathJax_Preview">\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]</span><script type="math/tex">\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]</script></span>
 <span><span class="MathJax_Preview">
 rot_2 =
 \begin{pmatrix}
@@ -1265,7 +1349,7 @@ rot_2 =
 \end{pmatrix}
 </script></span></dd>
 <dt><strong><code>theta3</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
-<dd>The third rotation angle of shape (&hellip;). (inverse of pyfai convention)
+<dd>The third rotation angle of shape (&hellip;,). (inverse of pyfai convention)
 <span><span class="MathJax_Preview">\theta_3 \in [-\pi, \pi]</span><script type="math/tex">\theta_3 \in [-\pi, \pi]</script></span>
 <span><span class="MathJax_Preview">
 rot_3 =
@@ -1293,12 +1377,12 @@ rot_3 =
 &gt;&gt;&gt; rot = torch.tensor([[ 0.7500, -0.2165,  0.6250],
 ...                     [ 0.4330,  0.8750, -0.2165],
 ...                     [-0.5000,  0.4330,  0.7500]])
-&gt;&gt;&gt; theta1, theta2, theta3 = rot_to_angle(rot)
-&gt;&gt;&gt; torch.rad2deg(theta1).round()
+&gt;&gt;&gt; theta = rot_to_angle(rot)
+&gt;&gt;&gt; torch.rad2deg(theta[..., 0]).round()
 tensor(30.)
-&gt;&gt;&gt; torch.rad2deg(theta2).round()
+&gt;&gt;&gt; torch.rad2deg(theta[..., 1]).round()
 tensor(30.)
-&gt;&gt;&gt; torch.rad2deg(theta3).round()
+&gt;&gt;&gt; torch.rad2deg(theta[..., 2]).round()
 tensor(30.)
 &gt;&gt;&gt;
 </code></pre></div>
@@ -1319,7 +1403,7 @@ tensor(30.)
     Returns
     -------
     theta1 : torch.Tensor or float
-        The first rotation angle of shape (...). \(\theta_1 \in [-\pi, \pi]\)
+        The first rotation angle of shape (...,). \(\theta_1 \in [-\pi, \pi]\)
         \(
             rot_1 =
             \begin{pmatrix}
@@ -1329,7 +1413,7 @@ tensor(30.)
             \end{pmatrix}
         \)
     theta2 : torch.Tensor or float
-        The second rotation angle of shape (...). \(\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]\)
+        The second rotation angle of shape (...,). \(\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]\)
         \(
             rot_2 =
             \begin{pmatrix}
@@ -1339,7 +1423,7 @@ tensor(30.)
             \end{pmatrix}
         \)
     theta3 : torch.Tensor or float
-        The third rotation angle of shape (...). (inverse of pyfai convention)
+        The third rotation angle of shape (...,). (inverse of pyfai convention)
         \(\theta_3 \in [-\pi, \pi]\)
         \(
             rot_3 =
@@ -1357,12 +1441,12 @@ tensor(30.)
     &gt;&gt;&gt; rot = torch.tensor([[ 0.7500, -0.2165,  0.6250],
     ...                     [ 0.4330,  0.8750, -0.2165],
     ...                     [-0.5000,  0.4330,  0.7500]])
-    &gt;&gt;&gt; theta1, theta2, theta3 = rot_to_angle(rot)
-    &gt;&gt;&gt; torch.rad2deg(theta1).round()
+    &gt;&gt;&gt; theta = rot_to_angle(rot)
+    &gt;&gt;&gt; torch.rad2deg(theta[..., 0]).round()
     tensor(30.)
-    &gt;&gt;&gt; torch.rad2deg(theta2).round()
+    &gt;&gt;&gt; torch.rad2deg(theta[..., 1]).round()
     tensor(30.)
-    &gt;&gt;&gt; torch.rad2deg(theta3).round()
+    &gt;&gt;&gt; torch.rad2deg(theta[..., 2]).round()
     tensor(30.)
     &gt;&gt;&gt;
     &#34;&#34;&#34;
@@ -1371,7 +1455,7 @@ tensor(30.)
     theta1 = torch.atan2(rot[..., 2, 1], rot[..., 2, 2])
     theta2 = -torch.asin(rot[..., 2, 0])
     theta3 = torch.atan2(rot[..., 1, 0], rot[..., 0, 0])
-    return theta1, theta2, theta3</code></pre>
+    return torch.cat([theta1.unsqueeze(-1), theta2.unsqueeze(-1), theta3.unsqueeze(-1)], dim=-1)</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.geometry.rotate_crystal"><code class="name flex">
@@ -1504,17 +1588,17 @@ tensor([[  0, -11,  -3],
         [ 11,   3,   1],
         [ 11,   3,   2]], dtype=torch.int16)
 &gt;&gt;&gt; len(_)
-1463
+3519
 &gt;&gt;&gt; select_hkl(reciprocal, e_max=20e3 * 1.60e-19, keep_harmonics=False)  # 20 keV
-tensor([[  0, -11,  -1],
-        [  0, -11,   1],
-        [  0, -10,  -1],
+tensor([[  0, -11,  -3],
+        [  0, -11,  -2],
+        [  0, -11,  -1],
         ...,
-        [ 11,   0,  -1],
-        [ 11,   0,   1],
-        [ 11,   1,   0]], dtype=torch.int16)
+        [ 11,   3,   0],
+        [ 11,   3,   1],
+        [ 11,   3,   2]], dtype=torch.int16)
 &gt;&gt;&gt; len(_)
-1149
+2889
 &gt;&gt;&gt;
 </code></pre></div>
 <details class="source">
@@ -1584,17 +1668,17 @@ tensor([[  0, -11,  -1],
             [ 11,   3,   1],
             [ 11,   3,   2]], dtype=torch.int16)
     &gt;&gt;&gt; len(_)
-    1463
+    3519
     &gt;&gt;&gt; select_hkl(reciprocal, e_max=20e3 * 1.60e-19, keep_harmonics=False)  # 20 keV
-    tensor([[  0, -11,  -1],
-            [  0, -11,   1],
-            [  0, -10,  -1],
+    tensor([[  0, -11,  -3],
+            [  0, -11,  -2],
+            [  0, -11,  -1],
             ...,
-            [ 11,   0,  -1],
-            [ 11,   0,   1],
-            [ 11,   1,   0]], dtype=torch.int16)
+            [ 11,   3,   0],
+            [ 11,   3,   1],
+            [ 11,   3,   2]], dtype=torch.int16)
     &gt;&gt;&gt; len(_)
-    1149
+    2889
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     assert isinstance(max_hkl, numbers.Integral | None), max_hkl.__class__.__name__
@@ -1608,11 +1692,11 @@ tensor([[  0, -11,  -1],
         assert reciprocal is not None and e_max &lt; torch.inf, \
             &#34;you have to provide &#39;max_hkl&#39; or &#39;reciprocal&#39; and &#39;energy&#39;&#34;
         q_norm = math.sqrt(float(torch.min(torch.sum(reciprocal * reciprocal, dim=-2))))
-        max_hkl = math.ceil(2.0 * e_max / (CELERITY_C * PLANK_H * q_norm))  # |q| &lt; 2*e_max / (H*C)
+        max_hkl = math.ceil(3.47 * e_max / (CELERITY_C * PLANK_H * q_norm))  # |q| &lt; 2*e_max / (H*C)
 
-    hkl = _select_all_hkl(int(max_hkl))  # (n, 3)
-    if reciprocal is not None:
-        hkl = hkl.to(reciprocal.device)
+    hkl = _select_all_hkl(  # (n, 3)
+        int(max_hkl), device=(torch.device(&#34;cpu&#34;) if reciprocal is None else reciprocal.device)
+    )
 
     if reciprocal is not None and e_max &lt; torch.inf:
         u_q = reciprocal[..., None, :, :] @ hkl[..., None].to(reciprocal.device, reciprocal.dtype)
@@ -1754,12 +1838,12 @@ tensor([[ 0.5000,  0.0000,  0.8660],
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>theta</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The half deviation angle in radian, of shape (&hellip;). <span><span class="MathJax_Preview">\theta \in [0, \frac{\pi}{2}]</span><script type="math/tex">\theta \in [0, \frac{\pi}{2}]</script></span></dd>
+<dd>The half deviation angle in radian, of shape (&hellip;,). <span><span class="MathJax_Preview">\theta \in [0, \frac{\pi}{2}]</span><script type="math/tex">\theta \in [0, \frac{\pi}{2}]</script></span></dd>
 <dt><strong><code>chi</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The counterclockwise (trigonometric) rotation of the diffracted ray if you look as u_i.
 It is the angle from the vertical plan <span><span class="MathJax_Preview">(\mathbf{L_1}, \mathbf{L_3})</span><script type="math/tex">(\mathbf{L_1}, \mathbf{L_3})</script></span>
 to the plan <span><span class="MathJax_Preview">(u_i, \mathcal{B^l_z})</span><script type="math/tex">(u_i, \mathcal{B^l_z})</script></span>.
-The shape is (&hellip;) as well. <span><span class="MathJax_Preview">\chi \in [-\pi, \pi]</span><script type="math/tex">\chi \in [-\pi, \pi]</script></span></dd>
+The shape is (&hellip;,) as well. <span><span class="MathJax_Preview">\chi \in [-\pi, \pi]</span><script type="math/tex">\chi \in [-\pi, \pi]</script></span></dd>
 </dl>
 <h2 id="notes">Notes</h2>
 <ul>
@@ -1796,12 +1880,12 @@ tensor([ -0.,  90., -45.])
     Returns
     -------
     theta : torch.Tensor
-        The half deviation angle in radian, of shape (...). \(\theta \in [0, \frac{\pi}{2}]\)
+        The half deviation angle in radian, of shape (...,). \(\theta \in [0, \frac{\pi}{2}]\)
     chi : torch.Tensor
         The counterclockwise (trigonometric) rotation of the diffracted ray if you look as u_i.
         It is the angle from the vertical plan \((\mathbf{L_1}, \mathbf{L_3})\)
         to the plan \((u_i, \mathcal{B^l_z})\).
-        The shape is (...) as well. \(\chi \in [-\pi, \pi]\)
+        The shape is (...,) as well. \(\chi \in [-\pi, \pi]\)
 
     Notes
     -----
@@ -2023,12 +2107,14 @@ setTimeout(() => input.focus(), 100);
 <ul>
 <li><code><a title="laueimproc.geometry.bragg" href="bragg.html">laueimproc.geometry.bragg</a></code></li>
 <li><code><a title="laueimproc.geometry.hkl" href="hkl.html">laueimproc.geometry.hkl</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation" href="indexation.html">laueimproc.geometry.indexation</a></code></li>
 <li><code><a title="laueimproc.geometry.lattice" href="lattice.html">laueimproc.geometry.lattice</a></code></li>
 <li><code><a title="laueimproc.geometry.metric" href="metric.html">laueimproc.geometry.metric</a></code></li>
 <li><code><a title="laueimproc.geometry.model" href="model.html">laueimproc.geometry.model</a></code></li>
 <li><code><a title="laueimproc.geometry.projection" href="projection.html">laueimproc.geometry.projection</a></code></li>
 <li><code><a title="laueimproc.geometry.reciprocal" href="reciprocal.html">laueimproc.geometry.reciprocal</a></code></li>
 <li><code><a title="laueimproc.geometry.rotation" href="rotation.html">laueimproc.geometry.rotation</a></code></li>
+<li><code><a title="laueimproc.geometry.symmetry" href="symmetry.html">laueimproc.geometry.symmetry</a></code></li>
 <li><code><a title="laueimproc.geometry.thetachi" href="thetachi.html">laueimproc.geometry.thetachi</a></code></li>
 </ul>
 </li>
@@ -2045,6 +2131,7 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="laueimproc.geometry.primitive_to_lattice" href="#laueimproc.geometry.primitive_to_lattice">primitive_to_lattice</a></code></li>
 <li><code><a title="laueimproc.geometry.primitive_to_reciprocal" href="#laueimproc.geometry.primitive_to_reciprocal">primitive_to_reciprocal</a></code></li>
 <li><code><a title="laueimproc.geometry.ray_to_detector" href="#laueimproc.geometry.ray_to_detector">ray_to_detector</a></code></li>
+<li><code><a title="laueimproc.geometry.raydotdist" href="#laueimproc.geometry.raydotdist">raydotdist</a></code></li>
 <li><code><a title="laueimproc.geometry.reciprocal_to_primitive" href="#laueimproc.geometry.reciprocal_to_primitive">reciprocal_to_primitive</a></code></li>
 <li><code><a title="laueimproc.geometry.rot_to_angle" href="#laueimproc.geometry.rot_to_angle">rot_to_angle</a></code></li>
 <li><code><a title="laueimproc.geometry.rotate_crystal" href="#laueimproc.geometry.rotate_crystal">rotate_crystal</a></code></li>

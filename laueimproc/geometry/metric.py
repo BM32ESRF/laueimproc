@@ -90,19 +90,21 @@ def raydotdist(
     """
     assert isinstance(ray_point_1, torch.Tensor), ray_point_1.__class__.__name__
     assert isinstance(ray_point_2, torch.Tensor), ray_point_2.__class__.__name__
-    assert ray_point_1.ndim >= 2 and ray_point_1.shape[-1] in {2, 3}, ray_point_1.shape
-    assert ray_point_2.ndim >= 2 and ray_point_2.shape[-1] in {2, 3}, ray_point_2.shape
 
     if ray_point_1.shape[-1] == 2:
         assert poni is not None
         ray_1 = detector_to_ray(ray_point_1, poni)  # (*broadcast(p, p'), *r1, 3)
-    else:
+    elif ray_point_1.shape[-1] == 3:
         ray_1 = ray_point_1
+    else:
+        raise ValueError("only shape 2 and 3 allow")
     if ray_point_2.shape[-1] == 2:
         assert poni is not None
         ray_2 = detector_to_ray(ray_point_2, poni)  # (*broadcast(p, p'), *r2, 3)
-    else:
+    elif ray_point_2.shape[-1] == 3:
         ray_2 = ray_point_2
+    else:
+        raise ValueError("only shape 2 and 3 allow")
 
     ray_1 = ray_1[..., :, None, :]
     ray_2 = ray_2[..., None, :, :]
@@ -111,52 +113,53 @@ def raydotdist(
 
 
 def compute_matching_rate(
-    exp_uq: torch.Tensor, theo_uq: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
+    uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
 ) -> torch.Tensor:
     r"""Compute the matching rate.
 
-    It is the number of ray in ``theo_uq``, close engouth to at least one ray of ``exp_uq``.
+    It is the number of ray in ``uq_theo``, close engouth to at least one ray of ``uq_exp``.
 
     Parameters
     ----------
-    exp_uq : torch.Tensor
+    uq_exp : torch.Tensor
         The unitary experimental uq vector of shape (\*n, e, 3).
-    theo_uq : torch.Tensor
+    uq_theo : torch.Tensor
         The unitary simulated theorical uq vector of shape (\*n', t, 3).
+        It can be in any device.
     phi_max : float
         The maximum positive angular distance in radian to consider that the rays are closed enough.
 
     Returns
     -------
     match : torch.Tensor
-        The matching rate of shape broadcast(n, n').
+        The matching rate of shape broadcast(n, n') in the ``uq_exp`` device.
 
     Examples
     --------
     >>> import torch
     >>> from laueimproc.geometry.metric import compute_matching_rate
-    >>> exp_uq = torch.randn(1000, 3)
-    >>> exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
-    >>> theo_uq = torch.randn(5000, 3)
-    >>> theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True)
-    >>> rate = compute_matching_rate(exp_uq, theo_uq, 0.5 * torch.pi/180)
+    >>> uq_exp = torch.randn(1000, 3)
+    >>> uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
+    >>> uq_theo = torch.randn(5000, 3)
+    >>> uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
+    >>> rate = compute_matching_rate(uq_exp, uq_theo, 0.5 * torch.pi/180)
     >>>
     """
-    assert isinstance(exp_uq, torch.Tensor), exp_uq.__class__.__name__
-    assert exp_uq.ndim >= 2 and exp_uq.shape[-1] == 3, exp_uq.shape
-    assert isinstance(theo_uq, torch.Tensor), theo_uq.__class__.__name__
-    assert theo_uq.ndim >= 2 and theo_uq.shape[-1] == 3, theo_uq.shape
-    *batch_exp, size_e, _ = exp_uq.shape
-    *batch_theo, size_t, _ = theo_uq.shape
+    assert isinstance(uq_exp, torch.Tensor), uq_exp.__class__.__name__
+    assert uq_exp.ndim >= 2 and uq_exp.shape[-1] == 3, uq_exp.shape
+    assert isinstance(uq_theo, torch.Tensor), uq_theo.__class__.__name__
+    assert uq_theo.ndim >= 2 and uq_theo.shape[-1] == 3, uq_theo.shape
+    *batch_exp, size_e, _ = uq_exp.shape
+    *batch_theo, size_t, _ = uq_theo.shape
     assert size_e * size_t, "can not compute distance of empty matrix"
 
     if not _no_c and c_metric is not None:
         batch_n = torch.broadcast_shapes(batch_exp, batch_theo)
-        exp_uq = torch.broadcast_to(
-            exp_uq, batch_n + (size_e, 3)
+        uq_exp = torch.broadcast_to(
+            uq_exp, batch_n + (size_e, 3)
         ).reshape(int(np.prod(batch_n)), size_e, 3)
-        theo_uq = torch.broadcast_to(
-            theo_uq, batch_n + (size_t, 3)
+        uq_theo = torch.broadcast_to(
+            uq_theo, batch_n + (size_t, 3)
         ).reshape(int(np.prod(batch_n)), size_t, 3)
         if threading.current_thread().name == "MainThread":
             with multiprocessing.pool.ThreadPool() as pool:
@@ -169,7 +172,7 @@ def compute_matching_rate(
                             4.0*phi_max,
                             ray_to_table(exp, 4.0*phi_max),
                         )
-                        for theo, exp in zip(theo_uq, exp_uq)
+                        for theo, exp in zip(uq_theo, uq_exp)
                     ),
                 )
         else:
@@ -178,13 +181,13 @@ def compute_matching_rate(
                     theo.numpy(force=True), phi_max, exp.numpy(force=True), 4.0*phi_max,
                     ray_to_table(exp, 4.0*phi_max),
                 )
-                for theo, exp in zip(theo_uq, exp_uq)
+                for theo, exp in zip(uq_theo, uq_exp)
             ]
-        return torch.asarray(rate, dtype=torch.int32, device=theo_uq.device).reshape(batch_n)
+        return torch.asarray(rate, dtype=torch.int32, device=uq_exp.device).reshape(batch_n)
 
     assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
     assert 0 <= phi_max < math.pi, phi_max
-    dist = raydotdist(exp_uq, theo_uq)  # (*n, e, t)
+    dist = raydotdist(uq_exp, uq_theo.to(uq_exp.device))  # (*n, e, t)
     dist = dist > math.cos(phi_max)
     dist = torch.any(dist, dim=-2)  # (*n, t)
     rate = torch.count_nonzero(dist, dim=-1)  # (*n,)
@@ -193,7 +196,7 @@ def compute_matching_rate(
 
 
 def compute_matching_rate_continuous(
-    exp_uq: torch.Tensor, theo_uq: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
+    uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
 ) -> torch.Tensor:
     r"""Compute the matching rate.
 
@@ -205,9 +208,9 @@ def compute_matching_rate_continuous(
 
     Parameters
     ----------
-    exp_uq : torch.Tensor
+    uq_exp : torch.Tensor
         The unitary experimental uq vector of shape (\*n, e, 3).
-    theo_uq : torch.Tensor
+    uq_theo : torch.Tensor
         The unitary simulated theorical uq vector of shape (\*n', t, 3).
     phi_max : float
         The maximum positive angular distance in radian to consider that the rays are closed enough.
@@ -221,28 +224,28 @@ def compute_matching_rate_continuous(
     --------
     >>> import torch
     >>> from laueimproc.geometry.metric import compute_matching_rate_continuous
-    >>> exp_uq = torch.randn(1000, 3)
-    >>> exp_uq /= torch.linalg.norm(exp_uq, dim=1, keepdims=True)
-    >>> theo_uq = torch.randn(5000, 3)
-    >>> theo_uq /= torch.linalg.norm(theo_uq, dim=1, keepdims=True)
-    >>> rate = compute_matching_rate_continuous(exp_uq, theo_uq, 0.5 * torch.pi/180)
+    >>> uq_exp = torch.randn(1000, 3)
+    >>> uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
+    >>> uq_theo = torch.randn(5000, 3)
+    >>> uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
+    >>> rate = compute_matching_rate_continuous(uq_exp, uq_theo, 0.5 * torch.pi/180)
     >>>
     """
-    assert isinstance(exp_uq, torch.Tensor), exp_uq.__class__.__name__
-    assert exp_uq.ndim >= 2 and exp_uq.shape[-1] == 3, exp_uq.shape
-    assert isinstance(theo_uq, torch.Tensor), theo_uq.__class__.__name__
-    assert theo_uq.ndim >= 2 and theo_uq.shape[-1] == 3, theo_uq.shape
-    *batch_exp, size_e, _ = exp_uq.shape
-    *batch_theo, size_t, _ = theo_uq.shape
+    assert isinstance(uq_exp, torch.Tensor), uq_exp.__class__.__name__
+    assert uq_exp.ndim >= 2 and uq_exp.shape[-1] == 3, uq_exp.shape
+    assert isinstance(uq_theo, torch.Tensor), uq_theo.__class__.__name__
+    assert uq_theo.ndim >= 2 and uq_theo.shape[-1] == 3, uq_theo.shape
+    *batch_exp, size_e, _ = uq_exp.shape
+    *batch_theo, size_t, _ = uq_theo.shape
     assert size_e * size_t, "can not compute distance of empty matrix"
 
     if not _no_c and c_metric is not None:
         batch_n = torch.broadcast_shapes(batch_exp, batch_theo)
-        exp_uq = torch.broadcast_to(
-            exp_uq, batch_n + (size_e, 3)
+        uq_exp = torch.broadcast_to(
+            uq_exp, batch_n + (size_e, 3)
         ).reshape(int(np.prod(batch_n)), size_e, 3)
-        theo_uq = torch.broadcast_to(
-            theo_uq, batch_n + (size_t, 3)
+        uq_theo = torch.broadcast_to(
+            uq_theo, batch_n + (size_t, 3)
         ).reshape(int(np.prod(batch_n)), size_t, 3)
         if threading.current_thread().name == "MainThread":
             with multiprocessing.pool.ThreadPool() as pool:
@@ -255,7 +258,7 @@ def compute_matching_rate_continuous(
                             4.0*phi_max,
                             ray_to_table(exp, 4.0*phi_max),
                         )
-                        for theo, exp in zip(theo_uq, exp_uq)
+                        for theo, exp in zip(uq_theo, uq_exp)
                     ),
                 )
         else:
@@ -264,21 +267,21 @@ def compute_matching_rate_continuous(
                     theo.numpy(force=True), phi_max, exp.numpy(force=True), 4.0*phi_max,
                     ray_to_table(exp, 4.0*phi_max),
                 )
-                for theo, exp in zip(theo_uq, exp_uq)
+                for theo, exp in zip(uq_theo, uq_exp)
             ]
-        if theo_uq.requires_grad:
+        if uq_theo.requires_grad:
             dist = [
                 torch.sum(theo[pair[:, 0]] * exp[pair[:, 1]], dim=1)  # sum of scalar product
-                for (pair, _), theo, exp in zip(pair_dist, theo_uq, exp_uq)
+                for (pair, _), theo, exp in zip(pair_dist, uq_theo, uq_exp)
             ]
         else:
             dist = [torch.from_numpy(d) for _, d in pair_dist]
         dist = [torch.exp(-math.log(2.0)/phi_max * torch.acos(d)).sum().unsqueeze(0) for d in dist]
-        return torch.cat(dist).to(dtype=theo_uq.dtype, device=theo_uq.device).reshape(batch_n)
+        return torch.cat(dist).to(dtype=uq_theo.dtype, device=uq_theo.device).reshape(batch_n)
 
     assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
     assert 0 <= phi_max < math.pi, phi_max
-    dist = raydotdist(exp_uq, theo_uq)  # (*n, e, t)
+    dist = raydotdist(uq_exp, uq_theo)  # (*n, e, t)
     dist = torch.amax(dist, dim=-2)  # (*n, t)
     dist = torch.exp(-math.log(2.0)/phi_max * torch.acos(dist))
     dist[dist < 0.5] = 0  # (*n, t)

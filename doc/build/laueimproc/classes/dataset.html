@@ -32,8 +32,11 @@
 
 &#34;&#34;&#34;Link serveral diagrams together.&#34;&#34;&#34;
 
+import multiprocessing.pool
 import numbers
+import pathlib
 
+from tqdm.autonotebook import tqdm
 import torch
 
 from laueimproc.ml.dataset_dist import select_closest, select_closests
@@ -85,6 +88,56 @@ class DiagramsDataset(BaseDiagramsDataset):
                 return sort_stack(self, *args, **kwargs)
             case _:
                 raise ValueError(f&#34;method can only be &#39;snowflake&#39; or &#39;sort&#39;, not {method}&#34;)
+
+    def save_alldatfiles(self, folder: str | pathlib.Path):
+        &#34;&#34;&#34;Save peaklist .dat files of all diagrams of the dataset.
+
+        This method is based on ``laueimproc.io.write_dat.write_dat``.
+
+        Parameters
+        ----------
+        folder : pathlike
+            The parent folder, witch will contain all the dat files.
+            If it does not exists, it is created. The existing files are overwriten.
+
+        Examples
+        --------
+        &gt;&gt;&gt; import pathlib
+        &gt;&gt;&gt; import tempfile
+        &gt;&gt;&gt; import laueimproc
+        &gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())[:10]
+        &gt;&gt;&gt; def init(diagram: laueimproc.Diagram):
+        ...     diagram.find_spots()
+        ...
+        &gt;&gt;&gt; _ = dataset.apply(init)
+        &gt;&gt;&gt; folder = tempfile.mkdtemp()
+        &gt;&gt;&gt; dataset.save_alldatfiles(folder)
+        &gt;&gt;&gt; len(list(pathlib.Path(folder).glob(&#34;*.dat&#34;)))  # test files are created
+        10
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        assert isinstance(folder, str | pathlib.Path), folder.__class__.__name__
+        folder = pathlib.Path(folder).expanduser().resolve()
+        assert not folder.is_file(), f&#34;{folder} has to be a directory, not a file&#34;
+
+        from laueimproc.io.write_dat import write_dat
+
+        def write_dat_(arg: tuple[Diagram, pathlib.Path, int]):
+            &#34;&#34;&#34;Write a single dat file.&#34;&#34;&#34;
+            diag, folder, i = arg
+            name = (diag.file or pathlib.Path(f&#34;notimg_{i:04d}&#34;)).with_suffix(&#34;.dat&#34;).name
+            write_dat(folder / name, diag)
+
+        folder.mkdir(parents=True, exist_ok=True)
+        with multiprocessing.pool.ThreadPool() as pool:
+            for _ in tqdm(
+                pool.imap_unordered(
+                    write_dat_, ((diag, folder, i) for i, diag in enumerate(self))
+                ),
+                total=len(self),
+                desc=&#34;saving .dat files&#34;,
+            ):
+                pass
 
     def select_closest(self, *args, no_raise: bool = False, **kwargs) -&gt; None | Diagram:
         &#34;&#34;&#34;Select the closest diagram to a given set of phisical parameters.
@@ -296,6 +349,56 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
                 return sort_stack(self, *args, **kwargs)
             case _:
                 raise ValueError(f&#34;method can only be &#39;snowflake&#39; or &#39;sort&#39;, not {method}&#34;)
+
+    def save_alldatfiles(self, folder: str | pathlib.Path):
+        &#34;&#34;&#34;Save peaklist .dat files of all diagrams of the dataset.
+
+        This method is based on ``laueimproc.io.write_dat.write_dat``.
+
+        Parameters
+        ----------
+        folder : pathlike
+            The parent folder, witch will contain all the dat files.
+            If it does not exists, it is created. The existing files are overwriten.
+
+        Examples
+        --------
+        &gt;&gt;&gt; import pathlib
+        &gt;&gt;&gt; import tempfile
+        &gt;&gt;&gt; import laueimproc
+        &gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())[:10]
+        &gt;&gt;&gt; def init(diagram: laueimproc.Diagram):
+        ...     diagram.find_spots()
+        ...
+        &gt;&gt;&gt; _ = dataset.apply(init)
+        &gt;&gt;&gt; folder = tempfile.mkdtemp()
+        &gt;&gt;&gt; dataset.save_alldatfiles(folder)
+        &gt;&gt;&gt; len(list(pathlib.Path(folder).glob(&#34;*.dat&#34;)))  # test files are created
+        10
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        assert isinstance(folder, str | pathlib.Path), folder.__class__.__name__
+        folder = pathlib.Path(folder).expanduser().resolve()
+        assert not folder.is_file(), f&#34;{folder} has to be a directory, not a file&#34;
+
+        from laueimproc.io.write_dat import write_dat
+
+        def write_dat_(arg: tuple[Diagram, pathlib.Path, int]):
+            &#34;&#34;&#34;Write a single dat file.&#34;&#34;&#34;
+            diag, folder, i = arg
+            name = (diag.file or pathlib.Path(f&#34;notimg_{i:04d}&#34;)).with_suffix(&#34;.dat&#34;).name
+            write_dat(folder / name, diag)
+
+        folder.mkdir(parents=True, exist_ok=True)
+        with multiprocessing.pool.ThreadPool() as pool:
+            for _ in tqdm(
+                pool.imap_unordered(
+                    write_dat_, ((diag, folder, i) for i, diag in enumerate(self))
+                ),
+                total=len(self),
+                desc=&#34;saving .dat files&#34;,
+            ):
+                pass
 
     def select_closest(self, *args, no_raise: bool = False, **kwargs) -&gt; None | Diagram:
         &#34;&#34;&#34;Select the closest diagram to a given set of phisical parameters.
@@ -643,6 +746,88 @@ or <code>snowflake</code> for a faster algorithm on big dataset, but less accura
 </p>
 <div class="desc inherited"><p>Run asynchronousely in a child thread, called by self.start().</p></div>
 </dd>
+<dt id="laueimproc.classes.dataset.DiagramsDataset.save_alldatfiles"><code class="name flex">
+<span>def <span class="ident">save_alldatfiles</span></span>(<span>self, folder: str | pathlib.Path)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Save peaklist .dat files of all diagrams of the dataset.</p>
+<p>This method is based on <code><a title="laueimproc.io.write_dat.write_dat" href="../io/write_dat.html#laueimproc.io.write_dat.write_dat">write_dat()</a></code>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>folder</code></strong> :&ensp;<code>pathlike</code></dt>
+<dd>The parent folder, witch will contain all the dat files.
+If it does not exists, it is created. The existing files are overwriten.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import pathlib
+&gt;&gt;&gt; import tempfile
+&gt;&gt;&gt; import laueimproc
+&gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())[:10]
+&gt;&gt;&gt; def init(diagram: laueimproc.Diagram):
+...     diagram.find_spots()
+...
+&gt;&gt;&gt; _ = dataset.apply(init)
+&gt;&gt;&gt; folder = tempfile.mkdtemp()
+&gt;&gt;&gt; dataset.save_alldatfiles(folder)
+&gt;&gt;&gt; len(list(pathlib.Path(folder).glob(&quot;*.dat&quot;)))  # test files are created
+10
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_alldatfiles(self, folder: str | pathlib.Path):
+    &#34;&#34;&#34;Save peaklist .dat files of all diagrams of the dataset.
+
+    This method is based on ``laueimproc.io.write_dat.write_dat``.
+
+    Parameters
+    ----------
+    folder : pathlike
+        The parent folder, witch will contain all the dat files.
+        If it does not exists, it is created. The existing files are overwriten.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import pathlib
+    &gt;&gt;&gt; import tempfile
+    &gt;&gt;&gt; import laueimproc
+    &gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())[:10]
+    &gt;&gt;&gt; def init(diagram: laueimproc.Diagram):
+    ...     diagram.find_spots()
+    ...
+    &gt;&gt;&gt; _ = dataset.apply(init)
+    &gt;&gt;&gt; folder = tempfile.mkdtemp()
+    &gt;&gt;&gt; dataset.save_alldatfiles(folder)
+    &gt;&gt;&gt; len(list(pathlib.Path(folder).glob(&#34;*.dat&#34;)))  # test files are created
+    10
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(folder, str | pathlib.Path), folder.__class__.__name__
+    folder = pathlib.Path(folder).expanduser().resolve()
+    assert not folder.is_file(), f&#34;{folder} has to be a directory, not a file&#34;
+
+    from laueimproc.io.write_dat import write_dat
+
+    def write_dat_(arg: tuple[Diagram, pathlib.Path, int]):
+        &#34;&#34;&#34;Write a single dat file.&#34;&#34;&#34;
+        diag, folder, i = arg
+        name = (diag.file or pathlib.Path(f&#34;notimg_{i:04d}&#34;)).with_suffix(&#34;.dat&#34;).name
+        write_dat(folder / name, diag)
+
+    folder.mkdir(parents=True, exist_ok=True)
+    with multiprocessing.pool.ThreadPool() as pool:
+        for _ in tqdm(
+            pool.imap_unordered(
+                write_dat_, ((diag, folder, i) for i, diag in enumerate(self))
+            ),
+            total=len(self),
+            desc=&#34;saving .dat files&#34;,
+        ):
+            pass</code></pre>
+</details>
+</dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.select_closest"><code class="name flex">
 <span>def <span class="ident">select_closest</span></span>(<span>self, *args, no_raise: bool = False, **kwargs) ‑> None | <a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a></span>
 </code></dt>
@@ -957,6 +1142,7 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.indices" href="base_dataset.html#laueimproc.classes.dataset.DiagramsDataset.indices">indices</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.restore" href="base_dataset.html#laueimproc.classes.dataset.DiagramsDataset.restore">restore</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.run" href="base_dataset.html#laueimproc.classes.dataset.DiagramsDataset.run">run</a></code></li>
+<li><code><a title="laueimproc.classes.dataset.DiagramsDataset.save_alldatfiles" href="#laueimproc.classes.dataset.DiagramsDataset.save_alldatfiles">save_alldatfiles</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.select_closest" href="#laueimproc.classes.dataset.DiagramsDataset.select_closest">select_closest</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.select_closests" href="#laueimproc.classes.dataset.DiagramsDataset.select_closests">select_closests</a></code></li>
 <li><code><a title="laueimproc.classes.dataset.DiagramsDataset.state" href="base_dataset.html#laueimproc.classes.dataset.DiagramsDataset.state">state</a></code></li>

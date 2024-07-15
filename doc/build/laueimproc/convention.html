@@ -362,7 +362,7 @@ def poni_to_det(poni: torch.Tensor, pixelsize: torch.Tensor) -&gt; torch.Tensor:
         * `rot2`: The second rotation in radian.
         * `rot1`: The third rotation in radian.
     pixelsize : torch.Tensor
-        The size of one pixel in mm of shape (...).
+        The size of one pixel in mm of shape (...,).
 
     Returns
     -------
@@ -1045,7 +1045,7 @@ tensor([[1, 0, 0, 1],
 </ul>
 </dd>
 <dt><strong><code>pixelsize</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The size of one pixel in mm of shape (&hellip;).</dd>
+<dd>The size of one pixel in mm of shape (&hellip;,).</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1091,7 +1091,7 @@ True
         * `rot2`: The second rotation in radian.
         * `rot1`: The third rotation in radian.
     pixelsize : torch.Tensor
-        The size of one pixel in mm of shape (...).
+        The size of one pixel in mm of shape (...,).
 
     Returns
     -------

@@ -66,7 +66,7 @@ class BaseDiagram:
         Contrary to `self.rois`, it is only a view of `self.image`.
     rois : torch.Tensor or None
         The tensor of the provided regions of interest for each spots (readonly).
-        For writing, use `self.find_spost(...)` or  `self.set_spots(...)`.
+        For writing, use `self.find_spost(...,)` or  `self.set_spots(...,)`.
         Return None until spots are initialized. The shape is (n, h, w).
     """
 
@@ -154,7 +154,7 @@ class BaseDiagram:
         >>>
         """
         if self.file is None:
-            return f"{self.__class__.__name__}(Tensor(...))"
+            return f"{self.__class__.__name__}(Tensor(...,))"
         return f"{self.__class__.__name__}({self.file.name})"
 
     def __setstate__(self, state: tuple):
@@ -894,7 +894,7 @@ class BaseDiagram:
             bboxes = torch.empty((0, 4), dtype=torch.int16)
         with self._rois_lock:
             self._rois = (datarois, bboxes)
-        self._history = [f"{len(self)} spots from set_spots(...)"]
+        self._history = [f"{len(self)} spots from set_spots(...,)"]
 
     @property
     def state(self) -> str:

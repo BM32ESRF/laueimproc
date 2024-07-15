@@ -12,13 +12,15 @@ from .bragg import PLANK_H, CELERITY_C
 
 
 @functools.lru_cache(maxsize=8)
-def _select_all_hkl(max_hkl: int) -> torch.Tensor:
+def _select_all_hkl(max_hkl: int, device: torch.device) -> torch.Tensor:
     """Return a scan of all hkl candidates.
 
     Parameters
     ----------
     max_hkl : int
         The maximum absolute hkl sum such as |h| + |k| + |l| <= max_hkl.
+    device : torch.device
+        The device in which the tensors will be created.
 
     Returns
     -------
@@ -27,9 +29,9 @@ def _select_all_hkl(max_hkl: int) -> torch.Tensor:
     """
     # create all candidates
     steps = (
-        torch.arange(max_hkl+1, dtype=torch.int16),  # [h, -k, -l] = [-h, k, l]
-        torch.arange(-max_hkl, max_hkl+1, dtype=torch.int16),
-        torch.arange(-max_hkl, max_hkl+1, dtype=torch.int16),
+        torch.arange(max_hkl+1, dtype=torch.int16, device=device),  # [h, -k, -l] = [-h, k, l]
+        torch.arange(-max_hkl, max_hkl+1, dtype=torch.int16, device=device),
+        torch.arange(-max_hkl, max_hkl+1, dtype=torch.int16, device=device),
     )
     steps = torch.meshgrid(*steps, indexing="ij")
     steps = torch.cat([s.reshape(-1, 1) for s in steps], dim=1)  # (n, 3)
@@ -131,9 +133,9 @@ def select_hkl(
         q_norm = math.sqrt(float(torch.min(torch.sum(reciprocal * reciprocal, dim=-2))))
         max_hkl = math.ceil(3.47 * e_max / (CELERITY_C * PLANK_H * q_norm))  # |q| < 2*e_max / (H*C)
 
-    hkl = _select_all_hkl(int(max_hkl))  # (n, 3)
-    if reciprocal is not None:
-        hkl = hkl.to(reciprocal.device)
+    hkl = _select_all_hkl(  # (n, 3)
+        int(max_hkl), device=(torch.device("cpu") if reciprocal is None else reciprocal.device)
+    )
 
     if reciprocal is not None and e_max < torch.inf:
         u_q = reciprocal[..., None, :, :] @ hkl[..., None].to(reciprocal.device, reciprocal.dtype)

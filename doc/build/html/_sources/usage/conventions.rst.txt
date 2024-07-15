@@ -58,7 +58,7 @@ It means that the incoming ray is along L3.
 Crystalography
 --------------
 
-All functions are available in the `laueimproc.geometry <../../laueimproc/geometry.html>`_ module.
+All functions are available in the `laueimproc.geometry <../../laueimproc/geometry/index.html>`_ module.
 
 Lattice Parameters
 ^^^^^^^^^^^^^^^^^^

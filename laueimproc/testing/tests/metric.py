@@ -18,29 +18,29 @@ def test_batch_matching_rate():
     """Test batch dimension."""
     assert compute_matching_rate(EXP_UQ, THEO_UQ, PHI_MAX, _no_c=True).shape == ()
     assert compute_matching_rate(EXP_UQ, THEO_UQ, PHI_MAX).shape == ()
-    exp_uq = EXP_UQ[None, None, None, :, :].expand(1, 3, 4, -1, -1)
-    theo_uq = THEO_UQ[None, None, None, :, :].expand(2, 1, 4, -1, -1)
-    assert compute_matching_rate(exp_uq, theo_uq, PHI_MAX, _no_c=True).shape == (2, 3, 4)
-    assert compute_matching_rate(exp_uq, theo_uq, PHI_MAX).shape == (2, 3, 4)
+    uq_exp = EXP_UQ[None, None, None, :, :].expand(1, 3, 4, -1, -1)
+    uq_theo = THEO_UQ[None, None, None, :, :].expand(2, 1, 4, -1, -1)
+    assert compute_matching_rate(uq_exp, uq_theo, PHI_MAX, _no_c=True).shape == (2, 3, 4)
+    assert compute_matching_rate(uq_exp, uq_theo, PHI_MAX).shape == (2, 3, 4)
 
 
 def test_batch_matching_rate_continuous():
     """Test batch dimension."""
     assert compute_matching_rate_continuous(EXP_UQ, THEO_UQ, PHI_MAX, _no_c=True).shape == ()
     assert compute_matching_rate_continuous(EXP_UQ, THEO_UQ, PHI_MAX).shape == ()
-    exp_uq = EXP_UQ[None, None, None, :, :].expand(1, 3, 4, -1, -1)
-    theo_uq = THEO_UQ[None, None, None, :, :].expand(2, 1, 4, -1, -1)
-    assert compute_matching_rate_continuous(exp_uq, theo_uq, PHI_MAX, _no_c=True).shape == (2, 3, 4)
-    assert compute_matching_rate_continuous(exp_uq, theo_uq, PHI_MAX).shape == (2, 3, 4)
+    uq_exp = EXP_UQ[None, None, None, :, :].expand(1, 3, 4, -1, -1)
+    uq_theo = THEO_UQ[None, None, None, :, :].expand(2, 1, 4, -1, -1)
+    assert compute_matching_rate_continuous(uq_exp, uq_theo, PHI_MAX, _no_c=True).shape == (2, 3, 4)
+    assert compute_matching_rate_continuous(uq_exp, uq_theo, PHI_MAX).shape == (2, 3, 4)
 
 
 def test_grad_matching_rate_continuous():
     """Test the continuous matching rate is differenciable."""
-    theo_uq = THEO_UQ.clone()
-    theo_uq.requires_grad = True
-    rate = compute_matching_rate_continuous(EXP_UQ, theo_uq, PHI_MAX)
+    uq_theo = THEO_UQ.clone()
+    uq_theo.requires_grad = True
+    rate = compute_matching_rate_continuous(EXP_UQ, uq_theo, PHI_MAX)
     rate.backward()
-    assert theo_uq.grad is not None
+    assert uq_theo.grad is not None
 
 
 def test_value_matching_rate():

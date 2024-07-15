@@ -45,7 +45,7 @@ def hkl_reciprocal_to_uq_energy(
         All the unitary diffracting plane normal vector of shape (..., 3).
         The vectors are expressed in the same base as the reciprocal space.
     energy : torch.Tensor
-        The energy of each ray in J as a tensor of shape (...).
+        The energy of each ray in J as a tensor of shape (...,).
         \(\begin{cases}
             E = \frac{hc}{\lambda} \\
             \lambda = 2d\sin(\theta) \\
@@ -92,7 +92,7 @@ def hkl_reciprocal_to_uq_energy(
 
     energy = None
     if _return_energy:
-        ui_dot_uq = u_q[..., 2]  # (...)
+        ui_dot_uq = u_q[..., 2]  # (...,)
         inv_d_sin_theta = inv_d_square.squeeze(-1) / ui_dot_uq
         energy = torch.abs((0.5 * PLANK_H * CELERITY_C) * inv_d_sin_theta)
 

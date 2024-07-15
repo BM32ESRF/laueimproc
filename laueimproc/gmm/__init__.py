@@ -25,7 +25,7 @@ Tensor Terminology
         \vdots       & \ddots & \vdots       \\
         \sigma_{D,1} & \dots  & \sigma_{d,D} \\
     \end{pmatrix}_j
-\): The full symetric positive covariance matrix of the gaussian \(j\).
+\): The full symmetric positive covariance matrix of the gaussian \(j\).
 * \(\eta_j\), the relative mass of the gaussian \(j\). We have \(\sum\limits_{j=1}^K \eta_j = 1\).
 * \(\alpha_i\): The weights has the relative number of time the individual has been drawn.
 * \(\omega_i\): The weights has the inverse of the relative covariance of each individual.

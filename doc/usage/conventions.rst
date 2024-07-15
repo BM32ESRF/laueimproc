@@ -8,7 +8,7 @@ The origin is set at the corner of a pixel as shown in the figure below for a si
 
 .. image:: /build/media/IMGConvIJXY.avif
     :alt: image convention `"ij"` and `"xy"`
-    :width: 512px
+    :width: 512
 
 * Each pixel n starts at the coordinated n (included) and goes to the coordinate n+1 (excluded). The center of any pixel is at half integer pixel coordinate.
 * The default convention is called `"ij"` and the `LaueTools convention <https://lauetools.readthedocs.io/en/latest/conventions.html>`_ is called `"xy"`.
@@ -24,7 +24,7 @@ Motivation
 
 .. video:: /build/media/ANIMConvIJNumpyContinuity.webm
     :alt: continuity numpy to `"ij"`
-    :width: 512px
+    :width: 512
 
 Convertion `"ij"` <=> `"xy"`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -52,7 +52,7 @@ It means that the incoming ray is along L3.
 
 .. image:: /build/media/IMGBragg.avif
     :alt: image convention `"ij"` and `"xy"`
-    :width: 512px
+    :width: 512
 
 
 Crystalography

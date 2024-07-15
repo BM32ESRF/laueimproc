@@ -107,7 +107,7 @@ def ray_to_detector(
     dist : torch.Tensor
         The algebrical distance of the ray between the sample and the detector.
         a positive value means that the beam crashs on the detector.
-        A negative value means it is moving away. The shape is (...).
+        A negative value means it is moving away. The shape is (...,).
     &#34;&#34;&#34;
     assert isinstance(ray, torch.Tensor), ray.__class__.__name__
     assert ray.shape[-1:] == (3,), ray.shape
@@ -228,7 +228,7 @@ Overwise, the batch dimensions are broadcasted like a zip.</p>
 <dt><strong><code>dist</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The algebrical distance of the ray between the sample and the detector.
 a positive value means that the beam crashs on the detector.
-A negative value means it is moving away. The shape is (&hellip;).</dd>
+A negative value means it is moving away. The shape is (&hellip;,).</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -264,7 +264,7 @@ A negative value means it is moving away. The shape is (&hellip;).</dd>
     dist : torch.Tensor
         The algebrical distance of the ray between the sample and the detector.
         a positive value means that the beam crashs on the detector.
-        A negative value means it is moving away. The shape is (...).
+        A negative value means it is moving away. The shape is (...,).
     &#34;&#34;&#34;
     assert isinstance(ray, torch.Tensor), ray.__class__.__name__
     assert ray.shape[-1:] == (3,), ray.shape

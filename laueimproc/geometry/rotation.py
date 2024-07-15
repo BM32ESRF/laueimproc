@@ -140,7 +140,7 @@ def rot_to_angle(rot: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.T
     Returns
     -------
     theta1 : torch.Tensor or float
-        The first rotation angle of shape (...). \(\theta_1 \in [-\pi, \pi]\)
+        The first rotation angle of shape (...,). \(\theta_1 \in [-\pi, \pi]\)
         \(
             rot_1 =
             \begin{pmatrix}
@@ -150,7 +150,7 @@ def rot_to_angle(rot: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.T
             \end{pmatrix}
         \)
     theta2 : torch.Tensor or float
-        The second rotation angle of shape (...). \(\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]\)
+        The second rotation angle of shape (...,). \(\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]\)
         \(
             rot_2 =
             \begin{pmatrix}
@@ -160,7 +160,7 @@ def rot_to_angle(rot: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.T
             \end{pmatrix}
         \)
     theta3 : torch.Tensor or float
-        The third rotation angle of shape (...). (inverse of pyfai convention)
+        The third rotation angle of shape (...,). (inverse of pyfai convention)
         \(\theta_3 \in [-\pi, \pi]\)
         \(
             rot_3 =
@@ -178,12 +178,12 @@ def rot_to_angle(rot: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.T
     >>> rot = torch.tensor([[ 0.7500, -0.2165,  0.6250],
     ...                     [ 0.4330,  0.8750, -0.2165],
     ...                     [-0.5000,  0.4330,  0.7500]])
-    >>> theta1, theta2, theta3 = rot_to_angle(rot)
-    >>> torch.rad2deg(theta1).round()
+    >>> theta = rot_to_angle(rot)
+    >>> torch.rad2deg(theta[..., 0]).round()
     tensor(30.)
-    >>> torch.rad2deg(theta2).round()
+    >>> torch.rad2deg(theta[..., 1]).round()
     tensor(30.)
-    >>> torch.rad2deg(theta3).round()
+    >>> torch.rad2deg(theta[..., 2]).round()
     tensor(30.)
     >>>
     """
@@ -192,7 +192,7 @@ def rot_to_angle(rot: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.T
     theta1 = torch.atan2(rot[..., 2, 1], rot[..., 2, 2])
     theta2 = -torch.asin(rot[..., 2, 0])
     theta3 = torch.atan2(rot[..., 1, 0], rot[..., 0, 0])
-    return theta1, theta2, theta3
+    return torch.cat([theta1.unsqueeze(-1), theta2.unsqueeze(-1), theta3.unsqueeze(-1)], dim=-1)
 
 
 def rotate_crystal(

@@ -96,7 +96,7 @@ class BaseDiagram:
         Contrary to `self.rois`, it is only a view of `self.image`.
     rois : torch.Tensor or None
         The tensor of the provided regions of interest for each spots (readonly).
-        For writing, use `self.find_spost(...)` or  `self.set_spots(...)`.
+        For writing, use `self.find_spost(...,)` or  `self.set_spots(...,)`.
         Return None until spots are initialized. The shape is (n, h, w).
     &#34;&#34;&#34;
 
@@ -184,7 +184,7 @@ class BaseDiagram:
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         if self.file is None:
-            return f&#34;{self.__class__.__name__}(Tensor(...))&#34;
+            return f&#34;{self.__class__.__name__}(Tensor(...,))&#34;
         return f&#34;{self.__class__.__name__}({self.file.name})&#34;
 
     def __setstate__(self, state: tuple):
@@ -924,7 +924,7 @@ class BaseDiagram:
             bboxes = torch.empty((0, 4), dtype=torch.int16)
         with self._rois_lock:
             self._rois = (datarois, bboxes)
-        self._history = [f&#34;{len(self)} spots from set_spots(...)&#34;]
+        self._history = [f&#34;{len(self)} spots from set_spots(...,)&#34;]
 
     @property
     def state(self) -&gt; str:
@@ -1019,8 +1019,8 @@ Return None until spots are initialized. The shape is (n, h, w).
 Contrary to <code>self.rois</code>, it is only a view of <code>self.image</code>.</dd>
 <dt><strong><code>rois</code></strong> :&ensp;<code>torch.Tensor</code> or <code>None</code></dt>
 <dd>The tensor of the provided regions of interest for each spots (readonly).
-For writing, use <code>self.find_spost(&hellip;)</code> or
-<code>self.set_spots(&hellip;)</code>.
+For writing, use <code>self.find_spost(&hellip;,)</code> or
+<code>self.set_spots(&hellip;,)</code>.
 Return None until spots are initialized. The shape is (n, h, w).</dd>
 </dl>
 <p>Create a new diagram with appropriated metadata.</p>
@@ -1058,7 +1058,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         Contrary to `self.rois`, it is only a view of `self.image`.
     rois : torch.Tensor or None
         The tensor of the provided regions of interest for each spots (readonly).
-        For writing, use `self.find_spost(...)` or  `self.set_spots(...)`.
+        For writing, use `self.find_spost(...,)` or  `self.set_spots(...,)`.
         Return None until spots are initialized. The shape is (n, h, w).
     &#34;&#34;&#34;
 
@@ -1146,7 +1146,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         &gt;&gt;&gt;
         &#34;&#34;&#34;
         if self.file is None:
-            return f&#34;{self.__class__.__name__}(Tensor(...))&#34;
+            return f&#34;{self.__class__.__name__}(Tensor(...,))&#34;
         return f&#34;{self.__class__.__name__}({self.file.name})&#34;
 
     def __setstate__(self, state: tuple):
@@ -1886,7 +1886,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
             bboxes = torch.empty((0, 4), dtype=torch.int16)
         with self._rois_lock:
             self._rois = (datarois, bboxes)
-        self._history = [f&#34;{len(self)} spots from set_spots(...)&#34;]
+        self._history = [f&#34;{len(self)} spots from set_spots(...,)&#34;]
 
     @property
     def state(self) -&gt; str:
@@ -3053,7 +3053,7 @@ It can also be a combination of the above elements to unite the spots.</p>
         bboxes = torch.empty((0, 4), dtype=torch.int16)
     with self._rois_lock:
         self._rois = (datarois, bboxes)
-    self._history = [f&#34;{len(self)} spots from set_spots(...)&#34;]</code></pre>
+    self._history = [f&#34;{len(self)} spots from set_spots(...,)&#34;]</code></pre>
 </details>
 </dd>
 </dl>

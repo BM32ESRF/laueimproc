@@ -362,7 +362,7 @@ int MSECostAndGrad(
         npy_float32 buff = roi_pred - roi[i];
         *cost += buff * buff;
 
-        // cov symetric
+        // cov symmetric
         for (long k = 0; k < n_clu; ++k) {
             cov_grad[4 * k + 2] = cov_grad[4 * k + 1];
         }

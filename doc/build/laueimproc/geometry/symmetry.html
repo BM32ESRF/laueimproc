@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>laueimproc.testing.tests.metric API documentation</title>
-<meta name="description" content="Test if the matching rate is ok." />
+<title>laueimproc.geometry.symmetry API documentation</title>
+<meta name="description" content="Find the cristal symmetries and equivalence." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -20,75 +20,92 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>laueimproc.testing.tests.metric</code></h1>
+<h1 class="title">Module <code>laueimproc.geometry.symmetry</code></h1>
 </header>
 <section id="section-intro">
-<p>Test if the matching rate is ok.</p>
+<p>Find the cristal symmetries and equivalence.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!/usr/bin/env python3
 
-&#34;&#34;&#34;Test if the matching rate is ok.&#34;&#34;&#34;
+&#34;&#34;&#34;Find the cristal symmetries and equivalence.&#34;&#34;&#34;
+
+import itertools
 
 import torch
 
-from laueimproc.geometry.metric import compute_matching_rate, compute_matching_rate_continuous
 
+def find_symmetric_rotations(primitive: torch.Tensor) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Search all the rotation that keep the cristal identical.
 
-PHI_MAX = 0.5 * torch.pi / 180.0
-EXP_UQ = torch.randn(500, 3)
-EXP_UQ /= torch.linalg.norm(EXP_UQ, dim=1, keepdims=True)
-THEO_UQ = torch.randn(2000, 3)
-THEO_UQ /= torch.linalg.norm(THEO_UQ, dim=1, keepdims=True)
+    Parameters
+    ----------
+    primitive : torch.Tensor
+        Matrix \(\mathbf{A}\) in any orthonormal base of shape (3, 3).
 
+    Returns
+    -------
+    rot : torch.Tensor
+        All the rotation matrices leaving the cristal equivalent.
+        The shape is (n, 3, 3). It contains the identity matrix.
 
-def test_batch_matching_rate():
-    &#34;&#34;&#34;Test batch dimension.&#34;&#34;&#34;
-    assert compute_matching_rate(EXP_UQ, THEO_UQ, PHI_MAX, _no_c=True).shape == ()
-    assert compute_matching_rate(EXP_UQ, THEO_UQ, PHI_MAX).shape == ()
-    uq_exp = EXP_UQ[None, None, None, :, :].expand(1, 3, 4, -1, -1)
-    uq_theo = THEO_UQ[None, None, None, :, :].expand(2, 1, 4, -1, -1)
-    assert compute_matching_rate(uq_exp, uq_theo, PHI_MAX, _no_c=True).shape == (2, 3, 4)
-    assert compute_matching_rate(uq_exp, uq_theo, PHI_MAX).shape == (2, 3, 4)
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.symmetry import find_symmetric_rotations
+    &gt;&gt;&gt; primitive = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; find_symmetric_rotations(primitive).shape
+    torch.Size([24, 3, 3])
+    &gt;&gt;&gt; primitive = torch.tensor([[2.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; find_symmetric_rotations(primitive).shape
+    torch.Size([8, 3, 3])
+    &gt;&gt;&gt; primitive = torch.tensor([[3.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; find_symmetric_rotations(primitive).shape
+    torch.Size([4, 3, 3])
+    &gt;&gt;&gt; primitive = torch.tensor([[1.0, -0.5, 0.0], [0.0, 0.866, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; find_symmetric_rotations(primitive).shape
+    torch.Size([4, 3, 3])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(primitive, torch.Tensor), primitive.__class__.__name__
+    assert primitive.shape == (3, 3), primitive.__class__.__name__
 
+    # define constants
+    tol = 0.05  # 5% of tolerence
 
-def test_batch_matching_rate_continuous():
-    &#34;&#34;&#34;Test batch dimension.&#34;&#34;&#34;
-    assert compute_matching_rate_continuous(EXP_UQ, THEO_UQ, PHI_MAX, _no_c=True).shape == ()
-    assert compute_matching_rate_continuous(EXP_UQ, THEO_UQ, PHI_MAX).shape == ()
-    uq_exp = EXP_UQ[None, None, None, :, :].expand(1, 3, 4, -1, -1)
-    uq_theo = THEO_UQ[None, None, None, :, :].expand(2, 1, 4, -1, -1)
-    assert compute_matching_rate_continuous(uq_exp, uq_theo, PHI_MAX, _no_c=True).shape == (2, 3, 4)
-    assert compute_matching_rate_continuous(uq_exp, uq_theo, PHI_MAX).shape == (2, 3, 4)
+    # test all permutations
+    all_prim = primitive[:, list(itertools.permutations([0, 1, 2]))].movedim(1, 0)  # (6, 3, 3)
+    norm = torch.sum(primitive * primitive, dim=0)  # (3,)
+    all_prim = all_prim[  # (n, 3, 3)
+        torch.all(  # allow permutation if the norm doesn&#39;t change
+            torch.abs((torch.sum(all_prim * all_prim, dim=1) - norm) / norm) &lt; tol,
+            dim=1,
+        )
+    ]
 
+    # set all symmetries
+    sym = torch.tensor(list(  # (8, 3)
+        itertools.product([1, -1], [1, -1], [1, -1])
+    ), dtype=all_prim.dtype, device=all_prim.device)
+    all_prim = all_prim[None, :, :, :] * sym[:, None, None, :]  # (n, 8, 3, 3)
+    all_prim = all_prim.reshape(-1, 3, 3)
 
-def test_grad_matching_rate_continuous():
-    &#34;&#34;&#34;Test the continuous matching rate is differenciable.&#34;&#34;&#34;
-    uq_theo = THEO_UQ.clone()
-    uq_theo.requires_grad = True
-    rate = compute_matching_rate_continuous(EXP_UQ, uq_theo, PHI_MAX)
-    rate.backward()
-    assert uq_theo.grad is not None
+    # find all equivalent transition matrices
+    rot = all_prim @ torch.linalg.inv(primitive)  # L&#39; = R.L
 
-
-def test_value_matching_rate():
-    &#34;&#34;&#34;Test if the result of the matching rate is correct.&#34;&#34;&#34;
-    assert int(compute_matching_rate(EXP_UQ, EXP_UQ, PHI_MAX, _no_c=True)) == len(EXP_UQ)
-    assert int(compute_matching_rate(EXP_UQ, EXP_UQ, PHI_MAX)) == len(EXP_UQ)
-    assert int(compute_matching_rate(
-        torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.6 * torch.pi, _no_c=True
-    )) == 1
-    assert int(compute_matching_rate(
-        torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.6 * torch.pi
-    )) == 1
-    assert int(compute_matching_rate(
-        torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.4 * torch.pi, _no_c=True
-    )) == 0
-    assert int(compute_matching_rate(
-        torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.4 * torch.pi
-    )) == 0</code></pre>
+    # reject non rotation matrix
+    det = torch.linalg.det(rot)
+    rot = rot[torch.abs(det - 1.0) &lt; tol]  # det of rot matrix equal 1
+    identity = rot @ rot.mT  # orthogonal
+    rot = rot[
+        torch.all(
+            torch.abs(identity - torch.eye(3, dtype=identity.dtype, device=identity.device)) &lt; tol,
+            dim=(1, 2)
+        )
+    ]
+    return rot</code></pre>
 </details>
 </section>
 <section>
@@ -98,87 +115,112 @@ def test_value_matching_rate():
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="laueimproc.testing.tests.metric.test_batch_matching_rate"><code class="name flex">
-<span>def <span class="ident">test_batch_matching_rate</span></span>(<span>)</span>
+<dt id="laueimproc.geometry.symmetry.find_symmetric_rotations"><code class="name flex">
+<span>def <span class="ident">find_symmetric_rotations</span></span>(<span>primitive: torch.Tensor) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Test batch dimension.</p></div>
+<div class="desc"><p>Search all the rotation that keep the cristal identical.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>primitive</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Matrix <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> in any orthonormal base of shape (3, 3).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>rot</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>All the rotation matrices leaving the cristal equivalent.
+The shape is (n, 3, 3). It contains the identity matrix.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.geometry.symmetry import find_symmetric_rotations
+&gt;&gt;&gt; primitive = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+&gt;&gt;&gt; find_symmetric_rotations(primitive).shape
+torch.Size([24, 3, 3])
+&gt;&gt;&gt; primitive = torch.tensor([[2.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+&gt;&gt;&gt; find_symmetric_rotations(primitive).shape
+torch.Size([8, 3, 3])
+&gt;&gt;&gt; primitive = torch.tensor([[3.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 1.0]])
+&gt;&gt;&gt; find_symmetric_rotations(primitive).shape
+torch.Size([4, 3, 3])
+&gt;&gt;&gt; primitive = torch.tensor([[1.0, -0.5, 0.0], [0.0, 0.866, 0.0], [0.0, 0.0, 1.0]])
+&gt;&gt;&gt; find_symmetric_rotations(primitive).shape
+torch.Size([4, 3, 3])
+&gt;&gt;&gt;
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_batch_matching_rate():
-    &#34;&#34;&#34;Test batch dimension.&#34;&#34;&#34;
-    assert compute_matching_rate(EXP_UQ, THEO_UQ, PHI_MAX, _no_c=True).shape == ()
-    assert compute_matching_rate(EXP_UQ, THEO_UQ, PHI_MAX).shape == ()
-    uq_exp = EXP_UQ[None, None, None, :, :].expand(1, 3, 4, -1, -1)
-    uq_theo = THEO_UQ[None, None, None, :, :].expand(2, 1, 4, -1, -1)
-    assert compute_matching_rate(uq_exp, uq_theo, PHI_MAX, _no_c=True).shape == (2, 3, 4)
-    assert compute_matching_rate(uq_exp, uq_theo, PHI_MAX).shape == (2, 3, 4)</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.testing.tests.metric.test_batch_matching_rate_continuous"><code class="name flex">
-<span>def <span class="ident">test_batch_matching_rate_continuous</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Test batch dimension.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_batch_matching_rate_continuous():
-    &#34;&#34;&#34;Test batch dimension.&#34;&#34;&#34;
-    assert compute_matching_rate_continuous(EXP_UQ, THEO_UQ, PHI_MAX, _no_c=True).shape == ()
-    assert compute_matching_rate_continuous(EXP_UQ, THEO_UQ, PHI_MAX).shape == ()
-    uq_exp = EXP_UQ[None, None, None, :, :].expand(1, 3, 4, -1, -1)
-    uq_theo = THEO_UQ[None, None, None, :, :].expand(2, 1, 4, -1, -1)
-    assert compute_matching_rate_continuous(uq_exp, uq_theo, PHI_MAX, _no_c=True).shape == (2, 3, 4)
-    assert compute_matching_rate_continuous(uq_exp, uq_theo, PHI_MAX).shape == (2, 3, 4)</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.testing.tests.metric.test_grad_matching_rate_continuous"><code class="name flex">
-<span>def <span class="ident">test_grad_matching_rate_continuous</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Test the continuous matching rate is differenciable.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_grad_matching_rate_continuous():
-    &#34;&#34;&#34;Test the continuous matching rate is differenciable.&#34;&#34;&#34;
-    uq_theo = THEO_UQ.clone()
-    uq_theo.requires_grad = True
-    rate = compute_matching_rate_continuous(EXP_UQ, uq_theo, PHI_MAX)
-    rate.backward()
-    assert uq_theo.grad is not None</code></pre>
-</details>
-</dd>
-<dt id="laueimproc.testing.tests.metric.test_value_matching_rate"><code class="name flex">
-<span>def <span class="ident">test_value_matching_rate</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Test if the result of the matching rate is correct.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_value_matching_rate():
-    &#34;&#34;&#34;Test if the result of the matching rate is correct.&#34;&#34;&#34;
-    assert int(compute_matching_rate(EXP_UQ, EXP_UQ, PHI_MAX, _no_c=True)) == len(EXP_UQ)
-    assert int(compute_matching_rate(EXP_UQ, EXP_UQ, PHI_MAX)) == len(EXP_UQ)
-    assert int(compute_matching_rate(
-        torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.6 * torch.pi, _no_c=True
-    )) == 1
-    assert int(compute_matching_rate(
-        torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.6 * torch.pi
-    )) == 1
-    assert int(compute_matching_rate(
-        torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.4 * torch.pi, _no_c=True
-    )) == 0
-    assert int(compute_matching_rate(
-        torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.4 * torch.pi
-    )) == 0</code></pre>
+<pre><code class="python">def find_symmetric_rotations(primitive: torch.Tensor) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Search all the rotation that keep the cristal identical.
+
+    Parameters
+    ----------
+    primitive : torch.Tensor
+        Matrix \(\mathbf{A}\) in any orthonormal base of shape (3, 3).
+
+    Returns
+    -------
+    rot : torch.Tensor
+        All the rotation matrices leaving the cristal equivalent.
+        The shape is (n, 3, 3). It contains the identity matrix.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.symmetry import find_symmetric_rotations
+    &gt;&gt;&gt; primitive = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; find_symmetric_rotations(primitive).shape
+    torch.Size([24, 3, 3])
+    &gt;&gt;&gt; primitive = torch.tensor([[2.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; find_symmetric_rotations(primitive).shape
+    torch.Size([8, 3, 3])
+    &gt;&gt;&gt; primitive = torch.tensor([[3.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; find_symmetric_rotations(primitive).shape
+    torch.Size([4, 3, 3])
+    &gt;&gt;&gt; primitive = torch.tensor([[1.0, -0.5, 0.0], [0.0, 0.866, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; find_symmetric_rotations(primitive).shape
+    torch.Size([4, 3, 3])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(primitive, torch.Tensor), primitive.__class__.__name__
+    assert primitive.shape == (3, 3), primitive.__class__.__name__
+
+    # define constants
+    tol = 0.05  # 5% of tolerence
+
+    # test all permutations
+    all_prim = primitive[:, list(itertools.permutations([0, 1, 2]))].movedim(1, 0)  # (6, 3, 3)
+    norm = torch.sum(primitive * primitive, dim=0)  # (3,)
+    all_prim = all_prim[  # (n, 3, 3)
+        torch.all(  # allow permutation if the norm doesn&#39;t change
+            torch.abs((torch.sum(all_prim * all_prim, dim=1) - norm) / norm) &lt; tol,
+            dim=1,
+        )
+    ]
+
+    # set all symmetries
+    sym = torch.tensor(list(  # (8, 3)
+        itertools.product([1, -1], [1, -1], [1, -1])
+    ), dtype=all_prim.dtype, device=all_prim.device)
+    all_prim = all_prim[None, :, :, :] * sym[:, None, None, :]  # (n, 8, 3, 3)
+    all_prim = all_prim.reshape(-1, 3, 3)
+
+    # find all equivalent transition matrices
+    rot = all_prim @ torch.linalg.inv(primitive)  # L&#39; = R.L
+
+    # reject non rotation matrix
+    det = torch.linalg.det(rot)
+    rot = rot[torch.abs(det - 1.0) &lt; tol]  # det of rot matrix equal 1
+    identity = rot @ rot.mT  # orthogonal
+    rot = rot[
+        torch.all(
+            torch.abs(identity - torch.eye(3, dtype=identity.dtype, device=identity.device)) &lt; tol,
+            dim=(1, 2)
+        )
+    ]
+    return rot</code></pre>
 </details>
 </dd>
 </dl>
@@ -221,7 +263,7 @@ const query = new URL(window.location).searchParams.get('q');
 if (query)
 search(query);
 function search(query) {
-const url = '../../../doc-search.html#' + encodeURIComponent(query);
+const url = '../../doc-search.html#' + encodeURIComponent(query);
 new tingle.modal({
 cssClass: ['modal-dialog'],
 onClose: () => {
@@ -240,15 +282,12 @@ setTimeout(() => input.focus(), 100);
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="laueimproc.testing.tests" href="index.html">laueimproc.testing.tests</a></code></li>
+<li><code><a title="laueimproc.geometry" href="index.html">laueimproc.geometry</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.testing.tests.metric.test_batch_matching_rate" href="#laueimproc.testing.tests.metric.test_batch_matching_rate">test_batch_matching_rate</a></code></li>
-<li><code><a title="laueimproc.testing.tests.metric.test_batch_matching_rate_continuous" href="#laueimproc.testing.tests.metric.test_batch_matching_rate_continuous">test_batch_matching_rate_continuous</a></code></li>
-<li><code><a title="laueimproc.testing.tests.metric.test_grad_matching_rate_continuous" href="#laueimproc.testing.tests.metric.test_grad_matching_rate_continuous">test_grad_matching_rate_continuous</a></code></li>
-<li><code><a title="laueimproc.testing.tests.metric.test_value_matching_rate" href="#laueimproc.testing.tests.metric.test_value_matching_rate">test_value_matching_rate</a></code></li>
+<li><code><a title="laueimproc.geometry.symmetry.find_symmetric_rotations" href="#laueimproc.geometry.symmetry.find_symmetric_rotations">find_symmetric_rotations</a></code></li>
 </ul>
 </li>
 </ul>

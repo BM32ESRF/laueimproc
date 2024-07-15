@@ -75,12 +75,12 @@ def uf_to_thetachi(u_f: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     Returns
     -------
     theta : torch.Tensor
-        The half deviation angle in radian, of shape (...). \(\theta \in [0, \frac{\pi}{2}]\)
+        The half deviation angle in radian, of shape (...,). \(\theta \in [0, \frac{\pi}{2}]\)
     chi : torch.Tensor
         The counterclockwise (trigonometric) rotation of the diffracted ray if you look as u_i.
         It is the angle from the vertical plan \((\mathbf{L_1}, \mathbf{L_3})\)
         to the plan \((u_i, \mathcal{B^l_z})\).
-        The shape is (...) as well. \(\chi \in [-\pi, \pi]\)
+        The shape is (...,) as well. \(\chi \in [-\pi, \pi]\)
 
     Notes
     -----
