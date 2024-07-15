@@ -129,7 +129,7 @@ def select_hkl(
 
     if max_hkl is None:
         assert reciprocal is not None and e_max < torch.inf, \
-            "you have to provide 'max_hkl' or 'reciprocal' and 'energy'"
+            "you have to provide 'max_hkl' or 'reciprocal' and 'e_max'"
         q_norm = math.sqrt(float(torch.min(torch.sum(reciprocal * reciprocal, dim=-2))))
         max_hkl = math.ceil(3.47 * e_max / (CELERITY_C * PLANK_H * q_norm))  # |q| < 2*e_max / (H*C)
 
