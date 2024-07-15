@@ -37,6 +37,9 @@ def find_symmetric_rotations(primitive: torch.Tensor) -> torch.Tensor:
     >>> primitive = torch.tensor([[1.0, -0.5, 0.0], [0.0, 0.866, 0.0], [0.0, 0.0, 1.0]])
     >>> find_symmetric_rotations(primitive).shape
     torch.Size([4, 3, 3])
+    >>> primitive = torch.tensor([[1.0, 0.866, 0.866], [0.0, 0.5, 0.232], [0.0, 0.0, 0.443]])
+    >>> find_symmetric_rotations(primitive).shape  # a=b=c := 1, alpha=beta=gamma := pi/6
+    torch.Size([6, 3, 3])
     >>>
     """
     assert isinstance(primitive, torch.Tensor), primitive.__class__.__name__
@@ -76,3 +79,44 @@ def find_symmetric_rotations(primitive: torch.Tensor) -> torch.Tensor:
         )
     ]
     return rot
+
+
+def reduce_hkl(hkl: torch.Tensor, rot: torch.Tensor) -> torch.Tensor:
+    """Keep a single representation of the equivalent hkl.
+
+    Parameters
+    ----------
+    hkl : torch.Tensor
+        The real int hkl indices, of shape (n, 3).
+    rot : torch.Tensor
+        The rotations matrices of symetries,
+        comming from ``laueimproc.geometry.symmetry.find_symmetric_rotations``,
+        of shape (r, 3, 3).
+
+    Returns
+    -------
+    reduced_hkl : torch.Tensor
+        The equivalent reduced hkl indices, of shape (n, 3).
+    """
+    assert isinstance(hkl, torch.Tensor), hkl.__class__.__name__
+    assert hkl.ndim == 2 and hkl.shape[1] == 3, hkl.shape
+    assert isinstance(rot, torch.Tensor), rot.__class__.__name__
+    assert rot.ndim == 3 and rot.shape[1:] == (3, 3), rot.shape
+
+    raise NotImplementedError("hmm, it it too complicated")
+
+    # # remove harmonics
+    # hkl = hkl // torch.gcd(torch.gcd(hkl[:, 0], hkl[:, 1]), hkl[:, 2])
+
+    # # expand symmetries
+    # hkl = hkl.to(rot.dtype)[:, None, :, None] @ rot[None, :, :, :]  # (n, r, 3, 1)
+    # hkl = hkl.squeeze(3)  # (n, r, 3)
+
+    # # select the better
+    # def order(hkl1: list[int], hkl2: list[int]):
+    #     """Return True if hkl1 > hkl2."""
+    #     h_1, k_1, l_1 = hkl1
+    #     h_2, k_2, l_2 = hkl2
+    #     if (abs(h_1)+abs(k_1)+abs(l_1) > abs(h_1))
+
+    # hkl_list = [min(hkl_s, key=order) in hkl.tolist()]

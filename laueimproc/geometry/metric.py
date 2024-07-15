@@ -26,13 +26,13 @@ def _cached_ray_to_table(func):
     """Decorate ray_to_table to cache the result."""
     @functools.wraps(func)
     def decorated(
-        ray: torch.Tensor, res: numbers.Real
+        ray: np.ndarray, res: numbers.Real
     ) -> tuple[np.ndarray, np.ndarray, tuple[int, int, int, int]]:
         """Invoque ``c_metric.ray_to_table`` and keep result in cache.
 
         Parameters
         ----------
-        ray : torch.Tensor
+        ray : np.ndarray
             The rays of shape (n, 3).
         res : float
             The maximal sample step in spherical hash table projection.
@@ -50,13 +50,13 @@ def _cached_ray_to_table(func):
         limits : tuple[int, int, int, int]
             Internal padding consideration.
         """
-        assert isinstance(ray, torch.Tensor), ray.__class__.__name__
-        assert ray.ndim == 2 and ray.shape[1] == 3, ray.shape
-        signature = (ray.data_ptr(), ray.shape[0], float(res))
+        assert isinstance(ray, np.ndarray), ray.__class__.__name__
+        signature = (ray.ctypes.data, ray.shape[0], float(res))
         if signature not in cache:
+            assert ray.ndim == 2 and ray.shape[1] == 3, ray.shape  # not a head for perfs
             if len(cache) > 64:  # to avoid memory leaking
                 cache.clear()
-            cache[signature] = c_metric.ray_to_table(ray.numpy(force=True), res)
+            cache[signature] = c_metric.ray_to_table(ray, res)
         return cache[signature]
     cache = {}
     return decorated
@@ -87,6 +87,7 @@ def raydotdist(
     -------
     dist : torch.Tensor
         The distance matrix \(\cos(\phi)\) of shape (\*broadcast(n, n'), \*p, r1, r2).
+        The values are in [-1.0, 1.0].
     """
     assert isinstance(ray_point_1, torch.Tensor), ray_point_1.__class__.__name__
     assert isinstance(ray_point_2, torch.Tensor), ray_point_2.__class__.__name__
@@ -109,6 +110,7 @@ def raydotdist(
     ray_1 = ray_1[..., :, None, :]
     ray_2 = ray_2[..., None, :, :]
     dist = torch.sum(ray_1 * ray_2, dim=-1)  # <ray_1, ray_2> = cos(angle(ray_1, ray_2)) = cos(phi)
+    dist = torch.clamp(dist, -1.0, 1.0)  # protection for acos
     return dist
 
 
@@ -166,22 +168,16 @@ def compute_matching_rate(
                 rate = pool.starmap(
                     c_metric.matching_rate,
                     (
-                        (
-                            theo.numpy(force=True),
-                            phi_max, exp.numpy(force=True),
-                            4.0*phi_max,
-                            ray_to_table(exp, 4.0*phi_max),
-                        )
-                        for theo, exp in zip(uq_theo, uq_exp)
+                        (theo, phi_max, exp, 4.0*phi_max, ray_to_table(exp, 4.0*phi_max))
+                        for theo, exp in zip(uq_theo.numpy(force=True), uq_exp.numpy(force=True))
                     ),
                 )
         else:
             rate = [
                 c_metric.matching_rate(
-                    theo.numpy(force=True), phi_max, exp.numpy(force=True), 4.0*phi_max,
-                    ray_to_table(exp, 4.0*phi_max),
+                    theo, phi_max, exp, 4.0*phi_max, ray_to_table(exp, 4.0*phi_max),
                 )
-                for theo, exp in zip(uq_theo, uq_exp)
+                for theo, exp in zip(uq_theo.numpy(force=True), uq_exp.numpy(force=True))
             ]
         return torch.asarray(rate, dtype=torch.int32, device=uq_exp.device).reshape(batch_n)
 
@@ -252,22 +248,16 @@ def compute_matching_rate_continuous(
                 pair_dist = pool.starmap(
                     c_metric.link_close_rays,
                     (
-                        (
-                            theo.numpy(force=True),
-                            phi_max, exp.numpy(force=True),
-                            4.0*phi_max,
-                            ray_to_table(exp, 4.0*phi_max),
-                        )
-                        for theo, exp in zip(uq_theo, uq_exp)
+                        (theo, phi_max, exp, 4.0*phi_max, ray_to_table(exp, 4.0*phi_max))
+                        for theo, exp in zip(uq_theo.numpy(force=True), uq_exp.numpy(force=True))
                     ),
                 )
         else:
             pair_dist = [
                 c_metric.link_close_rays(
-                    theo.numpy(force=True), phi_max, exp.numpy(force=True), 4.0*phi_max,
-                    ray_to_table(exp, 4.0*phi_max),
+                    theo, phi_max, exp, 4.0*phi_max, ray_to_table(exp, 4.0*phi_max)
                 )
-                for theo, exp in zip(uq_theo, uq_exp)
+                for theo, exp in zip(uq_theo.numpy(force=True), uq_exp.numpy(force=True))
             ]
         if uq_theo.requires_grad:
             dist = [
