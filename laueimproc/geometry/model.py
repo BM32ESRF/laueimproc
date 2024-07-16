@@ -15,7 +15,7 @@ from .hkl import select_hkl
 from .lattice import lattice_to_primitive
 from .projection import ray_to_detector
 from .reciprocal import primitive_to_reciprocal
-from .rotation import angle_to_rot, rotate_crystal
+from .rotation import omega_to_rot, rotate_crystal
 
 
 class BraggModel(torch.nn.Module):
@@ -298,11 +298,11 @@ class BraggModel(torch.nn.Module):
         if (phi := self._select_phi(kwargs)) is None:
             raise AttributeError("`phi` parameter has to be supplied")
         if phi.requires_grad:
-            return angle_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
+            return omega_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
         signature = ("rot", phi.data_ptr())
         if (rot := self._cache.get(signature, None)) is None:
             rot = self._cache[signature] = (
-                angle_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
+                omega_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
             )
         return rot
 
@@ -442,7 +442,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def primitive_bc(self) -> None | torch.Tensor:
-        """Alias to ``laueimproc.gometry.model.BraggModelBase.compute_primitive_bc``."""
+        """Alias to ``laueimproc.gometry.model.BraggModel.compute_primitive_bc``."""
         try:
             return self.compute_primitive_bc()
         except AttributeError:
@@ -450,7 +450,7 @@ class BraggModel(torch.nn.Module):
 
     # @property
     # def primitive_bl(self) -> None | torch.Tensor:
-    #     """Alias to ``laueimproc.gometry.model.BraggModelBase.compute_primitive_bl``."""
+    #     """Alias to ``laueimproc.gometry.model.BraggModel.compute_primitive_bl``."""
     #     try:
     #         return self.compute_primitive_bl()
     #     except AttributeError:
@@ -458,7 +458,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def reciprocal_bc(self) -> None | torch.Tensor:
-        """Alias to ``laueimproc.gometry.model.BraggModelBase.compute_reciprocal_bc``."""
+        """Alias to ``laueimproc.gometry.model.BraggModel.compute_reciprocal_bc``."""
         try:
             return self.compute_reciprocal_bc()
         except AttributeError:
@@ -466,7 +466,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def reciprocal_bl(self) -> None | torch.Tensor:
-        """Alias to ``laueimproc.gometry.model.BraggModelBase.compute_reciprocal_bl``."""
+        """Alias to ``laueimproc.gometry.model.BraggModel.compute_reciprocal_bl``."""
         try:
             return self.compute_reciprocal_bl()
         except AttributeError:
@@ -474,7 +474,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def rot(self) -> None | torch.Tensor:
-        """Alias to ``laueimproc.gometry.model.BraggModelBase.compute_rot``."""
+        """Alias to ``laueimproc.gometry.model.BraggModel.compute_rot``."""
         try:
             return self.compute_rot()
         except AttributeError:
@@ -482,7 +482,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def u_f(self) -> None | torch.Tensor:
-        """Alias to ``laueimproc.gometry.model.BraggModelBase.compute_uf``."""
+        """Alias to ``laueimproc.gometry.model.BraggModel.compute_uf``."""
         try:
             return self.compute_uf()[0]
         except AttributeError:
@@ -490,7 +490,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def u_q(self) -> None | torch.Tensor:
-        """Alias to ``laueimproc.gometry.model.BraggModelBase.compute_uq``."""
+        """Alias to ``laueimproc.gometry.model.BraggModel.compute_uq``."""
         try:
             return self.compute_uq()[0]
         except AttributeError:

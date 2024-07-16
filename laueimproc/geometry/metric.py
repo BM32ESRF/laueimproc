@@ -65,7 +65,7 @@ def _cached_ray_to_table(func):
 ray_to_table = None if c_metric is None else _cached_ray_to_table(c_metric.ray_to_table)
 
 
-def raydotdist(
+def ray_cosine_dist(
     ray_point_1: torch.Tensor, ray_point_2: torch.Tensor, poni: torch.Tensor | None = None
 ) -> torch.Tensor:
     r"""Compute the scalar product matrix of the rays pairwise.
@@ -87,7 +87,18 @@ def raydotdist(
     -------
     dist : torch.Tensor
         The distance matrix \(\cos(\phi)\) of shape (\*broadcast(n, n'), \*p, r1, r2).
-        The values are in [-1.0, 1.0].
+
+    Examples
+    --------
+    >>> import torch
+    >>> from laueimproc.geometry.metric import ray_cosine_dist
+    >>> ray_1 = torch.randn(500, 3)
+    >>> ray_1 /= torch.linalg.norm(ray_1, dim=1, keepdims=True)
+    >>> ray_2 = torch.randn(2000, 3)
+    >>> ray_2 /= torch.linalg.norm(ray_2, dim=1, keepdims=True)
+    >>> ray_cosine_dist(ray_1, ray_2).shape
+    torch.Size([500, 2000])
+    >>>
     """
     assert isinstance(ray_point_1, torch.Tensor), ray_point_1.__class__.__name__
     assert isinstance(ray_point_2, torch.Tensor), ray_point_2.__class__.__name__
@@ -110,8 +121,86 @@ def raydotdist(
     ray_1 = ray_1[..., :, None, :]
     ray_2 = ray_2[..., None, :, :]
     dist = torch.sum(ray_1 * ray_2, dim=-1)  # <ray_1, ray_2> = cos(angle(ray_1, ray_2)) = cos(phi)
-    dist = torch.clamp(dist, -1.0, 1.0)  # protection for acos
     return dist
+
+
+def ray_phi_dist(
+    ray_point_1: torch.Tensor, ray_point_2: torch.Tensor, poni: torch.Tensor | None = None
+) -> torch.Tensor:
+    r"""Compute the angle distance matrix of the rays pairwise.
+
+    Parameters
+    ----------
+    ray_point_1 : torch.Tensor
+        The 2d point associated to uf in the referencial of the detector of shape (\*n, r1, 2).
+        Could be directly the unitary ray vector uf or uq of shape (\*n, r1, 3).
+    ray_point_2 : torch.Tensor
+        The 2d point associated to uf in the referencial of the detector of shape (\*n', r2, 2)).
+        Could be directly the unitary ray vector uf or uq of shape (\*n', r2, 3).
+    poni : torch.Tensor, optional
+        Only use if the ray are projected points.
+        The point of normal incidence, callibration parameters according the pyfai convention.
+        Values are [dist, poni_1, poni_2, rot_1, rot_2, rot_3] of shape (\*p, 6).
+
+    Returns
+    -------
+    phi : torch.Tensor
+        The distance matrix \(\phi\) of shape (\*broadcast(n, n'), \*p, r1, r2).
+        \(\phi \in [0, \pi]\).
+
+    Notes
+    -----
+    It's mathematically equivalent to calculating acos of ``laueimproc.geometry.metric.``,
+    but this function is numerically more stable for small angles.
+
+    Examples
+    --------
+    >>> import torch
+    >>> from laueimproc.geometry.metric import ray_phi_dist
+    >>> ray_1 = torch.randn(500, 3)
+    >>> ray_1 /= torch.linalg.norm(ray_1, dim=1, keepdims=True)
+    >>> ray_2 = torch.randn(2000, 3)
+    >>> ray_2 /= torch.linalg.norm(ray_2, dim=1, keepdims=True)
+    >>> ray_phi_dist(ray_1, ray_2).shape
+    torch.Size([500, 2000])
+    >>>
+    """
+    assert isinstance(ray_point_1, torch.Tensor), ray_point_1.__class__.__name__
+    assert isinstance(ray_point_2, torch.Tensor), ray_point_2.__class__.__name__
+
+    if ray_point_1.shape[-1] == 2:
+        assert poni is not None
+        ray_1 = detector_to_ray(ray_point_1, poni)  # (*broadcast(p, p'), *r1, 3)
+    elif ray_point_1.shape[-1] == 3:
+        ray_1 = ray_point_1
+    else:
+        raise ValueError("only shape 2 and 3 allow")
+    if ray_point_2.shape[-1] == 2:
+        assert poni is not None
+        ray_2 = detector_to_ray(ray_point_2, poni)  # (*broadcast(p, p'), *r2, 3)
+    elif ray_point_2.shape[-1] == 3:
+        ray_2 = ray_point_2
+    else:
+        raise ValueError("only shape 2 and 3 allow")
+
+    ray_1 = ray_1[..., :, None, :]
+    ray_2 = ray_2[..., None, :, :]
+
+    cosine_dist = torch.sum(ray_1 * ray_2, dim=-1)
+
+    mask_p1 = cosine_dist > 0.707
+    mask_m1 = cosine_dist < -0.707
+    ray_1, ray_2 = torch.broadcast_tensors(ray_1, ray_2)
+    cross_p1 = torch.sqrt(torch.sum(torch.linalg.cross(ray_1[mask_p1], ray_2[mask_p1])**2, dim=-1))
+    cross_m1 = torch.sqrt(torch.sum(torch.linalg.cross(ray_1[mask_m1], ray_2[mask_m1])**2, dim=-1))
+    phi_p1 = torch.asin(cross_p1)
+    phi_m1 = torch.pi - torch.asin(cross_m1)
+
+    phi = torch.empty_like(cosine_dist)
+    phi[~(mask_p1 | mask_m1)] = torch.acos(cosine_dist[~(mask_p1 | mask_m1)])
+    phi[mask_p1] = phi_p1
+    phi[mask_m1] = phi_m1
+    return phi
 
 
 def compute_matching_rate(
@@ -183,7 +272,7 @@ def compute_matching_rate(
 
     assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
     assert 0 <= phi_max < math.pi, phi_max
-    dist = raydotdist(uq_exp, uq_theo.to(uq_exp.device))  # (*n, e, t)
+    dist = ray_cosine_dist(uq_exp, uq_theo.to(uq_exp.device))  # (*n, e, t)
     dist = dist > math.cos(phi_max)
     dist = torch.any(dist, dim=-2)  # (*n, t)
     rate = torch.count_nonzero(dist, dim=-1)  # (*n,)
@@ -235,6 +324,8 @@ def compute_matching_rate_continuous(
     *batch_theo, size_t, _ = uq_theo.shape
     assert size_e * size_t, "can not compute distance of empty matrix"
 
+    factor = -math.log(2.0) / phi_max
+
     if not _no_c and c_metric is not None:
         batch_n = torch.broadcast_shapes(batch_exp, batch_theo)
         uq_exp = torch.broadcast_to(
@@ -245,35 +336,40 @@ def compute_matching_rate_continuous(
         ).reshape(int(np.prod(batch_n)), size_t, 3)
         if threading.current_thread().name == "MainThread":
             with multiprocessing.pool.ThreadPool() as pool:
-                pair_dist = pool.starmap(
+                pairs = pool.starmap(
                     c_metric.link_close_rays,
                     (
                         (theo, phi_max, exp, 4.0*phi_max, ray_to_table(exp, 4.0*phi_max))
-                        for theo, exp in zip(uq_theo.numpy(force=True), uq_exp.numpy(force=True))
+                        for theo, exp in zip(
+                            uq_theo.to(torch.float32).numpy(force=True),
+                            uq_exp.to(torch.float32).numpy(force=True),
+                        )
                     ),
                 )
         else:
-            pair_dist = [
+            pairs = [
                 c_metric.link_close_rays(
                     theo, phi_max, exp, 4.0*phi_max, ray_to_table(exp, 4.0*phi_max)
                 )
-                for theo, exp in zip(uq_theo.numpy(force=True), uq_exp.numpy(force=True))
+                for theo, exp in zip(
+                    uq_theo.to(torch.float32).numpy(force=True),
+                    uq_exp.to(torch.float32).numpy(force=True),
+                )
             ]
-        if uq_theo.requires_grad:
-            dist = [
-                torch.sum(theo[pair[:, 0]] * exp[pair[:, 1]], dim=1)  # sum of scalar product
-                for (pair, _), theo, exp in zip(pair_dist, uq_theo, uq_exp)
-            ]
-        else:
-            dist = [torch.from_numpy(d) for _, d in pair_dist]
-        dist = [torch.exp(-math.log(2.0)/phi_max * torch.acos(d)).sum().unsqueeze(0) for d in dist]
-        return torch.cat(dist).to(dtype=uq_theo.dtype, device=uq_theo.device).reshape(batch_n)
+        dists = [
+            torch.exp(factor * ray_phi_dist(
+                uq_exp[i, pair[:, 1], None], uq_theo[i, pair[:, 0], None]
+            )[:, 0, 0]) for i, pair in enumerate(pairs)
+        ]
+        return torch.cat([  # dist[dist >= 0.5].sum() failed if no matching
+            dist.where(dist > 0.5, 0.0).sum().unsqueeze(0) for dist in dists
+        ]).reshape(batch_n)
 
     assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
     assert 0 <= phi_max < math.pi, phi_max
-    dist = raydotdist(uq_exp, uq_theo)  # (*n, e, t)
-    dist = torch.amax(dist, dim=-2)  # (*n, t)
-    dist = torch.exp(-math.log(2.0)/phi_max * torch.acos(dist))
-    dist[dist < 0.5] = 0  # (*n, t)
+    phi = ray_phi_dist(uq_exp, uq_theo)  # (*n, e, t)
+    phi = torch.amin(phi, dim=-2)  # (*n, t)
+    dist = torch.exp(factor * phi)
+    dist = dist.where(dist > 0.5, 0.0)  # (*n, t), "dist[dist < 0.5] = 0.0" failed backward
     rate = torch.sum(dist, dim=-1)  # (*n,)
     return rate

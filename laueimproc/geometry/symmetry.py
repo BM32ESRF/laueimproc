@@ -1,24 +1,30 @@
 #!/usr/bin/env python3
 
-"""Find the cristal symmetries and equivalence."""
+"""Find the crystal symmetries and equivalence."""
 
 import itertools
+import numbers
 
 import torch
 
+from .bragg import hkl_reciprocal_to_uq
 
-def find_symmetric_rotations(primitive: torch.Tensor) -> torch.Tensor:
-    r"""Search all the rotation that keep the cristal identical.
+
+def find_symmetric_rotations(crystal: torch.Tensor, tol: numbers.Real = 0.05) -> torch.Tensor:
+    r"""Search all the rotation that keep the crystal identical.
 
     Parameters
     ----------
-    primitive : torch.Tensor
-        Matrix \(\mathbf{A}\) in any orthonormal base of shape (3, 3).
+    crystal : torch.Tensor
+        The primitive \((\mathbf{A})\) or reciprocal \((\mathbf{B})\)
+        in any orthonormal base, of shape (3, 3).
+    tol : float, default=0.05
+        The tolerency in percent to consider that to matrices are the same.
 
     Returns
     -------
     rot : torch.Tensor
-        All the rotation matrices leaving the cristal equivalent.
+        All the rotation matrices leaving the crystal equivalent.
         The shape is (n, 3, 3). It contains the identity matrix.
 
     Examples
@@ -42,15 +48,14 @@ def find_symmetric_rotations(primitive: torch.Tensor) -> torch.Tensor:
     torch.Size([6, 3, 3])
     >>>
     """
-    assert isinstance(primitive, torch.Tensor), primitive.__class__.__name__
-    assert primitive.shape == (3, 3), primitive.__class__.__name__
-
-    # define constants
-    tol = 0.05  # 5% of tolerence
+    assert isinstance(crystal, torch.Tensor), crystal.__class__.__name__
+    assert crystal.shape == (3, 3), crystal.__class__.__name__
+    assert isinstance(tol, numbers.Real), tol.__class__.__name__
+    assert 0.0 <= tol < 1.0, tol
 
     # test all permutations
-    all_prim = primitive[:, list(itertools.permutations([0, 1, 2]))].movedim(1, 0)  # (6, 3, 3)
-    norm = torch.sum(primitive * primitive, dim=0)  # (3,)
+    all_prim = crystal[:, list(itertools.permutations([0, 1, 2]))].movedim(1, 0)  # (6, 3, 3)
+    norm = torch.sum(crystal * crystal, dim=0)  # (3,)
     all_prim = all_prim[  # (n, 3, 3)
         torch.all(  # allow permutation if the norm doesn't change
             torch.abs((torch.sum(all_prim * all_prim, dim=1) - norm) / norm) < tol,
@@ -66,7 +71,7 @@ def find_symmetric_rotations(primitive: torch.Tensor) -> torch.Tensor:
     all_prim = all_prim.reshape(-1, 3, 3)
 
     # find all equivalent transition matrices
-    rot = all_prim @ torch.linalg.inv(primitive)  # L' = R.L
+    rot = all_prim @ torch.linalg.inv(crystal)  # L' = R.L
 
     # reject non rotation matrix
     det = torch.linalg.det(rot)
@@ -81,42 +86,116 @@ def find_symmetric_rotations(primitive: torch.Tensor) -> torch.Tensor:
     return rot
 
 
-def reduce_hkl(hkl: torch.Tensor, rot: torch.Tensor) -> torch.Tensor:
-    """Keep a single representation of the equivalent hkl.
+def hkl_family(
+    hkl: torch.Tensor, reciprocal: torch.Tensor, tol: numbers.Real = 0.05
+) -> torch.Tensor:
+    r"""Find all the equivalent hkl by symetry.
 
     Parameters
     ----------
     hkl : torch.Tensor
         The real int hkl indices, of shape (n, 3).
-    rot : torch.Tensor
-        The rotations matrices of symetries,
-        comming from ``laueimproc.geometry.symmetry.find_symmetric_rotations``,
-        of shape (r, 3, 3).
+    reciprocal : torch.Tensor
+        Matrix \(\mathbf{B}\) in any orthonormal base, of shape (n, 3).
+        It is used to find the symmetries.
+    tol : float, default=0.05
+        The tolerency in percent to rounded the hkl and finding the symmetries.
 
     Returns
     -------
-    reduced_hkl : torch.Tensor
-        The equivalent reduced hkl indices, of shape (n, 3).
+    expanded_hkl : torch.Tensor
+        All the int32 equivalent hkl, of shape (n, s, 3), with s the number of symmetries.
+
+    Examples
+    --------
+    >>> from pprint import pprint
+    >>> import torch
+    >>> from laueimproc.geometry.reciprocal import primitive_to_reciprocal
+    >>> from laueimproc.geometry.symmetry import hkl_family
+    >>> hkl = torch.tensor([[0, 0, 1], [2, 2, 2], [0, 1, 2]])
+    >>> primitive = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    >>> family = hkl_family(hkl, primitive_to_reciprocal(primitive))
+    >>> pprint([set(map(tuple, f)) for f in family.tolist()])
+    [{(0, 1, 0), (0, -1, 0), (1, 0, 0), (-1, 0, 0), (0, 0, -1), (0, 0, 1)},
+     {(-1, -1, -1),
+      (-1, -1, 1),
+      (-1, 1, -1),
+      (-1, 1, 1),
+      (1, -1, -1),
+      (1, -1, 1),
+      (1, 1, -1),
+      (1, 1, 1)},
+     {(-2, -1, 0),
+      (-2, 0, -1),
+      (-2, 0, 1),
+      (-2, 1, 0),
+      (-1, -2, 0),
+      (-1, 0, -2),
+      (-1, 0, 2),
+      (-1, 2, 0),
+      (0, -2, -1),
+      (0, -2, 1),
+      (0, -1, -2),
+      (0, -1, 2),
+      (0, 1, -2),
+      (0, 1, 2),
+      (0, 2, -1),
+      (0, 2, 1),
+      (1, -2, 0),
+      (1, 0, -2),
+      (1, 0, 2),
+      (1, 2, 0),
+      (2, -1, 0),
+      (2, 0, -1),
+      (2, 0, 1),
+      (2, 1, 0)}]
+    >>> primitive = torch.tensor([[2.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    >>> family = hkl_family(hkl, primitive_to_reciprocal(primitive))
+    >>> pprint([set(map(tuple, f)) for f in family.tolist()])
+    [{(0, 0, -1), (0, -1, 0), (0, 0, 1), (0, 1, 0)},
+     {(-1, -1, -1),
+      (-1, -1, 1),
+      (-1, 1, -1),
+      (-1, 1, 1),
+      (1, -1, -1),
+      (1, -1, 1),
+      (1, 1, -1),
+      (1, 1, 1)},
+     {(0, -2, -1),
+      (0, -2, 1),
+      (0, -1, -2),
+      (0, -1, 2),
+      (0, 1, -2),
+      (0, 1, 2),
+      (0, 2, -1),
+      (0, 2, 1)}]
+    >>>
     """
     assert isinstance(hkl, torch.Tensor), hkl.__class__.__name__
     assert hkl.ndim == 2 and hkl.shape[1] == 3, hkl.shape
-    assert isinstance(rot, torch.Tensor), rot.__class__.__name__
-    assert rot.ndim == 3 and rot.shape[1:] == (3, 3), rot.shape
+    assert isinstance(reciprocal, torch.Tensor), reciprocal.__class__.__name__
+    assert reciprocal.shape == (3, 3), reciprocal.shape
+    assert isinstance(tol, numbers.Real), tol.__class__.__name__
+    assert 4.6566e-10 < tol < 1.0, tol  # strict because divided by tol and cast in int32
 
-    raise NotImplementedError("hmm, it it too complicated")
+    # from hkl and reciprocal to uq
+    uq_ref = hkl_reciprocal_to_uq(hkl, reciprocal)  # (n, 3)
 
-    # # remove harmonics
-    # hkl = hkl // torch.gcd(torch.gcd(hkl[:, 0], hkl[:, 1]), hkl[:, 2])
+    # from uq and symmetries to uq_family
+    sym_rot = find_symmetric_rotations(reciprocal, tol=tol)  # (r, 3, 3)
+    uq_family = sym_rot[None, :, :] @ uq_ref[:, None, :, None]  # (n, r, 3, 1), all equivalent uq
 
-    # # expand symmetries
-    # hkl = hkl.to(rot.dtype)[:, None, :, None] @ rot[None, :, :, :]  # (n, r, 3, 1)
-    # hkl = hkl.squeeze(3)  # (n, r, 3)
+    # from uq_family and reciprocal to float hkl
+    # we have: lambda.uq = h.e1* + k.e2* + l.e2*
+    # => <uq, ei*> = h.<ei*, e1*> + k.<ei*, e2*> + l.<ei*, e3*>
+    uq_proj = reciprocal.mT @ uq_family  # (n, r, 3, 1), <uq, ei*>
+    scal_matrix = reciprocal.mT @ reciprocal  # (3, 3), <ei*, ej*>
+    hkl = torch.linalg.inv(scal_matrix) @ uq_proj  # (n, r, 3, 1), uq_proj = scal_matrix @ hkl
 
-    # # select the better
-    # def order(hkl1: list[int], hkl2: list[int]):
-    #     """Return True if hkl1 > hkl2."""
-    #     h_1, k_1, l_1 = hkl1
-    #     h_2, k_2, l_2 = hkl2
-    #     if (abs(h_1)+abs(k_1)+abs(l_1) > abs(h_1))
+    # from float hkl to int hkl
+    hkl = hkl.squeeze(3)  # (n, r, 3)
+    hkl *= torch.rsqrt(torch.sum(hkl * hkl, dim=2, keepdim=True)) / tol  # |hkl| = 1/tol
+    hkl = torch.round(hkl).to(torch.int32)  # round big then make as small as possible
+    hkl //= torch.gcd(torch.gcd(hkl[:, :, 0], hkl[:, :, 1]), hkl[:, :, 2]).unsqueeze(2)
 
-    # hkl_list = [min(hkl_s, key=order) in hkl.tolist()]
+    return hkl

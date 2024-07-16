@@ -6,14 +6,10 @@
 import logging
 import numbers
 
-import psutil
 import torch
 
 from laueimproc.classes.base_diagram import BaseDiagram
 from laueimproc.opti.cache import auto_cache
-
-
-NCPU = len(psutil.Process().cpu_affinity())
 
 
 class SpotDataloader:

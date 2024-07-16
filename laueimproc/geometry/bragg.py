@@ -42,8 +42,8 @@ def hkl_reciprocal_to_uq_energy(
     Returns
     -------
     u_q : torch.Tensor
-        All the unitary diffracting plane normal vector of shape (..., 3).
-        The vectors are expressed in the same base as the reciprocal space.
+        All the unitary diffracting plane normal vector of shape (..., 3),
+        in the lab base \(\mathcal{B^l}\).
     energy : torch.Tensor
         The energy of each ray in J as a tensor of shape (...,).
         \(\begin{cases}

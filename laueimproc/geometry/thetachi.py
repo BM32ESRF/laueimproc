@@ -19,10 +19,11 @@ def thetachi_to_uf(theta: torch.Tensor, chi: torch.Tensor) -> torch.Tensor:
     Parameters
     ----------
     theta : torch.Tensor
-        The half deviation angle in radian, with \(\theta \in [0, \frac{\pi}{2}]\).
+        The half deviation angle in radian in the plan \((u_f, \mathbf{L_3})\),
+        with \(\theta \in [0, \frac{\pi}{2}]\).
     chi : torch.Tensor
         The rotation angle in radian from the vertical plan \((\mathbf{L_1}, \mathbf{L_3})\)
-        to the plan \((u_i, \mathcal{B^l_z})\), with \(\chi \in [-\pi, \pi]\).
+        to the plan \((u_f, \mathbf{L_3})\), with \(\chi \in [-\pi, \pi]\).
 
     Returns
     -------

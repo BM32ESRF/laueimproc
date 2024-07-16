@@ -37,7 +37,7 @@ from laueimproc.ml.dataset_dist import (
 from .diagram import Diagram
 
 
-NCPU = len(psutil.Process().cpu_affinity())
+NCPU = len(psutil.Process().cpu_affinity())  # os.cpu_count() wrong on slurm
 
 
 def _excepthook(args):

@@ -5,7 +5,7 @@
 
 import torch
 
-from .rotation import angle_to_rot
+from .rotation import omega_to_rot
 
 
 def detector_to_ray(point: torch.Tensor, poni: torch.Tensor) -> torch.Tensor:
@@ -40,7 +40,7 @@ def detector_to_ray(point: torch.Tensor, poni: torch.Tensor) -> torch.Tensor:
     ray = torch.empty(*batch_ray, *batch_poni, 3, dtype=point.dtype, device=point.device)
     ray[..., :2] = point
     ray[..., 2] = poni[*((None,) * len(batch_ray)), ..., 0]
-    rot = angle_to_rot(poni[..., 3], poni[..., 4], -poni[..., 5], cartesian_product=False)
+    rot = omega_to_rot(poni[..., 3], poni[..., 4], -poni[..., 5], cartesian_product=False)
     rot = rot[*((None,) * len(batch_ray)), ..., :, :]
     ray = (rot.mT @ ray[..., None]).squeeze(-1)
     ray = ray * torch.rsqrt(torch.sum(ray * ray, dim=-1, keepdim=True))
@@ -90,7 +90,7 @@ def ray_to_detector(
         poni = poni[*((None,) * (ray.ndim - 1)), ..., :]  # (*r, *p, 6)
         ray = ray[..., *((None,) * poni_batch), :]  # (*r, *p, 3)
 
-    rot = angle_to_rot(poni[..., 3], poni[..., 4], -poni[..., 5], cartesian_product=False)
+    rot = omega_to_rot(poni[..., 3], poni[..., 4], -poni[..., 5], cartesian_product=False)
     rectified_ray = (rot @ ray[..., :, None]).squeeze(-1)  # (..., 3)
     ray_dist = poni[..., 0] / rectified_ray[..., 2]
     point = ray_dist.unsqueeze(-1) * rectified_ray[..., :2]

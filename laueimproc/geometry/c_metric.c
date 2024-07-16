@@ -160,7 +160,7 @@ int CountMatchingRays(
 
 
 int LinkCloseRaysBrut(
-    npy_intp* size, npy_int32* link, npy_float32* dist,
+    npy_intp* size, npy_int32* link,
     npy_float32* rays, const long n, const float res,
     npy_float32* table_rays, const float table_res,
     npy_int32* table, npy_int32* indices, long* limits
@@ -193,6 +193,7 @@ int LinkCloseRaysBrut(
 
         // explore neighbours
         int has_pair = 0;
+        npy_float32 max_dist = 0.0;
         for (long eta = MAX(eta_min, eta_floor); eta <= MIN(eta_max, eta_floor + 1); ++eta) {
             for (long phi = MAX(phi_min, phi_floor); phi <= MIN(phi_max, phi_floor + 1); ++phi) {
                 long shift_table = 2 * ((eta - eta_min) * table_phi + (phi - phi_min));
@@ -206,10 +207,10 @@ int LinkCloseRaysBrut(
                         + rays[shift_ray + 2] * table_rays[shift_table_ray + 2]
                     );
                     if (buff_dist >= cos_res) {  // theta <= theta_max <=> cos(theta) >= cos(theta_max)
-                        if (!has_pair || (buff_dist > dist[ray_rank])) {
+                        if (!has_pair || (buff_dist > max_dist)) {
                             link[2 * ray_rank] = (npy_int32)ray_index;
                             link[2 * ray_rank + 1] = (npy_int32)indices[shift_indices];
-                            dist[ray_rank] = buff_dist;
+                            max_dist = buff_dist;
                             has_pair = 1;
                         }
                     }
@@ -355,10 +356,8 @@ static PyObject* LinkCloseRays(PyObject* self, PyObject* args) {
     int error;
     long limits[4];
     npy_int32* link_data;
-    npy_float32* dist_data;
     npy_intp shape[2];
-    PyArrayObject *link, *dist, *rays, *table_rays, *table, *indices;
-    PyObject* out;
+    PyArrayObject *link, *rays, *table_rays, *table, *indices;
 
     if (!PyArg_ParseTuple(
         args, "O!fO!f(O!O!(llll))",
@@ -388,16 +387,11 @@ static PyObject* LinkCloseRays(PyObject* self, PyObject* args) {
     if (link_data == NULL) {
         return PyErr_NoMemory();
     }
-    dist_data = malloc(PyArray_DIM(rays, 0) * sizeof(*dist_data));
-    if (dist_data == NULL) {
-        free(link_data);
-        return PyErr_NoMemory();
-    }
 
     // matching
     Py_BEGIN_ALLOW_THREADS
     error = LinkCloseRaysBrut(
-        shape, link_data, dist_data,
+        shape, link_data,
         (npy_float32*)PyArray_DATA(rays), (long)PyArray_DIM(rays, 0), res,
         (npy_float32*)PyArray_DATA(table_rays), table_res,
         (npy_int32*)PyArray_DATA(table), (npy_int32*)PyArray_DATA(indices), limits
@@ -405,42 +399,29 @@ static PyObject* LinkCloseRays(PyObject* self, PyObject* args) {
     Py_END_ALLOW_THREADS
     if (error) {
         free(link_data);
-        free(dist_data);
         PyErr_SetString(PyExc_RuntimeError, "failed to link the close rays");
         return NULL;
     }
 
     // realloc
     link_data = (npy_int32 *)realloc(link_data, 2 * shape[0] * sizeof(*link_data));
-    dist_data = (npy_float32 *)realloc(dist_data, shape[0] * sizeof(*dist_data));
     shape[1] = 2;
     link = (PyArrayObject *)PyArray_SimpleNewFromData(2, shape, NPY_INT32, link_data);
     if (link == NULL) {
         free(link_data);
-        free(dist_data);
         return PyErr_NoMemory();
     }
     PyArray_ENABLEFLAGS(link, NPY_ARRAY_OWNDATA);  // for memory leak
-    dist = (PyArrayObject *)PyArray_SimpleNewFromData(1, shape, NPY_FLOAT32, dist_data);
-    if (dist == NULL) {
-        Py_DECREF(link);
-        free(dist_data);
-        return PyErr_NoMemory();
-    }
-    PyArray_ENABLEFLAGS(dist, NPY_ARRAY_OWNDATA);
 
     // pack result
-    out = Py_BuildValue("(OO)", link, dist);
-    Py_DECREF(link);
-    Py_DECREF(dist);
-    return out;
+    return (PyObject *)(link);
 }
 
 
 static PyMethodDef metricMethods[] = {
     {"ray_to_table", RayToTable, METH_VARARGS, "Projects rays into a hash table."},
     {"matching_rate", MatchingRate, METH_VARARGS, "Count the number of ray close enouth to any reference ray."},
-    {"link_close_rays", LinkCloseRays, METH_VARARGS, "Associate the closet ray."},
+    {"link_close_rays", LinkCloseRays, METH_VARARGS, "Associate the closest ray."},
     {NULL, NULL, 0, NULL}
 };
 
