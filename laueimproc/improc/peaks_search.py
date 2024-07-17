@@ -169,7 +169,7 @@ def peaks_search(
     binary = (fg_image > threshold).view(torch.uint8)
     binary = morpho_dilate(binary, radius=radius_aglo)
     if mask:
-        fg_image.where(binary.view(torch.bool), 0.0)
+        fg_image = fg_image.where(binary.view(torch.bool), 0.0)
     bboxes = find_bboxes(binary.numpy(force=True)).to(brut_image.device)
     datarois = imgbboxes2raw(fg_image, bboxes)
     return datarois, bboxes
