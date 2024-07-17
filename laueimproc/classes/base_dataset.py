@@ -597,14 +597,14 @@ class BaseDiagramsDataset(threading.Thread):
         if isinstance(new_diagrams, Diagram):
             self.add_diagram(new_diagrams)
         elif isinstance(new_diagrams, pathlib.Path):
-            new_diagrams = new_diagrams.expanduser().resolve()
-            assert new_diagrams.exists(), f"{new_diagrams} if not an existing path"
+            new_diagrams_abs = new_diagrams.expanduser().resolve()
+            assert new_diagrams_abs.exists(), f"{new_diagrams} if not an existing path"
             if new_diagrams.is_dir():
                 self.add_diagrams(  # optional, no procrastination
-                    f for f in new_diagrams.iterdir()
+                    new_diagrams / f.name for f in new_diagrams_abs.iterdir()
                     if f.suffix.lower() in {".jp2", ".mccd", ".tif", ".tiff"}
                 )
-                self._async_job["dirs"].append([new_diagrams, 0.0])
+                self._async_job["dirs"].append([new_diagrams_abs, 0.0])
                 if not self._started.is_set():
                     self.start()
             else:

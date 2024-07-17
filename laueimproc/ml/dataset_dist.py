@@ -55,7 +55,7 @@ def _filter_pos(pos: SCALS_TYPE, indices: typing.Iterable[int]) -> SCALS_TYPE:
     Notes
     -----
     No check for performance reason.
-    indicies are assumed to be in pos.
+    indices are assumed to be in pos.
     """
     pos = _to_dict(pos)
     pos = {i: pos[i] for i in indices}

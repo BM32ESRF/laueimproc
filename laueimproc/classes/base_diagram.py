@@ -95,8 +95,7 @@ class BaseDiagram:
         if isinstance(data, str | pathlib.Path):
             self._file_or_image = data
             if _check:
-                self._file_or_image = pathlib.Path(self._file_or_image).expanduser().resolve()
-                assert self._file_or_image.is_file(), self._file_or_image
+                assert pathlib.Path(self._file_or_image).expanduser(), self._file_or_image
         else:
             warnings.warn("please provide a path rather than an array", RuntimeWarning)
             self._file_or_image = to_floattensor(data)
@@ -417,7 +416,9 @@ class BaseDiagram:
         PosixPath('/.../laueimproc/io/ge.jp2')
         >>>
         """
-        return self._file_or_image if isinstance(self._file_or_image, pathlib.Path) else None
+        if isinstance(self._file_or_image, pathlib.Path):
+            return pathlib.Path(self._file_or_image).expanduser().resolve()
+        return None
 
     @check_init
     def filter_spots(

@@ -174,7 +174,7 @@ class BraggModel(torch.nn.Module):
         return poni
 
     def _compute_candidate_hkl(self, **kwargs) -> torch.Tensor:
-        """Get all hkl indicies that could potentially diffract."""
+        """Get all hkl indices that could potentially diffract."""
         reciprocal_bc = self.compute_reciprocal_bc(**kwargs)
         if (e_max := self._select_hkl_args(kwargs).get("e_max", None)) is None:
             raise AttributeError("`e_max` parameter has to be supplied")

@@ -69,7 +69,7 @@ class Refiner(torch.nn.Module):
     @property
     def angle(self) -> torch.Tensor:
         """Return the 3 elementary rotation angles of shape (3,)."""
-        return self._angle
+        return self._angle.detach()
 
     def forward(self, phi_max: numbers.Real) -> torch.Tensor:
         """Compute the continuous matching rate.
@@ -102,7 +102,7 @@ class Refiner(torch.nn.Module):
     @property
     def lattice(self) -> torch.Tensor:
         """Return the lattice parameters of shape (6,)."""
-        return self._lattice
+        return self._lattice.detach()
 
     def refine(
         self, phi_max: numbers.Real, refine_abc: bool = True, refine_shear: bool = True

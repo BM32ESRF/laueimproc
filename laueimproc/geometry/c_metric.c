@@ -70,7 +70,7 @@ int SphericalToTable(npy_int32* table, npy_int32* indices, npy_int32* pol, long*
         table of shape (a, b, 2) assumed to ba all zero with:
             * table[a, b, 0] -> start pointor of indice list
             * table[a, b, 1] -> number of elements
-        indicies is "suffled" range to match the table.
+        indices is "suffled" range to match the table.
     */
     long long eta_min = limits[0], eta_max = limits[1], phi_min = limits[2], phi_max = limits[3];
     long long table_eta = eta_max - eta_min + 1;

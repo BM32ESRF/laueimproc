@@ -41,7 +41,7 @@ def _cached_ray_to_table(func):
         -------
         table : np.ndarray[int]
             The hash table of shape (a, b, 2).
-            The first layer ``table[:, :, 0]`` corresponds to the start inex of ``indicies``.
+            The first layer ``table[:, :, 0]`` corresponds to the start inex of ``indices``.
             The second layer ``table[:, :, 1]`` corresponds to the number of items.
         indices : np.ndarray[int]
             Matching between the table and the ray index.
