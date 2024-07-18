@@ -365,7 +365,7 @@ class BraggModel(torch.nn.Module):
         return self._hkl_args.get("e_min", 0.0)
 
     @e_min.setter
-    def e_min(self, e_min: numbers.Real | None):
+    def e_min(self, e_min: None | numbers.Real):
         """Set the low energy limit."""
         if e_min is None:
             if "e_min" in self._hkl_args:
@@ -381,7 +381,7 @@ class BraggModel(torch.nn.Module):
         return self._hkl_args.get("e_max", torch.inf)
 
     @e_max.setter
-    def e_max(self, e_max: numbers.Real | None):
+    def e_max(self, e_max: None | numbers.Real):
         """Set the high energy limit."""
         if e_max is None:
             if "e_max" in self._hkl_args:
@@ -401,7 +401,7 @@ class BraggModel(torch.nn.Module):
         return self._lattice
 
     @lattice.setter
-    def lattice(self, lattice: torch.Tensor | None):
+    def lattice(self, lattice: None | torch.Tensor):
         """Set the lattice parameters."""
         if lattice is None:
             self._lattice = None
@@ -416,7 +416,7 @@ class BraggModel(torch.nn.Module):
         return self._phi
 
     @phi.setter
-    def phi(self, phi: torch.Tensor | None):
+    def phi(self, phi: None | torch.Tensor):
         """Set the rotation angles."""
         if phi is None:
             self._phi = None
@@ -431,7 +431,7 @@ class BraggModel(torch.nn.Module):
         return self._poni
 
     @poni.setter
-    def poni(self, poni: torch.Tensor | None):
+    def poni(self, poni: None | torch.Tensor):
         """Set the camera calibration parameters."""
         if poni is None:
             self._poni = None

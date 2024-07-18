@@ -66,7 +66,7 @@ ray_to_table = None if c_metric is None else _cached_ray_to_table(c_metric.ray_t
 
 
 def ray_cosine_dist(
-    ray_point_1: torch.Tensor, ray_point_2: torch.Tensor, poni: torch.Tensor | None = None
+    ray_point_1: torch.Tensor, ray_point_2: torch.Tensor, poni: None | torch.Tensor = None
 ) -> torch.Tensor:
     r"""Compute the scalar product matrix of the rays pairwise.
 
@@ -101,7 +101,9 @@ def ray_cosine_dist(
     >>>
     """
     assert isinstance(ray_point_1, torch.Tensor), ray_point_1.__class__.__name__
+    assert ray_point_1.ndim >= 1, ray_point_1.shape
     assert isinstance(ray_point_2, torch.Tensor), ray_point_2.__class__.__name__
+    assert ray_point_2.ndim >= 1, ray_point_2.shape
 
     if ray_point_1.shape[-1] == 2:
         assert poni is not None
@@ -125,7 +127,7 @@ def ray_cosine_dist(
 
 
 def ray_phi_dist(
-    ray_point_1: torch.Tensor, ray_point_2: torch.Tensor, poni: torch.Tensor | None = None
+    ray_point_1: torch.Tensor, ray_point_2: torch.Tensor, poni: None | torch.Tensor = None
 ) -> torch.Tensor:
     r"""Compute the angle distance matrix of the rays pairwise.
 

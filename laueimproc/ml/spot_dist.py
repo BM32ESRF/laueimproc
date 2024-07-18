@@ -3,9 +3,7 @@
 """Find the close spots in two diagrams."""
 
 import numbers
-import typing
 
-# import numpy as np
 import torch
 
 
@@ -179,7 +177,7 @@ def spotslabel_to_diag(labels: dict[int, torch.Tensor]) -> dict[int, set[int]]:
 def track_spots(
     pairs: list[torch.Tensor],
     diags: torch.Tensor,
-    *, _labels_rename: typing.Optional[tuple[dict[int, torch.Tensor], dict[int, int]]] = None,
+    *, _labels_rename: None | tuple[dict[int, torch.Tensor], dict[int, int]] = None,
 ) -> dict[int, torch.Tensor]:
     """Associate one label by position, give this label to all spots at this position.
 

@@ -37,7 +37,10 @@ from laueimproc.ml.dataset_dist import (
 from .diagram import Diagram
 
 
-NCPU = len(psutil.Process().cpu_affinity())  # os.cpu_count() wrong on slurm
+try:
+    NCPU = len(psutil.Process().cpu_affinity())  # os.cpu_count() wrong on slurm
+except AssertionError:
+    NCPU = psutil.cpu_count()
 
 
 def _excepthook(args):
@@ -105,8 +108,8 @@ class BaseDiagramsDataset(threading.Thread):
     def __init__(
         self,
         *diagram_refs,
-        diag2ind: typing.Optional[typing.Callable[[Diagram], numbers.Integral]] = None,
-        diag2scalars: typing.Optional[DIAG2SCALS_TYPE] = None,
+        diag2ind: None | typing.Callable[[Diagram], numbers.Integral] = None,
+        diag2scalars: None | DIAG2SCALS_TYPE = None,
     ):
         r"""Initialise the dataset.
 
@@ -622,8 +625,8 @@ class BaseDiagramsDataset(threading.Thread):
     def apply(
         self,
         func: typing.Callable[[Diagram], object],
-        args: typing.Optional[tuple] = None,
-        kwargs: typing.Optional[dict] = None,
+        args: None | tuple = None,
+        kwargs: None | dict = None,
     ) -> dict[int, object]:
         """Apply an operation in all the diagrams of the dataset.
 
@@ -718,7 +721,7 @@ class BaseDiagramsDataset(threading.Thread):
     def autosave(
         self,
         filename: str | pathlib.Path,
-        delay: typing.Optional[numbers.Real | str] = None,
+        delay: None | numbers.Real | str = None,
     ):
         """Manage the dataset recovery.
 

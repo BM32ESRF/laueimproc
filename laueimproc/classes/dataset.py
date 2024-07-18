@@ -5,6 +5,7 @@
 import multiprocessing.pool
 import numbers
 import pathlib
+import typing
 
 from tqdm.autonotebook import tqdm
 import torch
@@ -146,7 +147,7 @@ class DiagramsDataset(BaseDiagramsDataset):
             raise err
         return self._get_diagram_from_index(int(indices[index]))
 
-    def select_closests(self, *args, **kwargs):
+    def select_closests(self, *args, **kwargs) -> typing.Self:
         """Select the diagrams matching a given interval of phisical parameters.
 
         Parameters
@@ -181,7 +182,7 @@ class DiagramsDataset(BaseDiagramsDataset):
         model=None,
         shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95,
         **kwargs,
-    ):
+    ) -> object:
         """Train a variational autoencoder classifier with the spots in the diagrams.
 
         It is a non supervised neuronal network.

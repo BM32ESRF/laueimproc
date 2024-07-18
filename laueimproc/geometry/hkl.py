@@ -45,9 +45,9 @@ def _select_all_hkl(hkl_max: int, device: torch.device = "cpu") -> torch.Tensor:
 
 
 def select_hkl(
-    reciprocal: torch.Tensor | None = None,
+    reciprocal: None | torch.Tensor = None,
     *,
-    hkl_max: numbers.Integral | None = None,
+    hkl_max: None | numbers.Integral = None,
     e_max: numbers.Real = torch.inf,
     keep_harmonics: bool = True,
 ) -> torch.Tensor:
@@ -120,11 +120,11 @@ def select_hkl(
     2889
     >>>
     """
-    assert isinstance(hkl_max, numbers.Integral | None), hkl_max.__class__.__name__
+    assert isinstance(hkl_max, None | numbers.Integral), hkl_max.__class__.__name__
     assert hkl_max is None or 0 < hkl_max <= torch.iinfo(torch.int16).max, hkl_max
     assert isinstance(e_max, numbers.Real), e_max.__class__.__name__
     assert isinstance(keep_harmonics, bool), keep_harmonics.__class__.__name__
-    assert isinstance(reciprocal, torch.Tensor | None), reciprocal.__class__.__name__
+    assert isinstance(reciprocal, None | torch.Tensor), reciprocal.__class__.__name__
     assert reciprocal is None or reciprocal.shape[-2:] == (3, 3), reciprocal.shape
 
     if hkl_max is None:

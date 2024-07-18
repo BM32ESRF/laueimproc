@@ -303,17 +303,3 @@ class Diagram(BaseDiagram):
         with self._rois_lock:
             data, bboxes = self._rois
         return fit_gaussians_mse(data, bboxes, **kwargs)
-
-    # def fit_gaussian(
-    #     self, *args, **kwargs
-    # ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-    #     r"""Fit each roi by one gaussian.
-
-    #     Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
-    #     """
-    #     mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
-    #     mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
-    #     if "eigtheta" in infodict:
-    #         infodict = infodict.copy()  # to avoid insane cache reference error
-    #         infodict["eigtheta"] = infodict["eigtheta"].squeeze(1)
-    #     return mean, cov, magnitude, infodict

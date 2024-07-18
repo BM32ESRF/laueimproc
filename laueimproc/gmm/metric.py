@@ -3,7 +3,6 @@
 """Metric to estimate the quality of the fit of the gmm."""
 
 import math
-import typing
 
 import torch
 
@@ -13,10 +12,10 @@ from .gauss import gauss
 
 def aic(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
     *,
-    _llh: typing.Optional[torch.Tensor] = None,
+    _llh: None | torch.Tensor = None,
     _check: bool = True,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     r"""Compute the Akaike Information Criterion and the Bayesian Information Criterion.
@@ -59,10 +58,10 @@ def aic(
 
 def bic(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
     *,
-    _llh: typing.Optional[torch.Tensor] = None,
+    _llh: None | torch.Tensor = None,
     _check: bool = True,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     r"""Compute the Akaike Information Criterion and the Bayesian Information Criterion.
@@ -111,7 +110,7 @@ def bic(
 
 def log_likelihood(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
     *, _check: bool = True,
 ) -> torch.Tensor:
@@ -160,7 +159,7 @@ def log_likelihood(
 
 def mse(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
     *, _check: bool = True,
 ) -> torch.Tensor:

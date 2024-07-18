@@ -40,7 +40,6 @@ This sted is iterated as long as the log likelihood increases.
 
 import logging
 import numbers
-import typing
 
 import torch
 
@@ -50,7 +49,7 @@ from .metric import log_likelihood
 
 
 def _fit_one_cluster(
-    obs: torch.Tensor, weights: typing.Optional[torch.Tensor]
+    obs: torch.Tensor, weights: None | torch.Tensor
 ) -> tuple[torch.Tensor, torch.Tensor]:
     r"""Fit one gaussian.
 
@@ -95,7 +94,7 @@ def _fit_one_cluster(
 
 def _fit_n_clusters_one_step(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     r"""One step of the EM algo.
@@ -174,7 +173,7 @@ def _fit_n_clusters_one_step(
 
 def _fit_n_clusters_serveral_steps(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
 ) -> tuple[tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor]:
     r"""N steps of the EM algo.
@@ -233,7 +232,7 @@ def _fit_n_clusters_serveral_steps(
 def _fit_n_clusters_serveral_steps_serveral_tries(
     nbr_tries: int,
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     r"""N steps and serveral tries of the EM algo.

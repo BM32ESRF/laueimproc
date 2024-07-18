@@ -88,7 +88,7 @@ class BaseDiagram:
         self._file_or_image: pathlib.Path | torch.Tensor  # the path to the image file
         self._history: list[str] = []  # the history of the actions performed
         self._properties: dict[str, tuple[None | str, object]] = {}  # the properties
-        self._rois: typing.Optional[tuple[bytearray, torch.Tensor]] = None  # datarois, bboxes
+        self._rois: None | tuple[bytearray, torch.Tensor] = None  # datarois, bboxes
         self._rois_lock = threading.Lock()  # make the rois acces thread safe
 
         # initialisation
@@ -101,7 +101,7 @@ class BaseDiagram:
             self._file_or_image = to_floattensor(data)
             assert self._file_or_image.ndim == 2, self._file_or_image.shape
 
-    def __getstate__(self, cache: bool = False):
+    def __getstate__(self, cache: bool = False) -> tuple:
         """Make the diagram pickleable."""
         with self._rois_lock:
             rois = None if self._rois is None else (self._rois[0].copy(), self._rois[1].clone())
@@ -319,7 +319,7 @@ class BaseDiagram:
             bboxes = self._rois[1]
         return bboxes.clone()
 
-    def clone(self, deep: bool = True, cache: bool = True):
+    def clone(self, deep: bool = True, cache: bool = True) -> typing.Self:
         """Instanciate a new identical diagram.
 
         Parameters
@@ -423,7 +423,7 @@ class BaseDiagram:
     @check_init
     def filter_spots(
         self, criteria: typing.Container, msg: str = "general filter", *, inplace: bool = True
-    ):
+    ) -> typing.Self:
         """Keep only the given spots, delete the rest.
 
         This method can be used for filtering or sorting spots.
@@ -495,7 +495,7 @@ class BaseDiagram:
 
         return None if inplace else self
 
-    def find_spots(self, **kwargs) -> None:
+    def find_spots(self, **kwargs):
         """Search all the spots in this diagram, store the result into the `spots` attribute.
 
         Parameters
@@ -650,10 +650,10 @@ class BaseDiagram:
     def plot(
         self,
         disp=None,
-        vmin: typing.Optional[numbers.Real] = None,
-        vmax: typing.Optional[numbers.Real] = None,
+        vmin: None | numbers.Real = None,
+        vmax: None | numbers.Real = None,
         **kwargs,
-    ):
+    ) -> object:
         """Prepare for display the diagram and the spots.
 
         Parameters
@@ -790,7 +790,7 @@ class BaseDiagram:
             datarois, bboxes = self._rois
         return rawshapes2rois(datarois, bboxes[:, 2:])
 
-    def set_spots(self, *new_spots: tuple) -> None:
+    def set_spots(self, *new_spots: tuple):
         """Set the new spots as the current spots, reset the history and the cache.
 
         Paremeters

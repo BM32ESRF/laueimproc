@@ -4,7 +4,6 @@
 
 import math
 import numbers
-import typing
 
 import cv2
 import torch
@@ -73,8 +72,8 @@ def estimate_background(brut_image: torch.Tensor, radius_font: numbers.Real = 9)
 
 def peaks_search(
     brut_image: torch.Tensor,
-    density: typing.Optional[numbers.Real] = None,
-    threshold: typing.Optional[numbers.Real] = None,
+    density: None | numbers.Real = None,
+    threshold: None | numbers.Real = None,
     radius_aglo: numbers.Real = 2,
     mask: bool = False,
     *, _check: bool = True,

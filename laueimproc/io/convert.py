@@ -38,7 +38,7 @@ def converter_decorator(func: typing.Callable):
     @functools.wraps(func)
     def batch_converter(
         src: PATHLIKE | typing.Iterable[PATHLIKE],
-        dst_dir: typing.Optional[PATHLIKE] = None,
+        dst_dir: None | PATHLIKE = None,
         metadata: bool = True,
     ):
         """Decorate an image converter.

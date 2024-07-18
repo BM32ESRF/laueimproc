@@ -4,7 +4,6 @@
 
 import lzma
 import pathlib
-import typing
 
 import cv2
 import numpy as np
@@ -15,7 +14,7 @@ import yaml
 def write_jp2(
     filename: str | pathlib.Path,
     image: torch.Tensor,
-    metadata: typing.Optional[dict] = None,
+    metadata: None | dict = None,
 ):
     """Write a lossless jpeg2000 image with the metadata.
 

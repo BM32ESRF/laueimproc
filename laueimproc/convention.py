@@ -43,9 +43,9 @@ def det_to_poni(det: torch.Tensor) -> torch.Tensor:
     >>> import torch
     >>> from laueimproc.convention import det_to_poni, lauetools_to_pyfai, or_to_lauetools
     >>> from laueimproc.geometry.projection import ray_to_detector
-    >>> uf_or = torch.randn(1000, 3)
-    >>> uf_or *= torch.rsqrt(uf_or.sum(dim=1, keepdim=True))
-    >>> det = torch.tensor([77.0, 800.0, 1200.0, 20.0, 20.0, 0.08])
+    >>> uf_or = torch.randn(1000, 3, dtype=torch.float64)
+    >>> uf_or /= torch.linalg.norm(uf_or, dim=1, keepdim=True)
+    >>> det = torch.tensor([77.0, 800.0, 1200.0, 20.0, 20.0, 0.08], dtype=torch.float64)
     >>>
     >>> # using lauetools
     >>> uf_pyfai = lauetools_to_pyfai(or_to_lauetools(uf_or))

@@ -12,7 +12,7 @@ class MetaSingleton(type):
 
     instances: dict[type, object] = {}
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args, **kwargs) -> type:
         """Create a new class only if it is not already instanciated."""
         if cls not in MetaSingleton.instances:
             instance = cls.__new__(cls)

@@ -237,8 +237,8 @@ def check_diag2scalars_typing(pos_func: DIAG2SCALS_TYPE):
 def select_closest(
     coords: torch.Tensor,
     point: tuple[float, ...],
-    tol: typing.Optional[tuple[float, ...]] = None,
-    scale: typing.Optional[tuple[float, ...]] = None,
+    tol: None | tuple[float, ...] = None,
+    scale: None | tuple[float, ...] = None,
     *, _no_c: bool = False,
 ) -> int:
     r"""Select the closest point.
@@ -354,9 +354,9 @@ def select_closest(
 
 def select_closests(
     coords: torch.Tensor,
-    point: typing.Optional[tuple[float, ...]] = None,
-    tol: typing.Optional[tuple[float, ...]] = None,
-    scale: typing.Optional[tuple[float, ...]] = None,
+    point: None | tuple[float, ...] = None,
+    tol: None | tuple[float, ...] = None,
+    scale: None | tuple[float, ...] = None,
     *, _no_c: bool = False,
 ) -> torch.Tensor:
     r"""Select the closest points.

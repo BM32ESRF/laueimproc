@@ -19,7 +19,10 @@ from ..reciprocal import primitive_to_reciprocal
 from ..rotation import omega_to_rot, rotate_crystal
 
 
-NCPU = len(psutil.Process().cpu_affinity())  # os.cpu_count() wrong on slurm
+try:
+    NCPU = len(psutil.Process().cpu_affinity())  # os.cpu_count() wrong on slurm
+except AssertionError:
+    NCPU = psutil.cpu_count()
 
 
 class StupidIndexator(torch.nn.Module):

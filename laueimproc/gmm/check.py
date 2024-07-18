@@ -3,7 +3,6 @@
 """Protection against the user."""
 
 import functools
-import typing
 import warnings
 
 import torch
@@ -67,7 +66,7 @@ def check_gmm(gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -> None:
         f"number of gaussians inconsistant {mean_K} vs {cov_K} vs {eta_K}"
 
 
-def check_infit(obs: torch.Tensor, weights: typing.Optional[torch.Tensor]) -> None:
+def check_infit(obs: torch.Tensor, weights: None | torch.Tensor) -> None:
     r"""Ensure the provided parameters are corrects.
 
     Parameters

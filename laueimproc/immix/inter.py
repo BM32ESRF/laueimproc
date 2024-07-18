@@ -15,7 +15,7 @@ from laueimproc.classes.dataset import DiagramsDataset
 
 
 class MomentumMixer:
-    """Compute an average momenttume betweem the two closest candidates.
+    """Compute an average momentum between the two closest candidates.
 
     Attributes
     ----------
@@ -66,7 +66,7 @@ class MomentumMixer:
         self._high = self._low + 1
         self._momentum = abs_level - self._low
 
-    def __call__(self, val_min, val_max):
+    def __call__(self, val_min, val_max) -> object:
         """Combine the two elements."""
         comb = val_min * (1.0 - self._momentum)
         comb += val_max * self._momentum
@@ -83,7 +83,7 @@ class MomentumMixer:
         return self._low
 
 
-def _best_idtype(nbr):
+def _best_idtype(nbr: int) -> torch.dtype:
     if nbr <= torch.iinfo(torch.int16).max:
         return torch.int16
     if nbr <= torch.iinfo(torch.int32).max:
