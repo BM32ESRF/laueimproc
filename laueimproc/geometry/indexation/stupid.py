@@ -6,27 +6,34 @@ import copy
 import multiprocessing.pool
 import numbers
 import typing
+import warnings
 
 from tqdm.autonotebook import tqdm
 import psutil
 import torch
 
-from ..bragg import hkl_reciprocal_to_uq
+from ..bragg import hkl_reciprocal_to_uq, uf_to_uq
 from ..hkl import select_hkl
 from ..lattice import lattice_to_primitive
 from ..metric import compute_matching_rate, ray_phi_dist
+from ..projection import detector_to_ray
 from ..reciprocal import primitive_to_reciprocal
-from ..rotation import omega_to_rot, rotate_crystal
+from ..rotation import omega_to_rot, rotate_crystal, uniform_so3_meshgrid
+from ..symmetry import find_symmetric_rotations, reduce_omega_range
 
 
 try:
     NCPU = len(psutil.Process().cpu_affinity())  # os.cpu_count() wrong on slurm
-except AttributeError:
+except AttributeError:  # failed on mac
     NCPU = psutil.cpu_count()
 
 
 class StupidIndexator(torch.nn.Module):
-    """Brute force indexation method."""
+    """Brute force indexation method.
+
+    Allows you to find, slowly but extremely reliably, all the oriantations
+    of the different grains of a given material.
+    """
 
     def __init__(self, lattice: torch.Tensor, e_max: numbers.Real):
         """Initialize the indexator.
@@ -55,17 +62,17 @@ class StupidIndexator(torch.nn.Module):
         )
 
     def _compute_rate(
-        self, angles: torch.Tensor, uq_exp: torch.Tensor, phi_max: float
+        self, omega: torch.Tensor, uq_exp: torch.Tensor, phi_max: float
     ) -> torch.Tensor:
         """Compute the matching rate of a sub patch."""
-        uq_theo = self._compute_uq(angles)
+        uq_theo = self._compute_uq(omega)
         rate = compute_matching_rate(uq_exp, uq_theo, phi_max)
         return rate
 
-    # @torch.compile(dynamic=False)
-    def _compute_uq(self, angles: torch.Tensor) -> torch.Tensor:
+    # @torch.compile(dynamic=False)  # failed on multithreading cuda
+    def _compute_uq(self, omega: torch.Tensor) -> torch.Tensor:
         """Help for ``_compute_rate``."""
-        rot = omega_to_rot(*angles.movedim(1, 0), cartesian_product=False)  # (m, 3, 3)
+        rot = omega_to_rot(*omega.movedim(1, 0), cartesian_product=False)  # (m, 3, 3)
         reciprocal = rotate_crystal(self._reciprocal, rot, cartesian_product=False)
         uq_theo = hkl_reciprocal_to_uq(self._hkl, reciprocal)  # (h, m, 3)
         uq_theo = torch.movedim(uq_theo, 0, 1).contiguous()  # (m, h, 3)
@@ -77,35 +84,49 @@ class StupidIndexator(torch.nn.Module):
 
     def forward(
         self,
-        u_q: torch.Tensor,
-        angle: None | torch.Tensor = None,
-        angle_res: None | numbers.Real = None,
+        uf_or_point: torch.Tensor,
         phi_max: None | numbers.Real = None,
+        omega: None | numbers.Real | torch.Tensor = None,
+        *,
+        poni: None | torch.Tensor = None,
     ) -> torch.Tensor:
         r"""Return the rotations ordered by matching rate.
 
         Parameters
         ----------
-        u_q : torch.Tensor
-            The experimental \(u_q\) vectors in the lab base \(\mathcal{B^l}\).
-            For one diagram only, shape (q, 3).
-        angle : torch.Tensor, optional
-            If provided, these angles are going to be used. Shape (n, 3).
-        angle_res : float, optional
-            Angular resolution of explored space in radian.
-            By default, it is choosen by a statistic heuristic.
+        uf_or_point : torch.Tensor
+            The 2d point associated to uf in the referencial of the detector of shape (n, 2).
+            Could be also the unitary vector \(u_q\) of shape (n, 3).
         phi_max : float, optional
             The maximum positive angular distance in radian
             to consider that the rays are closed enough.
-            If not provide, the value is the same as ``angle_res``.
+            If nothing is supplied (default), the average distance between each \(u_q\),
+            and its nearset neighbour is calculated. This argument take this value.
+        omega : float or arraylike, optional
+            Corresponds to all the cristal oriantations to be tested.
+
+            * If nothing is supplied (default), this argument take this value of ``phi_max``.
+            * If a scalar is supplied, The \(SO(3)\) oriantation space is sampled uniformly
+                so that the angle between 2 rotations is approximatively equal
+                to the value of this argument, in radian. The symmetries of the crystal are
+                automatically considered to reduce the size of the space to be explored.
+            * The last option is to supply 3 elementary rotation angles
+                \(\omega_1, \omega_2, \omega_3\), in radian, as an array of shape (n, 3).
+        poni: torch.Tensor, optional
+            The 6 ordered .poni calibration parameters as a tensor of shape (6,).
+            Used only if ``uf_or_point`` is a point.
 
         Returns
         -------
-        angle : torch.Tensor
-            The 3 elementary rotation angles sorted by decreasing matching rate.
-            The shape is (n, 3).
+        omega : torch.Tensor
+            The 3 elementary rotation angles \(\omega_1, \omega_2, \omega_3\)
+            sorted by decreasing matching rate, the shape is (n, 3).
         rate : torch.Tensor
             All the sorted matching rates.
+
+        Notes
+        -----
+        The calculation time is independent of the number of spots in the experimental diagram.
 
         Examples
         --------
@@ -115,41 +136,47 @@ class StupidIndexator(torch.nn.Module):
         >>> e_max = 20e3 * 1.60e-19  # 20 keV
         >>> indexator = StupidIndexator(lattice, e_max)
         >>>
-        >>> u_q = torch.randn(100, 3)
-        >>> u_q *= torch.rsqrt(torch.sum(u_q * u_q, dim=1, keepdim=True))
-        >>> angle, rate = indexator(u_q)
+        >>> u_f = torch.randn(100, 3)
+        >>> u_f /= torch.linalg.norm(u_f, dim=1, keepdim=True)
+        >>> angle, rate = indexator(u_f)
         >>>
         """
-        assert isinstance(u_q, torch.Tensor), u_q.__class__.__name__
-        assert u_q.ndim == 2 and u_q.shape[1] == 3, u_q.shape
+        assert isinstance(uf_or_point, torch.Tensor), uf_or_point.__class__.__name__
+        assert uf_or_point.ndim == 2, uf_or_point.shape
+
+        # convert point to uq
+        if uf_or_point.shape[-1] == 2:
+            assert isinstance(poni, torch.Tensor), poni.__class__.__name__
+            assert poni.shape == (6,), poni.shape
+            uf_or_point = detector_to_ray(uf_or_point, poni)
+        elif uf_or_point.shape[-1] == 3:
+            if poni is not None:
+                warnings.warn(
+                    "the `poni` is ignored because uf has been provided, not point",
+                    RuntimeWarning,
+                )
+        else:
+            raise ValueError("only shape 2 and 3 allow")
+        u_q = uf_to_uq(uf_or_point)
+
         assert u_q.shape[0] >= 2, "a minimum of 2 spots are required for indexation"
 
-        # get default values
-        if angle_res is None:
-            angle_res = float(torch.mean(torch.sort(ray_phi_dist(u_q, u_q), dim=0).values[1, :]))
-        else:
-            assert isinstance(angle_res, numbers.Real), angle_res.__class__.__name__
-            assert angle_res > 0, angle_res
+        # sampling the space of the rotations
         if phi_max is None:
-            phi_max = angle_res
-        else:
-            assert isinstance(phi_max, numbers.Real), \
-                phi_max.__class__.__name__
-            assert phi_max > 0, phi_max
-
-        # initialisation
-        if angle is None:
-            angle = torch.pi / 2
-            angle = torch.meshgrid(  # we can do better, of course
-                torch.arange(-angle, angle, angle_res, device=u_q.device, dtype=u_q.dtype),
-                torch.arange(-angle/2, angle/2, angle_res, device=u_q.device, dtype=u_q.dtype),
-                torch.arange(-angle, angle, angle_res, device=u_q.device, dtype=u_q.dtype),
-                indexing="ij",
+            phi_max = float(torch.mean(torch.sort(ray_phi_dist(u_q, u_q), dim=0).values[1, :]))
+        if omega is None:
+            omega = phi_max
+        if isinstance(omega, numbers.Real):
+            omega = uniform_so3_meshgrid(
+                omega,  # check omega here
+                reduce_omega_range(
+                    ((-torch.pi, torch.pi), (-torch.pi/2, torch.pi/2), (-torch.pi, torch.pi)),
+                    find_symmetric_rotations(self._reciprocal),
+                ),
             )
-            angle = torch.cat([a.ravel().unsqueeze(-1) for a in angle], dim=1)  # (n, 3)
         else:
-            assert isinstance(angle, torch.Tensor), angle.__class__.__name__
-            assert angle.ndim == 2 and angle.shape[1] == 3, angle.shape
+            omega = torch.asarray(omega, dtype=self._reciprocal.dtype)
+            assert omega.ndim == 2 and omega.shape[1] == 3, omega.shape
 
         # split multi GPUs
         devices = (
@@ -157,18 +184,18 @@ class StupidIndexator(torch.nn.Module):
             or [torch.device("cpu")]
         )
         models = [self.clone().to(d) for d in devices]
-        angles = [angle.to(d) for d in devices]
+        omegas = [omega.to(d) for d in devices]
 
         # compute all rates
         batch = 512
-        total = len(angle) // batch + int(bool(len(angle) % batch))
+        total = len(omega) // batch + int(bool(len(omega) % batch))
         with multiprocessing.pool.ThreadPool(max(NCPU, 2*len(devices))) as pool:
             rate = torch.cat(list(
                 tqdm(
                     pool.imap(
                         lambda i: (
                             models[i % len(devices)]._compute_rate(  # pylint: disable=W0212
-                                angles[i % len(devices)][batch*i:batch*(i+1)],
+                                omegas[i % len(devices)][batch*i:batch*(i+1)],
                                 u_q,
                                 phi_max,
                             )  # in u_q device
@@ -182,4 +209,4 @@ class StupidIndexator(torch.nn.Module):
 
         # sorted result
         order = torch.argsort(rate, descending=True)
-        return angle[order], rate[order]
+        return omega[order], rate[order]

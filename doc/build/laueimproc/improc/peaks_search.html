@@ -34,7 +34,6 @@
 
 import math
 import numbers
-import typing
 
 import cv2
 import torch
@@ -103,8 +102,8 @@ def estimate_background(brut_image: torch.Tensor, radius_font: numbers.Real = 9)
 
 def peaks_search(
     brut_image: torch.Tensor,
-    density: typing.Optional[numbers.Real] = None,
-    threshold: typing.Optional[numbers.Real] = None,
+    density: None | numbers.Real = None,
+    threshold: None | numbers.Real = None,
     radius_aglo: numbers.Real = 2,
     mask: bool = False,
     *, _check: bool = True,
@@ -199,7 +198,7 @@ def peaks_search(
     binary = (fg_image &gt; threshold).view(torch.uint8)
     binary = morpho_dilate(binary, radius=radius_aglo)
     if mask:
-        fg_image.where(binary.view(torch.bool), 0.0)
+        fg_image = fg_image.where(binary.view(torch.bool), 0.0)
     bboxes = find_bboxes(binary.numpy(force=True)).to(brut_image.device)
     datarois = imgbboxes2raw(fg_image, bboxes)
     return datarois, bboxes</code></pre>
@@ -273,7 +272,7 @@ but slower the proccess is.</dd>
 </details>
 </dd>
 <dt id="laueimproc.improc.peaks_search.peaks_search"><code class="name flex">
-<span>def <span class="ident">peaks_search</span></span>(<span>brut_image: torch.Tensor, density: Optional[numbers.Real] = None, threshold: Optional[numbers.Real] = None, radius_aglo: numbers.Real = 2, mask: bool = False, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor]</span>
+<span>def <span class="ident">peaks_search</span></span>(<span>brut_image: torch.Tensor, density: None | numbers.Real = None, threshold: None | numbers.Real = None, radius_aglo: numbers.Real = 2, mask: bool = False, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Search all the spots roi in this diagram, return the roi tensor.</p>
@@ -344,8 +343,8 @@ The shape is (n, 4) and the type is int.</dd>
 </summary>
 <pre><code class="python">def peaks_search(
     brut_image: torch.Tensor,
-    density: typing.Optional[numbers.Real] = None,
-    threshold: typing.Optional[numbers.Real] = None,
+    density: None | numbers.Real = None,
+    threshold: None | numbers.Real = None,
     radius_aglo: numbers.Real = 2,
     mask: bool = False,
     *, _check: bool = True,
@@ -440,7 +439,7 @@ The shape is (n, 4) and the type is int.</dd>
     binary = (fg_image &gt; threshold).view(torch.uint8)
     binary = morpho_dilate(binary, radius=radius_aglo)
     if mask:
-        fg_image.where(binary.view(torch.bool), 0.0)
+        fg_image = fg_image.where(binary.view(torch.bool), 0.0)
     bboxes = find_bboxes(binary.numpy(force=True)).to(brut_image.device)
     datarois = imgbboxes2raw(fg_image, bboxes)
     return datarois, bboxes</code></pre>

@@ -45,7 +45,7 @@ from laueimproc.classes.dataset import DiagramsDataset
 
 
 class MomentumMixer:
-    &#34;&#34;&#34;Compute an average momenttume betweem the two closest candidates.
+    &#34;&#34;&#34;Compute an average momentum between the two closest candidates.
 
     Attributes
     ----------
@@ -96,7 +96,7 @@ class MomentumMixer:
         self._high = self._low + 1
         self._momentum = abs_level - self._low
 
-    def __call__(self, val_min, val_max):
+    def __call__(self, val_min, val_max) -&gt; object:
         &#34;&#34;&#34;Combine the two elements.&#34;&#34;&#34;
         comb = val_min * (1.0 - self._momentum)
         comb += val_max * self._momentum
@@ -113,7 +113,7 @@ class MomentumMixer:
         return self._low
 
 
-def _best_idtype(nbr):
+def _best_idtype(nbr: int) -&gt; torch.dtype:
     if nbr &lt;= torch.iinfo(torch.int16).max:
         return torch.int16
     if nbr &lt;= torch.iinfo(torch.int32).max:
@@ -565,7 +565,7 @@ with n proportional to the number of diagrams in the dataset.</p></div>
 <span>(</span><span>nbr: int, level: float)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compute an average momenttume betweem the two closest candidates.</p>
+<div class="desc"><p>Compute an average momentum between the two closest candidates.</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>high</code></strong> :&ensp;<code>int</code></dt>
@@ -600,7 +600,7 @@ tensor(31.4159)
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class MomentumMixer:
-    &#34;&#34;&#34;Compute an average momenttume betweem the two closest candidates.
+    &#34;&#34;&#34;Compute an average momentum between the two closest candidates.
 
     Attributes
     ----------
@@ -651,7 +651,7 @@ tensor(31.4159)
         self._high = self._low + 1
         self._momentum = abs_level - self._low
 
-    def __call__(self, val_min, val_max):
+    def __call__(self, val_min, val_max) -&gt; object:
         &#34;&#34;&#34;Combine the two elements.&#34;&#34;&#34;
         comb = val_min * (1.0 - self._momentum)
         comb += val_max * self._momentum

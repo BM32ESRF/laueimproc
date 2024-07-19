@@ -35,6 +35,7 @@
 import multiprocessing.pool
 import numbers
 import pathlib
+import typing
 
 from tqdm.autonotebook import tqdm
 import torch
@@ -176,7 +177,7 @@ class DiagramsDataset(BaseDiagramsDataset):
             raise err
         return self._get_diagram_from_index(int(indices[index]))
 
-    def select_closests(self, *args, **kwargs):
+    def select_closests(self, *args, **kwargs) -&gt; typing.Self:
         &#34;&#34;&#34;Select the diagrams matching a given interval of phisical parameters.
 
         Parameters
@@ -211,7 +212,7 @@ class DiagramsDataset(BaseDiagramsDataset):
         model=None,
         shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95,
         **kwargs,
-    ):
+    ) -&gt; object:
         &#34;&#34;&#34;Train a variational autoencoder classifier with the spots in the diagrams.
 
         It is a non supervised neuronal network.
@@ -278,7 +279,7 @@ class DiagramsDataset(BaseDiagramsDataset):
 <dl>
 <dt id="laueimproc.classes.dataset.DiagramsDataset"><code class="flex name class">
 <span>class <span class="ident">DiagramsDataset</span></span>
-<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, diag2scalars: Optional[Callable[[int], numbers.Real | tuple[numbers.Real, ...]]] = None)</span>
+<span>(</span><span>*diagram_refs, diag2ind: Optional[None] = None, diag2scalars: Optional[None] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Link Diagrams together.</p>
@@ -437,7 +438,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
             raise err
         return self._get_diagram_from_index(int(indices[index]))
 
-    def select_closests(self, *args, **kwargs):
+    def select_closests(self, *args, **kwargs) -&gt; typing.Self:
         &#34;&#34;&#34;Select the diagrams matching a given interval of phisical parameters.
 
         Parameters
@@ -472,7 +473,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
         model=None,
         shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95,
         **kwargs,
-    ):
+    ) -&gt; object:
         &#34;&#34;&#34;Train a variational autoencoder classifier with the spots in the diagrams.
 
         It is a non supervised neuronal network.
@@ -584,7 +585,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 <div class="desc inherited"><p>Add a property to the dataset …</p></div>
 </dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.apply"><code class="name flex">
-<span>def <span class="ident">apply</span></span>(<span>self, func: Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], object], args: Optional[tuple] = None, kwargs: Optional[dict] = None) ‑> dict[int, object]</span>
+<span>def <span class="ident">apply</span></span>(<span>self, func: Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], object], args: None | tuple = None, kwargs: None | dict = None) ‑> dict[int, object]</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -594,7 +595,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 <div class="desc inherited"><p>Apply an operation in all the diagrams of the dataset …</p></div>
 </dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.autosave"><code class="name flex">
-<span>def <span class="ident">autosave</span></span>(<span>self, filename: str | pathlib.Path, delay: Union[numbers.Real, str, ForwardRef(None)] = None)</span>
+<span>def <span class="ident">autosave</span></span>(<span>self, filename: str | pathlib.Path, delay: None | numbers.Real | str = None)</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -899,7 +900,7 @@ Diagram(img_45.jp2)
 </details>
 </dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.select_closests"><code class="name flex">
-<span>def <span class="ident">select_closests</span></span>(<span>self, *args, **kwargs)</span>
+<span>def <span class="ident">select_closests</span></span>(<span>self, *args, **kwargs) ‑> Self</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Select the diagrams matching a given interval of phisical parameters.</p>
@@ -928,7 +929,7 @@ Diagram(img_45.jp2)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def select_closests(self, *args, **kwargs):
+<pre><code class="python">def select_closests(self, *args, **kwargs) -&gt; typing.Self:
     &#34;&#34;&#34;Select the diagrams matching a given interval of phisical parameters.
 
     Parameters
@@ -959,7 +960,7 @@ Diagram(img_45.jp2)
 </details>
 </dd>
 <dt id="laueimproc.classes.dataset.DiagramsDataset.train_spot_classifier"><code class="name flex">
-<span>def <span class="ident">train_spot_classifier</span></span>(<span>self, *, model=None, shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95, **kwargs)</span>
+<span>def <span class="ident">train_spot_classifier</span></span>(<span>self, *, model=None, shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95, **kwargs) ‑> object</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Train a variational autoencoder classifier with the spots in the diagrams.</p>
@@ -1005,7 +1006,7 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
     model=None,
     shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95,
     **kwargs,
-):
+) -&gt; object:
     &#34;&#34;&#34;Train a variational autoencoder classifier with the spots in the diagrams.
 
     It is a non supervised neuronal network.

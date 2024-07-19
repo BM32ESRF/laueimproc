@@ -152,7 +152,8 @@ def ray_phi_dist(
 
     Notes
     -----
-    It's mathematically equivalent to calculating acos of ``laueimproc.geometry.metric.``,
+    It's mathematically equivalent to calculating acos of
+    ``laueimproc.geometry.metric.ray_cosine_dist``,
     but this function is numerically more stable for small angles.
 
     Examples

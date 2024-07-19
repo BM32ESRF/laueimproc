@@ -3,6 +3,8 @@
 """Find the crystal symmetries and equivalence."""
 
 import itertools
+import logging
+import math
 import numbers
 
 import torch
@@ -34,9 +36,9 @@ def find_symmetric_rotations(crystal: torch.Tensor, tol: numbers.Real = 0.05) ->
     In particular, it is linear by rotation:
 
     \(
-        \mathbf{B_{\mathcal{B^l}}
-        = f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}} \right)
-        = \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}} \right)
+        \mathbf{B_{\mathcal{B^l}}}
+        = f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}}} \right)
+        = \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}}} \right)
     \)
 
     The symmetries (which are rotation matrices) found on \(\mathbf{A}\)
@@ -108,7 +110,7 @@ def get_hkl_family_member(*args, **kwargs) -> torch.Tensor:
     Parameters
     ----------
     hkl, reciprocal, tol
-        Transmitted to ``laueimproc.geometry.symmetry.hkl.get_hkl_family_members``.
+        Transmitted to ``laueimproc.geometry.symmetry.get_hkl_family_members``.
 
     Returns
     -------
@@ -288,3 +290,70 @@ def get_hkl_family_members(
     #     .unsqueeze(2)
     # )
     # return hkl_int
+
+
+def reduce_omega_range(
+    omega_range: tuple[tuple[float, float], tuple[float, float], tuple[float, float]],
+    symmetries: torch.Tensor,
+) -> tuple[tuple[float, float], tuple[float, float], tuple[float, float]]:
+    r"""Reduces the omega domain as much as possible given the crystal's symmetry.
+
+    Parameters
+    ----------
+    omega_range : tuple[tuple[float, float], tuple[float, float], tuple[float, float]]
+        The min and max limits for each elementary rotation angle
+        \omega_1, \omega_2, \omega_3, in radian.
+    symmetries : torch.Tensor
+        All the rotation matrices leaving the crystal equivalent, shape (s, 3, 3).
+
+    Returns
+    -------
+    reduced_domain : tuple[tuple[float, float], tuple[float, float], tuple[float, float]]
+        Reduced start-up domain.
+
+    Examples
+    --------
+    >>> import torch
+    >>> from laueimproc.geometry.rotation import omega_to_rot
+    >>> from laueimproc.geometry.symmetry import reduce_omega_range
+    >>> omega_range = ((-torch.pi, torch.pi), (-torch.pi/2, torch.pi/2), (-torch.pi, torch.pi))
+    >>> symmetries = omega_to_rot(torch.tensor([0.0, 2*torch.pi/3]))
+    >>> omega_range = reduce_omega_range(omega_range, symmetries)
+    >>> torch.asarray(omega_range) * 180/torch.pi
+    tensor([[-180.0000,  -60.0000],
+            [ -90.0000,   90.0000],
+            [-180.0000,  180.0000]])
+    >>>
+    """
+    assert isinstance(omega_range, tuple), omega_range.__name__.__name__
+    assert len(omega_range) == 3, omega_range
+    assert all(isinstance(mm, tuple) for mm in omega_range), omega_range
+    assert all(len(mm) == 2 for mm in omega_range), omega_range
+    (omega1_min, omega1_max), (omega2_min, omega2_max), (omega3_min, omega3_max) = omega_range
+    assert omega1_min >= -torch.pi, omega1_min
+    assert omega1_max <= torch.pi, omega1_max
+    assert omega1_min < omega1_max, (omega1_min, omega1_max)
+    assert omega2_min >= -0.5 * torch.pi, omega2_min
+    assert omega2_max <= 0.5 * torch.pi, omega2_max
+    assert omega2_min < omega2_max, (omega2_min, omega2_max)
+    assert omega3_min >= -torch.pi, omega3_min
+    assert omega3_max <= torch.pi, omega3_max
+    assert omega3_min < omega3_max, (omega3_min, omega3_max)
+    assert isinstance(symmetries, torch.Tensor), symmetries.__class__.__name__
+    assert symmetries.ndim == 3 and symmetries.shape[1:] == (3, 3), symmetries.shape
+
+    unitary_x = torch.tensor(
+        [[1.0], [0.0], [0.0]], device=symmetries.device, dtype=symmetries.dtype
+    )
+    for rot in symmetries:
+        if torch.allclose(rot, torch.eye(3, device=symmetries.device, dtype=symmetries.dtype)):
+            continue
+        if torch.allclose(rot @ unitary_x, unitary_x):  # rotation along first axis
+            angle = math.acos(float(rot[2, 2]))
+            omega1_max = min(omega1_min + angle, omega1_max)
+            continue
+        logging.warning(
+            "%s symmetry is ignored, because it's too complicated", rot.numpy(force=True)
+        )
+
+    return ((omega1_min, omega1_max), (omega2_min, omega2_max), (omega3_min, omega3_max))

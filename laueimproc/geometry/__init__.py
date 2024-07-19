@@ -2,6 +2,8 @@
 
 r"""Implement the Bragg diffraction rules.
 
+.. image:: ../../../build/media/IMGGeometryGraph.avif
+
 Bases
 -----
 
@@ -49,7 +51,8 @@ from .bragg import (
 )
 from .hkl import select_hkl
 from .lattice import lattice_to_primitive, primitive_to_lattice
-from .metric import compute_matching_rate, compute_matching_rate_continuous, ray_cosine_dist
+from .link import Geometry
+from .metric import compute_matching_rate, compute_matching_rate_continuous, ray_phi_dist
 from .projection import detector_to_ray, ray_to_detector
 from .reciprocal import primitive_to_reciprocal, reciprocal_to_primitive
 from .rotation import omega_to_rot, rot_to_omega, rotate_crystal
@@ -61,7 +64,8 @@ __all__ = [
     "uf_to_uq", "uq_to_uf",
     "select_hkl",
     "lattice_to_primitive", "primitive_to_lattice",
-    "compute_matching_rate", "compute_matching_rate_continuous", "ray_cosine_dist",
+    "Geometry",
+    "compute_matching_rate", "compute_matching_rate_continuous", "ray_phi_dist",
     "detector_to_ray", "ray_to_detector",
     "primitive_to_reciprocal", "reciprocal_to_primitive",
     "omega_to_rot", "rot_to_omega", "rotate_crystal",

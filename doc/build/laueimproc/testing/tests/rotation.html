@@ -33,16 +33,16 @@
 &#34;&#34;&#34;Test the rotation function.&#34;&#34;&#34;
 
 import torch
-from laueimproc.geometry.rotation import angle_to_rot, rot_to_angle
+from laueimproc.geometry.rotation import omega_to_rot, rot_to_omega
 
 
-def test_bij_angle_to_rot_to_angle():
+def test_bij_omega_to_rot_to_omega():
     &#34;&#34;&#34;Test if the function is bijective.&#34;&#34;&#34;
     theta1 = 2.0 * torch.pi * torch.rand(1_000_000, dtype=torch.float64) - torch.pi
     theta2 = torch.pi * torch.rand(1_000_000, dtype=torch.float64) - torch.pi / 2
     theta3 = 2.0 * torch.pi * torch.rand(1_000_000, dtype=torch.float64) - torch.pi
-    rot = angle_to_rot(theta1, theta2, theta3, cartesian_product=False)
-    theta_bis = rot_to_angle(rot)
+    rot = omega_to_rot(theta1, theta2, theta3, cartesian_product=False)
+    theta_bis = rot_to_omega(rot)
     assert torch.allclose(theta1, theta_bis[:, 0])
     assert torch.allclose(theta2, theta_bis[:, 1])
     assert torch.allclose(theta3, theta_bis[:, 2])</code></pre>
@@ -55,8 +55,8 @@ def test_bij_angle_to_rot_to_angle():
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="laueimproc.testing.tests.rotation.test_bij_angle_to_rot_to_angle"><code class="name flex">
-<span>def <span class="ident">test_bij_angle_to_rot_to_angle</span></span>(<span>)</span>
+<dt id="laueimproc.testing.tests.rotation.test_bij_omega_to_rot_to_omega"><code class="name flex">
+<span>def <span class="ident">test_bij_omega_to_rot_to_omega</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test if the function is bijective.</p></div>
@@ -64,13 +64,13 @@ def test_bij_angle_to_rot_to_angle():
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_bij_angle_to_rot_to_angle():
+<pre><code class="python">def test_bij_omega_to_rot_to_omega():
     &#34;&#34;&#34;Test if the function is bijective.&#34;&#34;&#34;
     theta1 = 2.0 * torch.pi * torch.rand(1_000_000, dtype=torch.float64) - torch.pi
     theta2 = torch.pi * torch.rand(1_000_000, dtype=torch.float64) - torch.pi / 2
     theta3 = 2.0 * torch.pi * torch.rand(1_000_000, dtype=torch.float64) - torch.pi
-    rot = angle_to_rot(theta1, theta2, theta3, cartesian_product=False)
-    theta_bis = rot_to_angle(rot)
+    rot = omega_to_rot(theta1, theta2, theta3, cartesian_product=False)
+    theta_bis = rot_to_omega(rot)
     assert torch.allclose(theta1, theta_bis[:, 0])
     assert torch.allclose(theta2, theta_bis[:, 1])
     assert torch.allclose(theta3, theta_bis[:, 2])</code></pre>
@@ -140,7 +140,7 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.testing.tests.rotation.test_bij_angle_to_rot_to_angle" href="#laueimproc.testing.tests.rotation.test_bij_angle_to_rot_to_angle">test_bij_angle_to_rot_to_angle</a></code></li>
+<li><code><a title="laueimproc.testing.tests.rotation.test_bij_omega_to_rot_to_omega" href="#laueimproc.testing.tests.rotation.test_bij_omega_to_rot_to_omega">test_bij_omega_to_rot_to_omega</a></code></li>
 </ul>
 </li>
 </ul>

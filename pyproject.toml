@@ -49,6 +49,7 @@ all = [
   "matplotlib",
   "pdoc3",
   "pydocstyle<=6.1.1",  # 6.1.2 bug on pylama 8.4.1
+  "pygraphviz",
   "pylama[all]",
   "pylama[toml]",
   "pytest",

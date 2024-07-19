@@ -442,21 +442,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
         from laueimproc.improc.spot.fit import fit_gaussians_mse
         with self._rois_lock:
             data, bboxes = self._rois
-        return fit_gaussians_mse(data, bboxes, **kwargs)
-
-    # def fit_gaussian(
-    #     self, *args, **kwargs
-    # ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
-    #     r&#34;&#34;&#34;Fit each roi by one gaussian.
-
-    #     Same as ``fit_gaussians`` but squeeze the \(K = 1\) dimension.
-    #     &#34;&#34;&#34;
-    #     mean, cov, magnitude, infodict = self.fit_gaussians(*args, **kwargs, nbr_clusters=1)
-    #     mean, cov, magnitude = mean.squeeze(1), cov.squeeze(1), magnitude.squeeze(1)
-    #     if &#34;eigtheta&#34; in infodict:
-    #         infodict = infodict.copy()  # to avoid insane cache reference error
-    #         infodict[&#34;eigtheta&#34;] = infodict[&#34;eigtheta&#34;].squeeze(1)
-    #     return mean, cov, magnitude, infodict</code></pre>
+        return fit_gaussians_mse(data, bboxes, **kwargs)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -542,7 +528,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
 <div class="desc inherited"><p>Add a property to the diagram …</p></div>
 </dd>
 <dt id="laueimproc.Diagram.clone"><code class="name flex">
-<span>def <span class="ident">clone</span></span>(<span>self, deep: bool = True, cache: bool = True)</span>
+<span>def <span class="ident">clone</span></span>(<span>self, deep: bool = True, cache: bool = True) ‑> Self</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -964,7 +950,7 @@ def compute_rois_sum(self, **_kwargs) -&gt; torch.Tensor:
 </details>
 </dd>
 <dt id="laueimproc.Diagram.filter_spots"><code class="name flex">
-<span>def <span class="ident">filter_spots</span></span>(<span>self, criteria: Container, msg: str = 'general filter', *, inplace: bool = True)</span>
+<span>def <span class="ident">filter_spots</span></span>(<span>self, criteria: Container, msg: str = 'general filter', *, inplace: bool = True) ‑> Self</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -974,7 +960,7 @@ def compute_rois_sum(self, **_kwargs) -&gt; torch.Tensor:
 <div class="desc inherited"><p>Keep only the given spots, delete the rest …</p></div>
 </dd>
 <dt id="laueimproc.Diagram.find_spots"><code class="name flex">
-<span>def <span class="ident">find_spots</span></span>(<span>self, **kwargs) ‑> None</span>
+<span>def <span class="ident">find_spots</span></span>(<span>self, **kwargs)</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -1176,7 +1162,7 @@ def fit_gaussians_mse(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, to
 <div class="desc inherited"><p>Return True if the diagram has been initialized …</p></div>
 </dd>
 <dt id="laueimproc.Diagram.plot"><code class="name flex">
-<span>def <span class="ident">plot</span></span>(<span>self, disp=None, vmin: Optional[numbers.Real] = None, vmax: Optional[numbers.Real] = None, **kwargs)</span>
+<span>def <span class="ident">plot</span></span>(<span>self, disp=None, vmin: None | numbers.Real = None, vmax: None | numbers.Real = None, **kwargs) ‑> object</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -1186,7 +1172,7 @@ def fit_gaussians_mse(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, to
 <div class="desc inherited"><p>Prepare for display the diagram and the spots …</p></div>
 </dd>
 <dt id="laueimproc.Diagram.set_spots"><code class="name flex">
-<span>def <span class="ident">set_spots</span></span>(<span>self, *new_spots: tuple) ‑> None</span>
+<span>def <span class="ident">set_spots</span></span>(<span>self, *new_spots: tuple)</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -1199,7 +1185,7 @@ def fit_gaussians_mse(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, to
 </dd>
 <dt id="laueimproc.DiagramsDataset"><code class="flex name class">
 <span>class <span class="ident">DiagramsDataset</span></span>
-<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="classes/diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, diag2scalars: Optional[Callable[[int], numbers.Real | tuple[numbers.Real, ...]]] = None)</span>
+<span>(</span><span>*diagram_refs, diag2ind: Optional[None] = None, diag2scalars: Optional[None] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Link Diagrams together.</p>
@@ -1358,7 +1344,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
             raise err
         return self._get_diagram_from_index(int(indices[index]))
 
-    def select_closests(self, *args, **kwargs):
+    def select_closests(self, *args, **kwargs) -&gt; typing.Self:
         &#34;&#34;&#34;Select the diagrams matching a given interval of phisical parameters.
 
         Parameters
@@ -1393,7 +1379,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
         model=None,
         shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95,
         **kwargs,
-    ):
+    ) -&gt; object:
         &#34;&#34;&#34;Train a variational autoencoder classifier with the spots in the diagrams.
 
         It is a non supervised neuronal network.
@@ -1505,7 +1491,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 <div class="desc inherited"><p>Add a property to the dataset …</p></div>
 </dd>
 <dt id="laueimproc.DiagramsDataset.apply"><code class="name flex">
-<span>def <span class="ident">apply</span></span>(<span>self, func: Callable[[<a title="laueimproc.classes.diagram.Diagram" href="classes/diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], object], args: Optional[tuple] = None, kwargs: Optional[dict] = None) ‑> dict[int, object]</span>
+<span>def <span class="ident">apply</span></span>(<span>self, func: Callable[[<a title="laueimproc.classes.diagram.Diagram" href="classes/diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], object], args: None | tuple = None, kwargs: None | dict = None) ‑> dict[int, object]</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -1515,7 +1501,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 <div class="desc inherited"><p>Apply an operation in all the diagrams of the dataset …</p></div>
 </dd>
 <dt id="laueimproc.DiagramsDataset.autosave"><code class="name flex">
-<span>def <span class="ident">autosave</span></span>(<span>self, filename: str | pathlib.Path, delay: Union[numbers.Real, str, ForwardRef(None)] = None)</span>
+<span>def <span class="ident">autosave</span></span>(<span>self, filename: str | pathlib.Path, delay: None | numbers.Real | str = None)</span>
 </code></dt>
 <dd>
 <p class="inheritance">
@@ -1820,7 +1806,7 @@ Diagram(img_45.jp2)
 </details>
 </dd>
 <dt id="laueimproc.DiagramsDataset.select_closests"><code class="name flex">
-<span>def <span class="ident">select_closests</span></span>(<span>self, *args, **kwargs)</span>
+<span>def <span class="ident">select_closests</span></span>(<span>self, *args, **kwargs) ‑> Self</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Select the diagrams matching a given interval of phisical parameters.</p>
@@ -1849,7 +1835,7 @@ Diagram(img_45.jp2)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def select_closests(self, *args, **kwargs):
+<pre><code class="python">def select_closests(self, *args, **kwargs) -&gt; typing.Self:
     &#34;&#34;&#34;Select the diagrams matching a given interval of phisical parameters.
 
     Parameters
@@ -1880,7 +1866,7 @@ Diagram(img_45.jp2)
 </details>
 </dd>
 <dt id="laueimproc.DiagramsDataset.train_spot_classifier"><code class="name flex">
-<span>def <span class="ident">train_spot_classifier</span></span>(<span>self, *, model=None, shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95, **kwargs)</span>
+<span>def <span class="ident">train_spot_classifier</span></span>(<span>self, *, model=None, shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95, **kwargs) ‑> object</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Train a variational autoencoder classifier with the spots in the diagrams.</p>
@@ -1926,7 +1912,7 @@ Transmitted to <code><a title="laueimproc.nn.vae_spot_classifier.VAESpotClassifi
     model=None,
     shape: numbers.Real | tuple[numbers.Integral, numbers.Integral] = 0.95,
     **kwargs,
-):
+) -&gt; object:
     &#34;&#34;&#34;Train a variational autoencoder classifier with the spots in the diagrams.
 
     It is a non supervised neuronal network.

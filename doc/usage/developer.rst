@@ -89,9 +89,27 @@ To build the documentation, you need ``manim`` as well. You should install it, p
         brew install pango pkg-config
         brew install --cask mactex-no-gui
 
-.. code-block:: shell
+To buil the documentation, you need ``pygraphviz`` as well. You should install it, please refer to the `pygraphviz installation page <https://pygraphviz.github.io/documentation/stable/install.html>`_.
 
-    pip install manim
+.. tab:: Linux
+
+    .. tab:: Debian Ubuntu Mint
+
+        .. code-block:: shell
+
+            sudo apt install graphviz graphviz-dev
+
+    .. tab:: RHEL CentOS Fedora
+
+        .. code-block:: shell
+
+            sudo dnf install graphviz graphviz-devel
+
+.. tab:: macOS
+
+    .. code-block:: shell
+
+        brew install graphviz
 
 
 Install all dependencies

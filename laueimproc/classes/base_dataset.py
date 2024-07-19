@@ -39,7 +39,7 @@ from .diagram import Diagram
 
 try:
     NCPU = len(psutil.Process().cpu_affinity())  # os.cpu_count() wrong on slurm
-except AttributeError:
+except AttributeError:  # failed on mac
     NCPU = psutil.cpu_count()
 
 

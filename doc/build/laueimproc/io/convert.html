@@ -68,7 +68,7 @@ def converter_decorator(func: typing.Callable):
     @functools.wraps(func)
     def batch_converter(
         src: PATHLIKE | typing.Iterable[PATHLIKE],
-        dst_dir: typing.Optional[PATHLIKE] = None,
+        dst_dir: None | PATHLIKE = None,
         metadata: bool = True,
     ):
         &#34;&#34;&#34;Decorate an image converter.
@@ -159,7 +159,7 @@ def to_jp2(src_file: pathlib.Path, dst_dir: pathlib.Path, metadata: bool) -&gt; 
     @functools.wraps(func)
     def batch_converter(
         src: PATHLIKE | typing.Iterable[PATHLIKE],
-        dst_dir: typing.Optional[PATHLIKE] = None,
+        dst_dir: None | PATHLIKE = None,
         metadata: bool = True,
     ):
         &#34;&#34;&#34;Decorate an image converter.

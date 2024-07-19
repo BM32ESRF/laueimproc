@@ -37,10 +37,10 @@ import numbers
 import torch
 
 
-def angle_to_rot(
-    theta1: torch.Tensor | numbers.Real = 0,
-    theta2: torch.Tensor | numbers.Real = 0,
-    theta3: torch.Tensor | numbers.Real = 0,
+def omega_to_rot(
+    omega1: torch.Tensor | numbers.Real = 0,
+    omega2: torch.Tensor | numbers.Real = 0,
+    omega3: torch.Tensor | numbers.Real = 0,
     *, cartesian_product: bool = True,
 ) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Generate a rotation matrix from the given angles.
@@ -49,33 +49,33 @@ def angle_to_rot(
 
     Parameters
     ----------
-    theta1 : torch.Tensor or float
+    omega1 : torch.Tensor or float
         The first rotation angle of shape (\*a,).
         \(
             rot_1 =
             \begin{pmatrix}
                 1 &amp; 0              &amp;               0 \\
-                0 &amp; \cos(\theta_1) &amp; -\sin(\theta_1) \\
-                c &amp; \sin(\theta_1) &amp;  \cos(\theta_1) \\
+                0 &amp; \cos(\omega_1) &amp; -\sin(\omega_1) \\
+                c &amp; \sin(\omega_1) &amp;  \cos(\omega_1) \\
             \end{pmatrix}
         \)
-    theta2 : torch.Tensor or float
+    omega2 : torch.Tensor or float
         The second rotation angle of shape (\*b,).
         \(
             rot_2 =
             \begin{pmatrix}
-                 \cos(\theta_2) &amp; 0 &amp; \sin(\theta_2) \\
+                 \cos(\omega_2) &amp; 0 &amp; \sin(\omega_2) \\
                               0 &amp; 1 &amp;              0 \\
-                -\sin(\theta_2) &amp; 0 &amp; \cos(\theta_2) \\
+                -\sin(\omega_2) &amp; 0 &amp; \cos(\omega_2) \\
             \end{pmatrix}
         \)
-    theta3 : torch.Tensor or float
+    omega3 : torch.Tensor or float
         The third rotation angle of shape (\*c,). (inverse of pyfai convention)
         \(
             rot_3 =
             \begin{pmatrix}
-                \cos(\theta_3) &amp; -\sin(\theta_3) &amp; 0 \\
-                \sin(\theta_3) &amp;  \cos(\theta_3) &amp; 0 \\
+                \cos(\omega_3) &amp; -\sin(\omega_3) &amp; 0 \\
+                \sin(\omega_3) &amp;  \cos(\omega_3) &amp; 0 \\
                              0 &amp;               0 &amp; 1 \\
             \end{pmatrix}
         \)
@@ -91,55 +91,63 @@ def angle_to_rot(
     rot : torch.Tensor
         The global rotation \(rot_3 . rot_2 . rot_1\).
 
+    Notes
+    -----
+    To be bijective with the function ``laueimproc.geometry.rotation.rot_to_omega``,
+    you have to respect: \(
+        [\omega_1, \omega_2, \omega_3]
+        \in [-\pi, \pi] \times [-\frac{\pi}{2}, \frac{\pi}{2}] \times [-\pi, \pi]
+    \)
+
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.geometry.rotation import angle_to_rot
-    &gt;&gt;&gt; angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6)
+    &gt;&gt;&gt; from laueimproc.geometry.rotation import omega_to_rot
+    &gt;&gt;&gt; omega_to_rot(omega1=torch.pi/6, omega2=torch.pi/6, omega3=torch.pi/6)
     tensor([[ 0.7500, -0.2165,  0.6250],
             [ 0.4330,  0.8750, -0.2165],
             [-0.5000,  0.4330,  0.7500]])
-    &gt;&gt;&gt; angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9)).shape
+    &gt;&gt;&gt; omega_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9)).shape
     torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
     &gt;&gt;&gt;
     &#34;&#34;&#34;
-    assert isinstance(theta1, torch.Tensor | numbers.Real), theta1.__class__.__name__
-    assert isinstance(theta2, torch.Tensor | numbers.Real), theta2.__class__.__name__
-    assert isinstance(theta3, torch.Tensor | numbers.Real), theta3.__class__.__name__
+    assert isinstance(omega1, torch.Tensor | numbers.Real), omega1.__class__.__name__
+    assert isinstance(omega2, torch.Tensor | numbers.Real), omega2.__class__.__name__
+    assert isinstance(omega3, torch.Tensor | numbers.Real), omega3.__class__.__name__
     assert isinstance(cartesian_product, bool), cartesian_product.__class__.__name__
 
     # find dtype and device
     dtype = (
-        {a.dtype for a in (theta1, theta2, theta3) if isinstance(a, torch.Tensor)}
+        {a.dtype for a in (omega1, omega2, omega3) if isinstance(a, torch.Tensor)}
         or {torch.float32}
     )
     dtype = max(dtype, key=lambda t: t.itemsize)
     device = (
-        {a.device for a in (theta1, theta2, theta3) if isinstance(a, torch.Tensor)}
+        {a.device for a in (omega1, omega2, omega3) if isinstance(a, torch.Tensor)}
         or {torch.device(&#34;cpu&#34;)}
     ).pop()
 
     # cast into tensor
-    if isinstance(theta1, numbers.Real):
-        theta1 = torch.tensor(theta1, device=device, dtype=dtype)
-    if isinstance(theta2, numbers.Real):
-        theta2 = torch.tensor(theta2, device=device, dtype=dtype)
-    if isinstance(theta3, numbers.Real):
-        theta3 = torch.tensor(theta3, device=device, dtype=dtype)
+    if isinstance(omega1, numbers.Real):
+        omega1 = torch.tensor(omega1, device=device, dtype=dtype)
+    if isinstance(omega2, numbers.Real):
+        omega2 = torch.tensor(omega2, device=device, dtype=dtype)
+    if isinstance(omega3, numbers.Real):
+        omega3 = torch.tensor(omega3, device=device, dtype=dtype)
 
     # expand dims
     if cartesian_product:
-        theta1, theta2, theta3 = (
-            theta1[..., *((None,)*theta2.ndim), *((None,)*theta3.ndim)],
-            theta2[*((None,)*theta1.ndim), ..., *((None,)*theta3.ndim)],
-            theta3[*((None,)*theta1.ndim), *((None,)*theta2.ndim), ...],
+        omega1, omega2, omega3 = (
+            omega1[..., *((None,)*omega2.ndim), *((None,)*omega3.ndim)],
+            omega2[*((None,)*omega1.ndim), ..., *((None,)*omega3.ndim)],
+            omega3[*((None,)*omega1.ndim), *((None,)*omega2.ndim), ...],
         )
-    batch = torch.broadcast_shapes(theta1.shape, theta2.shape, theta3.shape)
+    batch = torch.broadcast_shapes(omega1.shape, omega2.shape, omega3.shape)
 
     # precompute sin and cos
-    sin1, cos1 = torch.sin(theta1), torch.cos(theta1)
-    sin2, cos2 = torch.sin(theta2), torch.cos(theta2)
-    sin3, cos3 = torch.sin(theta3), torch.cos(theta3)
+    sin1, cos1 = torch.sin(omega1), torch.cos(omega1)
+    sin2, cos2 = torch.sin(omega2), torch.cos(omega2)
+    sin3, cos3 = torch.sin(omega3), torch.cos(omega3)
 
     # full matrix
     sin1sin2 = sin1 * sin2
@@ -157,10 +165,71 @@ def angle_to_rot(
     ], dim=-1).reshape(*batch, 3, 3)
 
 
-def rot_to_angle(rot: torch.Tensor) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+def rand_rot(nbr: numbers.Integral, **kwargs) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Draw a random uniform rotation matrix.
+
+    Parameters
+    ----------
+    nbr : int
+        The number of matrices to draw.
+    **kwargs : dict
+        Transmitted to torch.rand, it can be &#34;device&#34; or &#34;dtype&#34; for example.
+
+    Returns
+    -------
+    rot : torch.Tensor
+        Rotation matrices uniformly distributed in the space of possible rotations.
+        No one direction is favored over another. Shape (nbr, 3, 3).
+
+    Notes
+    -----
+    Creating rotation matrices from a uniform draw of omegas induces a bias
+    that will favor certain oriantations.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.rotation import rand_rot
+    &gt;&gt;&gt; rot = rand_rot(1000, dtype=torch.float64)
+    &gt;&gt;&gt; torch.allclose(torch.linalg.det(rot), torch.tensor(1.0, dtype=rot.dtype))
+    True
+    &gt;&gt;&gt; torch.allclose(rot @ rot.mT, torch.eye(3, dtype=rot.dtype))
+    True
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(nbr, numbers.Integral), nbr.__class__.__name__
+    assert nbr &gt;= 0, nbr
+
+    # draw 2*nbr random vectors in the unitary sphere, kind of Monte-Carlo:
+    # we have (1 + 9%) * (Vcube / Vsphere) = 2, it means if we draw two time more vectors
+    # than the required number, it is fine in average.
+    vect = torch.empty((0, 3), **kwargs)
+    norm = torch.empty((0,), **kwargs)
+    while len(vect) &lt; 2*nbr:
+        new_vect = torch.rand(2 * (2*nbr - len(vect)), 3, **kwargs)
+        new_vect *= 2.0
+        new_vect -= 1.0  # uniform in [-1, 1[
+        new_norm = torch.sum(new_vect * new_vect, dim=1)
+        cond = new_norm &lt;= 1.0  # the proba of keeping it is Vshere / Vcube = (4/3*pi) / (2*2*2)
+        vect, norm = torch.cat([vect, new_vect[cond]]), torch.cat([norm, new_norm[cond]])
+    vect, norm = vect[:2*nbr], norm[:2*nbr]
+
+    # create orthonormal base with Gram-Schmidt
+    vect1 = vect[:nbr]
+    vect1 *= torch.rsqrt(norm[:nbr, None])
+    vect2 = vect[nbr:]
+    vect2 -= vect1 * torch.sum(vect1 * vect2, dim=1, keepdim=True)  # &lt;vect1, vect2&gt;
+    vect2 *= torch.rsqrt(torch.sum(vect2 * vect2, dim=1, keepdim=True))
+    vect3 = torch.linalg.cross(vect1, vect2)
+
+    # concatenate it as rotation matrices
+    return torch.cat([vect1[:, :, None], vect2[:, :, None], vect3[:, :, None]], dim=2)
+
+
+def rot_to_omega(rot: torch.Tensor) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     r&#34;&#34;&#34;Extract the rotation angles from a fulle rotation matrix.
 
-    Bijection of ``laueimproc.geometry.rotation.angle_to_rot``.
+    Bijection of ``laueimproc.geometry.rotation.omega_to_rot``.
 
     Parameters
     ----------
@@ -169,34 +238,34 @@ def rot_to_angle(rot: torch.Tensor) -&gt; tuple[torch.Tensor, torch.Tensor, torc
 
     Returns
     -------
-    theta1 : torch.Tensor or float
-        The first rotation angle of shape (...,). \(\theta_1 \in [-\pi, \pi]\)
+    omega1 : torch.Tensor or float
+        The first rotation angle of shape (...,). \(\omega_1 \in [-\pi, \pi]\)
         \(
             rot_1 =
             \begin{pmatrix}
                 1 &amp; 0              &amp;               0 \\
-                0 &amp; \cos(\theta_1) &amp; -\sin(\theta_1) \\
-                c &amp; \sin(\theta_1) &amp;  \cos(\theta_1) \\
+                0 &amp; \cos(\omega_1) &amp; -\sin(\omega_1) \\
+                c &amp; \sin(\omega_1) &amp;  \cos(\omega_1) \\
             \end{pmatrix}
         \)
-    theta2 : torch.Tensor or float
-        The second rotation angle of shape (...,). \(\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]\)
+    omega2 : torch.Tensor or float
+        The second rotation angle of shape (...,). \(\omega_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]\)
         \(
             rot_2 =
             \begin{pmatrix}
-                 \cos(\theta_2) &amp; 0 &amp; \sin(\theta_2) \\
+                 \cos(\omega_2) &amp; 0 &amp; \sin(\omega_2) \\
                               0 &amp; 1 &amp;              0 \\
-                -\sin(\theta_2) &amp; 0 &amp; \cos(\theta_2) \\
+                -\sin(\omega_2) &amp; 0 &amp; \cos(\omega_2) \\
             \end{pmatrix}
         \)
-    theta3 : torch.Tensor or float
+    omega3 : torch.Tensor or float
         The third rotation angle of shape (...,). (inverse of pyfai convention)
-        \(\theta_3 \in [-\pi, \pi]\)
+        \(\omega_3 \in [-\pi, \pi]\)
         \(
             rot_3 =
             \begin{pmatrix}
-                \cos(\theta_3) &amp; -\sin(\theta_3) &amp; 0 \\
-                \sin(\theta_3) &amp;  \cos(\theta_3) &amp; 0 \\
+                \cos(\omega_3) &amp; -\sin(\omega_3) &amp; 0 \\
+                \sin(\omega_3) &amp;  \cos(\omega_3) &amp; 0 \\
                              0 &amp;               0 &amp; 1 \\
             \end{pmatrix}
         \)
@@ -204,11 +273,11 @@ def rot_to_angle(rot: torch.Tensor) -&gt; tuple[torch.Tensor, torch.Tensor, torc
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.geometry.rotation import rot_to_angle
+    &gt;&gt;&gt; from laueimproc.geometry.rotation import rot_to_omega
     &gt;&gt;&gt; rot = torch.tensor([[ 0.7500, -0.2165,  0.6250],
     ...                     [ 0.4330,  0.8750, -0.2165],
     ...                     [-0.5000,  0.4330,  0.7500]])
-    &gt;&gt;&gt; theta = rot_to_angle(rot)
+    &gt;&gt;&gt; theta = rot_to_omega(rot)
     &gt;&gt;&gt; torch.rad2deg(theta[..., 0]).round()
     tensor(30.)
     &gt;&gt;&gt; torch.rad2deg(theta[..., 1]).round()
@@ -219,10 +288,10 @@ def rot_to_angle(rot: torch.Tensor) -&gt; tuple[torch.Tensor, torch.Tensor, torc
     &#34;&#34;&#34;
     assert isinstance(rot, torch.Tensor), rot.__class__.__name__
     assert rot.shape[-2:] == (3, 3), rot.shape
-    theta1 = torch.atan2(rot[..., 2, 1], rot[..., 2, 2])
-    theta2 = -torch.asin(rot[..., 2, 0])
-    theta3 = torch.atan2(rot[..., 1, 0], rot[..., 0, 0])
-    return torch.cat([theta1.unsqueeze(-1), theta2.unsqueeze(-1), theta3.unsqueeze(-1)], dim=-1)
+    omega1 = torch.atan2(rot[..., 2, 1], rot[..., 2, 2])
+    omega2 = -torch.asin(rot[..., 2, 0])
+    omega3 = torch.atan2(rot[..., 1, 0], rot[..., 0, 0])
+    return torch.cat([omega1.unsqueeze(-1), omega2.unsqueeze(-1), omega3.unsqueeze(-1)], dim=-1)
 
 
 def rotate_crystal(
@@ -263,7 +332,74 @@ def rotate_crystal(
         crystal = crystal[..., *((None,)*len(batch_r)), :, :]
         rot = rot[*((None,)*len(batch_c)), ..., :, :]
 
-    return rot @ crystal</code></pre>
+    return rot @ crystal
+
+
+def uniform_so3_meshgrid(
+    resol: numbers.Real,
+    omega_range: tuple[tuple[float, float], tuple[float, float], tuple[float, float]],
+    **kwargs,
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Sample the omega space to be uniformly sampled in the rotation space.
+
+    Parameters
+    ----------
+    resol : float
+        The angular resolution in radian.
+    omega_range : tuple[tuple[float, float], tuple[float, float], tuple[float, float]]
+        The min and max limits for each elementary rotation angle
+        \omega_1, \omega_2, \omega_3, in radian.
+
+    Returns
+    -------
+    omega : torch.Tensor
+        The 3 elementary rotation angles of shape (n, 3).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.rotation import uniform_so3_meshgrid
+    &gt;&gt;&gt; uniform_so3_meshgrid(
+    ...     0.7 * torch.pi/180, ((0, torch.pi/2), (-torch.pi/2, torch.pi/2), (-torch.pi, torch.pi))
+    ... )
+    tensor([[ 0.0000, -1.5708, -3.1416],
+            [ 0.0000, -1.5708, -3.1294],
+            [ 0.0000, -1.5708, -3.1172],
+            ...,
+            [ 1.5638,  1.5237,  3.1137],
+            [ 1.5638,  1.5237,  3.1259],
+            [ 1.5638,  1.5237,  3.1381]])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(resol, numbers.Real), resol.__class__.__name__
+    assert resol &gt; 2.926e-9, resol  # 2*pi / resol &lt; 2**31 - 1 because cast int32
+    assert isinstance(omega_range, tuple), omega_range.__name__.__name__
+    assert len(omega_range) == 3, omega_range
+    assert all(isinstance(mm, tuple) for mm in omega_range), omega_range
+    assert all(len(mm) == 2 for mm in omega_range), omega_range
+    (omega1_min, omega1_max), (omega2_min, omega2_max), (omega3_min, omega3_max) = omega_range
+    assert omega1_min &gt;= -torch.pi, omega1_min
+    assert omega1_max &lt;= torch.pi, omega1_max
+    assert omega1_min &lt; omega1_max, (omega1_min, omega1_max)
+    assert omega2_min &gt;= -0.5 * torch.pi, omega2_min
+    assert omega2_max &lt;= 0.5 * torch.pi, omega2_max
+    assert omega2_min &lt; omega2_max, (omega2_min, omega2_max)
+    assert omega3_min &gt;= -torch.pi, omega3_min
+    assert omega3_max &lt;= torch.pi, omega3_max
+    assert omega3_min &lt; omega3_max, (omega3_min, omega3_max)
+
+    # If we draw a lot of uniform rotation matrix with rand_rot,
+    # and we compute the histograms of the omega, we observe that
+    # omega1 and omega3 are uniform, and the histogram of omega2 is a perfect cosinus.
+    # So we have to apply an arcsin into uniform omega2&#39; for having unifor rotation.
+
+    all_omega1 = torch.arange(omega1_min, omega1_max, resol, **kwargs)
+    all_omega2 = torch.asin(torch.arange(omega2_min, omega2_max, resol, **kwargs) / (0.5*torch.pi))
+    all_omega3 = torch.arange(omega3_min, omega3_max, resol, **kwargs)
+
+    all_omega = torch.meshgrid(all_omega1, all_omega2, all_omega3, indexing=&#34;ij&#34;)
+    all_omega = torch.cat([o.reshape(-1, 1) for o in all_omega], dim=1)
+    return all_omega</code></pre>
 </details>
 </section>
 <section>
@@ -273,15 +409,15 @@ def rotate_crystal(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="laueimproc.geometry.rotation.angle_to_rot"><code class="name flex">
-<span>def <span class="ident">angle_to_rot</span></span>(<span>theta1: torch.Tensor | numbers.Real = 0, theta2: torch.Tensor | numbers.Real = 0, theta3: torch.Tensor | numbers.Real = 0, *, cartesian_product: bool = True) ‑> torch.Tensor</span>
+<dt id="laueimproc.geometry.rotation.omega_to_rot"><code class="name flex">
+<span>def <span class="ident">omega_to_rot</span></span>(<span>omega1: torch.Tensor | numbers.Real = 0, omega2: torch.Tensor | numbers.Real = 0, omega3: torch.Tensor | numbers.Real = 0, *, cartesian_product: bool = True) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Generate a rotation matrix from the given angles.</p>
 <p>The rotation are following the pyfai convention.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>theta1</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
+<dt><strong><code>omega1</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
 <dd>The first rotation angle of shape (*a,).
 <span><span class="MathJax_Preview">
 rot_1 =
@@ -289,9 +425,9 @@ rot_1 =
 1 &amp; 0
 &amp;
 0 \\
-0 &amp; \cos(\theta_1) &amp; -\sin(\theta_1) \\
-c &amp; \sin(\theta_1) &amp;
-\cos(\theta_1) \\
+0 &amp; \cos(\omega_1) &amp; -\sin(\omega_1) \\
+c &amp; \sin(\omega_1) &amp;
+\cos(\omega_1) \\
 \end{pmatrix}
 </span><script type="math/tex">
 rot_1 =
@@ -299,47 +435,47 @@ rot_1 =
 1 & 0
 &
 0 \\
-0 & \cos(\theta_1) & -\sin(\theta_1) \\
-c & \sin(\theta_1) &
-\cos(\theta_1) \\
+0 & \cos(\omega_1) & -\sin(\omega_1) \\
+c & \sin(\omega_1) &
+\cos(\omega_1) \\
 \end{pmatrix}
 </script></span></dd>
-<dt><strong><code>theta2</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
+<dt><strong><code>omega2</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
 <dd>The second rotation angle of shape (*b,).
 <span><span class="MathJax_Preview">
 rot_2 =
 \begin{pmatrix}
-\cos(\theta_2) &amp; 0 &amp; \sin(\theta_2) \\
+\cos(\omega_2) &amp; 0 &amp; \sin(\omega_2) \\
 0 &amp; 1 &amp;
 0 \\
--\sin(\theta_2) &amp; 0 &amp; \cos(\theta_2) \\
+-\sin(\omega_2) &amp; 0 &amp; \cos(\omega_2) \\
 \end{pmatrix}
 </span><script type="math/tex">
 rot_2 =
 \begin{pmatrix}
-\cos(\theta_2) & 0 & \sin(\theta_2) \\
+\cos(\omega_2) & 0 & \sin(\omega_2) \\
 0 & 1 &
 0 \\
--\sin(\theta_2) & 0 & \cos(\theta_2) \\
+-\sin(\omega_2) & 0 & \cos(\omega_2) \\
 \end{pmatrix}
 </script></span></dd>
-<dt><strong><code>theta3</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
+<dt><strong><code>omega3</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
 <dd>The third rotation angle of shape (*c,). (inverse of pyfai convention)
 <span><span class="MathJax_Preview">
 rot_3 =
 \begin{pmatrix}
-\cos(\theta_3) &amp; -\sin(\theta_3) &amp; 0 \\
-\sin(\theta_3) &amp;
-\cos(\theta_3) &amp; 0 \\
+\cos(\omega_3) &amp; -\sin(\omega_3) &amp; 0 \\
+\sin(\omega_3) &amp;
+\cos(\omega_3) &amp; 0 \\
 0 &amp;
 0 &amp; 1 \\
 \end{pmatrix}
 </span><script type="math/tex">
 rot_3 =
 \begin{pmatrix}
-\cos(\theta_3) & -\sin(\theta_3) & 0 \\
-\sin(\theta_3) &
-\cos(\theta_3) & 0 \\
+\cos(\omega_3) & -\sin(\omega_3) & 0 \\
+\sin(\omega_3) &
+\cos(\omega_3) & 0 \\
 0 &
 0 & 1 \\
 \end{pmatrix}
@@ -359,14 +495,23 @@ Overwise, the batch dimensions are broadcasted like a zip.</p>
 <dt><strong><code>rot</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The global rotation <span><span class="MathJax_Preview">rot_3 . rot_2 . rot_1</span><script type="math/tex">rot_3 . rot_2 . rot_1</script></span>.</dd>
 </dl>
+<h2 id="notes">Notes</h2>
+<p>To be bijective with the function <code><a title="laueimproc.geometry.rotation.rot_to_omega" href="#laueimproc.geometry.rotation.rot_to_omega">rot_to_omega()</a></code>,
+you have to respect: <span><span class="MathJax_Preview">
+[\omega_1, \omega_2, \omega_3]
+\in [-\pi, \pi] \times [-\frac{\pi}{2}, \frac{\pi}{2}] \times [-\pi, \pi]
+</span><script type="math/tex">
+[\omega_1, \omega_2, \omega_3]
+\in [-\pi, \pi] \times [-\frac{\pi}{2}, \frac{\pi}{2}] \times [-\pi, \pi]
+</script></span></p>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.geometry.rotation import angle_to_rot
-&gt;&gt;&gt; angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6)
+&gt;&gt;&gt; from laueimproc.geometry.rotation import omega_to_rot
+&gt;&gt;&gt; omega_to_rot(omega1=torch.pi/6, omega2=torch.pi/6, omega3=torch.pi/6)
 tensor([[ 0.7500, -0.2165,  0.6250],
         [ 0.4330,  0.8750, -0.2165],
         [-0.5000,  0.4330,  0.7500]])
-&gt;&gt;&gt; angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9)).shape
+&gt;&gt;&gt; omega_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9)).shape
 torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
 &gt;&gt;&gt;
 </code></pre></div>
@@ -374,10 +519,10 @@ torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def angle_to_rot(
-    theta1: torch.Tensor | numbers.Real = 0,
-    theta2: torch.Tensor | numbers.Real = 0,
-    theta3: torch.Tensor | numbers.Real = 0,
+<pre><code class="python">def omega_to_rot(
+    omega1: torch.Tensor | numbers.Real = 0,
+    omega2: torch.Tensor | numbers.Real = 0,
+    omega3: torch.Tensor | numbers.Real = 0,
     *, cartesian_product: bool = True,
 ) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Generate a rotation matrix from the given angles.
@@ -386,33 +531,33 @@ torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
 
     Parameters
     ----------
-    theta1 : torch.Tensor or float
+    omega1 : torch.Tensor or float
         The first rotation angle of shape (\*a,).
         \(
             rot_1 =
             \begin{pmatrix}
                 1 &amp; 0              &amp;               0 \\
-                0 &amp; \cos(\theta_1) &amp; -\sin(\theta_1) \\
-                c &amp; \sin(\theta_1) &amp;  \cos(\theta_1) \\
+                0 &amp; \cos(\omega_1) &amp; -\sin(\omega_1) \\
+                c &amp; \sin(\omega_1) &amp;  \cos(\omega_1) \\
             \end{pmatrix}
         \)
-    theta2 : torch.Tensor or float
+    omega2 : torch.Tensor or float
         The second rotation angle of shape (\*b,).
         \(
             rot_2 =
             \begin{pmatrix}
-                 \cos(\theta_2) &amp; 0 &amp; \sin(\theta_2) \\
+                 \cos(\omega_2) &amp; 0 &amp; \sin(\omega_2) \\
                               0 &amp; 1 &amp;              0 \\
-                -\sin(\theta_2) &amp; 0 &amp; \cos(\theta_2) \\
+                -\sin(\omega_2) &amp; 0 &amp; \cos(\omega_2) \\
             \end{pmatrix}
         \)
-    theta3 : torch.Tensor or float
+    omega3 : torch.Tensor or float
         The third rotation angle of shape (\*c,). (inverse of pyfai convention)
         \(
             rot_3 =
             \begin{pmatrix}
-                \cos(\theta_3) &amp; -\sin(\theta_3) &amp; 0 \\
-                \sin(\theta_3) &amp;  \cos(\theta_3) &amp; 0 \\
+                \cos(\omega_3) &amp; -\sin(\omega_3) &amp; 0 \\
+                \sin(\omega_3) &amp;  \cos(\omega_3) &amp; 0 \\
                              0 &amp;               0 &amp; 1 \\
             \end{pmatrix}
         \)
@@ -428,55 +573,63 @@ torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
     rot : torch.Tensor
         The global rotation \(rot_3 . rot_2 . rot_1\).
 
+    Notes
+    -----
+    To be bijective with the function ``laueimproc.geometry.rotation.rot_to_omega``,
+    you have to respect: \(
+        [\omega_1, \omega_2, \omega_3]
+        \in [-\pi, \pi] \times [-\frac{\pi}{2}, \frac{\pi}{2}] \times [-\pi, \pi]
+    \)
+
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.geometry.rotation import angle_to_rot
-    &gt;&gt;&gt; angle_to_rot(theta1=torch.pi/6, theta2=torch.pi/6, theta3=torch.pi/6)
+    &gt;&gt;&gt; from laueimproc.geometry.rotation import omega_to_rot
+    &gt;&gt;&gt; omega_to_rot(omega1=torch.pi/6, omega2=torch.pi/6, omega3=torch.pi/6)
     tensor([[ 0.7500, -0.2165,  0.6250],
             [ 0.4330,  0.8750, -0.2165],
             [-0.5000,  0.4330,  0.7500]])
-    &gt;&gt;&gt; angle_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9)).shape
+    &gt;&gt;&gt; omega_to_rot(torch.randn(4), torch.randn(5, 6), torch.randn(7, 8, 9)).shape
     torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
     &gt;&gt;&gt;
     &#34;&#34;&#34;
-    assert isinstance(theta1, torch.Tensor | numbers.Real), theta1.__class__.__name__
-    assert isinstance(theta2, torch.Tensor | numbers.Real), theta2.__class__.__name__
-    assert isinstance(theta3, torch.Tensor | numbers.Real), theta3.__class__.__name__
+    assert isinstance(omega1, torch.Tensor | numbers.Real), omega1.__class__.__name__
+    assert isinstance(omega2, torch.Tensor | numbers.Real), omega2.__class__.__name__
+    assert isinstance(omega3, torch.Tensor | numbers.Real), omega3.__class__.__name__
     assert isinstance(cartesian_product, bool), cartesian_product.__class__.__name__
 
     # find dtype and device
     dtype = (
-        {a.dtype for a in (theta1, theta2, theta3) if isinstance(a, torch.Tensor)}
+        {a.dtype for a in (omega1, omega2, omega3) if isinstance(a, torch.Tensor)}
         or {torch.float32}
     )
     dtype = max(dtype, key=lambda t: t.itemsize)
     device = (
-        {a.device for a in (theta1, theta2, theta3) if isinstance(a, torch.Tensor)}
+        {a.device for a in (omega1, omega2, omega3) if isinstance(a, torch.Tensor)}
         or {torch.device(&#34;cpu&#34;)}
     ).pop()
 
     # cast into tensor
-    if isinstance(theta1, numbers.Real):
-        theta1 = torch.tensor(theta1, device=device, dtype=dtype)
-    if isinstance(theta2, numbers.Real):
-        theta2 = torch.tensor(theta2, device=device, dtype=dtype)
-    if isinstance(theta3, numbers.Real):
-        theta3 = torch.tensor(theta3, device=device, dtype=dtype)
+    if isinstance(omega1, numbers.Real):
+        omega1 = torch.tensor(omega1, device=device, dtype=dtype)
+    if isinstance(omega2, numbers.Real):
+        omega2 = torch.tensor(omega2, device=device, dtype=dtype)
+    if isinstance(omega3, numbers.Real):
+        omega3 = torch.tensor(omega3, device=device, dtype=dtype)
 
     # expand dims
     if cartesian_product:
-        theta1, theta2, theta3 = (
-            theta1[..., *((None,)*theta2.ndim), *((None,)*theta3.ndim)],
-            theta2[*((None,)*theta1.ndim), ..., *((None,)*theta3.ndim)],
-            theta3[*((None,)*theta1.ndim), *((None,)*theta2.ndim), ...],
+        omega1, omega2, omega3 = (
+            omega1[..., *((None,)*omega2.ndim), *((None,)*omega3.ndim)],
+            omega2[*((None,)*omega1.ndim), ..., *((None,)*omega3.ndim)],
+            omega3[*((None,)*omega1.ndim), *((None,)*omega2.ndim), ...],
         )
-    batch = torch.broadcast_shapes(theta1.shape, theta2.shape, theta3.shape)
+    batch = torch.broadcast_shapes(omega1.shape, omega2.shape, omega3.shape)
 
     # precompute sin and cos
-    sin1, cos1 = torch.sin(theta1), torch.cos(theta1)
-    sin2, cos2 = torch.sin(theta2), torch.cos(theta2)
-    sin3, cos3 = torch.sin(theta3), torch.cos(theta3)
+    sin1, cos1 = torch.sin(omega1), torch.cos(omega1)
+    sin2, cos2 = torch.sin(omega2), torch.cos(omega2)
+    sin3, cos3 = torch.sin(omega3), torch.cos(omega3)
 
     # full matrix
     sin1sin2 = sin1 * sin2
@@ -494,12 +647,108 @@ torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
     ], dim=-1).reshape(*batch, 3, 3)</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.rotation.rot_to_angle"><code class="name flex">
-<span>def <span class="ident">rot_to_angle</span></span>(<span>rot: torch.Tensor) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor]</span>
+<dt id="laueimproc.geometry.rotation.rand_rot"><code class="name flex">
+<span>def <span class="ident">rand_rot</span></span>(<span>nbr: numbers.Integral, **kwargs) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Draw a random uniform rotation matrix.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>nbr</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of matrices to draw.</dd>
+<dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Transmitted to torch.rand, it can be "device" or "dtype" for example.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>rot</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Rotation matrices uniformly distributed in the space of possible rotations.
+No one direction is favored over another. Shape (nbr, 3, 3).</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>Creating rotation matrices from a uniform draw of omegas induces a bias
+that will favor certain oriantations.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.geometry.rotation import rand_rot
+&gt;&gt;&gt; rot = rand_rot(1000, dtype=torch.float64)
+&gt;&gt;&gt; torch.allclose(torch.linalg.det(rot), torch.tensor(1.0, dtype=rot.dtype))
+True
+&gt;&gt;&gt; torch.allclose(rot @ rot.mT, torch.eye(3, dtype=rot.dtype))
+True
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rand_rot(nbr: numbers.Integral, **kwargs) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Draw a random uniform rotation matrix.
+
+    Parameters
+    ----------
+    nbr : int
+        The number of matrices to draw.
+    **kwargs : dict
+        Transmitted to torch.rand, it can be &#34;device&#34; or &#34;dtype&#34; for example.
+
+    Returns
+    -------
+    rot : torch.Tensor
+        Rotation matrices uniformly distributed in the space of possible rotations.
+        No one direction is favored over another. Shape (nbr, 3, 3).
+
+    Notes
+    -----
+    Creating rotation matrices from a uniform draw of omegas induces a bias
+    that will favor certain oriantations.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.rotation import rand_rot
+    &gt;&gt;&gt; rot = rand_rot(1000, dtype=torch.float64)
+    &gt;&gt;&gt; torch.allclose(torch.linalg.det(rot), torch.tensor(1.0, dtype=rot.dtype))
+    True
+    &gt;&gt;&gt; torch.allclose(rot @ rot.mT, torch.eye(3, dtype=rot.dtype))
+    True
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(nbr, numbers.Integral), nbr.__class__.__name__
+    assert nbr &gt;= 0, nbr
+
+    # draw 2*nbr random vectors in the unitary sphere, kind of Monte-Carlo:
+    # we have (1 + 9%) * (Vcube / Vsphere) = 2, it means if we draw two time more vectors
+    # than the required number, it is fine in average.
+    vect = torch.empty((0, 3), **kwargs)
+    norm = torch.empty((0,), **kwargs)
+    while len(vect) &lt; 2*nbr:
+        new_vect = torch.rand(2 * (2*nbr - len(vect)), 3, **kwargs)
+        new_vect *= 2.0
+        new_vect -= 1.0  # uniform in [-1, 1[
+        new_norm = torch.sum(new_vect * new_vect, dim=1)
+        cond = new_norm &lt;= 1.0  # the proba of keeping it is Vshere / Vcube = (4/3*pi) / (2*2*2)
+        vect, norm = torch.cat([vect, new_vect[cond]]), torch.cat([norm, new_norm[cond]])
+    vect, norm = vect[:2*nbr], norm[:2*nbr]
+
+    # create orthonormal base with Gram-Schmidt
+    vect1 = vect[:nbr]
+    vect1 *= torch.rsqrt(norm[:nbr, None])
+    vect2 = vect[nbr:]
+    vect2 -= vect1 * torch.sum(vect1 * vect2, dim=1, keepdim=True)  # &lt;vect1, vect2&gt;
+    vect2 *= torch.rsqrt(torch.sum(vect2 * vect2, dim=1, keepdim=True))
+    vect3 = torch.linalg.cross(vect1, vect2)
+
+    # concatenate it as rotation matrices
+    return torch.cat([vect1[:, :, None], vect2[:, :, None], vect3[:, :, None]], dim=2)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.rotation.rot_to_omega"><code class="name flex">
+<span>def <span class="ident">rot_to_omega</span></span>(<span>rot: torch.Tensor) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Extract the rotation angles from a fulle rotation matrix.</p>
-<p>Bijection of <code><a title="laueimproc.geometry.rotation.angle_to_rot" href="#laueimproc.geometry.rotation.angle_to_rot">angle_to_rot()</a></code>.</p>
+<p>Bijection of <code><a title="laueimproc.geometry.rotation.omega_to_rot" href="#laueimproc.geometry.rotation.omega_to_rot">omega_to_rot()</a></code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>rot</code></strong> :&ensp;<code>torch.Tensor</code></dt>
@@ -507,17 +756,17 @@ torch.Size([4, 5, 6, 7, 8, 9, 3, 3])
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>theta1</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
-<dd>The first rotation angle of shape (&hellip;,). <span><span class="MathJax_Preview">\theta_1 \in [-\pi, \pi]</span><script type="math/tex">\theta_1 \in [-\pi, \pi]</script></span>
+<dt><strong><code>omega1</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
+<dd>The first rotation angle of shape (&hellip;,). <span><span class="MathJax_Preview">\omega_1 \in [-\pi, \pi]</span><script type="math/tex">\omega_1 \in [-\pi, \pi]</script></span>
 <span><span class="MathJax_Preview">
 rot_1 =
 \begin{pmatrix}
 1 &amp; 0
 &amp;
 0 \\
-0 &amp; \cos(\theta_1) &amp; -\sin(\theta_1) \\
-c &amp; \sin(\theta_1) &amp;
-\cos(\theta_1) \\
+0 &amp; \cos(\omega_1) &amp; -\sin(\omega_1) \\
+c &amp; \sin(\omega_1) &amp;
+\cos(\omega_1) \\
 \end{pmatrix}
 </span><script type="math/tex">
 rot_1 =
@@ -525,48 +774,48 @@ rot_1 =
 1 & 0
 &
 0 \\
-0 & \cos(\theta_1) & -\sin(\theta_1) \\
-c & \sin(\theta_1) &
-\cos(\theta_1) \\
+0 & \cos(\omega_1) & -\sin(\omega_1) \\
+c & \sin(\omega_1) &
+\cos(\omega_1) \\
 \end{pmatrix}
 </script></span></dd>
-<dt><strong><code>theta2</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
-<dd>The second rotation angle of shape (&hellip;,). <span><span class="MathJax_Preview">\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]</span><script type="math/tex">\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]</script></span>
+<dt><strong><code>omega2</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
+<dd>The second rotation angle of shape (&hellip;,). <span><span class="MathJax_Preview">\omega_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]</span><script type="math/tex">\omega_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]</script></span>
 <span><span class="MathJax_Preview">
 rot_2 =
 \begin{pmatrix}
-\cos(\theta_2) &amp; 0 &amp; \sin(\theta_2) \\
+\cos(\omega_2) &amp; 0 &amp; \sin(\omega_2) \\
 0 &amp; 1 &amp;
 0 \\
--\sin(\theta_2) &amp; 0 &amp; \cos(\theta_2) \\
+-\sin(\omega_2) &amp; 0 &amp; \cos(\omega_2) \\
 \end{pmatrix}
 </span><script type="math/tex">
 rot_2 =
 \begin{pmatrix}
-\cos(\theta_2) & 0 & \sin(\theta_2) \\
+\cos(\omega_2) & 0 & \sin(\omega_2) \\
 0 & 1 &
 0 \\
--\sin(\theta_2) & 0 & \cos(\theta_2) \\
+-\sin(\omega_2) & 0 & \cos(\omega_2) \\
 \end{pmatrix}
 </script></span></dd>
-<dt><strong><code>theta3</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
+<dt><strong><code>omega3</code></strong> :&ensp;<code>torch.Tensor</code> or <code>float</code></dt>
 <dd>The third rotation angle of shape (&hellip;,). (inverse of pyfai convention)
-<span><span class="MathJax_Preview">\theta_3 \in [-\pi, \pi]</span><script type="math/tex">\theta_3 \in [-\pi, \pi]</script></span>
+<span><span class="MathJax_Preview">\omega_3 \in [-\pi, \pi]</span><script type="math/tex">\omega_3 \in [-\pi, \pi]</script></span>
 <span><span class="MathJax_Preview">
 rot_3 =
 \begin{pmatrix}
-\cos(\theta_3) &amp; -\sin(\theta_3) &amp; 0 \\
-\sin(\theta_3) &amp;
-\cos(\theta_3) &amp; 0 \\
+\cos(\omega_3) &amp; -\sin(\omega_3) &amp; 0 \\
+\sin(\omega_3) &amp;
+\cos(\omega_3) &amp; 0 \\
 0 &amp;
 0 &amp; 1 \\
 \end{pmatrix}
 </span><script type="math/tex">
 rot_3 =
 \begin{pmatrix}
-\cos(\theta_3) & -\sin(\theta_3) & 0 \\
-\sin(\theta_3) &
-\cos(\theta_3) & 0 \\
+\cos(\omega_3) & -\sin(\omega_3) & 0 \\
+\sin(\omega_3) &
+\cos(\omega_3) & 0 \\
 0 &
 0 & 1 \\
 \end{pmatrix}
@@ -574,11 +823,11 @@ rot_3 =
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.geometry.rotation import rot_to_angle
+&gt;&gt;&gt; from laueimproc.geometry.rotation import rot_to_omega
 &gt;&gt;&gt; rot = torch.tensor([[ 0.7500, -0.2165,  0.6250],
 ...                     [ 0.4330,  0.8750, -0.2165],
 ...                     [-0.5000,  0.4330,  0.7500]])
-&gt;&gt;&gt; theta = rot_to_angle(rot)
+&gt;&gt;&gt; theta = rot_to_omega(rot)
 &gt;&gt;&gt; torch.rad2deg(theta[..., 0]).round()
 tensor(30.)
 &gt;&gt;&gt; torch.rad2deg(theta[..., 1]).round()
@@ -591,10 +840,10 @@ tensor(30.)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def rot_to_angle(rot: torch.Tensor) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+<pre><code class="python">def rot_to_omega(rot: torch.Tensor) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     r&#34;&#34;&#34;Extract the rotation angles from a fulle rotation matrix.
 
-    Bijection of ``laueimproc.geometry.rotation.angle_to_rot``.
+    Bijection of ``laueimproc.geometry.rotation.omega_to_rot``.
 
     Parameters
     ----------
@@ -603,34 +852,34 @@ tensor(30.)
 
     Returns
     -------
-    theta1 : torch.Tensor or float
-        The first rotation angle of shape (...,). \(\theta_1 \in [-\pi, \pi]\)
+    omega1 : torch.Tensor or float
+        The first rotation angle of shape (...,). \(\omega_1 \in [-\pi, \pi]\)
         \(
             rot_1 =
             \begin{pmatrix}
                 1 &amp; 0              &amp;               0 \\
-                0 &amp; \cos(\theta_1) &amp; -\sin(\theta_1) \\
-                c &amp; \sin(\theta_1) &amp;  \cos(\theta_1) \\
+                0 &amp; \cos(\omega_1) &amp; -\sin(\omega_1) \\
+                c &amp; \sin(\omega_1) &amp;  \cos(\omega_1) \\
             \end{pmatrix}
         \)
-    theta2 : torch.Tensor or float
-        The second rotation angle of shape (...,). \(\theta_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]\)
+    omega2 : torch.Tensor or float
+        The second rotation angle of shape (...,). \(\omega_2 \in [-\frac{\pi}{2}, \frac{\pi}{2}]\)
         \(
             rot_2 =
             \begin{pmatrix}
-                 \cos(\theta_2) &amp; 0 &amp; \sin(\theta_2) \\
+                 \cos(\omega_2) &amp; 0 &amp; \sin(\omega_2) \\
                               0 &amp; 1 &amp;              0 \\
-                -\sin(\theta_2) &amp; 0 &amp; \cos(\theta_2) \\
+                -\sin(\omega_2) &amp; 0 &amp; \cos(\omega_2) \\
             \end{pmatrix}
         \)
-    theta3 : torch.Tensor or float
+    omega3 : torch.Tensor or float
         The third rotation angle of shape (...,). (inverse of pyfai convention)
-        \(\theta_3 \in [-\pi, \pi]\)
+        \(\omega_3 \in [-\pi, \pi]\)
         \(
             rot_3 =
             \begin{pmatrix}
-                \cos(\theta_3) &amp; -\sin(\theta_3) &amp; 0 \\
-                \sin(\theta_3) &amp;  \cos(\theta_3) &amp; 0 \\
+                \cos(\omega_3) &amp; -\sin(\omega_3) &amp; 0 \\
+                \sin(\omega_3) &amp;  \cos(\omega_3) &amp; 0 \\
                              0 &amp;               0 &amp; 1 \\
             \end{pmatrix}
         \)
@@ -638,11 +887,11 @@ tensor(30.)
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.geometry.rotation import rot_to_angle
+    &gt;&gt;&gt; from laueimproc.geometry.rotation import rot_to_omega
     &gt;&gt;&gt; rot = torch.tensor([[ 0.7500, -0.2165,  0.6250],
     ...                     [ 0.4330,  0.8750, -0.2165],
     ...                     [-0.5000,  0.4330,  0.7500]])
-    &gt;&gt;&gt; theta = rot_to_angle(rot)
+    &gt;&gt;&gt; theta = rot_to_omega(rot)
     &gt;&gt;&gt; torch.rad2deg(theta[..., 0]).round()
     tensor(30.)
     &gt;&gt;&gt; torch.rad2deg(theta[..., 1]).round()
@@ -653,10 +902,10 @@ tensor(30.)
     &#34;&#34;&#34;
     assert isinstance(rot, torch.Tensor), rot.__class__.__name__
     assert rot.shape[-2:] == (3, 3), rot.shape
-    theta1 = torch.atan2(rot[..., 2, 1], rot[..., 2, 2])
-    theta2 = -torch.asin(rot[..., 2, 0])
-    theta3 = torch.atan2(rot[..., 1, 0], rot[..., 0, 0])
-    return torch.cat([theta1.unsqueeze(-1), theta2.unsqueeze(-1), theta3.unsqueeze(-1)], dim=-1)</code></pre>
+    omega1 = torch.atan2(rot[..., 2, 1], rot[..., 2, 2])
+    omega2 = -torch.asin(rot[..., 2, 0])
+    omega3 = torch.atan2(rot[..., 1, 0], rot[..., 0, 0])
+    return torch.cat([omega1.unsqueeze(-1), omega2.unsqueeze(-1), omega3.unsqueeze(-1)], dim=-1)</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.geometry.rotation.rotate_crystal"><code class="name flex">
@@ -731,6 +980,110 @@ Overwise, the batch dimensions are broadcasted like a zip.</p>
     return rot @ crystal</code></pre>
 </details>
 </dd>
+<dt id="laueimproc.geometry.rotation.uniform_so3_meshgrid"><code class="name flex">
+<span>def <span class="ident">uniform_so3_meshgrid</span></span>(<span>resol: numbers.Real, omega_range: tuple[tuple[float, float], tuple[float, float], tuple[float, float]], **kwargs) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sample the omega space to be uniformly sampled in the rotation space.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>resol</code></strong> :&ensp;<code>float</code></dt>
+<dd>The angular resolution in radian.</dd>
+<dt><strong><code>omega_range</code></strong> :&ensp;<code>tuple[tuple[float, float], tuple[float, float], tuple[float, float]]</code></dt>
+<dd>The min and max limits for each elementary rotation angle
+\omega_1, \omega_2, \omega_3, in radian.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>omega</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 3 elementary rotation angles of shape (n, 3).</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.geometry.rotation import uniform_so3_meshgrid
+&gt;&gt;&gt; uniform_so3_meshgrid(
+...     0.7 * torch.pi/180, ((0, torch.pi/2), (-torch.pi/2, torch.pi/2), (-torch.pi, torch.pi))
+... )
+tensor([[ 0.0000, -1.5708, -3.1416],
+        [ 0.0000, -1.5708, -3.1294],
+        [ 0.0000, -1.5708, -3.1172],
+        ...,
+        [ 1.5638,  1.5237,  3.1137],
+        [ 1.5638,  1.5237,  3.1259],
+        [ 1.5638,  1.5237,  3.1381]])
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def uniform_so3_meshgrid(
+    resol: numbers.Real,
+    omega_range: tuple[tuple[float, float], tuple[float, float], tuple[float, float]],
+    **kwargs,
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Sample the omega space to be uniformly sampled in the rotation space.
+
+    Parameters
+    ----------
+    resol : float
+        The angular resolution in radian.
+    omega_range : tuple[tuple[float, float], tuple[float, float], tuple[float, float]]
+        The min and max limits for each elementary rotation angle
+        \omega_1, \omega_2, \omega_3, in radian.
+
+    Returns
+    -------
+    omega : torch.Tensor
+        The 3 elementary rotation angles of shape (n, 3).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.rotation import uniform_so3_meshgrid
+    &gt;&gt;&gt; uniform_so3_meshgrid(
+    ...     0.7 * torch.pi/180, ((0, torch.pi/2), (-torch.pi/2, torch.pi/2), (-torch.pi, torch.pi))
+    ... )
+    tensor([[ 0.0000, -1.5708, -3.1416],
+            [ 0.0000, -1.5708, -3.1294],
+            [ 0.0000, -1.5708, -3.1172],
+            ...,
+            [ 1.5638,  1.5237,  3.1137],
+            [ 1.5638,  1.5237,  3.1259],
+            [ 1.5638,  1.5237,  3.1381]])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(resol, numbers.Real), resol.__class__.__name__
+    assert resol &gt; 2.926e-9, resol  # 2*pi / resol &lt; 2**31 - 1 because cast int32
+    assert isinstance(omega_range, tuple), omega_range.__name__.__name__
+    assert len(omega_range) == 3, omega_range
+    assert all(isinstance(mm, tuple) for mm in omega_range), omega_range
+    assert all(len(mm) == 2 for mm in omega_range), omega_range
+    (omega1_min, omega1_max), (omega2_min, omega2_max), (omega3_min, omega3_max) = omega_range
+    assert omega1_min &gt;= -torch.pi, omega1_min
+    assert omega1_max &lt;= torch.pi, omega1_max
+    assert omega1_min &lt; omega1_max, (omega1_min, omega1_max)
+    assert omega2_min &gt;= -0.5 * torch.pi, omega2_min
+    assert omega2_max &lt;= 0.5 * torch.pi, omega2_max
+    assert omega2_min &lt; omega2_max, (omega2_min, omega2_max)
+    assert omega3_min &gt;= -torch.pi, omega3_min
+    assert omega3_max &lt;= torch.pi, omega3_max
+    assert omega3_min &lt; omega3_max, (omega3_min, omega3_max)
+
+    # If we draw a lot of uniform rotation matrix with rand_rot,
+    # and we compute the histograms of the omega, we observe that
+    # omega1 and omega3 are uniform, and the histogram of omega2 is a perfect cosinus.
+    # So we have to apply an arcsin into uniform omega2&#39; for having unifor rotation.
+
+    all_omega1 = torch.arange(omega1_min, omega1_max, resol, **kwargs)
+    all_omega2 = torch.asin(torch.arange(omega2_min, omega2_max, resol, **kwargs) / (0.5*torch.pi))
+    all_omega3 = torch.arange(omega3_min, omega3_max, resol, **kwargs)
+
+    all_omega = torch.meshgrid(all_omega1, all_omega2, all_omega3, indexing=&#34;ij&#34;)
+    all_omega = torch.cat([o.reshape(-1, 1) for o in all_omega], dim=1)
+    return all_omega</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -795,9 +1148,11 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.geometry.rotation.angle_to_rot" href="#laueimproc.geometry.rotation.angle_to_rot">angle_to_rot</a></code></li>
-<li><code><a title="laueimproc.geometry.rotation.rot_to_angle" href="#laueimproc.geometry.rotation.rot_to_angle">rot_to_angle</a></code></li>
+<li><code><a title="laueimproc.geometry.rotation.omega_to_rot" href="#laueimproc.geometry.rotation.omega_to_rot">omega_to_rot</a></code></li>
+<li><code><a title="laueimproc.geometry.rotation.rand_rot" href="#laueimproc.geometry.rotation.rand_rot">rand_rot</a></code></li>
+<li><code><a title="laueimproc.geometry.rotation.rot_to_omega" href="#laueimproc.geometry.rotation.rot_to_omega">rot_to_omega</a></code></li>
 <li><code><a title="laueimproc.geometry.rotation.rotate_crystal" href="#laueimproc.geometry.rotation.rotate_crystal">rotate_crystal</a></code></li>
+<li><code><a title="laueimproc.geometry.rotation.uniform_so3_meshgrid" href="#laueimproc.geometry.rotation.uniform_so3_meshgrid">uniform_so3_meshgrid</a></code></li>
 </ul>
 </li>
 </ul>

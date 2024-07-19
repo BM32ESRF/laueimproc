@@ -16,7 +16,7 @@ clean:
 
 html:
 	@echo "****************************************"
-	@echo "******** Invoke Manim and FFmpeg *******"
+	@echo "*** Invoke Graphviz Manim and FFmpeg ***"
 	@echo "****************************************"
 	@bash ./build_media.sh
 

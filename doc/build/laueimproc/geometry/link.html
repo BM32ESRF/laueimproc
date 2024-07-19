@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>laueimproc.geometry.model API documentation</title>
-<meta name="description" content="Full model for complete simulation …" />
+<title>laueimproc.geometry.link API documentation</title>
+<meta name="description" content="Combines atomic functions to provide an overview." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -20,36 +20,162 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>laueimproc.geometry.model</code></h1>
+<h1 class="title">Module <code>laueimproc.geometry.link</code></h1>
 </header>
 <section id="section-intro">
-<p>Full model for complete simulation.</p>
-<p>Combines the various elementary functions into a torch module.</p>
+<p>Combines atomic functions to provide an overview.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!/usr/bin/env python3
 
-&#34;&#34;&#34;Full model for complete simulation.
-
-Combines the various elementary functions into a torch module.
-&#34;&#34;&#34;
+&#34;&#34;&#34;Combines atomic functions to provide an overview.&#34;&#34;&#34;
 
 import numbers
 import warnings
 
+import networkx as nx
 import torch
 
-from .bragg import hkl_reciprocal_to_uq_energy, uq_to_uf
+from .bragg import hkl_reciprocal_to_uq_energy, uf_to_uq, uq_to_uf
 from .hkl import select_hkl
-from .lattice import lattice_to_primitive
-from .projection import ray_to_detector
-from .reciprocal import primitive_to_reciprocal
-from .rotation import angle_to_rot, rotate_crystal
+from .lattice import lattice_to_primitive, primitive_to_lattice
+from .projection import detector_to_ray, ray_to_detector
+from .reciprocal import primitive_to_reciprocal, reciprocal_to_primitive
+from .rotation import omega_to_rot, rot_to_omega, rotate_crystal
+from .thetachi import thetachi_to_uf, uf_to_thetachi
 
 
-class BraggModel(torch.nn.Module):
+GRAPH = nx.DiGraph(name=&#34;Geometry Linker Graph&#34;)
+GRAPH.add_nodes_from(  # data
+    [
+        &#34;lattice&#34;, &#34;primitive_bc&#34;, &#34;reciprocal_bc&#34;,
+        &#34;omega&#34;, &#34;rot&#34;,
+        &#34;primitive_bl&#34;, &#34;reciprocal_bl&#34;,
+        &#34;e_max&#34;, &#34;e_min&#34;,
+        &#34;hkl_all&#34;, &#34;hkl&#34;, &#34;energy&#34;, &#34;u_q&#34;, &#34;u_f&#34;,
+        &#34;poni&#34;, &#34;point&#34;, &#34;dist&#34;,
+        &#34;gnomonic&#34;, &#34;poni_gnom&#34;,
+        &#34;thetachi&#34;,
+    ],
+    type=&#34;data&#34;,
+    value=None,
+    style=&#34;filled&#34;,
+    fillcolor=&#34;coral&#34;,
+
+)
+GRAPH.add_nodes_from(  # functions
+    [
+        (&#34;lattice_to_primitive_bc&#34;, {
+            &#34;value&#34;: lattice_to_primitive, &#34;label&#34;: &#34;lattice_to_primitive&#34;
+        }),
+        (&#34;primitive_bc_to_lattice&#34;, {
+            &#34;value&#34;: primitive_to_lattice, &#34;label&#34;: &#34;primitive_to_lattice&#34;
+        }),
+        (&#34;primitive_bl_to_lattice&#34;, {
+            &#34;value&#34;: primitive_to_lattice, &#34;label&#34;: &#34;primitive_to_lattice&#34;
+        }),
+        (&#34;primitive_bc_to_reciprocal_bc&#34;, {
+            &#34;value&#34;: primitive_to_reciprocal, &#34;label&#34;: &#34;primitive_to_reciprocal&#34;
+        }),
+        (&#34;primitive_bl_to_reciprocal_bl&#34;, {
+            &#34;value&#34;: primitive_to_reciprocal, &#34;label&#34;: &#34;primitive_to_reciprocal&#34;
+        }),
+        (&#34;reciprocal_bc_to_primitive_bc&#34;, {
+            &#34;value&#34;: reciprocal_to_primitive, &#34;label&#34;: &#34;reciprocal_to_primitive&#34;
+        }),
+        (&#34;reciprocal_bc_to_primitive_bc&#34;, {
+            &#34;value&#34;: reciprocal_to_primitive, &#34;label&#34;: &#34;reciprocal_to_primitive&#34;
+        }),
+        (&#34;omega_to_rot&#34;, {
+            &#34;value&#34;: omega_to_rot, &#34;label&#34;: &#34;omega_to_rot&#34;
+        }),
+        (&#34;rot_to_omega&#34;, {
+            &#34;value&#34;: rot_to_omega, &#34;label&#34;: &#34;rot_to_omega&#34;
+        }),
+        (&#34;rotate_primitive&#34;, {
+            &#34;value&#34;: rotate_crystal, &#34;label&#34;: &#34;rotate_primitive&#34;
+        }),
+        (&#34;rotate_reciprocal&#34;, {
+            &#34;value&#34;: rotate_crystal, &#34;label&#34;: &#34;rotate_reciprocal&#34;
+        }),
+        (&#34;select_hkl&#34;, {
+            &#34;value&#34;: select_hkl, &#34;label&#34;: &#34;select_hkl&#34;
+        }),
+        (&#34;hkl_reciprocal_to_uq_energy&#34;, {
+            &#34;value&#34;: hkl_reciprocal_to_uq_energy, &#34;lsbel&#34;: &#34;hkl_reciprocal_to_uq_energy&#34;
+        }),
+        (&#34;uq_to_uf&#34;, {
+            &#34;value&#34;: uq_to_uf, &#34;label&#34;: &#34;uq_to_uf&#34;
+        }),
+        (&#34;uf_to_uq&#34;, {
+            &#34;value&#34;: uf_to_uq, &#34;label&#34;: &#34;uf_to_uq&#34;
+        }),
+        (&#34;uf_to_detector&#34;, {
+            &#34;value&#34;: ray_to_detector, &#34;label&#34;: &#34;ray_to_detector&#34;
+        }),
+        (&#34;uq_to_detector&#34;, {
+            &#34;value&#34;: ray_to_detector, &#34;label&#34;: &#34;ray_to_detector&#34;
+        }),
+        (&#34;detector_to_uf&#34;, {
+            &#34;value&#34;: detector_to_ray, &#34;label&#34;: &#34;detector_to_ray&#34;
+        }),
+        (&#34;detector_to_uq&#34;, {
+            &#34;value&#34;: detector_to_ray, &#34;label&#34;: &#34;detector_to_ray&#34;
+        }),
+        (&#34;uf_to_thetachi&#34;, {
+            &#34;value&#34;: uf_to_thetachi, &#34;label&#34;: &#34;uf_to_thetachi&#34;
+        }),
+        (&#34;thetachi_to_uf&#34;, {
+            &#34;value&#34;: thetachi_to_uf, &#34;label&#34;: &#34;thetachi_to_uf&#34;
+        }),
+    ],
+    type=&#34;func&#34;,
+    shape=&#34;rectangle&#34;,
+
+)
+GRAPH.add_edges_from([
+    (&#34;lattice&#34;, &#34;lattice_to_primitive_bc&#34;), (&#34;lattice_to_primitive_bc&#34;, &#34;primitive_bc&#34;),
+    (&#34;primitive_bc&#34;, &#34;primitive_bc_to_lattice&#34;), (&#34;primitive_bc_to_lattice&#34;, &#34;lattice&#34;),
+    (&#34;primitive_bl&#34;, &#34;primitive_bl_to_lattice&#34;), (&#34;primitive_bl_to_lattice&#34;, &#34;lattice&#34;),
+    (&#34;omega&#34;, &#34;omega_to_rot&#34;), (&#34;omega_to_rot&#34;, &#34;rot&#34;),
+    (&#34;rot&#34;, &#34;rot_to_omega&#34;), (&#34;rot_to_omega&#34;, &#34;omega&#34;),
+    (&#34;primitive_bc&#34;, &#34;rotate_primitive&#34;), (&#34;rot&#34;, &#34;rotate_primitive&#34;),
+    (&#34;rotate_primitive&#34;, &#34;primitive_bl&#34;),
+    (&#34;reciprocal_bc&#34;, &#34;rotate_reciprocal&#34;), (&#34;rot&#34;, &#34;rotate_reciprocal&#34;),
+    (&#34;rotate_reciprocal&#34;, &#34;reciprocal_bl&#34;),
+    (&#34;primitive_bc&#34;, &#34;primitive_bc_to_reciprocal_bc&#34;),
+    (&#34;primitive_bc_to_reciprocal_bc&#34;, &#34;reciprocal_bc&#34;),
+    (&#34;primitive_bl&#34;, &#34;primitive_bl_to_reciprocal_bl&#34;),
+    (&#34;primitive_bl_to_reciprocal_bl&#34;, &#34;reciprocal_bl&#34;),
+    (&#34;reciprocal_bc&#34;, &#34;reciprocal_bc_to_primitive_bc&#34;),
+    (&#34;reciprocal_bc_to_primitive_bc&#34;, &#34;primitive_bc&#34;),
+    (&#34;reciprocal_bl&#34;, &#34;reciprocal_bl_to_primitive_bl&#34;),
+    (&#34;reciprocal_bl_to_primitive_bl&#34;, &#34;primitive_bl&#34;),
+    (&#34;e_max&#34;, &#34;select_hkl&#34;), (&#34;reciprocal_bl&#34;, &#34;select_hkl&#34;), (&#34;select_hkl&#34;, &#34;hkl_all&#34;),
+    (&#34;reciprocal_bl&#34;, &#34;hkl_reciprocal_to_uq_energy&#34;),
+    (&#34;hkl_all&#34;, &#34;hkl_reciprocal_to_uq_energy&#34;),
+    (&#34;e_min&#34;, &#34;hkl_reciprocal_to_uq_energy&#34;),
+    (&#34;hkl_reciprocal_to_uq_energy&#34;, &#34;u_q&#34;),
+    (&#34;hkl_reciprocal_to_uq_energy&#34;, &#34;hkl&#34;),
+    (&#34;hkl_reciprocal_to_uq_energy&#34;, &#34;energy&#34;),
+    (&#34;u_q&#34;, &#34;uq_to_uf&#34;), (&#34;uq_to_uf&#34;, &#34;u_f&#34;),
+    (&#34;u_f&#34;, &#34;uf_to_uq&#34;), (&#34;uf_to_uq&#34;, &#34;u_q&#34;),
+    (&#34;u_f&#34;, &#34;uf_to_detector&#34;), (&#34;poni&#34;, &#34;uf_to_detector&#34;),
+    (&#34;uf_to_detector&#34;, &#34;point&#34;), (&#34;uf_to_detector&#34;, &#34;dist&#34;),
+    (&#34;point&#34;, &#34;detector_to_uf&#34;), (&#34;poni&#34;, &#34;detector_to_uf&#34;),
+    (&#34;detector_to_uf&#34;, &#34;u_f&#34;),
+    (&#34;u_q&#34;, &#34;uq_to_detector&#34;), (&#34;poni_gnom&#34;, &#34;uq_to_detector&#34;),
+    (&#34;uq_to_detector&#34;, &#34;gnomonic&#34;), (&#34;uq_to_detector&#34;, &#34;dist&#34;),
+    (&#34;gnomonic&#34;, &#34;detector_to_uq&#34;), (&#34;poni_gnom&#34;, &#34;detector_to_uq&#34;),
+    (&#34;detector_to_uq&#34;, &#34;u_q&#34;),
+    (&#34;u_f&#34;, &#34;uf_to_thetachi&#34;), (&#34;uf_to_thetachi&#34;, &#34;thetachi&#34;),
+    (&#34;thetachi&#34;, &#34;thetachi_to_uf&#34;), (&#34;thetachi_to_uf&#34;, &#34;u_f&#34;),
+])
+
+
+class Geometry(torch.nn.Module):
     r&#34;&#34;&#34;General simulation class.
 
     Attributes
@@ -68,8 +194,6 @@ class BraggModel(torch.nn.Module):
         The camera calibration parameters of shape (..., 6) (read and write).
     primitive_bc : None | torch.Tensor
         Matrix \(\mathbf{A}\) of shape (..., 3, 3) in the crystal base \(\mathcal{B^c}\) (readonly).
-    primitive_bl : None | torch.Tensor
-        Matrix \(\mathbf{A}\) of shape (..., 3, 3) in the lab base \(\mathcal{B^l}\) (readonly).
     reciprocal_bc : None | torch.Tensor
         Matrix \(\mathbf{B}\) of shape (..., 3, 3) in the crystal base \(\mathcal{B^c}\) (readonly).
     reciprocal_bl : None | torch.Tensor
@@ -80,6 +204,11 @@ class BraggModel(torch.nn.Module):
         The ravel \(u_f\) of shape (n, 3) (readonly).
     u_q : None | torch.Tensor
         The ravel \(u_q\) of shape (n, 3) (readonly).
+
+    Todo
+    ----
+    This class should be recoded in a more general way, based on a graph.
+    The current implementation is crude, non-modular and partial.
     &#34;&#34;&#34;
 
     def __init__(self, **kwargs):
@@ -205,7 +334,7 @@ class BraggModel(torch.nn.Module):
         return poni
 
     def _compute_candidate_hkl(self, **kwargs) -&gt; torch.Tensor:
-        &#34;&#34;&#34;Get all hkl indicies that could potentially diffract.&#34;&#34;&#34;
+        &#34;&#34;&#34;Get all hkl indices that could potentially diffract.&#34;&#34;&#34;
         reciprocal_bc = self.compute_reciprocal_bc(**kwargs)
         if (e_max := self._select_hkl_args(kwargs).get(&#34;e_max&#34;, None)) is None:
             raise AttributeError(&#34;`e_max` parameter has to be supplied&#34;)
@@ -235,12 +364,12 @@ class BraggModel(torch.nn.Module):
         Examples
         --------
         &gt;&gt;&gt; import torch
-        &gt;&gt;&gt; from laueimproc.geometry.model import BraggModel
+        &gt;&gt;&gt; from laueimproc.geometry.link import Geometry
         &gt;&gt;&gt; e_max = 25e3 * 1.60e-19  # 25 keV
         &gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
         &gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
         &gt;&gt;&gt; phi = torch.zeros(3)
-        &gt;&gt;&gt; model = BraggModel(e_max=e_max, lattice=lattice, phi=phi, poni=poni)
+        &gt;&gt;&gt; model = Geometry(e_max=e_max, lattice=lattice, phi=phi, poni=poni)
         &gt;&gt;&gt; point, energy, hkl, _ = model.compute_cam()
         &gt;&gt;&gt;
         &#34;&#34;&#34;
@@ -288,19 +417,6 @@ class BraggModel(torch.nn.Module):
             primitive_bc = self._cache[signature] = lattice_to_primitive(lattice)
         return primitive_bc
 
-    # def compute_primitive_bl(self, **kwargs) -&gt; torch.Tensor:
-    #     r&#34;&#34;&#34;Get \(\mathbf{A}\) of shape (..., 3, 3) in the lab base \(\mathcal{B^l}\).&#34;&#34;&#34;
-    #     primitive_bc = self.compute_primitive_bc(**kwargs)
-    #     rot = self.compute_rot(**kwargs)
-    #     if rot.requires_grad or primitive_bc.requires_grad:
-    #         return rotate_crystal(primitive_bc, rot, cartesian_product=False)
-    #     signature = (&#34;primitive_bl&#34;, primitive_bc.data_ptr(), rot.data_ptr())
-    #     if (primitive_bl := self._cache.get(signature, None)) is None:
-    #         primitive_bl = self._cache[signature] = (
-    #             rotate_crystal(primitive_bc, rot, cartesian_product=False)
-    #         )
-    #     return primitive_bl
-
     def compute_reciprocal_bc(self, **kwargs) -&gt; torch.Tensor:
         r&#34;&#34;&#34;Get \(\mathbf{B}\) of shape (..., 3, 3) in the crystal base \(\mathcal{B^c}\).&#34;&#34;&#34;
         primitive_bc = self.compute_primitive_bc(**kwargs)
@@ -329,11 +445,11 @@ class BraggModel(torch.nn.Module):
         if (phi := self._select_phi(kwargs)) is None:
             raise AttributeError(&#34;`phi` parameter has to be supplied&#34;)
         if phi.requires_grad:
-            return angle_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
+            return omega_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
         signature = (&#34;rot&#34;, phi.data_ptr())
         if (rot := self._cache.get(signature, None)) is None:
             rot = self._cache[signature] = (
-                angle_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
+                omega_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
             )
         return rot
 
@@ -396,7 +512,7 @@ class BraggModel(torch.nn.Module):
         return self._hkl_args.get(&#34;e_min&#34;, 0.0)
 
     @e_min.setter
-    def e_min(self, e_min: numbers.Real | None):
+    def e_min(self, e_min: None | numbers.Real):
         &#34;&#34;&#34;Set the low energy limit.&#34;&#34;&#34;
         if e_min is None:
             if &#34;e_min&#34; in self._hkl_args:
@@ -412,7 +528,7 @@ class BraggModel(torch.nn.Module):
         return self._hkl_args.get(&#34;e_max&#34;, torch.inf)
 
     @e_max.setter
-    def e_max(self, e_max: numbers.Real | None):
+    def e_max(self, e_max: None | numbers.Real):
         &#34;&#34;&#34;Set the high energy limit.&#34;&#34;&#34;
         if e_max is None:
             if &#34;e_max&#34; in self._hkl_args:
@@ -432,7 +548,7 @@ class BraggModel(torch.nn.Module):
         return self._lattice
 
     @lattice.setter
-    def lattice(self, lattice: torch.Tensor | None):
+    def lattice(self, lattice: None | torch.Tensor):
         &#34;&#34;&#34;Set the lattice parameters.&#34;&#34;&#34;
         if lattice is None:
             self._lattice = None
@@ -447,7 +563,7 @@ class BraggModel(torch.nn.Module):
         return self._phi
 
     @phi.setter
-    def phi(self, phi: torch.Tensor | None):
+    def phi(self, phi: None | torch.Tensor):
         &#34;&#34;&#34;Set the rotation angles.&#34;&#34;&#34;
         if phi is None:
             self._phi = None
@@ -462,7 +578,7 @@ class BraggModel(torch.nn.Module):
         return self._poni
 
     @poni.setter
-    def poni(self, poni: torch.Tensor | None):
+    def poni(self, poni: None | torch.Tensor):
         &#34;&#34;&#34;Set the camera calibration parameters.&#34;&#34;&#34;
         if poni is None:
             self._poni = None
@@ -473,23 +589,15 @@ class BraggModel(torch.nn.Module):
 
     @property
     def primitive_bc(self) -&gt; None | torch.Tensor:
-        &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_primitive_bc``.&#34;&#34;&#34;
+        &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_primitive_bc``.&#34;&#34;&#34;
         try:
             return self.compute_primitive_bc()
         except AttributeError:
             return None
 
-    # @property
-    # def primitive_bl(self) -&gt; None | torch.Tensor:
-    #     &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_primitive_bl``.&#34;&#34;&#34;
-    #     try:
-    #         return self.compute_primitive_bl()
-    #     except AttributeError:
-    #         return None
-
     @property
     def reciprocal_bc(self) -&gt; None | torch.Tensor:
-        &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_reciprocal_bc``.&#34;&#34;&#34;
+        &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_reciprocal_bc``.&#34;&#34;&#34;
         try:
             return self.compute_reciprocal_bc()
         except AttributeError:
@@ -497,7 +605,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def reciprocal_bl(self) -&gt; None | torch.Tensor:
-        &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_reciprocal_bl``.&#34;&#34;&#34;
+        &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_reciprocal_bl``.&#34;&#34;&#34;
         try:
             return self.compute_reciprocal_bl()
         except AttributeError:
@@ -505,7 +613,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def rot(self) -&gt; None | torch.Tensor:
-        &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_rot``.&#34;&#34;&#34;
+        &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_rot``.&#34;&#34;&#34;
         try:
             return self.compute_rot()
         except AttributeError:
@@ -513,7 +621,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def u_f(self) -&gt; None | torch.Tensor:
-        &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_uf``.&#34;&#34;&#34;
+        &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_uf``.&#34;&#34;&#34;
         try:
             return self.compute_uf()[0]
         except AttributeError:
@@ -521,7 +629,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def u_q(self) -&gt; None | torch.Tensor:
-        &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_uq``.&#34;&#34;&#34;
+        &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_uq``.&#34;&#34;&#34;
         try:
             return self.compute_uq()[0]
         except AttributeError:
@@ -537,8 +645,8 @@ class BraggModel(torch.nn.Module):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="laueimproc.geometry.model.BraggModel"><code class="flex name class">
-<span>class <span class="ident">BraggModel</span></span>
+<dt id="laueimproc.geometry.link.Geometry"><code class="flex name class">
+<span>class <span class="ident">Geometry</span></span>
 <span>(</span><span>**kwargs)</span>
 </code></dt>
 <dd>
@@ -559,8 +667,6 @@ class BraggModel(torch.nn.Module):
 <dd>The camera calibration parameters of shape (&hellip;, 6) (read and write).</dd>
 <dt><strong><code>primitive_bc</code></strong> :&ensp;<code>None | torch.Tensor</code></dt>
 <dd>Matrix <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> of shape (&hellip;, 3, 3) in the crystal base <span><span class="MathJax_Preview">\mathcal{B^c}</span><script type="math/tex">\mathcal{B^c}</script></span> (readonly).</dd>
-<dt><strong><code>primitive_bl</code></strong> :&ensp;<code>None | torch.Tensor</code></dt>
-<dd>Matrix <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> of shape (&hellip;, 3, 3) in the lab base <span><span class="MathJax_Preview">\mathcal{B^l}</span><script type="math/tex">\mathcal{B^l}</script></span> (readonly).</dd>
 <dt><strong><code>reciprocal_bc</code></strong> :&ensp;<code>None | torch.Tensor</code></dt>
 <dd>Matrix <span><span class="MathJax_Preview">\mathbf{B}</span><script type="math/tex">\mathbf{B}</script></span> of shape (&hellip;, 3, 3) in the crystal base <span><span class="MathJax_Preview">\mathcal{B^c}</span><script type="math/tex">\mathcal{B^c}</script></span> (readonly).</dd>
 <dt><strong><code>reciprocal_bl</code></strong> :&ensp;<code>None | torch.Tensor</code></dt>
@@ -572,6 +678,9 @@ class BraggModel(torch.nn.Module):
 <dt><strong><code>u_q</code></strong> :&ensp;<code>None | torch.Tensor</code></dt>
 <dd>The ravel <span><span class="MathJax_Preview">u_q</span><script type="math/tex">u_q</script></span> of shape (n, 3) (readonly).</dd>
 </dl>
+<h2 id="todo">Todo</h2>
+<p>This class should be recoded in a more general way, based on a graph.
+The current implementation is crude, non-modular and partial.</p>
 <p>Initialise the model.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -590,7 +699,7 @@ class BraggModel(torch.nn.Module):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class BraggModel(torch.nn.Module):
+<pre><code class="python">class Geometry(torch.nn.Module):
     r&#34;&#34;&#34;General simulation class.
 
     Attributes
@@ -609,8 +718,6 @@ class BraggModel(torch.nn.Module):
         The camera calibration parameters of shape (..., 6) (read and write).
     primitive_bc : None | torch.Tensor
         Matrix \(\mathbf{A}\) of shape (..., 3, 3) in the crystal base \(\mathcal{B^c}\) (readonly).
-    primitive_bl : None | torch.Tensor
-        Matrix \(\mathbf{A}\) of shape (..., 3, 3) in the lab base \(\mathcal{B^l}\) (readonly).
     reciprocal_bc : None | torch.Tensor
         Matrix \(\mathbf{B}\) of shape (..., 3, 3) in the crystal base \(\mathcal{B^c}\) (readonly).
     reciprocal_bl : None | torch.Tensor
@@ -621,6 +728,11 @@ class BraggModel(torch.nn.Module):
         The ravel \(u_f\) of shape (n, 3) (readonly).
     u_q : None | torch.Tensor
         The ravel \(u_q\) of shape (n, 3) (readonly).
+
+    Todo
+    ----
+    This class should be recoded in a more general way, based on a graph.
+    The current implementation is crude, non-modular and partial.
     &#34;&#34;&#34;
 
     def __init__(self, **kwargs):
@@ -746,7 +858,7 @@ class BraggModel(torch.nn.Module):
         return poni
 
     def _compute_candidate_hkl(self, **kwargs) -&gt; torch.Tensor:
-        &#34;&#34;&#34;Get all hkl indicies that could potentially diffract.&#34;&#34;&#34;
+        &#34;&#34;&#34;Get all hkl indices that could potentially diffract.&#34;&#34;&#34;
         reciprocal_bc = self.compute_reciprocal_bc(**kwargs)
         if (e_max := self._select_hkl_args(kwargs).get(&#34;e_max&#34;, None)) is None:
             raise AttributeError(&#34;`e_max` parameter has to be supplied&#34;)
@@ -776,12 +888,12 @@ class BraggModel(torch.nn.Module):
         Examples
         --------
         &gt;&gt;&gt; import torch
-        &gt;&gt;&gt; from laueimproc.geometry.model import BraggModel
+        &gt;&gt;&gt; from laueimproc.geometry.link import Geometry
         &gt;&gt;&gt; e_max = 25e3 * 1.60e-19  # 25 keV
         &gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
         &gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
         &gt;&gt;&gt; phi = torch.zeros(3)
-        &gt;&gt;&gt; model = BraggModel(e_max=e_max, lattice=lattice, phi=phi, poni=poni)
+        &gt;&gt;&gt; model = Geometry(e_max=e_max, lattice=lattice, phi=phi, poni=poni)
         &gt;&gt;&gt; point, energy, hkl, _ = model.compute_cam()
         &gt;&gt;&gt;
         &#34;&#34;&#34;
@@ -829,19 +941,6 @@ class BraggModel(torch.nn.Module):
             primitive_bc = self._cache[signature] = lattice_to_primitive(lattice)
         return primitive_bc
 
-    # def compute_primitive_bl(self, **kwargs) -&gt; torch.Tensor:
-    #     r&#34;&#34;&#34;Get \(\mathbf{A}\) of shape (..., 3, 3) in the lab base \(\mathcal{B^l}\).&#34;&#34;&#34;
-    #     primitive_bc = self.compute_primitive_bc(**kwargs)
-    #     rot = self.compute_rot(**kwargs)
-    #     if rot.requires_grad or primitive_bc.requires_grad:
-    #         return rotate_crystal(primitive_bc, rot, cartesian_product=False)
-    #     signature = (&#34;primitive_bl&#34;, primitive_bc.data_ptr(), rot.data_ptr())
-    #     if (primitive_bl := self._cache.get(signature, None)) is None:
-    #         primitive_bl = self._cache[signature] = (
-    #             rotate_crystal(primitive_bc, rot, cartesian_product=False)
-    #         )
-    #     return primitive_bl
-
     def compute_reciprocal_bc(self, **kwargs) -&gt; torch.Tensor:
         r&#34;&#34;&#34;Get \(\mathbf{B}\) of shape (..., 3, 3) in the crystal base \(\mathcal{B^c}\).&#34;&#34;&#34;
         primitive_bc = self.compute_primitive_bc(**kwargs)
@@ -870,11 +969,11 @@ class BraggModel(torch.nn.Module):
         if (phi := self._select_phi(kwargs)) is None:
             raise AttributeError(&#34;`phi` parameter has to be supplied&#34;)
         if phi.requires_grad:
-            return angle_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
+            return omega_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
         signature = (&#34;rot&#34;, phi.data_ptr())
         if (rot := self._cache.get(signature, None)) is None:
             rot = self._cache[signature] = (
-                angle_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
+                omega_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
             )
         return rot
 
@@ -937,7 +1036,7 @@ class BraggModel(torch.nn.Module):
         return self._hkl_args.get(&#34;e_min&#34;, 0.0)
 
     @e_min.setter
-    def e_min(self, e_min: numbers.Real | None):
+    def e_min(self, e_min: None | numbers.Real):
         &#34;&#34;&#34;Set the low energy limit.&#34;&#34;&#34;
         if e_min is None:
             if &#34;e_min&#34; in self._hkl_args:
@@ -953,7 +1052,7 @@ class BraggModel(torch.nn.Module):
         return self._hkl_args.get(&#34;e_max&#34;, torch.inf)
 
     @e_max.setter
-    def e_max(self, e_max: numbers.Real | None):
+    def e_max(self, e_max: None | numbers.Real):
         &#34;&#34;&#34;Set the high energy limit.&#34;&#34;&#34;
         if e_max is None:
             if &#34;e_max&#34; in self._hkl_args:
@@ -973,7 +1072,7 @@ class BraggModel(torch.nn.Module):
         return self._lattice
 
     @lattice.setter
-    def lattice(self, lattice: torch.Tensor | None):
+    def lattice(self, lattice: None | torch.Tensor):
         &#34;&#34;&#34;Set the lattice parameters.&#34;&#34;&#34;
         if lattice is None:
             self._lattice = None
@@ -988,7 +1087,7 @@ class BraggModel(torch.nn.Module):
         return self._phi
 
     @phi.setter
-    def phi(self, phi: torch.Tensor | None):
+    def phi(self, phi: None | torch.Tensor):
         &#34;&#34;&#34;Set the rotation angles.&#34;&#34;&#34;
         if phi is None:
             self._phi = None
@@ -1003,7 +1102,7 @@ class BraggModel(torch.nn.Module):
         return self._poni
 
     @poni.setter
-    def poni(self, poni: torch.Tensor | None):
+    def poni(self, poni: None | torch.Tensor):
         &#34;&#34;&#34;Set the camera calibration parameters.&#34;&#34;&#34;
         if poni is None:
             self._poni = None
@@ -1014,23 +1113,15 @@ class BraggModel(torch.nn.Module):
 
     @property
     def primitive_bc(self) -&gt; None | torch.Tensor:
-        &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_primitive_bc``.&#34;&#34;&#34;
+        &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_primitive_bc``.&#34;&#34;&#34;
         try:
             return self.compute_primitive_bc()
         except AttributeError:
             return None
 
-    # @property
-    # def primitive_bl(self) -&gt; None | torch.Tensor:
-    #     &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_primitive_bl``.&#34;&#34;&#34;
-    #     try:
-    #         return self.compute_primitive_bl()
-    #     except AttributeError:
-    #         return None
-
     @property
     def reciprocal_bc(self) -&gt; None | torch.Tensor:
-        &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_reciprocal_bc``.&#34;&#34;&#34;
+        &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_reciprocal_bc``.&#34;&#34;&#34;
         try:
             return self.compute_reciprocal_bc()
         except AttributeError:
@@ -1038,7 +1129,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def reciprocal_bl(self) -&gt; None | torch.Tensor:
-        &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_reciprocal_bl``.&#34;&#34;&#34;
+        &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_reciprocal_bl``.&#34;&#34;&#34;
         try:
             return self.compute_reciprocal_bl()
         except AttributeError:
@@ -1046,7 +1137,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def rot(self) -&gt; None | torch.Tensor:
-        &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_rot``.&#34;&#34;&#34;
+        &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_rot``.&#34;&#34;&#34;
         try:
             return self.compute_rot()
         except AttributeError:
@@ -1054,7 +1145,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def u_f(self) -&gt; None | torch.Tensor:
-        &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_uf``.&#34;&#34;&#34;
+        &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_uf``.&#34;&#34;&#34;
         try:
             return self.compute_uf()[0]
         except AttributeError:
@@ -1062,7 +1153,7 @@ class BraggModel(torch.nn.Module):
 
     @property
     def u_q(self) -&gt; None | torch.Tensor:
-        &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_uq``.&#34;&#34;&#34;
+        &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_uq``.&#34;&#34;&#34;
         try:
             return self.compute_uq()[0]
         except AttributeError:
@@ -1074,7 +1165,7 @@ class BraggModel(torch.nn.Module):
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="laueimproc.geometry.model.BraggModel.cam_size"><code class="name">var <span class="ident">cam_size</span> : tuple[float, float]</code></dt>
+<dt id="laueimproc.geometry.link.Geometry.cam_size"><code class="name">var <span class="ident">cam_size</span> : tuple[float, float]</code></dt>
 <dd>
 <div class="desc"><p>Return the camera size.</p></div>
 <details class="source">
@@ -1087,7 +1178,7 @@ def cam_size(self) -&gt; tuple[float, float]:
     return self._cam_size</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.e_max"><code class="name">var <span class="ident">e_max</span> : float</code></dt>
+<dt id="laueimproc.geometry.link.Geometry.e_max"><code class="name">var <span class="ident">e_max</span> : float</code></dt>
 <dd>
 <div class="desc"><p>Return the high energy limit in J.</p></div>
 <details class="source">
@@ -1100,7 +1191,7 @@ def e_max(self) -&gt; float:
     return self._hkl_args.get(&#34;e_max&#34;, torch.inf)</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.e_min"><code class="name">var <span class="ident">e_min</span> : float</code></dt>
+<dt id="laueimproc.geometry.link.Geometry.e_min"><code class="name">var <span class="ident">e_min</span> : float</code></dt>
 <dd>
 <div class="desc"><p>Return the low energy limit in J.</p></div>
 <details class="source">
@@ -1113,7 +1204,7 @@ def e_min(self) -&gt; float:
     return self._hkl_args.get(&#34;e_min&#34;, 0.0)</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.lattice"><code class="name">var <span class="ident">lattice</span> : None | torch.Tensor</code></dt>
+<dt id="laueimproc.geometry.link.Geometry.lattice"><code class="name">var <span class="ident">lattice</span> : None | torch.Tensor</code></dt>
 <dd>
 <div class="desc"><p>Return the lattice parameters of shape (&hellip;, 6).</p></div>
 <details class="source">
@@ -1126,7 +1217,7 @@ def lattice(self) -&gt; None | torch.Tensor:
     return self._lattice</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.phi"><code class="name">var <span class="ident">phi</span> : None | torch.Tensor</code></dt>
+<dt id="laueimproc.geometry.link.Geometry.phi"><code class="name">var <span class="ident">phi</span> : None | torch.Tensor</code></dt>
 <dd>
 <div class="desc"><p>Get the rotation angles of the different grains of shape (&hellip;, 3).</p></div>
 <details class="source">
@@ -1139,7 +1230,7 @@ def phi(self) -&gt; None | torch.Tensor:
     return self._phi</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.poni"><code class="name">var <span class="ident">poni</span> : None | torch.Tensor</code></dt>
+<dt id="laueimproc.geometry.link.Geometry.poni"><code class="name">var <span class="ident">poni</span> : None | torch.Tensor</code></dt>
 <dd>
 <div class="desc"><p>Return the camera calibration parameters of shape (&hellip;, 6).</p></div>
 <details class="source">
@@ -1152,96 +1243,96 @@ def poni(self) -&gt; None | torch.Tensor:
     return self._poni</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.primitive_bc"><code class="name">var <span class="ident">primitive_bc</span> : None | torch.Tensor</code></dt>
+<dt id="laueimproc.geometry.link.Geometry.primitive_bc"><code class="name">var <span class="ident">primitive_bc</span> : None | torch.Tensor</code></dt>
 <dd>
-<div class="desc"><p>Alias to <code>laueimproc.gometry.model.BraggModelBase.compute_primitive_bc</code>.</p></div>
+<div class="desc"><p>Alias to <code><a title="laueimproc.geometry.link.Geometry.compute_primitive_bc" href="#laueimproc.geometry.link.Geometry.compute_primitive_bc">Geometry.compute_primitive_bc()</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def primitive_bc(self) -&gt; None | torch.Tensor:
-    &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_primitive_bc``.&#34;&#34;&#34;
+    &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_primitive_bc``.&#34;&#34;&#34;
     try:
         return self.compute_primitive_bc()
     except AttributeError:
         return None</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.reciprocal_bc"><code class="name">var <span class="ident">reciprocal_bc</span> : None | torch.Tensor</code></dt>
+<dt id="laueimproc.geometry.link.Geometry.reciprocal_bc"><code class="name">var <span class="ident">reciprocal_bc</span> : None | torch.Tensor</code></dt>
 <dd>
-<div class="desc"><p>Alias to <code>laueimproc.gometry.model.BraggModelBase.compute_reciprocal_bc</code>.</p></div>
+<div class="desc"><p>Alias to <code><a title="laueimproc.geometry.link.Geometry.compute_reciprocal_bc" href="#laueimproc.geometry.link.Geometry.compute_reciprocal_bc">Geometry.compute_reciprocal_bc()</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def reciprocal_bc(self) -&gt; None | torch.Tensor:
-    &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_reciprocal_bc``.&#34;&#34;&#34;
+    &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_reciprocal_bc``.&#34;&#34;&#34;
     try:
         return self.compute_reciprocal_bc()
     except AttributeError:
         return None</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.reciprocal_bl"><code class="name">var <span class="ident">reciprocal_bl</span> : None | torch.Tensor</code></dt>
+<dt id="laueimproc.geometry.link.Geometry.reciprocal_bl"><code class="name">var <span class="ident">reciprocal_bl</span> : None | torch.Tensor</code></dt>
 <dd>
-<div class="desc"><p>Alias to <code>laueimproc.gometry.model.BraggModelBase.compute_reciprocal_bl</code>.</p></div>
+<div class="desc"><p>Alias to <code><a title="laueimproc.geometry.link.Geometry.compute_reciprocal_bl" href="#laueimproc.geometry.link.Geometry.compute_reciprocal_bl">Geometry.compute_reciprocal_bl()</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def reciprocal_bl(self) -&gt; None | torch.Tensor:
-    &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_reciprocal_bl``.&#34;&#34;&#34;
+    &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_reciprocal_bl``.&#34;&#34;&#34;
     try:
         return self.compute_reciprocal_bl()
     except AttributeError:
         return None</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.rot"><code class="name">var <span class="ident">rot</span> : None | torch.Tensor</code></dt>
+<dt id="laueimproc.geometry.link.Geometry.rot"><code class="name">var <span class="ident">rot</span> : None | torch.Tensor</code></dt>
 <dd>
-<div class="desc"><p>Alias to <code>laueimproc.gometry.model.BraggModelBase.compute_rot</code>.</p></div>
+<div class="desc"><p>Alias to <code><a title="laueimproc.geometry.link.Geometry.compute_rot" href="#laueimproc.geometry.link.Geometry.compute_rot">Geometry.compute_rot()</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def rot(self) -&gt; None | torch.Tensor:
-    &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_rot``.&#34;&#34;&#34;
+    &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_rot``.&#34;&#34;&#34;
     try:
         return self.compute_rot()
     except AttributeError:
         return None</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.u_f"><code class="name">var <span class="ident">u_f</span> : None | torch.Tensor</code></dt>
+<dt id="laueimproc.geometry.link.Geometry.u_f"><code class="name">var <span class="ident">u_f</span> : None | torch.Tensor</code></dt>
 <dd>
-<div class="desc"><p>Alias to <code>laueimproc.gometry.model.BraggModelBase.compute_uf</code>.</p></div>
+<div class="desc"><p>Alias to <code><a title="laueimproc.geometry.link.Geometry.compute_uf" href="#laueimproc.geometry.link.Geometry.compute_uf">Geometry.compute_uf()</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def u_f(self) -&gt; None | torch.Tensor:
-    &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_uf``.&#34;&#34;&#34;
+    &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_uf``.&#34;&#34;&#34;
     try:
         return self.compute_uf()[0]
     except AttributeError:
         return None</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.u_q"><code class="name">var <span class="ident">u_q</span> : None | torch.Tensor</code></dt>
+<dt id="laueimproc.geometry.link.Geometry.u_q"><code class="name">var <span class="ident">u_q</span> : None | torch.Tensor</code></dt>
 <dd>
-<div class="desc"><p>Alias to <code>laueimproc.gometry.model.BraggModelBase.compute_uq</code>.</p></div>
+<div class="desc"><p>Alias to <code><a title="laueimproc.geometry.link.Geometry.compute_uq" href="#laueimproc.geometry.link.Geometry.compute_uq">Geometry.compute_uq()</a></code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def u_q(self) -&gt; None | torch.Tensor:
-    &#34;&#34;&#34;Alias to ``laueimproc.gometry.model.BraggModelBase.compute_uq``.&#34;&#34;&#34;
+    &#34;&#34;&#34;Alias to ``laueimproc.geometry.link.Geometry.compute_uq``.&#34;&#34;&#34;
     try:
         return self.compute_uq()[0]
     except AttributeError:
@@ -1251,7 +1342,7 @@ def u_q(self) -&gt; None | torch.Tensor:
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="laueimproc.geometry.model.BraggModel.compute_cam"><code class="name flex">
+<dt id="laueimproc.geometry.link.Geometry.compute_cam"><code class="name flex">
 <span>def <span class="ident">compute_cam</span></span>(<span>self, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]</span>
 </code></dt>
 <dd>
@@ -1271,12 +1362,12 @@ The dimensions are the batch dimension of <code>self.reciprocal_bl + poni</code>
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.geometry.model import BraggModel
+&gt;&gt;&gt; from laueimproc.geometry.link import Geometry
 &gt;&gt;&gt; e_max = 25e3 * 1.60e-19  # 25 keV
 &gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
 &gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
 &gt;&gt;&gt; phi = torch.zeros(3)
-&gt;&gt;&gt; model = BraggModel(e_max=e_max, lattice=lattice, phi=phi, poni=poni)
+&gt;&gt;&gt; model = Geometry(e_max=e_max, lattice=lattice, phi=phi, poni=poni)
 &gt;&gt;&gt; point, energy, hkl, _ = model.compute_cam()
 &gt;&gt;&gt;
 </code></pre></div>
@@ -1305,12 +1396,12 @@ The dimensions are the batch dimension of <code>self.reciprocal_bl + poni</code>
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.geometry.model import BraggModel
+    &gt;&gt;&gt; from laueimproc.geometry.link import Geometry
     &gt;&gt;&gt; e_max = 25e3 * 1.60e-19  # 25 keV
     &gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
     &gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
     &gt;&gt;&gt; phi = torch.zeros(3)
-    &gt;&gt;&gt; model = BraggModel(e_max=e_max, lattice=lattice, phi=phi, poni=poni)
+    &gt;&gt;&gt; model = Geometry(e_max=e_max, lattice=lattice, phi=phi, poni=poni)
     &gt;&gt;&gt; point, energy, hkl, _ = model.compute_cam()
     &gt;&gt;&gt;
     &#34;&#34;&#34;
@@ -1348,7 +1439,7 @@ The dimensions are the batch dimension of <code>self.reciprocal_bl + poni</code>
     return point, energy, hkl, unravel</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.compute_primitive_bc"><code class="name flex">
+<dt id="laueimproc.geometry.link.Geometry.compute_primitive_bc"><code class="name flex">
 <span>def <span class="ident">compute_primitive_bc</span></span>(<span>self, **kwargs) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
@@ -1369,7 +1460,7 @@ The dimensions are the batch dimension of <code>self.reciprocal_bl + poni</code>
     return primitive_bc</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.compute_reciprocal_bc"><code class="name flex">
+<dt id="laueimproc.geometry.link.Geometry.compute_reciprocal_bc"><code class="name flex">
 <span>def <span class="ident">compute_reciprocal_bc</span></span>(<span>self, **kwargs) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
@@ -1389,7 +1480,7 @@ The dimensions are the batch dimension of <code>self.reciprocal_bl + poni</code>
     return reciprocal_bc</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.compute_reciprocal_bl"><code class="name flex">
+<dt id="laueimproc.geometry.link.Geometry.compute_reciprocal_bl"><code class="name flex">
 <span>def <span class="ident">compute_reciprocal_bl</span></span>(<span>self, **kwargs) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
@@ -1412,7 +1503,7 @@ The dimensions are the batch dimension of <code>self.reciprocal_bl + poni</code>
     return reciprocal_bl</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.compute_rot"><code class="name flex">
+<dt id="laueimproc.geometry.link.Geometry.compute_rot"><code class="name flex">
 <span>def <span class="ident">compute_rot</span></span>(<span>self, **kwargs) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
@@ -1426,16 +1517,16 @@ The dimensions are the batch dimension of <code>self.reciprocal_bl + poni</code>
     if (phi := self._select_phi(kwargs)) is None:
         raise AttributeError(&#34;`phi` parameter has to be supplied&#34;)
     if phi.requires_grad:
-        return angle_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
+        return omega_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
     signature = (&#34;rot&#34;, phi.data_ptr())
     if (rot := self._cache.get(signature, None)) is None:
         rot = self._cache[signature] = (
-            angle_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
+            omega_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
         )
     return rot</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.compute_uf"><code class="name flex">
+<dt id="laueimproc.geometry.link.Geometry.compute_uf"><code class="name flex">
 <span>def <span class="ident">compute_uf</span></span>(<span>self, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]</span>
 </code></dt>
 <dd>
@@ -1455,7 +1546,7 @@ The dimensions are the batch dimension of <code>self.reciprocal_bl + poni</code>
     return u_f, energy, hkl, unravel</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.compute_uq"><code class="name flex">
+<dt id="laueimproc.geometry.link.Geometry.compute_uq"><code class="name flex">
 <span>def <span class="ident">compute_uq</span></span>(<span>self, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]</span>
 </code></dt>
 <dd>
@@ -1516,7 +1607,7 @@ The dimensions are the batch dimension of <code>self.reciprocal_bl</code>.</dd>
     return res</code></pre>
 </details>
 </dd>
-<dt id="laueimproc.geometry.model.BraggModel.forward"><code class="name flex">
+<dt id="laueimproc.geometry.link.Geometry.forward"><code class="name flex">
 <span>def <span class="ident">forward</span></span>(<span>self) ‑> Callable[..., Any]</span>
 </code></dt>
 <dd>
@@ -1595,28 +1686,28 @@ setTimeout(() => input.focus(), 100);
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="laueimproc.geometry.model.BraggModel" href="#laueimproc.geometry.model.BraggModel">BraggModel</a></code></h4>
+<h4><code><a title="laueimproc.geometry.link.Geometry" href="#laueimproc.geometry.link.Geometry">Geometry</a></code></h4>
 <ul class="">
-<li><code><a title="laueimproc.geometry.model.BraggModel.cam_size" href="#laueimproc.geometry.model.BraggModel.cam_size">cam_size</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.compute_cam" href="#laueimproc.geometry.model.BraggModel.compute_cam">compute_cam</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.compute_primitive_bc" href="#laueimproc.geometry.model.BraggModel.compute_primitive_bc">compute_primitive_bc</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.compute_reciprocal_bc" href="#laueimproc.geometry.model.BraggModel.compute_reciprocal_bc">compute_reciprocal_bc</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.compute_reciprocal_bl" href="#laueimproc.geometry.model.BraggModel.compute_reciprocal_bl">compute_reciprocal_bl</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.compute_rot" href="#laueimproc.geometry.model.BraggModel.compute_rot">compute_rot</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.compute_uf" href="#laueimproc.geometry.model.BraggModel.compute_uf">compute_uf</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.compute_uq" href="#laueimproc.geometry.model.BraggModel.compute_uq">compute_uq</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.e_max" href="#laueimproc.geometry.model.BraggModel.e_max">e_max</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.e_min" href="#laueimproc.geometry.model.BraggModel.e_min">e_min</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.forward" href="#laueimproc.geometry.model.BraggModel.forward">forward</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.lattice" href="#laueimproc.geometry.model.BraggModel.lattice">lattice</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.phi" href="#laueimproc.geometry.model.BraggModel.phi">phi</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.poni" href="#laueimproc.geometry.model.BraggModel.poni">poni</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.primitive_bc" href="#laueimproc.geometry.model.BraggModel.primitive_bc">primitive_bc</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.reciprocal_bc" href="#laueimproc.geometry.model.BraggModel.reciprocal_bc">reciprocal_bc</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.reciprocal_bl" href="#laueimproc.geometry.model.BraggModel.reciprocal_bl">reciprocal_bl</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.rot" href="#laueimproc.geometry.model.BraggModel.rot">rot</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.u_f" href="#laueimproc.geometry.model.BraggModel.u_f">u_f</a></code></li>
-<li><code><a title="laueimproc.geometry.model.BraggModel.u_q" href="#laueimproc.geometry.model.BraggModel.u_q">u_q</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.cam_size" href="#laueimproc.geometry.link.Geometry.cam_size">cam_size</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.compute_cam" href="#laueimproc.geometry.link.Geometry.compute_cam">compute_cam</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.compute_primitive_bc" href="#laueimproc.geometry.link.Geometry.compute_primitive_bc">compute_primitive_bc</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.compute_reciprocal_bc" href="#laueimproc.geometry.link.Geometry.compute_reciprocal_bc">compute_reciprocal_bc</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.compute_reciprocal_bl" href="#laueimproc.geometry.link.Geometry.compute_reciprocal_bl">compute_reciprocal_bl</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.compute_rot" href="#laueimproc.geometry.link.Geometry.compute_rot">compute_rot</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.compute_uf" href="#laueimproc.geometry.link.Geometry.compute_uf">compute_uf</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.compute_uq" href="#laueimproc.geometry.link.Geometry.compute_uq">compute_uq</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.e_max" href="#laueimproc.geometry.link.Geometry.e_max">e_max</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.e_min" href="#laueimproc.geometry.link.Geometry.e_min">e_min</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.forward" href="#laueimproc.geometry.link.Geometry.forward">forward</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.lattice" href="#laueimproc.geometry.link.Geometry.lattice">lattice</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.phi" href="#laueimproc.geometry.link.Geometry.phi">phi</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.poni" href="#laueimproc.geometry.link.Geometry.poni">poni</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.primitive_bc" href="#laueimproc.geometry.link.Geometry.primitive_bc">primitive_bc</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.reciprocal_bc" href="#laueimproc.geometry.link.Geometry.reciprocal_bc">reciprocal_bc</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.reciprocal_bl" href="#laueimproc.geometry.link.Geometry.reciprocal_bl">reciprocal_bl</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.rot" href="#laueimproc.geometry.link.Geometry.rot">rot</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.u_f" href="#laueimproc.geometry.link.Geometry.u_f">u_f</a></code></li>
+<li><code><a title="laueimproc.geometry.link.Geometry.u_q" href="#laueimproc.geometry.link.Geometry.u_q">u_q</a></code></li>
 </ul>
 </li>
 </ul>

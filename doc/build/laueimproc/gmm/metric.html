@@ -33,7 +33,6 @@
 &#34;&#34;&#34;Metric to estimate the quality of the fit of the gmm.&#34;&#34;&#34;
 
 import math
-import typing
 
 import torch
 
@@ -43,10 +42,10 @@ from .gauss import gauss
 
 def aic(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
     *,
-    _llh: typing.Optional[torch.Tensor] = None,
+    _llh: None | torch.Tensor = None,
     _check: bool = True,
 ) -&gt; tuple[torch.Tensor, torch.Tensor]:
     r&#34;&#34;&#34;Compute the Akaike Information Criterion and the Bayesian Information Criterion.
@@ -89,10 +88,10 @@ def aic(
 
 def bic(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
     *,
-    _llh: typing.Optional[torch.Tensor] = None,
+    _llh: None | torch.Tensor = None,
     _check: bool = True,
 ) -&gt; tuple[torch.Tensor, torch.Tensor]:
     r&#34;&#34;&#34;Compute the Akaike Information Criterion and the Bayesian Information Criterion.
@@ -141,7 +140,7 @@ def bic(
 
 def log_likelihood(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
     *, _check: bool = True,
 ) -&gt; torch.Tensor:
@@ -190,7 +189,7 @@ def log_likelihood(
 
 def mse(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
     *, _check: bool = True,
 ) -&gt; torch.Tensor:
@@ -279,10 +278,10 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
 </summary>
 <pre><code class="python">def aic(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
     *,
-    _llh: typing.Optional[torch.Tensor] = None,
+    _llh: None | torch.Tensor = None,
     _check: bool = True,
 ) -&gt; tuple[torch.Tensor, torch.Tensor]:
     r&#34;&#34;&#34;Compute the Akaike Information Criterion and the Bayesian Information Criterion.
@@ -359,10 +358,10 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
 </summary>
 <pre><code class="python">def bic(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
     *,
-    _llh: typing.Optional[torch.Tensor] = None,
+    _llh: None | torch.Tensor = None,
     _check: bool = True,
 ) -&gt; tuple[torch.Tensor, torch.Tensor]:
     r&#34;&#34;&#34;Compute the Akaike Information Criterion and the Bayesian Information Criterion.
@@ -458,7 +457,7 @@ L_{\alpha,\omega} = \log\left(
 </summary>
 <pre><code class="python">def log_likelihood(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
     *, _check: bool = True,
 ) -&gt; torch.Tensor:
@@ -552,7 +551,7 @@ mse = \frac{1}{N}\sum\limits_{i=1}^N
 </summary>
 <pre><code class="python">def mse(
     obs: torch.Tensor,
-    weights: typing.Optional[torch.Tensor],
+    weights: None | torch.Tensor,
     gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
     *, _check: bool = True,
 ) -&gt; torch.Tensor:

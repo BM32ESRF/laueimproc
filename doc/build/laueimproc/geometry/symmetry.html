@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>laueimproc.geometry.symmetry API documentation</title>
-<meta name="description" content="Find the cristal symmetries and equivalence." />
+<meta name="description" content="Find the crystal symmetries and equivalence." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -23,33 +23,57 @@
 <h1 class="title">Module <code>laueimproc.geometry.symmetry</code></h1>
 </header>
 <section id="section-intro">
-<p>Find the cristal symmetries and equivalence.</p>
+<p>Find the crystal symmetries and equivalence.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!/usr/bin/env python3
 
-&#34;&#34;&#34;Find the cristal symmetries and equivalence.&#34;&#34;&#34;
+&#34;&#34;&#34;Find the crystal symmetries and equivalence.&#34;&#34;&#34;
 
 import itertools
+import logging
+import math
+import numbers
 
 import torch
 
 
-def find_symmetric_rotations(primitive: torch.Tensor) -&gt; torch.Tensor:
-    r&#34;&#34;&#34;Search all the rotation that keep the cristal identical.
+def find_symmetric_rotations(crystal: torch.Tensor, tol: numbers.Real = 0.05) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Search all the rotation that keep the crystal identical.
 
     Parameters
     ----------
-    primitive : torch.Tensor
-        Matrix \(\mathbf{A}\) in any orthonormal base of shape (3, 3).
+    crystal : torch.Tensor
+        The primitive \(\mathbf{A}\) or reciprocal \(\mathbf{B}\)
+        in any orthonormal base, of shape (3, 3).
+    tol : float, default=0.05
+        The tolerency in percent to consider that to matrices are the same.
 
     Returns
     -------
     rot : torch.Tensor
-        All the rotation matrices leaving the cristal equivalent.
+        All the rotation matrices leaving the crystal equivalent.
         The shape is (n, 3, 3). It contains the identity matrix.
+
+    Notes
+    -----
+    To understand this algorithm, it&#39;s simplest to think about \(\mathbf{A}\).
+
+    Let \(f\) be the function that transforms primitive space into reciprocal space.
+    This function is independent of the chosen orthonormal base,
+    In particular, it is linear by rotation:
+
+    \(
+        \mathbf{B_{\mathcal{B^l}}
+        = f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}} \right)
+        = \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}} \right)
+    \)
+
+    The symmetries (which are rotation matrices) found on \(\mathbf{A}\)
+    are therefore the same as the symmetries found on \(\mathbf{B}\).
+    Thus, this function can be applied indefinitely to either \(\mathbf{A}\) or \(\mathbf{B}\).
 
     Examples
     --------
@@ -67,17 +91,19 @@ def find_symmetric_rotations(primitive: torch.Tensor) -&gt; torch.Tensor:
     &gt;&gt;&gt; primitive = torch.tensor([[1.0, -0.5, 0.0], [0.0, 0.866, 0.0], [0.0, 0.0, 1.0]])
     &gt;&gt;&gt; find_symmetric_rotations(primitive).shape
     torch.Size([4, 3, 3])
+    &gt;&gt;&gt; primitive = torch.tensor([[1.0, 0.866, 0.866], [0.0, 0.5, 0.232], [0.0, 0.0, 0.443]])
+    &gt;&gt;&gt; find_symmetric_rotations(primitive).shape  # a=b=c := 1, alpha=beta=gamma := pi/6
+    torch.Size([6, 3, 3])
     &gt;&gt;&gt;
     &#34;&#34;&#34;
-    assert isinstance(primitive, torch.Tensor), primitive.__class__.__name__
-    assert primitive.shape == (3, 3), primitive.__class__.__name__
-
-    # define constants
-    tol = 0.05  # 5% of tolerence
+    assert isinstance(crystal, torch.Tensor), crystal.__class__.__name__
+    assert crystal.shape == (3, 3), crystal.__class__.__name__
+    assert isinstance(tol, numbers.Real), tol.__class__.__name__
+    assert 0.0 &lt;= tol &lt; 1.0, tol
 
     # test all permutations
-    all_prim = primitive[:, list(itertools.permutations([0, 1, 2]))].movedim(1, 0)  # (6, 3, 3)
-    norm = torch.sum(primitive * primitive, dim=0)  # (3,)
+    all_prim = crystal[:, list(itertools.permutations([0, 1, 2]))].movedim(1, 0)  # (6, 3, 3)
+    norm = torch.sum(crystal * crystal, dim=0)  # (3,)
     all_prim = all_prim[  # (n, 3, 3)
         torch.all(  # allow permutation if the norm doesn&#39;t change
             torch.abs((torch.sum(all_prim * all_prim, dim=1) - norm) / norm) &lt; tol,
@@ -93,7 +119,7 @@ def find_symmetric_rotations(primitive: torch.Tensor) -&gt; torch.Tensor:
     all_prim = all_prim.reshape(-1, 3, 3)
 
     # find all equivalent transition matrices
-    rot = all_prim @ torch.linalg.inv(primitive)  # L&#39; = R.L
+    rot = all_prim @ torch.linalg.inv(crystal)  # L&#39; = R.L
 
     # reject non rotation matrix
     det = torch.linalg.det(rot)
@@ -105,7 +131,262 @@ def find_symmetric_rotations(primitive: torch.Tensor) -&gt; torch.Tensor:
             dim=(1, 2)
         )
     ]
-    return rot</code></pre>
+    return rot
+
+
+def get_hkl_family_member(*args, **kwargs) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Select the canonical member of the hkl family.
+
+    Parameters
+    ----------
+    hkl, reciprocal, tol
+        Transmitted to ``laueimproc.geometry.symmetry.get_hkl_family_members``.
+
+    Returns
+    -------
+    hkl : torch.Tensor
+        The largest member of the hkl familly, according to an arbitrary partial order relation.
+        The returned tensor is of shape (n, 3) and of type int16.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.reciprocal import primitive_to_reciprocal
+    &gt;&gt;&gt; from laueimproc.geometry.symmetry import get_hkl_family_member
+    &gt;&gt;&gt; hkl = torch.tensor([[0, 0, 1], [2, 2, 2], [0, 1, 2]])
+    &gt;&gt;&gt; primitive = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; get_hkl_family_member(hkl, primitive_to_reciprocal(primitive))
+    tensor([[1, 0, 0],
+            [1, 1, 1],
+            [2, 1, 0]], dtype=torch.int16)
+    &gt;&gt;&gt; primitive = torch.tensor([[2.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; get_hkl_family_member(hkl, primitive_to_reciprocal(primitive))
+    tensor([[0, 1, 0],
+            [1, 1, 1],
+            [0, 2, 1]], dtype=torch.int16)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    # the relation is reflexive: hkl &lt;= hkl.
+    # the relation is antisymmetric: hkl_1 &lt;= hkl_2 and hkl_2 &lt;= hkl_1 =&gt; hkl_1 = hkl_2.
+    # the relation is transitive: hkl_1 &lt;= hkl_2 and hkl_2 &lt;= hkl_3 =&gt; hkl_1 &lt;= hkl_3.
+    all_hkl = get_hkl_family_members(*args, **kwargs)
+    hkl = [max(map(tuple, members)) for members in all_hkl.tolist()]  # tuple order relation
+    return torch.asarray(hkl, dtype=all_hkl.dtype, device=all_hkl.device)
+
+
+def get_hkl_family_members(
+    hkl: torch.Tensor, reciprocal: torch.Tensor, tol: numbers.Real = 0.05
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Find all the members of the hkl family.
+
+    A family consists of all irreductible hkl, invariant by crystal symmetry.
+
+    Parameters
+    ----------
+    hkl : torch.Tensor
+        The real int hkl indices, of shape (n, 3).
+    reciprocal : torch.Tensor
+        Matrix \(\mathbf{B}\) in any orthonormal base, of shape (3, 3).
+        It is used to find the symmetries.
+    tol : float, default=0.05
+        The tolerency in percent to rounded the hkl and finding the symmetries.
+
+    Returns
+    -------
+    all_hkl : torch.Tensor
+        All the int32 equivalent hkl, of shape (n, s, 3), with s the number of symmetries.
+
+    Examples
+    --------
+    &gt;&gt;&gt; from pprint import pprint
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.reciprocal import primitive_to_reciprocal
+    &gt;&gt;&gt; from laueimproc.geometry.symmetry import get_hkl_family_members
+    &gt;&gt;&gt; hkl = torch.tensor([[0, 0, 1], [2, 2, 2], [0, 1, 2]])
+    &gt;&gt;&gt; primitive = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; family = get_hkl_family_members(hkl, primitive_to_reciprocal(primitive))
+    &gt;&gt;&gt; pprint([set(map(tuple, f)) for f in family.tolist()])
+    [{(0, 1, 0), (0, -1, 0), (1, 0, 0), (-1, 0, 0), (0, 0, -1), (0, 0, 1)},
+     {(-1, -1, -1),
+      (-1, -1, 1),
+      (-1, 1, -1),
+      (-1, 1, 1),
+      (1, -1, -1),
+      (1, -1, 1),
+      (1, 1, -1),
+      (1, 1, 1)},
+     {(-2, -1, 0),
+      (-2, 0, -1),
+      (-2, 0, 1),
+      (-2, 1, 0),
+      (-1, -2, 0),
+      (-1, 0, -2),
+      (-1, 0, 2),
+      (-1, 2, 0),
+      (0, -2, -1),
+      (0, -2, 1),
+      (0, -1, -2),
+      (0, -1, 2),
+      (0, 1, -2),
+      (0, 1, 2),
+      (0, 2, -1),
+      (0, 2, 1),
+      (1, -2, 0),
+      (1, 0, -2),
+      (1, 0, 2),
+      (1, 2, 0),
+      (2, -1, 0),
+      (2, 0, -1),
+      (2, 0, 1),
+      (2, 1, 0)}]
+    &gt;&gt;&gt; primitive = torch.tensor([[2.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; family = get_hkl_family_members(hkl, primitive_to_reciprocal(primitive))
+    &gt;&gt;&gt; pprint([set(map(tuple, f)) for f in family.tolist()])
+    [{(0, 0, -1), (0, -1, 0), (0, 0, 1), (0, 1, 0)},
+     {(-1, -1, -1),
+      (-1, -1, 1),
+      (-1, 1, -1),
+      (-1, 1, 1),
+      (1, -1, -1),
+      (1, -1, 1),
+      (1, 1, -1),
+      (1, 1, 1)},
+     {(0, -2, -1),
+      (0, -2, 1),
+      (0, -1, -2),
+      (0, -1, 2),
+      (0, 1, -2),
+      (0, 1, 2),
+      (0, 2, -1),
+      (0, 2, 1)}]
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(hkl, torch.Tensor), hkl.__class__.__name__
+    assert hkl.ndim == 2 and hkl.shape[1] == 3, hkl.shape
+    assert isinstance(reciprocal, torch.Tensor), reciprocal.__class__.__name__
+    assert reciprocal.shape == (3, 3), reciprocal.shape
+    assert isinstance(tol, numbers.Real), tol.__class__.__name__
+    assert 3.052e-5 &lt; tol &lt; 1.0, tol  # /tol and cast into int16
+
+    hkl = hkl * round(1.0 / tol)  # expand to reduce after
+
+    # from hkl and reciprocal to not unitary uq
+    uq_ref = reciprocal[None, :, :] @ hkl[:, :, None].to(reciprocal.device, reciprocal.dtype)
+
+    # from uq and symmetries to uq_family
+    sym_rot = find_symmetric_rotations(reciprocal, tol=tol)  # (r, 3, 3)
+    uq_family = sym_rot[None, :, :] @ uq_ref[:, None, :]  # (n, r, 3, 1), all equivalent uq
+
+    # from uq_family and reciprocal to float hkl
+    # we have: lambda.uq = h.e1* + k.e2* + l.e2*
+    # =&gt; &lt;uq, ei*&gt; = h.&lt;ei*, e1*&gt; + k.&lt;ei*, e2*&gt; + l.&lt;ei*, e3*&gt;
+    uq_proj = reciprocal.mT @ uq_family  # (n, r, 3, 1), &lt;uq, ei*&gt;
+    scal_matrix = reciprocal.mT @ reciprocal  # (3, 3), &lt;ei*, ej*&gt;
+    all_hkl = torch.linalg.inv(scal_matrix) @ uq_proj  # (n, r, 3, 1), uq_proj = scal_matrix @ hkl
+
+    # from float hkl to int hkl
+    all_hkl = all_hkl.squeeze(3)  # (n, r, 3)
+    all_hkl_int = torch.round(all_hkl).to(torch.int16)  # round big then make as small as possible
+    all_hkl_int //= (
+        torch.gcd(torch.gcd(all_hkl_int[:, :, 0], all_hkl_int[:, :, 1]), all_hkl_int[:, :, 2])
+        .unsqueeze(2)
+    )
+    return all_hkl_int
+
+    # more accurate but slowler method to convert float hkl into int hkl
+    # all_hkl *= torch.rsqrt(torch.sum(all_hkl * all_hkl, dim=2, keepdim=True))
+    # hkl_max = 10
+    # hkl_int = torch.round(   # (n, r, x, 3)
+    #     all_hkl[:, :, None, :] * torch.sqrt(torch.arange(1, hkl_max**2 + 1)[None, None, :, None])
+    # )
+    # phi = torch.acos(
+    #     torch.clamp(
+    #         torch.sum(
+    #             (
+    #                 all_hkl[:, :, None, :]
+    #                 * hkl_int
+    #             ),
+    #             dim=3,
+    #         ) * torch.rsqrt(torch.sum(hkl_int * hkl_int, dim=3)),
+    #         min=-1.0,
+    #         max=1.0,
+    #     )
+    # )  # angle between all_hkl and hkl_int
+    # best = torch.argmax((phi &lt; tol).view(torch.uint8), dim=2, keepdim=True)
+    # hkl_int = torch.take_along_dim(hkl_int, best[:, :, :, None], dim=2)  # (n, r, 3)
+    # hkl_int = hkl_int.to(torch.int16)  # round big then make as small as possible
+    # hkl_int //= (
+    #     torch.gcd(torch.gcd(hkl_int[:, :, 0], hkl_int[:, :, 1]), hkl_int[:, :, 2])
+    #     .unsqueeze(2)
+    # )
+    # return hkl_int
+
+
+def reduce_omega_range(
+    omega_range: tuple[tuple[float, float], tuple[float, float], tuple[float, float]],
+    symmetries: torch.Tensor,
+) -&gt; tuple[tuple[float, float], tuple[float, float], tuple[float, float]]:
+    r&#34;&#34;&#34;Reduces the omega domain as much as possible given the crystal&#39;s symmetry.
+
+    Parameters
+    ----------
+    omega_range : tuple[tuple[float, float], tuple[float, float], tuple[float, float]]
+        The min and max limits for each elementary rotation angle
+        \omega_1, \omega_2, \omega_3, in radian.
+    symmetries : torch.Tensor
+        All the rotation matrices leaving the crystal equivalent, shape (s, 3, 3).
+
+    Returns
+    -------
+    reduced_domain : tuple[tuple[float, float], tuple[float, float], tuple[float, float]]
+        Reduced start-up domain.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.rotation import omega_to_rot
+    &gt;&gt;&gt; from laueimproc.geometry.symmetry import reduce_omega_range
+    &gt;&gt;&gt; omega_range = ((-torch.pi, torch.pi), (-torch.pi/2, torch.pi/2), (-torch.pi, torch.pi))
+    &gt;&gt;&gt; symmetries = omega_to_rot(torch.tensor([0.0, 2*torch.pi/3]))
+    &gt;&gt;&gt; omega_range = reduce_omega_range(omega_range, symmetries)
+    &gt;&gt;&gt; torch.asarray(omega_range) * 180/torch.pi
+    tensor([[-180.0000,  -60.0000],
+            [ -90.0000,   90.0000],
+            [-180.0000,  180.0000]])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(omega_range, tuple), omega_range.__name__.__name__
+    assert len(omega_range) == 3, omega_range
+    assert all(isinstance(mm, tuple) for mm in omega_range), omega_range
+    assert all(len(mm) == 2 for mm in omega_range), omega_range
+    (omega1_min, omega1_max), (omega2_min, omega2_max), (omega3_min, omega3_max) = omega_range
+    assert omega1_min &gt;= -torch.pi, omega1_min
+    assert omega1_max &lt;= torch.pi, omega1_max
+    assert omega1_min &lt; omega1_max, (omega1_min, omega1_max)
+    assert omega2_min &gt;= -0.5 * torch.pi, omega2_min
+    assert omega2_max &lt;= 0.5 * torch.pi, omega2_max
+    assert omega2_min &lt; omega2_max, (omega2_min, omega2_max)
+    assert omega3_min &gt;= -torch.pi, omega3_min
+    assert omega3_max &lt;= torch.pi, omega3_max
+    assert omega3_min &lt; omega3_max, (omega3_min, omega3_max)
+    assert isinstance(symmetries, torch.Tensor), symmetries.__class__.__name__
+    assert symmetries.ndim == 3 and symmetries.shape[1:] == (3, 3), symmetries.shape
+
+    unitary_x = torch.tensor(
+        [[1.0], [0.0], [0.0]], device=symmetries.device, dtype=symmetries.dtype
+    )
+    for rot in symmetries:
+        if torch.allclose(rot, torch.eye(3, device=symmetries.device, dtype=symmetries.dtype)):
+            continue
+        if torch.allclose(rot @ unitary_x, unitary_x):  # rotation along first axis
+            angle = math.acos(float(rot[2, 2]))
+            omega1_max = min(omega1_min + angle, omega1_max)
+            continue
+        logging.warning(
+            &#34;%s symmetry is ignored, because it&#39;s too complicated&#34;, rot.numpy(force=True)
+        )
+
+    return ((omega1_min, omega1_max), (omega2_min, omega2_max), (omega3_min, omega3_max))</code></pre>
 </details>
 </section>
 <section>
@@ -116,21 +397,41 @@ def find_symmetric_rotations(primitive: torch.Tensor) -&gt; torch.Tensor:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="laueimproc.geometry.symmetry.find_symmetric_rotations"><code class="name flex">
-<span>def <span class="ident">find_symmetric_rotations</span></span>(<span>primitive: torch.Tensor) ‑> torch.Tensor</span>
+<span>def <span class="ident">find_symmetric_rotations</span></span>(<span>crystal: torch.Tensor, tol: numbers.Real = 0.05) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Search all the rotation that keep the cristal identical.</p>
+<div class="desc"><p>Search all the rotation that keep the crystal identical.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>primitive</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>Matrix <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> in any orthonormal base of shape (3, 3).</dd>
+<dt><strong><code>crystal</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The primitive <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> or reciprocal <span><span class="MathJax_Preview">\mathbf{B}</span><script type="math/tex">\mathbf{B}</script></span>
+in any orthonormal base, of shape (3, 3).</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>float</code>, default=<code>0.05</code></dt>
+<dd>The tolerency in percent to consider that to matrices are the same.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>rot</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>All the rotation matrices leaving the cristal equivalent.
+<dd>All the rotation matrices leaving the crystal equivalent.
 The shape is (n, 3, 3). It contains the identity matrix.</dd>
 </dl>
+<h2 id="notes">Notes</h2>
+<p>To understand this algorithm, it's simplest to think about <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span>.</p>
+<p>Let <span><span class="MathJax_Preview">f</span><script type="math/tex">f</script></span> be the function that transforms primitive space into reciprocal space.
+This function is independent of the chosen orthonormal base,
+In particular, it is linear by rotation:</p>
+<p><span><span class="MathJax_Preview">
+\mathbf{B_{\mathcal{B^l}}
+= f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}} \right)
+= \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}} \right)
+</span><script type="math/tex">
+\mathbf{B_{\mathcal{B^l}}
+= f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}} \right)
+= \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}} \right)
+</script></span></p>
+<p>The symmetries (which are rotation matrices) found on <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span>
+are therefore the same as the symmetries found on <span><span class="MathJax_Preview">\mathbf{B}</span><script type="math/tex">\mathbf{B}</script></span>.
+Thus, this function can be applied indefinitely to either <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> or <span><span class="MathJax_Preview">\mathbf{B}</span><script type="math/tex">\mathbf{B}</script></span>.</p>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.geometry.symmetry import find_symmetric_rotations
@@ -146,25 +447,49 @@ torch.Size([4, 3, 3])
 &gt;&gt;&gt; primitive = torch.tensor([[1.0, -0.5, 0.0], [0.0, 0.866, 0.0], [0.0, 0.0, 1.0]])
 &gt;&gt;&gt; find_symmetric_rotations(primitive).shape
 torch.Size([4, 3, 3])
+&gt;&gt;&gt; primitive = torch.tensor([[1.0, 0.866, 0.866], [0.0, 0.5, 0.232], [0.0, 0.0, 0.443]])
+&gt;&gt;&gt; find_symmetric_rotations(primitive).shape  # a=b=c := 1, alpha=beta=gamma := pi/6
+torch.Size([6, 3, 3])
 &gt;&gt;&gt;
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def find_symmetric_rotations(primitive: torch.Tensor) -&gt; torch.Tensor:
-    r&#34;&#34;&#34;Search all the rotation that keep the cristal identical.
+<pre><code class="python">def find_symmetric_rotations(crystal: torch.Tensor, tol: numbers.Real = 0.05) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Search all the rotation that keep the crystal identical.
 
     Parameters
     ----------
-    primitive : torch.Tensor
-        Matrix \(\mathbf{A}\) in any orthonormal base of shape (3, 3).
+    crystal : torch.Tensor
+        The primitive \(\mathbf{A}\) or reciprocal \(\mathbf{B}\)
+        in any orthonormal base, of shape (3, 3).
+    tol : float, default=0.05
+        The tolerency in percent to consider that to matrices are the same.
 
     Returns
     -------
     rot : torch.Tensor
-        All the rotation matrices leaving the cristal equivalent.
+        All the rotation matrices leaving the crystal equivalent.
         The shape is (n, 3, 3). It contains the identity matrix.
+
+    Notes
+    -----
+    To understand this algorithm, it&#39;s simplest to think about \(\mathbf{A}\).
+
+    Let \(f\) be the function that transforms primitive space into reciprocal space.
+    This function is independent of the chosen orthonormal base,
+    In particular, it is linear by rotation:
+
+    \(
+        \mathbf{B_{\mathcal{B^l}}
+        = f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}} \right)
+        = \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}} \right)
+    \)
+
+    The symmetries (which are rotation matrices) found on \(\mathbf{A}\)
+    are therefore the same as the symmetries found on \(\mathbf{B}\).
+    Thus, this function can be applied indefinitely to either \(\mathbf{A}\) or \(\mathbf{B}\).
 
     Examples
     --------
@@ -182,17 +507,19 @@ torch.Size([4, 3, 3])
     &gt;&gt;&gt; primitive = torch.tensor([[1.0, -0.5, 0.0], [0.0, 0.866, 0.0], [0.0, 0.0, 1.0]])
     &gt;&gt;&gt; find_symmetric_rotations(primitive).shape
     torch.Size([4, 3, 3])
+    &gt;&gt;&gt; primitive = torch.tensor([[1.0, 0.866, 0.866], [0.0, 0.5, 0.232], [0.0, 0.0, 0.443]])
+    &gt;&gt;&gt; find_symmetric_rotations(primitive).shape  # a=b=c := 1, alpha=beta=gamma := pi/6
+    torch.Size([6, 3, 3])
     &gt;&gt;&gt;
     &#34;&#34;&#34;
-    assert isinstance(primitive, torch.Tensor), primitive.__class__.__name__
-    assert primitive.shape == (3, 3), primitive.__class__.__name__
-
-    # define constants
-    tol = 0.05  # 5% of tolerence
+    assert isinstance(crystal, torch.Tensor), crystal.__class__.__name__
+    assert crystal.shape == (3, 3), crystal.__class__.__name__
+    assert isinstance(tol, numbers.Real), tol.__class__.__name__
+    assert 0.0 &lt;= tol &lt; 1.0, tol
 
     # test all permutations
-    all_prim = primitive[:, list(itertools.permutations([0, 1, 2]))].movedim(1, 0)  # (6, 3, 3)
-    norm = torch.sum(primitive * primitive, dim=0)  # (3,)
+    all_prim = crystal[:, list(itertools.permutations([0, 1, 2]))].movedim(1, 0)  # (6, 3, 3)
+    norm = torch.sum(crystal * crystal, dim=0)  # (3,)
     all_prim = all_prim[  # (n, 3, 3)
         torch.all(  # allow permutation if the norm doesn&#39;t change
             torch.abs((torch.sum(all_prim * all_prim, dim=1) - norm) / norm) &lt; tol,
@@ -208,7 +535,7 @@ torch.Size([4, 3, 3])
     all_prim = all_prim.reshape(-1, 3, 3)
 
     # find all equivalent transition matrices
-    rot = all_prim @ torch.linalg.inv(primitive)  # L&#39; = R.L
+    rot = all_prim @ torch.linalg.inv(crystal)  # L&#39; = R.L
 
     # reject non rotation matrix
     det = torch.linalg.det(rot)
@@ -221,6 +548,422 @@ torch.Size([4, 3, 3])
         )
     ]
     return rot</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.symmetry.get_hkl_family_member"><code class="name flex">
+<span>def <span class="ident">get_hkl_family_member</span></span>(<span>*args, **kwargs) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Select the canonical member of the hkl family.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>hkl</code></strong>, <strong><code>reciprocal</code></strong>, <strong><code>tol</code></strong></dt>
+<dd>Transmitted to <code><a title="laueimproc.geometry.symmetry.get_hkl_family_members" href="#laueimproc.geometry.symmetry.get_hkl_family_members">get_hkl_family_members()</a></code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>hkl</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The largest member of the hkl familly, according to an arbitrary partial order relation.
+The returned tensor is of shape (n, 3) and of type int16.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.geometry.reciprocal import primitive_to_reciprocal
+&gt;&gt;&gt; from laueimproc.geometry.symmetry import get_hkl_family_member
+&gt;&gt;&gt; hkl = torch.tensor([[0, 0, 1], [2, 2, 2], [0, 1, 2]])
+&gt;&gt;&gt; primitive = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+&gt;&gt;&gt; get_hkl_family_member(hkl, primitive_to_reciprocal(primitive))
+tensor([[1, 0, 0],
+        [1, 1, 1],
+        [2, 1, 0]], dtype=torch.int16)
+&gt;&gt;&gt; primitive = torch.tensor([[2.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+&gt;&gt;&gt; get_hkl_family_member(hkl, primitive_to_reciprocal(primitive))
+tensor([[0, 1, 0],
+        [1, 1, 1],
+        [0, 2, 1]], dtype=torch.int16)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_hkl_family_member(*args, **kwargs) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Select the canonical member of the hkl family.
+
+    Parameters
+    ----------
+    hkl, reciprocal, tol
+        Transmitted to ``laueimproc.geometry.symmetry.get_hkl_family_members``.
+
+    Returns
+    -------
+    hkl : torch.Tensor
+        The largest member of the hkl familly, according to an arbitrary partial order relation.
+        The returned tensor is of shape (n, 3) and of type int16.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.reciprocal import primitive_to_reciprocal
+    &gt;&gt;&gt; from laueimproc.geometry.symmetry import get_hkl_family_member
+    &gt;&gt;&gt; hkl = torch.tensor([[0, 0, 1], [2, 2, 2], [0, 1, 2]])
+    &gt;&gt;&gt; primitive = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; get_hkl_family_member(hkl, primitive_to_reciprocal(primitive))
+    tensor([[1, 0, 0],
+            [1, 1, 1],
+            [2, 1, 0]], dtype=torch.int16)
+    &gt;&gt;&gt; primitive = torch.tensor([[2.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; get_hkl_family_member(hkl, primitive_to_reciprocal(primitive))
+    tensor([[0, 1, 0],
+            [1, 1, 1],
+            [0, 2, 1]], dtype=torch.int16)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    # the relation is reflexive: hkl &lt;= hkl.
+    # the relation is antisymmetric: hkl_1 &lt;= hkl_2 and hkl_2 &lt;= hkl_1 =&gt; hkl_1 = hkl_2.
+    # the relation is transitive: hkl_1 &lt;= hkl_2 and hkl_2 &lt;= hkl_3 =&gt; hkl_1 &lt;= hkl_3.
+    all_hkl = get_hkl_family_members(*args, **kwargs)
+    hkl = [max(map(tuple, members)) for members in all_hkl.tolist()]  # tuple order relation
+    return torch.asarray(hkl, dtype=all_hkl.dtype, device=all_hkl.device)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.symmetry.get_hkl_family_members"><code class="name flex">
+<span>def <span class="ident">get_hkl_family_members</span></span>(<span>hkl: torch.Tensor, reciprocal: torch.Tensor, tol: numbers.Real = 0.05) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Find all the members of the hkl family.</p>
+<p>A family consists of all irreductible hkl, invariant by crystal symmetry.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>hkl</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The real int hkl indices, of shape (n, 3).</dd>
+<dt><strong><code>reciprocal</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>Matrix <span><span class="MathJax_Preview">\mathbf{B}</span><script type="math/tex">\mathbf{B}</script></span> in any orthonormal base, of shape (3, 3).
+It is used to find the symmetries.</dd>
+<dt><strong><code>tol</code></strong> :&ensp;<code>float</code>, default=<code>0.05</code></dt>
+<dd>The tolerency in percent to rounded the hkl and finding the symmetries.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>all_hkl</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>All the int32 equivalent hkl, of shape (n, s, 3), with s the number of symmetries.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; from pprint import pprint
+&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.geometry.reciprocal import primitive_to_reciprocal
+&gt;&gt;&gt; from laueimproc.geometry.symmetry import get_hkl_family_members
+&gt;&gt;&gt; hkl = torch.tensor([[0, 0, 1], [2, 2, 2], [0, 1, 2]])
+&gt;&gt;&gt; primitive = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+&gt;&gt;&gt; family = get_hkl_family_members(hkl, primitive_to_reciprocal(primitive))
+&gt;&gt;&gt; pprint([set(map(tuple, f)) for f in family.tolist()])
+[{(0, 1, 0), (0, -1, 0), (1, 0, 0), (-1, 0, 0), (0, 0, -1), (0, 0, 1)},
+ {(-1, -1, -1),
+  (-1, -1, 1),
+  (-1, 1, -1),
+  (-1, 1, 1),
+  (1, -1, -1),
+  (1, -1, 1),
+  (1, 1, -1),
+  (1, 1, 1)},
+ {(-2, -1, 0),
+  (-2, 0, -1),
+  (-2, 0, 1),
+  (-2, 1, 0),
+  (-1, -2, 0),
+  (-1, 0, -2),
+  (-1, 0, 2),
+  (-1, 2, 0),
+  (0, -2, -1),
+  (0, -2, 1),
+  (0, -1, -2),
+  (0, -1, 2),
+  (0, 1, -2),
+  (0, 1, 2),
+  (0, 2, -1),
+  (0, 2, 1),
+  (1, -2, 0),
+  (1, 0, -2),
+  (1, 0, 2),
+  (1, 2, 0),
+  (2, -1, 0),
+  (2, 0, -1),
+  (2, 0, 1),
+  (2, 1, 0)}]
+&gt;&gt;&gt; primitive = torch.tensor([[2.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+&gt;&gt;&gt; family = get_hkl_family_members(hkl, primitive_to_reciprocal(primitive))
+&gt;&gt;&gt; pprint([set(map(tuple, f)) for f in family.tolist()])
+[{(0, 0, -1), (0, -1, 0), (0, 0, 1), (0, 1, 0)},
+ {(-1, -1, -1),
+  (-1, -1, 1),
+  (-1, 1, -1),
+  (-1, 1, 1),
+  (1, -1, -1),
+  (1, -1, 1),
+  (1, 1, -1),
+  (1, 1, 1)},
+ {(0, -2, -1),
+  (0, -2, 1),
+  (0, -1, -2),
+  (0, -1, 2),
+  (0, 1, -2),
+  (0, 1, 2),
+  (0, 2, -1),
+  (0, 2, 1)}]
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_hkl_family_members(
+    hkl: torch.Tensor, reciprocal: torch.Tensor, tol: numbers.Real = 0.05
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Find all the members of the hkl family.
+
+    A family consists of all irreductible hkl, invariant by crystal symmetry.
+
+    Parameters
+    ----------
+    hkl : torch.Tensor
+        The real int hkl indices, of shape (n, 3).
+    reciprocal : torch.Tensor
+        Matrix \(\mathbf{B}\) in any orthonormal base, of shape (3, 3).
+        It is used to find the symmetries.
+    tol : float, default=0.05
+        The tolerency in percent to rounded the hkl and finding the symmetries.
+
+    Returns
+    -------
+    all_hkl : torch.Tensor
+        All the int32 equivalent hkl, of shape (n, s, 3), with s the number of symmetries.
+
+    Examples
+    --------
+    &gt;&gt;&gt; from pprint import pprint
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.reciprocal import primitive_to_reciprocal
+    &gt;&gt;&gt; from laueimproc.geometry.symmetry import get_hkl_family_members
+    &gt;&gt;&gt; hkl = torch.tensor([[0, 0, 1], [2, 2, 2], [0, 1, 2]])
+    &gt;&gt;&gt; primitive = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; family = get_hkl_family_members(hkl, primitive_to_reciprocal(primitive))
+    &gt;&gt;&gt; pprint([set(map(tuple, f)) for f in family.tolist()])
+    [{(0, 1, 0), (0, -1, 0), (1, 0, 0), (-1, 0, 0), (0, 0, -1), (0, 0, 1)},
+     {(-1, -1, -1),
+      (-1, -1, 1),
+      (-1, 1, -1),
+      (-1, 1, 1),
+      (1, -1, -1),
+      (1, -1, 1),
+      (1, 1, -1),
+      (1, 1, 1)},
+     {(-2, -1, 0),
+      (-2, 0, -1),
+      (-2, 0, 1),
+      (-2, 1, 0),
+      (-1, -2, 0),
+      (-1, 0, -2),
+      (-1, 0, 2),
+      (-1, 2, 0),
+      (0, -2, -1),
+      (0, -2, 1),
+      (0, -1, -2),
+      (0, -1, 2),
+      (0, 1, -2),
+      (0, 1, 2),
+      (0, 2, -1),
+      (0, 2, 1),
+      (1, -2, 0),
+      (1, 0, -2),
+      (1, 0, 2),
+      (1, 2, 0),
+      (2, -1, 0),
+      (2, 0, -1),
+      (2, 0, 1),
+      (2, 1, 0)}]
+    &gt;&gt;&gt; primitive = torch.tensor([[2.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    &gt;&gt;&gt; family = get_hkl_family_members(hkl, primitive_to_reciprocal(primitive))
+    &gt;&gt;&gt; pprint([set(map(tuple, f)) for f in family.tolist()])
+    [{(0, 0, -1), (0, -1, 0), (0, 0, 1), (0, 1, 0)},
+     {(-1, -1, -1),
+      (-1, -1, 1),
+      (-1, 1, -1),
+      (-1, 1, 1),
+      (1, -1, -1),
+      (1, -1, 1),
+      (1, 1, -1),
+      (1, 1, 1)},
+     {(0, -2, -1),
+      (0, -2, 1),
+      (0, -1, -2),
+      (0, -1, 2),
+      (0, 1, -2),
+      (0, 1, 2),
+      (0, 2, -1),
+      (0, 2, 1)}]
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(hkl, torch.Tensor), hkl.__class__.__name__
+    assert hkl.ndim == 2 and hkl.shape[1] == 3, hkl.shape
+    assert isinstance(reciprocal, torch.Tensor), reciprocal.__class__.__name__
+    assert reciprocal.shape == (3, 3), reciprocal.shape
+    assert isinstance(tol, numbers.Real), tol.__class__.__name__
+    assert 3.052e-5 &lt; tol &lt; 1.0, tol  # /tol and cast into int16
+
+    hkl = hkl * round(1.0 / tol)  # expand to reduce after
+
+    # from hkl and reciprocal to not unitary uq
+    uq_ref = reciprocal[None, :, :] @ hkl[:, :, None].to(reciprocal.device, reciprocal.dtype)
+
+    # from uq and symmetries to uq_family
+    sym_rot = find_symmetric_rotations(reciprocal, tol=tol)  # (r, 3, 3)
+    uq_family = sym_rot[None, :, :] @ uq_ref[:, None, :]  # (n, r, 3, 1), all equivalent uq
+
+    # from uq_family and reciprocal to float hkl
+    # we have: lambda.uq = h.e1* + k.e2* + l.e2*
+    # =&gt; &lt;uq, ei*&gt; = h.&lt;ei*, e1*&gt; + k.&lt;ei*, e2*&gt; + l.&lt;ei*, e3*&gt;
+    uq_proj = reciprocal.mT @ uq_family  # (n, r, 3, 1), &lt;uq, ei*&gt;
+    scal_matrix = reciprocal.mT @ reciprocal  # (3, 3), &lt;ei*, ej*&gt;
+    all_hkl = torch.linalg.inv(scal_matrix) @ uq_proj  # (n, r, 3, 1), uq_proj = scal_matrix @ hkl
+
+    # from float hkl to int hkl
+    all_hkl = all_hkl.squeeze(3)  # (n, r, 3)
+    all_hkl_int = torch.round(all_hkl).to(torch.int16)  # round big then make as small as possible
+    all_hkl_int //= (
+        torch.gcd(torch.gcd(all_hkl_int[:, :, 0], all_hkl_int[:, :, 1]), all_hkl_int[:, :, 2])
+        .unsqueeze(2)
+    )
+    return all_hkl_int
+
+    # more accurate but slowler method to convert float hkl into int hkl
+    # all_hkl *= torch.rsqrt(torch.sum(all_hkl * all_hkl, dim=2, keepdim=True))
+    # hkl_max = 10
+    # hkl_int = torch.round(   # (n, r, x, 3)
+    #     all_hkl[:, :, None, :] * torch.sqrt(torch.arange(1, hkl_max**2 + 1)[None, None, :, None])
+    # )
+    # phi = torch.acos(
+    #     torch.clamp(
+    #         torch.sum(
+    #             (
+    #                 all_hkl[:, :, None, :]
+    #                 * hkl_int
+    #             ),
+    #             dim=3,
+    #         ) * torch.rsqrt(torch.sum(hkl_int * hkl_int, dim=3)),
+    #         min=-1.0,
+    #         max=1.0,
+    #     )
+    # )  # angle between all_hkl and hkl_int
+    # best = torch.argmax((phi &lt; tol).view(torch.uint8), dim=2, keepdim=True)
+    # hkl_int = torch.take_along_dim(hkl_int, best[:, :, :, None], dim=2)  # (n, r, 3)
+    # hkl_int = hkl_int.to(torch.int16)  # round big then make as small as possible
+    # hkl_int //= (
+    #     torch.gcd(torch.gcd(hkl_int[:, :, 0], hkl_int[:, :, 1]), hkl_int[:, :, 2])
+    #     .unsqueeze(2)
+    # )
+    # return hkl_int</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.symmetry.reduce_omega_range"><code class="name flex">
+<span>def <span class="ident">reduce_omega_range</span></span>(<span>omega_range: tuple[tuple[float, float], tuple[float, float], tuple[float, float]], symmetries: torch.Tensor) ‑> tuple[tuple[float, float], tuple[float, float], tuple[float, float]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reduces the omega domain as much as possible given the crystal's symmetry.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>omega_range</code></strong> :&ensp;<code>tuple[tuple[float, float], tuple[float, float], tuple[float, float]]</code></dt>
+<dd>The min and max limits for each elementary rotation angle
+\omega_1, \omega_2, \omega_3, in radian.</dd>
+<dt><strong><code>symmetries</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>All the rotation matrices leaving the crystal equivalent, shape (s, 3, 3).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>reduced_domain</code></strong> :&ensp;<code>tuple[tuple[float, float], tuple[float, float], tuple[float, float]]</code></dt>
+<dd>Reduced start-up domain.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.geometry.rotation import omega_to_rot
+&gt;&gt;&gt; from laueimproc.geometry.symmetry import reduce_omega_range
+&gt;&gt;&gt; omega_range = ((-torch.pi, torch.pi), (-torch.pi/2, torch.pi/2), (-torch.pi, torch.pi))
+&gt;&gt;&gt; symmetries = omega_to_rot(torch.tensor([0.0, 2*torch.pi/3]))
+&gt;&gt;&gt; omega_range = reduce_omega_range(omega_range, symmetries)
+&gt;&gt;&gt; torch.asarray(omega_range) * 180/torch.pi
+tensor([[-180.0000,  -60.0000],
+        [ -90.0000,   90.0000],
+        [-180.0000,  180.0000]])
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reduce_omega_range(
+    omega_range: tuple[tuple[float, float], tuple[float, float], tuple[float, float]],
+    symmetries: torch.Tensor,
+) -&gt; tuple[tuple[float, float], tuple[float, float], tuple[float, float]]:
+    r&#34;&#34;&#34;Reduces the omega domain as much as possible given the crystal&#39;s symmetry.
+
+    Parameters
+    ----------
+    omega_range : tuple[tuple[float, float], tuple[float, float], tuple[float, float]]
+        The min and max limits for each elementary rotation angle
+        \omega_1, \omega_2, \omega_3, in radian.
+    symmetries : torch.Tensor
+        All the rotation matrices leaving the crystal equivalent, shape (s, 3, 3).
+
+    Returns
+    -------
+    reduced_domain : tuple[tuple[float, float], tuple[float, float], tuple[float, float]]
+        Reduced start-up domain.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.rotation import omega_to_rot
+    &gt;&gt;&gt; from laueimproc.geometry.symmetry import reduce_omega_range
+    &gt;&gt;&gt; omega_range = ((-torch.pi, torch.pi), (-torch.pi/2, torch.pi/2), (-torch.pi, torch.pi))
+    &gt;&gt;&gt; symmetries = omega_to_rot(torch.tensor([0.0, 2*torch.pi/3]))
+    &gt;&gt;&gt; omega_range = reduce_omega_range(omega_range, symmetries)
+    &gt;&gt;&gt; torch.asarray(omega_range) * 180/torch.pi
+    tensor([[-180.0000,  -60.0000],
+            [ -90.0000,   90.0000],
+            [-180.0000,  180.0000]])
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(omega_range, tuple), omega_range.__name__.__name__
+    assert len(omega_range) == 3, omega_range
+    assert all(isinstance(mm, tuple) for mm in omega_range), omega_range
+    assert all(len(mm) == 2 for mm in omega_range), omega_range
+    (omega1_min, omega1_max), (omega2_min, omega2_max), (omega3_min, omega3_max) = omega_range
+    assert omega1_min &gt;= -torch.pi, omega1_min
+    assert omega1_max &lt;= torch.pi, omega1_max
+    assert omega1_min &lt; omega1_max, (omega1_min, omega1_max)
+    assert omega2_min &gt;= -0.5 * torch.pi, omega2_min
+    assert omega2_max &lt;= 0.5 * torch.pi, omega2_max
+    assert omega2_min &lt; omega2_max, (omega2_min, omega2_max)
+    assert omega3_min &gt;= -torch.pi, omega3_min
+    assert omega3_max &lt;= torch.pi, omega3_max
+    assert omega3_min &lt; omega3_max, (omega3_min, omega3_max)
+    assert isinstance(symmetries, torch.Tensor), symmetries.__class__.__name__
+    assert symmetries.ndim == 3 and symmetries.shape[1:] == (3, 3), symmetries.shape
+
+    unitary_x = torch.tensor(
+        [[1.0], [0.0], [0.0]], device=symmetries.device, dtype=symmetries.dtype
+    )
+    for rot in symmetries:
+        if torch.allclose(rot, torch.eye(3, device=symmetries.device, dtype=symmetries.dtype)):
+            continue
+        if torch.allclose(rot @ unitary_x, unitary_x):  # rotation along first axis
+            angle = math.acos(float(rot[2, 2]))
+            omega1_max = min(omega1_min + angle, omega1_max)
+            continue
+        logging.warning(
+            &#34;%s symmetry is ignored, because it&#39;s too complicated&#34;, rot.numpy(force=True)
+        )
+
+    return ((omega1_min, omega1_max), (omega2_min, omega2_max), (omega3_min, omega3_max))</code></pre>
 </details>
 </dd>
 </dl>
@@ -288,6 +1031,9 @@ setTimeout(() => input.focus(), 100);
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="laueimproc.geometry.symmetry.find_symmetric_rotations" href="#laueimproc.geometry.symmetry.find_symmetric_rotations">find_symmetric_rotations</a></code></li>
+<li><code><a title="laueimproc.geometry.symmetry.get_hkl_family_member" href="#laueimproc.geometry.symmetry.get_hkl_family_member">get_hkl_family_member</a></code></li>
+<li><code><a title="laueimproc.geometry.symmetry.get_hkl_family_members" href="#laueimproc.geometry.symmetry.get_hkl_family_members">get_hkl_family_members</a></code></li>
+<li><code><a title="laueimproc.geometry.symmetry.reduce_omega_range" href="#laueimproc.geometry.symmetry.reduce_omega_range">reduce_omega_range</a></code></li>
 </ul>
 </li>
 </ul>

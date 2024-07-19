@@ -108,23 +108,26 @@ class NNIndexator(torch.nn.Module):
         # main neuronal model (slowest part of initialization)
         avg = (self.bins + len(self._families)) // 2
         self.layer_1 = torch.nn.Sequential(
-            torch.nn.Linear(self.bins, (15*avg + self.bins)//2),
-            torch.nn.ReLU(inplace=True),
+            torch.nn.Linear(self.bins, self.bins),
+            # torch.nn.BatchNorm1d(self.bins),  # not in original Ravi code
+            torch.nn.LeakyReLU(inplace=True),  # not in original Ravi code
+            # torch.nn.ReLU(inplace=True),  # in original Ravi code
             torch.nn.Dropout(0.3),
         )
         self.layer_2 = torch.nn.Sequential(
-            torch.nn.Linear((15*avg + self.bins)//2, 15*avg),
-            torch.nn.ReLU(inplace=True),
+            torch.nn.Linear(self.bins, (15*avg + self.bins)//2),
+            torch.nn.LeakyReLU(inplace=True),  # not in original Ravi code
+            # torch.nn.ReLU(inplace=True),  # in original Ravi code
             torch.nn.Dropout(0.3),
         )
         self.layer_3 = torch.nn.Sequential(
-            torch.nn.Linear(15*avg, 15*avg),
-            torch.nn.ReLU(inplace=True),
+            torch.nn.Linear((15*avg + self.bins)//2, 15*avg),
+            torch.nn.ReLU(inplace=True),  # in original Ravi code
             torch.nn.Dropout(0.3),
         )
         self.layer_4 = torch.nn.Sequential(
             torch.nn.Linear(15*avg, len(self._families)),
-            torch.nn.Softmax(dim=-1)
+            torch.nn.Softmax(dim=-1),
         )
 
     @staticmethod
@@ -237,7 +240,7 @@ class NNIndexator(torch.nn.Module):
     def _uq_to_hist(
         self, u_q: torch.Tensor, *, indices: None | torch.Tensor = None
     ) -> torch.Tensor:
-        r"""Compute the histogram of the \(u_q\) vectors."""
+        """Compute the histogram of the u_q vectors."""
         if indices is None:
             uq_ref = u_q
         else:
@@ -247,6 +250,8 @@ class NNIndexator(torch.nn.Module):
         hist = torch.func.vmap(torch.histc)(
             dist, bins=self.bins, min=0.0, max=self._attrs["phi_max"]
         )
+        # hist -= torch.mean(hist, dim=1, keepdim=True)  # centered data
+        # hist *= torch.rsqrt(torch.var(hist, dim=1, keepdim=True))  # reduced data
         return hist
 
     def generate_diagram(
@@ -351,7 +356,7 @@ class NNIndexator(torch.nn.Module):
         >>> loss = torch.nn.CrossEntropyLoss()
         >>> loss_init = float(loss(indexator(hist), target))
         >>> optim = torch.optim.RAdam(indexator.weights, weight_decay=0.0005)
-        >>> for _ in range(5):
+        >>> for _ in range(10):
         ...     optim.zero_grad()
         ...     output = loss(indexator(hist), target)
         ...     output.backward()

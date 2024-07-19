@@ -67,7 +67,10 @@ from laueimproc.ml.dataset_dist import (
 from .diagram import Diagram
 
 
-NCPU = len(psutil.Process().cpu_affinity())
+try:
+    NCPU = len(psutil.Process().cpu_affinity())  # os.cpu_count() wrong on slurm
+except AttributeError:  # failed on mac
+    NCPU = psutil.cpu_count()
 
 
 def _excepthook(args):
@@ -135,8 +138,8 @@ class BaseDiagramsDataset(threading.Thread):
     def __init__(
         self,
         *diagram_refs,
-        diag2ind: typing.Optional[typing.Callable[[Diagram], numbers.Integral]] = None,
-        diag2scalars: typing.Optional[DIAG2SCALS_TYPE] = None,
+        diag2ind: None | typing.Callable[[Diagram], numbers.Integral] = None,
+        diag2scalars: None | DIAG2SCALS_TYPE = None,
     ):
         r&#34;&#34;&#34;Initialise the dataset.
 
@@ -627,14 +630,14 @@ class BaseDiagramsDataset(threading.Thread):
         if isinstance(new_diagrams, Diagram):
             self.add_diagram(new_diagrams)
         elif isinstance(new_diagrams, pathlib.Path):
-            new_diagrams = new_diagrams.expanduser().resolve()
-            assert new_diagrams.exists(), f&#34;{new_diagrams} if not an existing path&#34;
+            new_diagrams_abs = new_diagrams.expanduser().resolve()
+            assert new_diagrams_abs.exists(), f&#34;{new_diagrams} if not an existing path&#34;
             if new_diagrams.is_dir():
                 self.add_diagrams(  # optional, no procrastination
-                    f for f in new_diagrams.iterdir()
+                    new_diagrams / f.name for f in new_diagrams_abs.iterdir()
                     if f.suffix.lower() in {&#34;.jp2&#34;, &#34;.mccd&#34;, &#34;.tif&#34;, &#34;.tiff&#34;}
                 )
-                self._async_job[&#34;dirs&#34;].append([new_diagrams, 0.0])
+                self._async_job[&#34;dirs&#34;].append([new_diagrams_abs, 0.0])
                 if not self._started.is_set():
                     self.start()
             else:
@@ -652,8 +655,8 @@ class BaseDiagramsDataset(threading.Thread):
     def apply(
         self,
         func: typing.Callable[[Diagram], object],
-        args: typing.Optional[tuple] = None,
-        kwargs: typing.Optional[dict] = None,
+        args: None | tuple = None,
+        kwargs: None | dict = None,
     ) -&gt; dict[int, object]:
         &#34;&#34;&#34;Apply an operation in all the diagrams of the dataset.
 
@@ -748,7 +751,7 @@ class BaseDiagramsDataset(threading.Thread):
     def autosave(
         self,
         filename: str | pathlib.Path,
-        delay: typing.Optional[numbers.Real | str] = None,
+        delay: None | numbers.Real | str = None,
     ):
         &#34;&#34;&#34;Manage the dataset recovery.
 
@@ -1053,7 +1056,7 @@ class BaseDiagramsDataset(threading.Thread):
 <dl>
 <dt id="laueimproc.classes.base_dataset.BaseDiagramsDataset"><code class="flex name class">
 <span>class <span class="ident">BaseDiagramsDataset</span></span>
-<span>(</span><span>*diagram_refs, diag2ind: Optional[Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], numbers.Integral]] = None, diag2scalars: Optional[Callable[[int], numbers.Real | tuple[numbers.Real, ...]]] = None)</span>
+<span>(</span><span>*diagram_refs, diag2ind: Optional[None] = None, diag2scalars: Optional[None] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A Basic diagrams dataset with the fondamental structure.</p>
@@ -1097,8 +1100,8 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
     def __init__(
         self,
         *diagram_refs,
-        diag2ind: typing.Optional[typing.Callable[[Diagram], numbers.Integral]] = None,
-        diag2scalars: typing.Optional[DIAG2SCALS_TYPE] = None,
+        diag2ind: None | typing.Callable[[Diagram], numbers.Integral] = None,
+        diag2scalars: None | DIAG2SCALS_TYPE = None,
     ):
         r&#34;&#34;&#34;Initialise the dataset.
 
@@ -1589,14 +1592,14 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
         if isinstance(new_diagrams, Diagram):
             self.add_diagram(new_diagrams)
         elif isinstance(new_diagrams, pathlib.Path):
-            new_diagrams = new_diagrams.expanduser().resolve()
-            assert new_diagrams.exists(), f&#34;{new_diagrams} if not an existing path&#34;
+            new_diagrams_abs = new_diagrams.expanduser().resolve()
+            assert new_diagrams_abs.exists(), f&#34;{new_diagrams} if not an existing path&#34;
             if new_diagrams.is_dir():
                 self.add_diagrams(  # optional, no procrastination
-                    f for f in new_diagrams.iterdir()
+                    new_diagrams / f.name for f in new_diagrams_abs.iterdir()
                     if f.suffix.lower() in {&#34;.jp2&#34;, &#34;.mccd&#34;, &#34;.tif&#34;, &#34;.tiff&#34;}
                 )
-                self._async_job[&#34;dirs&#34;].append([new_diagrams, 0.0])
+                self._async_job[&#34;dirs&#34;].append([new_diagrams_abs, 0.0])
                 if not self._started.is_set():
                     self.start()
             else:
@@ -1614,8 +1617,8 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
     def apply(
         self,
         func: typing.Callable[[Diagram], object],
-        args: typing.Optional[tuple] = None,
-        kwargs: typing.Optional[dict] = None,
+        args: None | tuple = None,
+        kwargs: None | dict = None,
     ) -&gt; dict[int, object]:
         &#34;&#34;&#34;Apply an operation in all the diagrams of the dataset.
 
@@ -1710,7 +1713,7 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
     def autosave(
         self,
         filename: str | pathlib.Path,
-        delay: typing.Optional[numbers.Real | str] = None,
+        delay: None | numbers.Real | str = None,
     ):
         &#34;&#34;&#34;Manage the dataset recovery.
 
@@ -2229,14 +2232,14 @@ def state(self) -&gt; str:
     if isinstance(new_diagrams, Diagram):
         self.add_diagram(new_diagrams)
     elif isinstance(new_diagrams, pathlib.Path):
-        new_diagrams = new_diagrams.expanduser().resolve()
-        assert new_diagrams.exists(), f&#34;{new_diagrams} if not an existing path&#34;
+        new_diagrams_abs = new_diagrams.expanduser().resolve()
+        assert new_diagrams_abs.exists(), f&#34;{new_diagrams} if not an existing path&#34;
         if new_diagrams.is_dir():
             self.add_diagrams(  # optional, no procrastination
-                f for f in new_diagrams.iterdir()
+                new_diagrams / f.name for f in new_diagrams_abs.iterdir()
                 if f.suffix.lower() in {&#34;.jp2&#34;, &#34;.mccd&#34;, &#34;.tif&#34;, &#34;.tiff&#34;}
             )
-            self._async_job[&#34;dirs&#34;].append([new_diagrams, 0.0])
+            self._async_job[&#34;dirs&#34;].append([new_diagrams_abs, 0.0])
             if not self._started.is_set():
                 self.start()
         else:
@@ -2293,7 +2296,7 @@ overwise, the property will desappear as soon as the dataset state changed.</dd>
 </details>
 </dd>
 <dt id="laueimproc.classes.base_dataset.BaseDiagramsDataset.apply"><code class="name flex">
-<span>def <span class="ident">apply</span></span>(<span>self, func: Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], object], args: Optional[tuple] = None, kwargs: Optional[dict] = None) ‑> dict[int, object]</span>
+<span>def <span class="ident">apply</span></span>(<span>self, func: Callable[[<a title="laueimproc.classes.diagram.Diagram" href="diagram.html#laueimproc.classes.diagram.Diagram">Diagram</a>], object], args: None | tuple = None, kwargs: None | dict = None) ‑> dict[int, object]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Apply an operation in all the diagrams of the dataset.</p>
@@ -2347,8 +2350,8 @@ To each diagram index, associate the result.</dd>
 <pre><code class="python">def apply(
     self,
     func: typing.Callable[[Diagram], object],
-    args: typing.Optional[tuple] = None,
-    kwargs: typing.Optional[dict] = None,
+    args: None | tuple = None,
+    kwargs: None | dict = None,
 ) -&gt; dict[int, object]:
     &#34;&#34;&#34;Apply an operation in all the diagrams of the dataset.
 
@@ -2442,7 +2445,7 @@ To each diagram index, associate the result.</dd>
 </details>
 </dd>
 <dt id="laueimproc.classes.base_dataset.BaseDiagramsDataset.autosave"><code class="name flex">
-<span>def <span class="ident">autosave</span></span>(<span>self, filename: str | pathlib.Path, delay: Union[numbers.Real, str, ForwardRef(None)] = None)</span>
+<span>def <span class="ident">autosave</span></span>(<span>self, filename: str | pathlib.Path, delay: None | numbers.Real | str = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Manage the dataset recovery.</p>
@@ -2464,7 +2467,7 @@ The supported formats are defined in <code><a title="laueimproc.common.time2sec"
 <pre><code class="python">def autosave(
     self,
     filename: str | pathlib.Path,
-    delay: typing.Optional[numbers.Real | str] = None,
+    delay: None | numbers.Real | str = None,
 ):
     &#34;&#34;&#34;Manage the dataset recovery.
 

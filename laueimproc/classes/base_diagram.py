@@ -48,8 +48,7 @@ class BaseDiagram:
     Attributes
     ----------
     areas : torch.Tensor
-        The int32 area of each bboxes.
-        Return None until spots are initialized.
+        The int32 area of each bboxes. Return None until spots are initialized.
     bboxes : torch.Tensor or None
         The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
         for each spots, of shape (n, 4) (readonly).
@@ -796,10 +795,10 @@ class BaseDiagram:
         Paremeters
         ----------
         new_spots : tuple
-            Can be an over diagram of type Diagram.
-            Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
-            Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
-            It can also be a combination of the above elements to unite the spots.
+            * Can be another diagram of type Diagram.
+            * Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
+            * Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
+            * It can also be a combination of the above elements to unite the spots.
 
         Examples
         --------

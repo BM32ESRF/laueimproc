@@ -33,9 +33,7 @@
 &#34;&#34;&#34;Find the close spots in two diagrams.&#34;&#34;&#34;
 
 import numbers
-import typing
 
-# import numpy as np
 import torch
 
 
@@ -209,7 +207,7 @@ def spotslabel_to_diag(labels: dict[int, torch.Tensor]) -&gt; dict[int, set[int]
 def track_spots(
     pairs: list[torch.Tensor],
     diags: torch.Tensor,
-    *, _labels_rename: typing.Optional[tuple[dict[int, torch.Tensor], dict[int, int]]] = None,
+    *, _labels_rename: None | tuple[dict[int, torch.Tensor], dict[int, int]] = None,
 ) -&gt; dict[int, torch.Tensor]:
     &#34;&#34;&#34;Associate one label by position, give this label to all spots at this position.
 
@@ -506,7 +504,7 @@ then second column corresponds to the label.</dd>
 <pre><code class="python">def track_spots(
     pairs: list[torch.Tensor],
     diags: torch.Tensor,
-    *, _labels_rename: typing.Optional[tuple[dict[int, torch.Tensor], dict[int, int]]] = None,
+    *, _labels_rename: None | tuple[dict[int, torch.Tensor], dict[int, int]] = None,
 ) -&gt; dict[int, torch.Tensor]:
     &#34;&#34;&#34;Associate one label by position, give this label to all spots at this position.
 

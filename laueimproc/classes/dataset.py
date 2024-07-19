@@ -110,6 +110,58 @@ class DiagramsDataset(BaseDiagramsDataset):
             ):
                 pass
 
+    def save_alljp2files(self, folder: str | pathlib.Path):
+        """Save all images and all properties of all dataset diagrams.
+
+        This method is based on ``laueimproc.io.write_jp2.write_jp2``.
+
+        This is a way of saving both lossless images (with a compression factor of around 4),
+        and all the results contained in the diagram properties.
+
+        Parameters
+        ----------
+        folder : pathlike
+            The parent folder, witch will contain all the jpeg200 files.
+            If it does not exists, it is created. The existing files are overwriten.
+
+        Examples
+        --------
+        >>> import pathlib
+        >>> import tempfile
+        >>> import laueimproc
+        >>> dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())[:10]
+        >>> dataset[0].add_property("result", "wonderful result")
+        >>> folder = tempfile.mkdtemp()
+        >>> dataset.save_alljp2files(folder)
+        >>> new_dataset = laueimproc.DiagramsDataset(folder)
+        >>> new_dataset[0].get_property("result")
+        'wonderful result'
+        >>>
+        """
+        assert isinstance(folder, str | pathlib.Path), folder.__class__.__name__
+        folder = pathlib.Path(folder).expanduser().resolve()
+        assert not folder.is_file(), f"{folder} has to be a directory, not a file"
+
+        from laueimproc.io.write_jp2 import write_jp2
+
+        def write_jp2_(arg: tuple[Diagram, pathlib.Path, int]):
+            """Write a single jp2 image."""
+            diag, folder, i = arg
+            name = (diag.file or pathlib.Path(f"notimg_{i:04d}")).with_suffix(".jp2").name
+            metadata = diag.get_properties()
+            write_jp2(folder / name, diag.image, metadata)
+
+        folder.mkdir(parents=True, exist_ok=True)
+        with multiprocessing.pool.ThreadPool() as pool:
+            for _ in tqdm(
+                pool.imap_unordered(
+                    write_jp2_, ((diag, folder, i) for i, diag in enumerate(self))
+                ),
+                total=len(self),
+                desc="saving .jp2 images",
+            ):
+                pass
+
     def select_closest(self, *args, no_raise: bool = False, **kwargs) -> None | Diagram:
         """Select the closest diagram to a given set of phisical parameters.
 

@@ -118,21 +118,20 @@ class BaseDiagram:
         self._file_or_image: pathlib.Path | torch.Tensor  # the path to the image file
         self._history: list[str] = []  # the history of the actions performed
         self._properties: dict[str, tuple[None | str, object]] = {}  # the properties
-        self._rois: typing.Optional[tuple[bytearray, torch.Tensor]] = None  # datarois, bboxes
+        self._rois: None | tuple[bytearray, torch.Tensor] = None  # datarois, bboxes
         self._rois_lock = threading.Lock()  # make the rois acces thread safe
 
         # initialisation
         if isinstance(data, str | pathlib.Path):
             self._file_or_image = data
             if _check:
-                self._file_or_image = pathlib.Path(self._file_or_image).expanduser().resolve()
-                assert self._file_or_image.is_file(), self._file_or_image
+                assert pathlib.Path(self._file_or_image).expanduser(), self._file_or_image
         else:
             warnings.warn(&#34;please provide a path rather than an array&#34;, RuntimeWarning)
             self._file_or_image = to_floattensor(data)
             assert self._file_or_image.ndim == 2, self._file_or_image.shape
 
-    def __getstate__(self, cache: bool = False):
+    def __getstate__(self, cache: bool = False) -&gt; tuple:
         &#34;&#34;&#34;Make the diagram pickleable.&#34;&#34;&#34;
         with self._rois_lock:
             rois = None if self._rois is None else (self._rois[0].copy(), self._rois[1].clone())
@@ -350,7 +349,7 @@ class BaseDiagram:
             bboxes = self._rois[1]
         return bboxes.clone()
 
-    def clone(self, deep: bool = True, cache: bool = True):
+    def clone(self, deep: bool = True, cache: bool = True) -&gt; typing.Self:
         &#34;&#34;&#34;Instanciate a new identical diagram.
 
         Parameters
@@ -447,12 +446,14 @@ class BaseDiagram:
         PosixPath(&#39;/.../laueimproc/io/ge.jp2&#39;)
         &gt;&gt;&gt;
         &#34;&#34;&#34;
-        return self._file_or_image if isinstance(self._file_or_image, pathlib.Path) else None
+        if isinstance(self._file_or_image, pathlib.Path):
+            return pathlib.Path(self._file_or_image).expanduser().resolve()
+        return None
 
     @check_init
     def filter_spots(
         self, criteria: typing.Container, msg: str = &#34;general filter&#34;, *, inplace: bool = True
-    ):
+    ) -&gt; typing.Self:
         &#34;&#34;&#34;Keep only the given spots, delete the rest.
 
         This method can be used for filtering or sorting spots.
@@ -524,7 +525,7 @@ class BaseDiagram:
 
         return None if inplace else self
 
-    def find_spots(self, **kwargs) -&gt; None:
+    def find_spots(self, **kwargs):
         &#34;&#34;&#34;Search all the spots in this diagram, store the result into the `spots` attribute.
 
         Parameters
@@ -679,10 +680,10 @@ class BaseDiagram:
     def plot(
         self,
         disp=None,
-        vmin: typing.Optional[numbers.Real] = None,
-        vmax: typing.Optional[numbers.Real] = None,
+        vmin: None | numbers.Real = None,
+        vmax: None | numbers.Real = None,
         **kwargs,
-    ):
+    ) -&gt; object:
         &#34;&#34;&#34;Prepare for display the diagram and the spots.
 
         Parameters
@@ -819,16 +820,16 @@ class BaseDiagram:
             datarois, bboxes = self._rois
         return rawshapes2rois(datarois, bboxes[:, 2:])
 
-    def set_spots(self, *new_spots: tuple) -&gt; None:
+    def set_spots(self, *new_spots: tuple):
         &#34;&#34;&#34;Set the new spots as the current spots, reset the history and the cache.
 
         Paremeters
         ----------
         new_spots : tuple
-            Can be an over diagram of type Diagram.
-            Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
-            Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
-            It can also be a combination of the above elements to unite the spots.
+            * Can be another diagram of type Diagram.
+            * Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
+            * Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
+            * It can also be a combination of the above elements to unite the spots.
 
         Examples
         --------
@@ -1080,21 +1081,20 @@ For memory management, it is better to provide a pathlike rather than an array.<
         self._file_or_image: pathlib.Path | torch.Tensor  # the path to the image file
         self._history: list[str] = []  # the history of the actions performed
         self._properties: dict[str, tuple[None | str, object]] = {}  # the properties
-        self._rois: typing.Optional[tuple[bytearray, torch.Tensor]] = None  # datarois, bboxes
+        self._rois: None | tuple[bytearray, torch.Tensor] = None  # datarois, bboxes
         self._rois_lock = threading.Lock()  # make the rois acces thread safe
 
         # initialisation
         if isinstance(data, str | pathlib.Path):
             self._file_or_image = data
             if _check:
-                self._file_or_image = pathlib.Path(self._file_or_image).expanduser().resolve()
-                assert self._file_or_image.is_file(), self._file_or_image
+                assert pathlib.Path(self._file_or_image).expanduser(), self._file_or_image
         else:
             warnings.warn(&#34;please provide a path rather than an array&#34;, RuntimeWarning)
             self._file_or_image = to_floattensor(data)
             assert self._file_or_image.ndim == 2, self._file_or_image.shape
 
-    def __getstate__(self, cache: bool = False):
+    def __getstate__(self, cache: bool = False) -&gt; tuple:
         &#34;&#34;&#34;Make the diagram pickleable.&#34;&#34;&#34;
         with self._rois_lock:
             rois = None if self._rois is None else (self._rois[0].copy(), self._rois[1].clone())
@@ -1312,7 +1312,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
             bboxes = self._rois[1]
         return bboxes.clone()
 
-    def clone(self, deep: bool = True, cache: bool = True):
+    def clone(self, deep: bool = True, cache: bool = True) -&gt; typing.Self:
         &#34;&#34;&#34;Instanciate a new identical diagram.
 
         Parameters
@@ -1409,12 +1409,14 @@ For memory management, it is better to provide a pathlike rather than an array.<
         PosixPath(&#39;/.../laueimproc/io/ge.jp2&#39;)
         &gt;&gt;&gt;
         &#34;&#34;&#34;
-        return self._file_or_image if isinstance(self._file_or_image, pathlib.Path) else None
+        if isinstance(self._file_or_image, pathlib.Path):
+            return pathlib.Path(self._file_or_image).expanduser().resolve()
+        return None
 
     @check_init
     def filter_spots(
         self, criteria: typing.Container, msg: str = &#34;general filter&#34;, *, inplace: bool = True
-    ):
+    ) -&gt; typing.Self:
         &#34;&#34;&#34;Keep only the given spots, delete the rest.
 
         This method can be used for filtering or sorting spots.
@@ -1486,7 +1488,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
 
         return None if inplace else self
 
-    def find_spots(self, **kwargs) -&gt; None:
+    def find_spots(self, **kwargs):
         &#34;&#34;&#34;Search all the spots in this diagram, store the result into the `spots` attribute.
 
         Parameters
@@ -1641,10 +1643,10 @@ For memory management, it is better to provide a pathlike rather than an array.<
     def plot(
         self,
         disp=None,
-        vmin: typing.Optional[numbers.Real] = None,
-        vmax: typing.Optional[numbers.Real] = None,
+        vmin: None | numbers.Real = None,
+        vmax: None | numbers.Real = None,
         **kwargs,
-    ):
+    ) -&gt; object:
         &#34;&#34;&#34;Prepare for display the diagram and the spots.
 
         Parameters
@@ -1781,16 +1783,16 @@ For memory management, it is better to provide a pathlike rather than an array.<
             datarois, bboxes = self._rois
         return rawshapes2rois(datarois, bboxes[:, 2:])
 
-    def set_spots(self, *new_spots: tuple) -&gt; None:
+    def set_spots(self, *new_spots: tuple):
         &#34;&#34;&#34;Set the new spots as the current spots, reset the history and the cache.
 
         Paremeters
         ----------
         new_spots : tuple
-            Can be an over diagram of type Diagram.
-            Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
-            Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
-            It can also be a combination of the above elements to unite the spots.
+            * Can be another diagram of type Diagram.
+            * Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
+            * Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
+            * It can also be a combination of the above elements to unite the spots.
 
         Examples
         --------
@@ -2296,7 +2298,7 @@ overwise, the property will desappear as soon as the diagram state changed.</dd>
 </details>
 </dd>
 <dt id="laueimproc.classes.base_diagram.BaseDiagram.clone"><code class="name flex">
-<span>def <span class="ident">clone</span></span>(<span>self, deep: bool = True, cache: bool = True)</span>
+<span>def <span class="ident">clone</span></span>(<span>self, deep: bool = True, cache: bool = True) ‑> Self</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Instanciate a new identical diagram.</p>
@@ -2330,7 +2332,7 @@ It if realy faster but not safe.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def clone(self, deep: bool = True, cache: bool = True):
+<pre><code class="python">def clone(self, deep: bool = True, cache: bool = True) -&gt; typing.Self:
     &#34;&#34;&#34;Instanciate a new identical diagram.
 
     Parameters
@@ -2435,7 +2437,7 @@ The quantity of bytes to remove from the cache.</p>
 </details>
 </dd>
 <dt id="laueimproc.classes.base_diagram.BaseDiagram.filter_spots"><code class="name flex">
-<span>def <span class="ident">filter_spots</span></span>(<span>self, criteria: Container, msg: str = 'general filter', *, inplace: bool = True)</span>
+<span>def <span class="ident">filter_spots</span></span>(<span>self, criteria: Container, msg: str = 'general filter', *, inplace: bool = True) ‑> Self</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Keep only the given spots, delete the rest.</p>
@@ -2483,7 +2485,7 @@ It create a checkpoint (real copy) (but it is slowler).</dd>
 <pre><code class="python">@check_init
 def filter_spots(
     self, criteria: typing.Container, msg: str = &#34;general filter&#34;, *, inplace: bool = True
-):
+) -&gt; typing.Self:
     &#34;&#34;&#34;Keep only the given spots, delete the rest.
 
     This method can be used for filtering or sorting spots.
@@ -2557,7 +2559,7 @@ def filter_spots(
 </details>
 </dd>
 <dt id="laueimproc.classes.base_diagram.BaseDiagram.find_spots"><code class="name flex">
-<span>def <span class="ident">find_spots</span></span>(<span>self, **kwargs) ‑> None</span>
+<span>def <span class="ident">find_spots</span></span>(<span>self, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Search all the spots in this diagram, store the result into the <code>spots</code> attribute.</p>
@@ -2570,7 +2572,7 @@ def filter_spots(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def find_spots(self, **kwargs) -&gt; None:
+<pre><code class="python">def find_spots(self, **kwargs):
     &#34;&#34;&#34;Search all the spots in this diagram, store the result into the `spots` attribute.
 
     Parameters
@@ -2768,7 +2770,7 @@ True
 </details>
 </dd>
 <dt id="laueimproc.classes.base_diagram.BaseDiagram.plot"><code class="name flex">
-<span>def <span class="ident">plot</span></span>(<span>self, disp=None, vmin: Optional[numbers.Real] = None, vmax: Optional[numbers.Real] = None, **kwargs)</span>
+<span>def <span class="ident">plot</span></span>(<span>self, disp=None, vmin: None | numbers.Real = None, vmax: None | numbers.Real = None, **kwargs) ‑> object</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Prepare for display the diagram and the spots.</p>
@@ -2802,10 +2804,10 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
 <pre><code class="python">def plot(
     self,
     disp=None,
-    vmin: typing.Optional[numbers.Real] = None,
-    vmax: typing.Optional[numbers.Real] = None,
+    vmin: None | numbers.Real = None,
+    vmax: None | numbers.Real = None,
     **kwargs,
-):
+) -&gt; object:
     &#34;&#34;&#34;Prepare for display the diagram and the spots.
 
     Parameters
@@ -2911,16 +2913,16 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
 </details>
 </dd>
 <dt id="laueimproc.classes.base_diagram.BaseDiagram.set_spots"><code class="name flex">
-<span>def <span class="ident">set_spots</span></span>(<span>self, *new_spots: tuple) ‑> None</span>
+<span>def <span class="ident">set_spots</span></span>(<span>self, *new_spots: tuple)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Set the new spots as the current spots, reset the history and the cache.</p>
 <h2 id="paremeters">Paremeters</h2>
 <p>new_spots : tuple
-Can be an over diagram of type Diagram.
-Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
-Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
-It can also be a combination of the above elements to unite the spots.</p>
+* Can be another diagram of type Diagram.
+* Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
+* Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
+* It can also be a combination of the above elements to unite the spots.</p>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.classes.base_diagram import BaseDiagram
@@ -2948,16 +2950,16 @@ It can also be a combination of the above elements to unite the spots.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def set_spots(self, *new_spots: tuple) -&gt; None:
+<pre><code class="python">def set_spots(self, *new_spots: tuple):
     &#34;&#34;&#34;Set the new spots as the current spots, reset the history and the cache.
 
     Paremeters
     ----------
     new_spots : tuple
-        Can be an over diagram of type Diagram.
-        Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
-        Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
-        It can also be a combination of the above elements to unite the spots.
+        * Can be another diagram of type Diagram.
+        * Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
+        * Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
+        * It can also be a combination of the above elements to unite the spots.
 
     Examples
     --------

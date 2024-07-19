@@ -35,7 +35,7 @@ def write_jp2(
     >>> import tempfile
     >>> import torch
     >>> from laueimproc.io.read import read_image
-    >>> from laueimproc.io.write import write_jp2
+    >>> from laueimproc.io.write_jp2 import write_jp2
     >>>
     >>> file = pathlib.Path(tempfile.gettempdir()) / "image.jp2"
     >>> img_ref = torch.rand((2048, 1024))

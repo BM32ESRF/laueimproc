@@ -1,5 +1,7 @@
 #!/bin/bash
 
+python media/geometry_graph.py
+
 find media/ -type f -name "*.py" -exec manim -a --media_dir /tmp {} \;
 mkdir -p build/media/
 find /tmp/videos -type f -name "ANIM*.mp4" -exec sh -c \

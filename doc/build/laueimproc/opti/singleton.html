@@ -42,7 +42,7 @@ class MetaSingleton(type):
 
     instances: dict[type, object] = {}
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args, **kwargs) -&gt; type:
         &#34;&#34;&#34;Create a new class only if it is not already instanciated.&#34;&#34;&#34;
         if cls not in MetaSingleton.instances:
             instance = cls.__new__(cls)
@@ -81,7 +81,7 @@ If we try to create a new instnce, it will return a reference to the unique inst
 
     instances: dict[type, object] = {}
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args, **kwargs) -&gt; type:
         &#34;&#34;&#34;Create a new class only if it is not already instanciated.&#34;&#34;&#34;
         if cls not in MetaSingleton.instances:
             instance = cls.__new__(cls)

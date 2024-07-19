@@ -85,7 +85,7 @@ def _filter_pos(pos: SCALS_TYPE, indices: typing.Iterable[int]) -&gt; SCALS_TYPE
     Notes
     -----
     No check for performance reason.
-    indicies are assumed to be in pos.
+    indices are assumed to be in pos.
     &#34;&#34;&#34;
     pos = _to_dict(pos)
     pos = {i: pos[i] for i in indices}
@@ -267,8 +267,8 @@ def check_diag2scalars_typing(pos_func: DIAG2SCALS_TYPE):
 def select_closest(
     coords: torch.Tensor,
     point: tuple[float, ...],
-    tol: typing.Optional[tuple[float, ...]] = None,
-    scale: typing.Optional[tuple[float, ...]] = None,
+    tol: None | tuple[float, ...] = None,
+    scale: None | tuple[float, ...] = None,
     *, _no_c: bool = False,
 ) -&gt; int:
     r&#34;&#34;&#34;Select the closest point.
@@ -384,9 +384,9 @@ def select_closest(
 
 def select_closests(
     coords: torch.Tensor,
-    point: typing.Optional[tuple[float, ...]] = None,
-    tol: typing.Optional[tuple[float, ...]] = None,
-    scale: typing.Optional[tuple[float, ...]] = None,
+    point: None | tuple[float, ...] = None,
+    tol: None | tuple[float, ...] = None,
+    scale: None | tuple[float, ...] = None,
     *, _no_c: bool = False,
 ) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Select the closest points.
@@ -737,7 +737,7 @@ and that return a scalar vector in a space of n dimensions.</dd>
 </details>
 </dd>
 <dt id="laueimproc.ml.dataset_dist.select_closest"><code class="name flex">
-<span>def <span class="ident">select_closest</span></span>(<span>coords: torch.Tensor, point: tuple[float, ...], tol: Optional[tuple[float, ...]] = None, scale: Optional[tuple[float, ...]] = None) ‑> int</span>
+<span>def <span class="ident">select_closest</span></span>(<span>coords: torch.Tensor, point: tuple[float, ...], tol: None | tuple[float, ...] = None, scale: None | tuple[float, ...] = None) ‑> int</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Select the closest point.</p>
@@ -811,8 +811,8 @@ no point match
 <pre><code class="python">def select_closest(
     coords: torch.Tensor,
     point: tuple[float, ...],
-    tol: typing.Optional[tuple[float, ...]] = None,
-    scale: typing.Optional[tuple[float, ...]] = None,
+    tol: None | tuple[float, ...] = None,
+    scale: None | tuple[float, ...] = None,
     *, _no_c: bool = False,
 ) -&gt; int:
     r&#34;&#34;&#34;Select the closest point.
@@ -927,7 +927,7 @@ no point match
 </details>
 </dd>
 <dt id="laueimproc.ml.dataset_dist.select_closests"><code class="name flex">
-<span>def <span class="ident">select_closests</span></span>(<span>coords: torch.Tensor, point: Optional[tuple[float, ...]] = None, tol: Optional[tuple[float, ...]] = None, scale: Optional[tuple[float, ...]] = None) ‑> torch.Tensor</span>
+<span>def <span class="ident">select_closests</span></span>(<span>coords: torch.Tensor, point: None | tuple[float, ...] = None, tol: None | tuple[float, ...] = None, scale: None | tuple[float, ...] = None) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Select the closest points.</p>
@@ -968,9 +968,9 @@ By default <span><span class="MathJax_Preview">\kappa_j = 1, \forall j \in [\![0
 </summary>
 <pre><code class="python">def select_closests(
     coords: torch.Tensor,
-    point: typing.Optional[tuple[float, ...]] = None,
-    tol: typing.Optional[tuple[float, ...]] = None,
-    scale: typing.Optional[tuple[float, ...]] = None,
+    point: None | tuple[float, ...] = None,
+    tol: None | tuple[float, ...] = None,
+    scale: None | tuple[float, ...] = None,
     *, _no_c: bool = False,
 ) -&gt; torch.Tensor:
     r&#34;&#34;&#34;Select the closest points.

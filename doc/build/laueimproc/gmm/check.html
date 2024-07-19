@@ -33,7 +33,6 @@
 &#34;&#34;&#34;Protection against the user.&#34;&#34;&#34;
 
 import functools
-import typing
 import warnings
 
 import torch
@@ -97,7 +96,7 @@ def check_gmm(gmm: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -&gt; None:
         f&#34;number of gaussians inconsistant {mean_K} vs {cov_K} vs {eta_K}&#34;
 
 
-def check_infit(obs: torch.Tensor, weights: typing.Optional[torch.Tensor]) -&gt; None:
+def check_infit(obs: torch.Tensor, weights: None | torch.Tensor) -&gt; None:
     r&#34;&#34;&#34;Ensure the provided parameters are corrects.
 
     Parameters
@@ -270,7 +269,7 @@ The relative mass <span><span class="MathJax_Preview">\eta_j</span><script type=
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def check_infit(obs: torch.Tensor, weights: typing.Optional[torch.Tensor]) -&gt; None:
+<pre><code class="python">def check_infit(obs: torch.Tensor, weights: None | torch.Tensor) -&gt; None:
     r&#34;&#34;&#34;Ensure the provided parameters are corrects.
 
     Parameters

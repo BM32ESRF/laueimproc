@@ -1,0 +1,1971 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>laueimproc.geometry.indexation API documentation</title>
+<meta name="description" content="Index and refine a multi-grain diagram using a variety of methods." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}#lunr-search{width:100%;font-size:1em;padding:6px 9px 5px 9px;border:1px solid silver}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>laueimproc.geometry.indexation</code></h1>
+</header>
+<section id="section-intro">
+<p>Index and refine a multi-grain diagram using a variety of methods.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+&#34;&#34;&#34;Index and refine a multi-grain diagram using a variety of methods.&#34;&#34;&#34;
+
+from .nn import NNIndexator
+from .refine import Refiner
+from .stupid import StupidIndexator
+
+__all__ = [&#34;NNIndexator&#34;, &#34;Refiner&#34;, &#34;StupidIndexator&#34;]</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="laueimproc.geometry.indexation.nn" href="nn.html">laueimproc.geometry.indexation.nn</a></code></dt>
+<dd>
+<div class="desc"><p>Prediction of hkl families with a neural network.</p></div>
+</dd>
+<dt><code class="name"><a title="laueimproc.geometry.indexation.refine" href="refine.html">laueimproc.geometry.indexation.refine</a></code></dt>
+<dd>
+<div class="desc"><p>Refine omega and lattice parameters by maximizing the matching rate through gradient ascent.</p></div>
+</dd>
+<dt><code class="name"><a title="laueimproc.geometry.indexation.stupid" href="stupid.html">laueimproc.geometry.indexation.stupid</a></code></dt>
+<dd>
+<div class="desc"><p>Indexing by testing of all combinations, very stupid and very slow, but extremely reliable.</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="laueimproc.geometry.indexation.NNIndexator"><code class="flex name class">
+<span>class <span class="ident">NNIndexator</span></span>
+<span>(</span><span>lattice: torch.Tensor, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Indexation with neuronal network approch.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>bins</code></strong> :&ensp;<code>int</code></dt>
+<dd>The input histogram len (readonly).</dd>
+<dt><strong><code>families</code></strong> :&ensp;<code>list[list[tuple[int, int, int]]]</code></dt>
+<dd>The hkl families for each material.</dd>
+<dt><strong><code>weights</code></strong> :&ensp;<code>list[torch.Tensor]</code></dt>
+<dd>The trainaible neuronal network model weights.</dd>
+</dl>
+<p>Initialize the indexator.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>lattice</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The relaxed lattice parameters of all the materials, of shape (n, 6).</dd>
+<dt><strong><code>hkl_max</code></strong> :&ensp;<code>int</code>, default=<code>10</code></dt>
+<dd>The maximum absolute hkl sum for each material such as |h| + |k| + |l| &lt;= hkl_max.</dd>
+<dt><strong><code>phi_res</code></strong> :&ensp;<code>float</code>, default=<code>0.1*pi/180</code></dt>
+<dd>Angular resolution of the input histogram (in radian).</dd>
+<dt><strong><code>phi_max</code></strong> :&ensp;<code>float</code>, default=<code>2*pi/3</code></dt>
+<dd>The maximum angle of the histogram (in radian).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class NNIndexator(torch.nn.Module):
+    &#34;&#34;&#34;Indexation with neuronal network approch.
+
+    Attributes
+    ----------
+    bins : int
+        The input histogram len (readonly).
+    families : list[list[tuple[int, int, int]]]
+        The hkl families for each material.
+    weights : list[torch.Tensor]
+        The trainaible neuronal network model weights.
+    &#34;&#34;&#34;
+
+    def __init__(self, lattice: torch.Tensor, **kwargs):
+        &#34;&#34;&#34;Initialize the indexator.
+
+        Parameters
+        ----------
+        lattice : torch.Tensor
+            The relaxed lattice parameters of all the materials, of shape (n, 6).
+        hkl_max : int, default=10
+            The maximum absolute hkl sum for each material such as |h| + |k| + |l| &lt;= hkl_max.
+        phi_res : float, default=0.1*pi/180
+            Angular resolution of the input histogram (in radian).
+        phi_max : float, default=2*pi/3
+            The maximum angle of the histogram (in radian).
+        &#34;&#34;&#34;
+        assert set(kwargs).issubset(
+            {&#34;lattice&#34;, &#34;hkl_max&#34;, &#34;n_grain&#34;, &#34;phi_res&#34;, &#34;phi_max&#34;}
+        ), kwargs
+
+        assert isinstance(lattice, torch.Tensor), lattice.__class__.__name__
+        assert lattice.ndim == 2 and lattice.shape[0] &gt;= 1 and lattice.shape[1] == 6, lattice.shape
+
+        self._attrs = {}
+        self._attrs[&#34;hkl_max&#34;] = kwargs.get(&#34;hkl_max&#34;, 8)
+        assert isinstance(self._attrs[&#34;hkl_max&#34;], numbers.Integral), self._attrs[&#34;hkl_max&#34;]
+        assert 0 &lt; self._attrs[&#34;hkl_max&#34;] &lt;= torch.iinfo(torch.int16).max, self._attrs[&#34;hkl_max&#34;]
+        self._attrs[&#34;phi_res&#34;] = kwargs.get(&#34;phi_res&#34;, 0.1 * torch.pi/180)
+        assert isinstance(self._attrs[&#34;phi_res&#34;], numbers.Real), self._attrs[&#34;phi_res&#34;]
+        assert 0 &lt; self._attrs[&#34;phi_res&#34;] &lt;= torch.pi/2, self._attrs[&#34;phi_res&#34;]
+        self._attrs[&#34;phi_max&#34;] = kwargs.get(&#34;phi_max&#34;, 120.0 * torch.pi/180)
+        assert isinstance(self._attrs[&#34;phi_max&#34;], numbers.Real), self._attrs[&#34;phi_max&#34;]
+        assert self._attrs[&#34;phi_max&#34;] &lt;= self._attrs[&#34;phi_max&#34;], self._attrs[&#34;phi_max&#34;]
+
+        super().__init__()
+
+        # precompute contants and hash tables
+        self._reciprocal = torch.nn.Parameter(
+            primitive_to_reciprocal(lattice_to_primitive(lattice)),
+            requires_grad=False,
+        )
+        hkl = select_hkl(hkl_max=self._attrs[&#34;hkl_max&#34;])
+        material_hkl_2_family = {  # .[material][hkl] = family
+            mat: {
+                tuple(hkl_): max(map(tuple, members))
+                for hkl_, members in zip(
+                    hkl.tolist(), get_hkl_family_members(hkl, reciprocal).tolist()
+                )
+            }
+            for mat, reciprocal in enumerate(self._reciprocal)
+        }
+        family_idx = 1
+        self._attrs[&#34;material_family_to_idx&#34;] = {}  # .[(material, family)] = family_idx
+        self._attrs[&#34;families&#34;] = []  # .[material] = families
+        for mat in range(len(self._reciprocal)):
+            self._attrs[&#34;families&#34;].append(sorted(set(material_hkl_2_family[mat].values())))
+            for family in self._attrs[&#34;families&#34;][-1]:
+                self._attrs[&#34;material_family_to_idx&#34;][(mat, family)] = family_idx
+                family_idx += 1
+        self._families = torch.nn.Parameter(
+            torch.asarray(
+                sum(self._attrs[&#34;families&#34;], start=[(0, 0, 0)]),
+                device=self._reciprocal.device,
+                dtype=torch.int16,
+            ),
+            requires_grad=False,
+        )
+        self._attrs[&#34;hkl_hist&#34;] = torch.zeros(
+            len(self._families), dtype=torch.int64, device=self._reciprocal.device
+        )
+        self._attrs[&#34;cache_hist&#34;] = torch.empty(
+            0, self.bins, dtype=self._reciprocal.dtype, device=self._reciprocal.device
+        )
+        self._attrs[&#34;cache_hkl&#34;] = torch.empty(
+            0, len(self._families), dtype=torch.int64, device=self._reciprocal.device
+        )
+
+        # main neuronal model (slowest part of initialization)
+        avg = (self.bins + len(self._families)) // 2
+        self.layer_1 = torch.nn.Sequential(
+            torch.nn.Linear(self.bins, self.bins),
+            # torch.nn.BatchNorm1d(self.bins),  # not in original Ravi code
+            torch.nn.LeakyReLU(inplace=True),  # not in original Ravi code
+            # torch.nn.ReLU(inplace=True),  # in original Ravi code
+            torch.nn.Dropout(0.3),
+        )
+        self.layer_2 = torch.nn.Sequential(
+            torch.nn.Linear(self.bins, (15*avg + self.bins)//2),
+            torch.nn.LeakyReLU(inplace=True),  # not in original Ravi code
+            # torch.nn.ReLU(inplace=True),  # in original Ravi code
+            torch.nn.Dropout(0.3),
+        )
+        self.layer_3 = torch.nn.Sequential(
+            torch.nn.Linear((15*avg + self.bins)//2, 15*avg),
+            torch.nn.ReLU(inplace=True),  # in original Ravi code
+            torch.nn.Dropout(0.3),
+        )
+        self.layer_4 = torch.nn.Sequential(
+            torch.nn.Linear(15*avg, len(self._families)),
+            torch.nn.Softmax(dim=-1),
+        )
+
+    @staticmethod
+    def _add_noise(
+        point: torch.Tensor,
+        hkl: torch.Tensor,
+        material: torch.Tensor,
+        miss_detection_rate: numbers.Real = 0.2,
+        noise_std: None | numbers.Real = None,
+    ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        &#34;&#34;&#34;Apply data augmentation to a very pretty diagram.&#34;&#34;&#34;
+        assert isinstance(point, torch.Tensor), point.__class__.__name__
+        assert point.ndim == 2 and point.shape[1] == 2, point.shape
+        assert isinstance(hkl, torch.Tensor), hkl.__class__.__name__
+        assert hkl.ndim == 2 and hkl.shape[1] == 3, hkl.shape
+        assert isinstance(material, torch.Tensor), material.__class__.__name__
+        assert material.ndim == 1, material.shape
+        assert point.shape[0] == hkl.shape[0] == material.shape[0]
+
+        amin, amax = torch.aminmax(point, dim=0)
+        size = amax - amin
+
+        if noise_std is None:
+            noise_std = 1e-3 * float(size.mean())
+        else:
+            assert isinstance(noise_std, numbers.Real), noise_std.__class__.__name__
+            assert noise_std &gt;= 0.0, noise_std
+        assert isinstance(miss_detection_rate, numbers.Real), miss_detection_rate.__class__.__name__
+        assert 0.0 &lt;= miss_detection_rate &lt; 1.0, miss_detection_rate
+
+        point += noise_std * torch.randn_like(point)  # add position noise
+        miss = torch.rand_like(point[:, 0]) &lt; miss_detection_rate  # add false detection
+        point[miss] = torch.rand_like(point[miss]) * (size + amin)
+        hkl[miss], material[miss] = 0, -1
+
+        return point, hkl, material
+
+    def _generate_perfect_diagram(
+        self,
+        poni: torch.Tensor,
+        cam_size: tuple[float, float],
+        **kwargs,
+    ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        &#34;&#34;&#34;Simulate a perfect multigrain laue diagram.&#34;&#34;&#34;
+        assert isinstance(poni, torch.Tensor), poni.__class__.__name__
+        assert poni.shape == (6,), poni.shape
+        assert hasattr(cam_size, &#34;__iter__&#34;), cam_size.__class__.__name__
+        cam_size = list(cam_size)
+        assert len(cam_size) == 2, len(cam_size)
+        assert isinstance(cam_size[0], numbers.Real) and isinstance(cam_size[1], numbers.Real)
+        assert cam_size[0] &gt; 0 and cam_size[1] &gt; 0, cam_size
+        assert set(kwargs).issubset({&#34;e_min&#34;, &#34;e_max&#34;, &#34;nbr_grain&#34;}), kwargs
+        e_min_e_max = (kwargs.get(&#34;e_min&#34;, 5e3*1.6e-19), kwargs.get(&#34;e_max&#34;, 25e3*1.6e-19))
+        assert isinstance(e_min_e_max[0], numbers.Real), e_min_e_max[0].__class__.__name__
+        assert 0.0 &lt;= e_min_e_max[0], e_min_e_max[0]
+        assert isinstance(e_min_e_max[1], numbers.Real), e_min_e_max[1].__class__.__name__
+        assert e_min_e_max[0] &lt;= e_min_e_max[1] &lt; torch.inf, e_min_e_max[1]
+        nbr_grain = kwargs.get(&#34;nbr_grain&#34;, 3)
+        assert isinstance(nbr_grain, numbers.Integral), nbr_grain.__class__.__name__
+        assert nbr_grain &gt; 0, nbr_grain
+
+        # initial conditions
+        material = torch.randint(
+            0, len(self._reciprocal), (nbr_grain,), device=self._reciprocal.device
+        )
+        rot = rand_rot(nbr_grain, dtype=self._reciprocal.dtype, device=self._reciprocal.device)
+
+        # simulation
+        reciprocal = self._reciprocal[material]  # (grain, 3, 3)
+        reciprocal = rotate_crystal(self._reciprocal, rot, cartesian_product=False)  # (grain, 3, 3)
+        hkl = select_hkl(reciprocal=self._reciprocal, e_max=e_min_e_max[1])  # multi material ok
+        ray, energy = hkl_reciprocal_to_uq_energy(hkl, reciprocal)  # (n, grain, 3)
+        cond = energy &gt;= e_min_e_max[0]  # (n, grain)
+        ray, energy = ray[cond], energy[cond]  # (n&#39;, 3)
+        material = material[None, :].expand(cond.shape)[cond]  # (n&#39;,)
+        hkl = hkl[:, None, :].expand(*cond.shape, -1)[cond]  # (n&#39;, 3)
+        ray = uq_to_uf(ray)  # (n&#39;, 3)
+        point, dist = ray_to_detector(ray, poni)  # (n&#39;, 2), because no poni batch
+
+        # rejection
+        cond = dist &gt; 0
+        point, hkl, material, energy = point[cond], hkl[cond], material[cond], energy[cond]
+        cond = (  # select point in camera
+            (point[..., 0] &gt;= 0) &amp; (point[..., 1] &gt;= 0)
+            &amp; (point[..., 0] &lt;= cam_size[0]) &amp; (point[..., 1] &lt;= cam_size[1])
+        )
+        point, hkl, material, energy = point[cond], hkl[cond], material[cond], energy[cond]
+
+        return point, hkl, material, energy
+
+    def _point_hkl_to_trainable(
+        self, point: torch.Tensor, hkl: torch.Tensor, material: torch.Tensor, poni: torch.Tensor
+    ) -&gt; tuple[torch.Tensor, torch.Tensor]:
+        &#34;&#34;&#34;Convert the data into in and out for training.&#34;&#34;&#34;
+        # convert hkl into one hot family
+        low_hkl = torch.sum(torch.abs(hkl), dim=1) &lt;= self._attrs[&#34;hkl_max&#34;]  # (n,)
+        material_family_to_idx = self._attrs[&#34;material_family_to_idx&#34;]
+        family_idx = torch.asarray([  # (n&#39;,)
+            material_family_to_idx.get((i, tuple(hkl)), 0)
+            for i, hkl in zip(material[low_hkl].tolist(), hkl[low_hkl].tolist())
+        ], dtype=torch.int64, device=hkl.device)
+        family_idx = torch.nn.functional.one_hot(family_idx, len(self._families))  # (n&#39;, f)
+
+        # get historgams
+        u_q = uf_to_uq(detector_to_ray(point, poni))
+        hist = self._uq_to_hist(u_q, indices=low_hkl)  # (n&#39;, n_bins)
+
+        return hist, family_idx
+
+    def _uq_to_hist(
+        self, u_q: torch.Tensor, *, indices: None | torch.Tensor = None
+    ) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Compute the histogram of the u_q vectors.&#34;&#34;&#34;
+        if indices is None:
+            uq_ref = u_q
+        else:
+            indices = torch.asarray(indices, device=u_q.device)
+            uq_ref = u_q[indices]
+        dist = torch.acos(ray_cosine_dist(uq_ref, u_q))  # angle distance matrix
+        hist = torch.func.vmap(torch.histc)(
+            dist, bins=self.bins, min=0.0, max=self._attrs[&#34;phi_max&#34;]
+        )
+        # hist -= torch.mean(hist, dim=1, keepdim=True)  # centered data
+        # hist *= torch.rsqrt(torch.var(hist, dim=1, keepdim=True))  # reduced data
+        return hist
+
+    def generate_diagram(
+        self, poni: torch.Tensor, cam_size: tuple[float, float], **kwargs
+    ) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        &#34;&#34;&#34;Simulate a perfect multi grain noisy diagram.
+
+        Parameters
+        ----------
+        poni : torch.Tensor
+            The 6 ordered .poni calibration parameters as a tensor of shape (6,).
+        cam_size : tuple[float, float]
+            The size of the detector (in meter).
+        e_min : float, default=5keV
+            The minimum energy of the beam line in J.
+        e_max : float, default=25keV
+            The maximum energy of the beam line in J.
+        nbr_grain : int, default=3
+            The number of simulated grains.
+        miss_detection_rate : float, default=20%
+            The relative number of spots to be moved anywhere.
+        noise_std : float, optional
+            The standard deviation of the position uncertaincy, in meter.
+
+        Returns
+        -------
+        point : torch.Tensor
+            The points on the camera of all the grains, shape (n, 2).
+        hkl : torch.Tensor
+            The full hkl list, shape (n, 3).
+        material : torch.Tensor
+            The list of the index of the material, shape (n,).
+        energy : torch.Tensor
+            The energy in J of each spot, it contains the harmonics, shape (n,).
+
+        Examples
+        --------
+        &gt;&gt;&gt; import torch
+        &gt;&gt;&gt; from laueimproc.geometry.indexation.nn import NNIndexator
+        &gt;&gt;&gt; lattice = torch.tensor([
+        ...     [3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2],
+        ... ])
+        &gt;&gt;&gt; indexator = NNIndexator(lattice)
+        &gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
+        &gt;&gt;&gt; cam_size = (0.146, 0.146)
+        &gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
+        &gt;&gt;&gt; point, hkl, material, energy = indexator.generate_diagram(
+        ...     poni=poni, cam_size=cam_size, e_min=e_min, e_max=e_max
+        ... )
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        kwargs_1 = {&#34;e_min&#34;, &#34;e_max&#34;, &#34;nbr_grain&#34;}
+        kwargs_2 = {&#34;miss_detection_rate&#34;, &#34;noise_std&#34;}
+        assert set(kwargs).issubset(kwargs_1 | kwargs_2), kwargs
+        point, hkl, material, energy = self._generate_perfect_diagram(
+            poni, cam_size, **{k: v for k, v in kwargs.items() if k in kwargs_1}
+        )
+        point, hkl, material = self._add_noise(
+            point, hkl, material, **{k: v for k, v in kwargs.items() if k in kwargs_2}
+        )
+        return point, hkl, material, energy
+
+    def generate_training_batch(
+        self,
+        poni: torch.Tensor,
+        cam_size: tuple[float, float],
+        batch: numbers.Integral = 128,
+        **kwargs,
+    ) -&gt; tuple[torch.Tensor, torch.Tensor]:
+        &#34;&#34;&#34;Generate a random batch of training data.
+
+        Parameters
+        ----------
+        poni, cam_size, **kwargs
+            Transmitted to ``laueimproc.geometry.indexation.nn.NNIndexator.generate_diagram``.
+        batch : int, default=128
+            The batch dimension, numbers of histograms returned.
+
+        Returns
+        -------
+        hist : torch.Tensor
+            The float histograms of shape (batch, self.bins) with n the number of histograms.
+        hkl_family_onehot : torch.Tensor
+            The hkl family in one hot float encoding, shape (batch, f).
+
+        Examples
+        --------
+        &gt;&gt;&gt; import torch
+        &gt;&gt;&gt; from laueimproc.geometry.indexation.nn import NNIndexator
+        &gt;&gt;&gt; lattice = torch.tensor([
+        ...     [3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2],
+        ... ])
+        &gt;&gt;&gt; indexator = NNIndexator(lattice, phi_max=torch.pi/6)
+        &gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
+        &gt;&gt;&gt; cam_size = (0.146, 0.146)
+        &gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
+        &gt;&gt;&gt; hist, target = indexator.generate_training_batch(
+        ...     poni=poni, cam_size=cam_size, e_min=e_min, e_max=e_max, batch=8
+        ... )
+        &gt;&gt;&gt;
+        &gt;&gt;&gt; # try to overfit
+        &gt;&gt;&gt; loss = torch.nn.CrossEntropyLoss()
+        &gt;&gt;&gt; loss_init = float(loss(indexator(hist), target))
+        &gt;&gt;&gt; optim = torch.optim.RAdam(indexator.weights, weight_decay=0.0005)
+        &gt;&gt;&gt; for _ in range(10):
+        ...     optim.zero_grad()
+        ...     output = loss(indexator(hist), target)
+        ...     output.backward()
+        ...     optim.step()
+        ...
+        &gt;&gt;&gt; loss_final = float(loss(indexator(hist), target))
+        &gt;&gt;&gt; loss_init &gt; loss_final
+        True
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        assert isinstance(batch, numbers.Integral), batch.__class__.__name__
+        assert batch &gt; 0, batch
+
+        # generate data
+        while len(self._attrs[&#34;cache_hist&#34;]) &lt; batch:
+            point, hkl, material, _ = self.generate_diagram(poni, cam_size, **kwargs)
+            hist, hkl = self._point_hkl_to_trainable(point, hkl, material, poni)
+            self._attrs[&#34;cache_hist&#34;] = torch.cat([self._attrs[&#34;cache_hist&#34;].to(hist.device), hist])
+            self._attrs[&#34;cache_hkl&#34;] = torch.cat([self._attrs[&#34;cache_hkl&#34;].to(hkl.device), hkl])
+
+        # trunc data
+        hist = self._attrs[&#34;cache_hist&#34;][:batch]
+        self._attrs[&#34;cache_hist&#34;] = self._attrs[&#34;cache_hist&#34;][batch:]
+        hkl = self._attrs[&#34;cache_hkl&#34;][:batch]
+        self._attrs[&#34;cache_hkl&#34;] = self._attrs[&#34;cache_hkl&#34;][batch:]
+
+        # update data repartition
+        self._attrs[&#34;hkl_hist&#34;] = self._attrs[&#34;hkl_hist&#34;].to(hkl.device)
+        self._attrs[&#34;hkl_hist&#34;] += torch.sum(hkl, dim=0)
+
+        return hist, hkl.to(hist.dtype)
+
+    @property
+    def bins(self) -&gt; int:
+        &#34;&#34;&#34;Return the input histogram len.&#34;&#34;&#34;
+        return round(self._attrs[&#34;phi_max&#34;] / self._attrs[&#34;phi_res&#34;])
+
+    @property
+    def families(self) -&gt; list[list[tuple[int, int, int]]]:
+        &#34;&#34;&#34;Return the hkl families for each material.&#34;&#34;&#34;
+        return self._attrs[&#34;families&#34;].copy()  # protection aginst user
+
+    def forward(self, hist: torch.Tensor) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Predict the hkl class from the angular histogram.
+
+        Parameters
+        ----------
+        hist : torch.Tensor
+            The histogram of shape (batch, h).
+
+        Returns
+        -------
+        pred : torch.Tensor
+            The prediction vector for each histogram, shape (batch, p).
+        &#34;&#34;&#34;
+        return self.layer_4(self.layer_3(self.layer_2(self.layer_1(hist))))
+
+    def predict_hkl(
+        self,
+        uf_or_point: torch.Tensor,
+        *,
+        poni: None | torch.Tensor = None,
+        indices: None | torch.Tensor = None,
+    ) -&gt; tuple[int, tuple[int, int, int]]:
+        r&#34;&#34;&#34;Predict hkl index class and material.
+
+        Parameters
+        ----------
+        uf_or_point : torch.Tensor
+            The 2d point associated to uf in the referencial of the detector of shape (n, 2).
+            Could be also the unitary vector \(u_q\) of shape (n, 3).
+        poni: torch.Tensor, optional
+            The 6 ordered .poni calibration parameters as a tensor of shape (6,).
+            Used only if ``uf_or_point`` is a point.
+        indices : arraylike, optional
+            The index of the \(u_q\) to consider. If not provided, all are considered.
+
+        Returns
+        -------
+        material : torch.Tensor
+            The int16 list of the predicted material index, shape (n&#39;,).
+            The value -1, means that the spot is a fake spot.
+        hkl : torch.Tensor
+            The int16 list of the predicted class of 3 hkl, shape (n&#39;, 3).
+            The value (0, 0, 0), means that the spot is a fake spot.
+        confidence : torch.Tensor
+            The quality of the prediction, interpretable as a percentage, shape (n&#39;).
+
+        Examples
+        --------
+        &gt;&gt;&gt; import torch
+        &gt;&gt;&gt; from laueimproc.geometry.indexation.nn import NNIndexator
+        &gt;&gt;&gt; lattice = torch.tensor([
+        ...     [3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2],
+        ... ])
+        &gt;&gt;&gt; indexator = NNIndexator(lattice)
+        &gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
+        &gt;&gt;&gt; point = torch.rand((1000, 2)) * 0.146
+        &gt;&gt;&gt; material, hkl, confidence = indexator.predict_hkl(point, poni=poni)
+        &gt;&gt;&gt; material.shape, hkl.shape, confidence.shape
+        (torch.Size([1000]), torch.Size([1000, 3]), torch.Size([1000]))
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        assert isinstance(uf_or_point, torch.Tensor), uf_or_point.__class__.__name__
+        assert uf_or_point.ndim == 2, uf_or_point.shape
+
+        # convert point to uf
+        if uf_or_point.shape[-1] == 2:
+            assert isinstance(poni, torch.Tensor), poni.__class__.__name__
+            assert poni.shape == (6,), poni.shape
+            uf_or_point = detector_to_ray(uf_or_point, poni)
+        elif uf_or_point.shape[-1] == 3:
+            if poni is not None:
+                warnings.warn(
+                    &#34;the `poni` is ignored because uq has been provided, not point&#34;,
+                    RuntimeWarning,
+                )
+        else:
+            raise ValueError(&#34;only shape 2 and 3 allow&#34;)
+
+        # convert uf to histogram
+        u_q = uf_to_uq(uf_or_point)
+        hist = self._uq_to_hist(u_q, indices=indices)
+
+        # prediction
+        pred = self.forward(hist)  # (n&#39;, nbr_families)
+
+        # converting to a more interpretable space
+        best = torch.argmax(pred, dim=1)  # (n&#39;)
+        confidence = torch.take_along_dim(pred, best[:, None], dim=1).squeeze(1)
+        hkl = self._families[best]
+        material = torch.asarray(
+            ([-1] + [i for i, f in enumerate(self._attrs[&#34;families&#34;]) for _ in range(len(f))]),
+            dtype=torch.int16,
+            device=best.device,
+        )[best]
+        return material, hkl, confidence
+
+    @property
+    def weights(self) -&gt; list[torch.Tensor]:
+        &#34;&#34;&#34;Return the trainaible neuronal network model weights.&#34;&#34;&#34;
+        return [
+            param
+            for layer in (self.layer_1, self.layer_2, self.layer_3, self.layer_4)
+            for param in layer.parameters()
+        ]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="laueimproc.geometry.indexation.NNIndexator.bins"><code class="name">var <span class="ident">bins</span> : int</code></dt>
+<dd>
+<div class="desc"><p>Return the input histogram len.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def bins(self) -&gt; int:
+    &#34;&#34;&#34;Return the input histogram len.&#34;&#34;&#34;
+    return round(self._attrs[&#34;phi_max&#34;] / self._attrs[&#34;phi_res&#34;])</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.indexation.NNIndexator.families"><code class="name">var <span class="ident">families</span> : list[list[tuple[int, int, int]]]</code></dt>
+<dd>
+<div class="desc"><p>Return the hkl families for each material.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def families(self) -&gt; list[list[tuple[int, int, int]]]:
+    &#34;&#34;&#34;Return the hkl families for each material.&#34;&#34;&#34;
+    return self._attrs[&#34;families&#34;].copy()  # protection aginst user</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.indexation.NNIndexator.weights"><code class="name">var <span class="ident">weights</span> : list[torch.Tensor]</code></dt>
+<dd>
+<div class="desc"><p>Return the trainaible neuronal network model weights.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def weights(self) -&gt; list[torch.Tensor]:
+    &#34;&#34;&#34;Return the trainaible neuronal network model weights.&#34;&#34;&#34;
+    return [
+        param
+        for layer in (self.layer_1, self.layer_2, self.layer_3, self.layer_4)
+        for param in layer.parameters()
+    ]</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="laueimproc.geometry.indexation.NNIndexator.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, hist: torch.Tensor) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Predict the hkl class from the angular histogram.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>hist</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The histogram of shape (batch, h).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>pred</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The prediction vector for each histogram, shape (batch, p).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward(self, hist: torch.Tensor) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Predict the hkl class from the angular histogram.
+
+    Parameters
+    ----------
+    hist : torch.Tensor
+        The histogram of shape (batch, h).
+
+    Returns
+    -------
+    pred : torch.Tensor
+        The prediction vector for each histogram, shape (batch, p).
+    &#34;&#34;&#34;
+    return self.layer_4(self.layer_3(self.layer_2(self.layer_1(hist))))</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.indexation.NNIndexator.generate_diagram"><code class="name flex">
+<span>def <span class="ident">generate_diagram</span></span>(<span>self, poni: torch.Tensor, cam_size: tuple[float, float], **kwargs) ‑> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simulate a perfect multi grain noisy diagram.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>poni</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 6 ordered .poni calibration parameters as a tensor of shape (6,).</dd>
+<dt><strong><code>cam_size</code></strong> :&ensp;<code>tuple[float, float]</code></dt>
+<dd>The size of the detector (in meter).</dd>
+<dt><strong><code>e_min</code></strong> :&ensp;<code>float</code>, default=<code>5keV</code></dt>
+<dd>The minimum energy of the beam line in J.</dd>
+<dt><strong><code>e_max</code></strong> :&ensp;<code>float</code>, default=<code>25keV</code></dt>
+<dd>The maximum energy of the beam line in J.</dd>
+<dt><strong><code>nbr_grain</code></strong> :&ensp;<code>int</code>, default=<code>3</code></dt>
+<dd>The number of simulated grains.</dd>
+<dt><strong><code>miss_detection_rate</code></strong> :&ensp;<code>float</code>, default=<code>20%</code></dt>
+<dd>The relative number of spots to be moved anywhere.</dd>
+<dt><strong><code>noise_std</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>The standard deviation of the position uncertaincy, in meter.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>point</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The points on the camera of all the grains, shape (n, 2).</dd>
+<dt><strong><code>hkl</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The full hkl list, shape (n, 3).</dd>
+<dt><strong><code>material</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The list of the index of the material, shape (n,).</dd>
+<dt><strong><code>energy</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The energy in J of each spot, it contains the harmonics, shape (n,).</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.geometry.indexation.nn import NNIndexator
+&gt;&gt;&gt; lattice = torch.tensor([
+...     [3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2],
+... ])
+&gt;&gt;&gt; indexator = NNIndexator(lattice)
+&gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
+&gt;&gt;&gt; cam_size = (0.146, 0.146)
+&gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
+&gt;&gt;&gt; point, hkl, material, energy = indexator.generate_diagram(
+...     poni=poni, cam_size=cam_size, e_min=e_min, e_max=e_max
+... )
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate_diagram(
+    self, poni: torch.Tensor, cam_size: tuple[float, float], **kwargs
+) -&gt; tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    &#34;&#34;&#34;Simulate a perfect multi grain noisy diagram.
+
+    Parameters
+    ----------
+    poni : torch.Tensor
+        The 6 ordered .poni calibration parameters as a tensor of shape (6,).
+    cam_size : tuple[float, float]
+        The size of the detector (in meter).
+    e_min : float, default=5keV
+        The minimum energy of the beam line in J.
+    e_max : float, default=25keV
+        The maximum energy of the beam line in J.
+    nbr_grain : int, default=3
+        The number of simulated grains.
+    miss_detection_rate : float, default=20%
+        The relative number of spots to be moved anywhere.
+    noise_std : float, optional
+        The standard deviation of the position uncertaincy, in meter.
+
+    Returns
+    -------
+    point : torch.Tensor
+        The points on the camera of all the grains, shape (n, 2).
+    hkl : torch.Tensor
+        The full hkl list, shape (n, 3).
+    material : torch.Tensor
+        The list of the index of the material, shape (n,).
+    energy : torch.Tensor
+        The energy in J of each spot, it contains the harmonics, shape (n,).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.indexation.nn import NNIndexator
+    &gt;&gt;&gt; lattice = torch.tensor([
+    ...     [3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2],
+    ... ])
+    &gt;&gt;&gt; indexator = NNIndexator(lattice)
+    &gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
+    &gt;&gt;&gt; cam_size = (0.146, 0.146)
+    &gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
+    &gt;&gt;&gt; point, hkl, material, energy = indexator.generate_diagram(
+    ...     poni=poni, cam_size=cam_size, e_min=e_min, e_max=e_max
+    ... )
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    kwargs_1 = {&#34;e_min&#34;, &#34;e_max&#34;, &#34;nbr_grain&#34;}
+    kwargs_2 = {&#34;miss_detection_rate&#34;, &#34;noise_std&#34;}
+    assert set(kwargs).issubset(kwargs_1 | kwargs_2), kwargs
+    point, hkl, material, energy = self._generate_perfect_diagram(
+        poni, cam_size, **{k: v for k, v in kwargs.items() if k in kwargs_1}
+    )
+    point, hkl, material = self._add_noise(
+        point, hkl, material, **{k: v for k, v in kwargs.items() if k in kwargs_2}
+    )
+    return point, hkl, material, energy</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.indexation.NNIndexator.generate_training_batch"><code class="name flex">
+<span>def <span class="ident">generate_training_batch</span></span>(<span>self, poni: torch.Tensor, cam_size: tuple[float, float], batch: numbers.Integral = 128, **kwargs) ‑> tuple[torch.Tensor, torch.Tensor]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate a random batch of training data.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>poni</code></strong>, <strong><code>cam_size</code></strong>, <strong><code>**kwargs</code></strong></dt>
+<dd>Transmitted to <code><a title="laueimproc.geometry.indexation.nn.NNIndexator.generate_diagram" href="nn.html#laueimproc.geometry.indexation.nn.NNIndexator.generate_diagram">NNIndexator.generate_diagram()</a></code>.</dd>
+<dt><strong><code>batch</code></strong> :&ensp;<code>int</code>, default=<code>128</code></dt>
+<dd>The batch dimension, numbers of histograms returned.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>hist</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The float histograms of shape (batch, self.bins) with n the number of histograms.</dd>
+<dt><strong><code>hkl_family_onehot</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The hkl family in one hot float encoding, shape (batch, f).</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.geometry.indexation.nn import NNIndexator
+&gt;&gt;&gt; lattice = torch.tensor([
+...     [3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2],
+... ])
+&gt;&gt;&gt; indexator = NNIndexator(lattice, phi_max=torch.pi/6)
+&gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
+&gt;&gt;&gt; cam_size = (0.146, 0.146)
+&gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
+&gt;&gt;&gt; hist, target = indexator.generate_training_batch(
+...     poni=poni, cam_size=cam_size, e_min=e_min, e_max=e_max, batch=8
+... )
+&gt;&gt;&gt;
+&gt;&gt;&gt; # try to overfit
+&gt;&gt;&gt; loss = torch.nn.CrossEntropyLoss()
+&gt;&gt;&gt; loss_init = float(loss(indexator(hist), target))
+&gt;&gt;&gt; optim = torch.optim.RAdam(indexator.weights, weight_decay=0.0005)
+&gt;&gt;&gt; for _ in range(10):
+...     optim.zero_grad()
+...     output = loss(indexator(hist), target)
+...     output.backward()
+...     optim.step()
+...
+&gt;&gt;&gt; loss_final = float(loss(indexator(hist), target))
+&gt;&gt;&gt; loss_init &gt; loss_final
+True
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate_training_batch(
+    self,
+    poni: torch.Tensor,
+    cam_size: tuple[float, float],
+    batch: numbers.Integral = 128,
+    **kwargs,
+) -&gt; tuple[torch.Tensor, torch.Tensor]:
+    &#34;&#34;&#34;Generate a random batch of training data.
+
+    Parameters
+    ----------
+    poni, cam_size, **kwargs
+        Transmitted to ``laueimproc.geometry.indexation.nn.NNIndexator.generate_diagram``.
+    batch : int, default=128
+        The batch dimension, numbers of histograms returned.
+
+    Returns
+    -------
+    hist : torch.Tensor
+        The float histograms of shape (batch, self.bins) with n the number of histograms.
+    hkl_family_onehot : torch.Tensor
+        The hkl family in one hot float encoding, shape (batch, f).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.indexation.nn import NNIndexator
+    &gt;&gt;&gt; lattice = torch.tensor([
+    ...     [3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2],
+    ... ])
+    &gt;&gt;&gt; indexator = NNIndexator(lattice, phi_max=torch.pi/6)
+    &gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
+    &gt;&gt;&gt; cam_size = (0.146, 0.146)
+    &gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
+    &gt;&gt;&gt; hist, target = indexator.generate_training_batch(
+    ...     poni=poni, cam_size=cam_size, e_min=e_min, e_max=e_max, batch=8
+    ... )
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; # try to overfit
+    &gt;&gt;&gt; loss = torch.nn.CrossEntropyLoss()
+    &gt;&gt;&gt; loss_init = float(loss(indexator(hist), target))
+    &gt;&gt;&gt; optim = torch.optim.RAdam(indexator.weights, weight_decay=0.0005)
+    &gt;&gt;&gt; for _ in range(10):
+    ...     optim.zero_grad()
+    ...     output = loss(indexator(hist), target)
+    ...     output.backward()
+    ...     optim.step()
+    ...
+    &gt;&gt;&gt; loss_final = float(loss(indexator(hist), target))
+    &gt;&gt;&gt; loss_init &gt; loss_final
+    True
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(batch, numbers.Integral), batch.__class__.__name__
+    assert batch &gt; 0, batch
+
+    # generate data
+    while len(self._attrs[&#34;cache_hist&#34;]) &lt; batch:
+        point, hkl, material, _ = self.generate_diagram(poni, cam_size, **kwargs)
+        hist, hkl = self._point_hkl_to_trainable(point, hkl, material, poni)
+        self._attrs[&#34;cache_hist&#34;] = torch.cat([self._attrs[&#34;cache_hist&#34;].to(hist.device), hist])
+        self._attrs[&#34;cache_hkl&#34;] = torch.cat([self._attrs[&#34;cache_hkl&#34;].to(hkl.device), hkl])
+
+    # trunc data
+    hist = self._attrs[&#34;cache_hist&#34;][:batch]
+    self._attrs[&#34;cache_hist&#34;] = self._attrs[&#34;cache_hist&#34;][batch:]
+    hkl = self._attrs[&#34;cache_hkl&#34;][:batch]
+    self._attrs[&#34;cache_hkl&#34;] = self._attrs[&#34;cache_hkl&#34;][batch:]
+
+    # update data repartition
+    self._attrs[&#34;hkl_hist&#34;] = self._attrs[&#34;hkl_hist&#34;].to(hkl.device)
+    self._attrs[&#34;hkl_hist&#34;] += torch.sum(hkl, dim=0)
+
+    return hist, hkl.to(hist.dtype)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.indexation.NNIndexator.predict_hkl"><code class="name flex">
+<span>def <span class="ident">predict_hkl</span></span>(<span>self, uf_or_point: torch.Tensor, *, poni: None | torch.Tensor = None, indices: None | torch.Tensor = None) ‑> tuple[int, tuple[int, int, int]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Predict hkl index class and material.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>uf_or_point</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 2d point associated to uf in the referencial of the detector of shape (n, 2).
+Could be also the unitary vector <span><span class="MathJax_Preview">u_q</span><script type="math/tex">u_q</script></span> of shape (n, 3).</dd>
+<dt><strong><code>poni</code></strong> :&ensp;<code>torch.Tensor</code>, optional</dt>
+<dd>The 6 ordered .poni calibration parameters as a tensor of shape (6,).
+Used only if <code>uf_or_point</code> is a point.</dd>
+<dt><strong><code>indices</code></strong> :&ensp;<code>arraylike</code>, optional</dt>
+<dd>The index of the <span><span class="MathJax_Preview">u_q</span><script type="math/tex">u_q</script></span> to consider. If not provided, all are considered.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>material</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The int16 list of the predicted material index, shape (n',).
+The value -1, means that the spot is a fake spot.</dd>
+<dt><strong><code>hkl</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The int16 list of the predicted class of 3 hkl, shape (n', 3).
+The value (0, 0, 0), means that the spot is a fake spot.</dd>
+<dt><strong><code>confidence</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The quality of the prediction, interpretable as a percentage, shape (n').</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.geometry.indexation.nn import NNIndexator
+&gt;&gt;&gt; lattice = torch.tensor([
+...     [3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2],
+... ])
+&gt;&gt;&gt; indexator = NNIndexator(lattice)
+&gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
+&gt;&gt;&gt; point = torch.rand((1000, 2)) * 0.146
+&gt;&gt;&gt; material, hkl, confidence = indexator.predict_hkl(point, poni=poni)
+&gt;&gt;&gt; material.shape, hkl.shape, confidence.shape
+(torch.Size([1000]), torch.Size([1000, 3]), torch.Size([1000]))
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def predict_hkl(
+    self,
+    uf_or_point: torch.Tensor,
+    *,
+    poni: None | torch.Tensor = None,
+    indices: None | torch.Tensor = None,
+) -&gt; tuple[int, tuple[int, int, int]]:
+    r&#34;&#34;&#34;Predict hkl index class and material.
+
+    Parameters
+    ----------
+    uf_or_point : torch.Tensor
+        The 2d point associated to uf in the referencial of the detector of shape (n, 2).
+        Could be also the unitary vector \(u_q\) of shape (n, 3).
+    poni: torch.Tensor, optional
+        The 6 ordered .poni calibration parameters as a tensor of shape (6,).
+        Used only if ``uf_or_point`` is a point.
+    indices : arraylike, optional
+        The index of the \(u_q\) to consider. If not provided, all are considered.
+
+    Returns
+    -------
+    material : torch.Tensor
+        The int16 list of the predicted material index, shape (n&#39;,).
+        The value -1, means that the spot is a fake spot.
+    hkl : torch.Tensor
+        The int16 list of the predicted class of 3 hkl, shape (n&#39;, 3).
+        The value (0, 0, 0), means that the spot is a fake spot.
+    confidence : torch.Tensor
+        The quality of the prediction, interpretable as a percentage, shape (n&#39;).
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.indexation.nn import NNIndexator
+    &gt;&gt;&gt; lattice = torch.tensor([
+    ...     [3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2],
+    ... ])
+    &gt;&gt;&gt; indexator = NNIndexator(lattice)
+    &gt;&gt;&gt; poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
+    &gt;&gt;&gt; point = torch.rand((1000, 2)) * 0.146
+    &gt;&gt;&gt; material, hkl, confidence = indexator.predict_hkl(point, poni=poni)
+    &gt;&gt;&gt; material.shape, hkl.shape, confidence.shape
+    (torch.Size([1000]), torch.Size([1000, 3]), torch.Size([1000]))
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(uf_or_point, torch.Tensor), uf_or_point.__class__.__name__
+    assert uf_or_point.ndim == 2, uf_or_point.shape
+
+    # convert point to uf
+    if uf_or_point.shape[-1] == 2:
+        assert isinstance(poni, torch.Tensor), poni.__class__.__name__
+        assert poni.shape == (6,), poni.shape
+        uf_or_point = detector_to_ray(uf_or_point, poni)
+    elif uf_or_point.shape[-1] == 3:
+        if poni is not None:
+            warnings.warn(
+                &#34;the `poni` is ignored because uq has been provided, not point&#34;,
+                RuntimeWarning,
+            )
+    else:
+        raise ValueError(&#34;only shape 2 and 3 allow&#34;)
+
+    # convert uf to histogram
+    u_q = uf_to_uq(uf_or_point)
+    hist = self._uq_to_hist(u_q, indices=indices)
+
+    # prediction
+    pred = self.forward(hist)  # (n&#39;, nbr_families)
+
+    # converting to a more interpretable space
+    best = torch.argmax(pred, dim=1)  # (n&#39;)
+    confidence = torch.take_along_dim(pred, best[:, None], dim=1).squeeze(1)
+    hkl = self._families[best]
+    material = torch.asarray(
+        ([-1] + [i for i, f in enumerate(self._attrs[&#34;families&#34;]) for _ in range(len(f))]),
+        dtype=torch.int16,
+        device=best.device,
+    )[best]
+    return material, hkl, confidence</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="laueimproc.geometry.indexation.Refiner"><code class="flex name class">
+<span>class <span class="ident">Refiner</span></span>
+<span>(</span><span>lattice: torch.Tensor, omega: torch.Tensor, uf_or_point: torch.Tensor, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Refine a single grain.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>omega</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 3 <span><span class="MathJax_Preview">\omega</span><script type="math/tex">\omega</script></span> elementary rotation angles of shape (3,).</dd>
+<dt><strong><code>lattice</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The lattice parameters of shape (6,).</dd>
+</dl>
+<p>Initialize the indexator.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>lattice</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The relaxed lattice parameters of a single grain, of shape (6,).</dd>
+<dt><strong><code>omega</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 3 elementary rotation angles of shape (3,).</dd>
+<dt><strong><code>uf_or_point</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The experimental data.
+The 2d point associated to uf in the referencial of the detector of shape (n, 2).
+Could be also the unitary vector <span><span class="MathJax_Preview">u_q</span><script type="math/tex">u_q</script></span> of shape (n, 3).</dd>
+<dt><strong><code>e_min</code></strong> :&ensp;<code>float</code></dt>
+<dd>The minimum energy of the beam line in J.</dd>
+<dt><strong><code>e_max</code></strong> :&ensp;<code>float</code></dt>
+<dd>The maximum energy of the beam line in J.</dd>
+<dt><strong><code>poni</code></strong> :&ensp;<code>torch.Tensor</code>, optional</dt>
+<dd>The 6 ordered .poni calibration parameters as a tensor of shape (6,).
+Used only if <code>uf_or_point</code> is a point.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Refiner(torch.nn.Module):
+    r&#34;&#34;&#34;Refine a single grain.
+
+    Attributes
+    ----------
+    omega : torch.Tensor
+        The 3 \(\omega\) elementary rotation angles of shape (3,).
+    lattice : torch.Tensor
+        The lattice parameters of shape (6,).
+    &#34;&#34;&#34;
+
+    def __init__(
+        self, lattice: torch.Tensor, omega: torch.Tensor, uf_or_point: torch.Tensor, **kwargs
+    ):
+        r&#34;&#34;&#34;Initialize the indexator.
+
+        Parameters
+        ----------
+        lattice : torch.Tensor
+            The relaxed lattice parameters of a single grain, of shape (6,).
+        omega : torch.Tensor
+            The 3 elementary rotation angles of shape (3,).
+        uf_or_point : torch.Tensor
+            The experimental data.
+            The 2d point associated to uf in the referencial of the detector of shape (n, 2).
+            Could be also the unitary vector \(u_q\) of shape (n, 3).
+        e_min : float
+            The minimum energy of the beam line in J.
+        e_max : float
+            The maximum energy of the beam line in J.
+        poni: torch.Tensor, optional
+            The 6 ordered .poni calibration parameters as a tensor of shape (6,).
+            Used only if ``uf_or_point`` is a point.
+        &#34;&#34;&#34;
+        assert set(kwargs).issubset({&#34;e_min&#34;, &#34;e_max&#34;, &#34;poni&#34;})
+        assert isinstance(lattice, torch.Tensor), lattice.__class__.__name__
+        assert lattice.shape == (6,), lattice.shape
+        assert isinstance(omega, torch.Tensor), omega.__class__.__name__
+        assert omega.shape == (3,), omega.shape
+        assert isinstance(uf_or_point, torch.Tensor), uf_or_point.__class__.__name__
+        assert uf_or_point.ndim == 2, uf_or_point.shape
+        assert isinstance(kwargs[&#34;e_min&#34;], numbers.Real), kwargs[&#34;e_min&#34;].__class__.__name__
+        assert 0.0 &lt;= kwargs[&#34;e_min&#34;], kwargs[&#34;e_min&#34;]
+        assert isinstance(kwargs[&#34;e_max&#34;], numbers.Real), kwargs[&#34;e_max&#34;].__class__.__name__
+        assert kwargs[&#34;e_min&#34;] &lt; kwargs[&#34;e_max&#34;] &lt; torch.inf, (kwargs[&#34;e_min&#34;], kwargs[&#34;e_max&#34;])
+
+        super().__init__()
+
+        # convert point to uq
+        poni = kwargs.get(&#34;poni&#34;, None)
+        if uf_or_point.shape[-1] == 2:
+            assert isinstance(poni, torch.Tensor), poni.__class__.__name__
+            assert poni.shape == (6,), poni.shape
+            uf_or_point = detector_to_ray(uf_or_point, poni)
+        elif uf_or_point.shape[-1] == 3:
+            if poni is not None:
+                warnings.warn(
+                    &#34;the `poni` is ignored because uq has been provided, not point&#34;,
+                    RuntimeWarning,
+                )
+        else:
+            raise ValueError(&#34;only shape 2 and 3 allow&#34;)
+        u_q = uf_to_uq(uf_or_point)
+
+        self._lattice = torch.nn.Parameter(lattice.clone(), requires_grad=True)
+        self._omega = torch.nn.Parameter(omega.clone(), requires_grad=True)
+        self._uq_exp = torch.nn.Parameter(kwargs[&#34;uq_exp&#34;], requires_grad=False)
+        self._hkl = torch.nn.Parameter(
+            select_hkl(
+                primitive_to_reciprocal(lattice_to_primitive(lattice)), e_max=kwargs[&#34;e_max&#34;]
+            ),
+            requires_grad=False,
+        )
+        self._e_min = kwargs[&#34;e_min&#34;]
+
+    def forward(self, phi_max: numbers.Real) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Compute the continuous matching rate.
+
+        Parameters
+        ----------
+        phi_max : float
+            The maximum positive angular distance in radian
+            to consider that the rays are closed enough.
+
+        Returns
+        -------
+        rate : torch.Tensor
+            The scalar continuous matching rate.
+        &#34;&#34;&#34;
+        assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
+        assert phi_max &gt; 0, phi_max
+
+        reciprocal_bc = primitive_to_reciprocal(lattice_to_primitive(self._lattice))
+        rot = omega_to_rot(*self._omega, cartesian_product=False)
+        reciprocal_bl = rotate_crystal(reciprocal_bc, rot, cartesian_product=False)
+        uq_theo, energy = hkl_reciprocal_to_uq_energy(  # (n, 3), (n,)
+            self._hkl, reciprocal_bl, cartesian_product=False
+        )
+        uq_theo = uq_theo[energy &gt;= self._e_min]  # (n&#39;, 3)
+        matching_rate = compute_matching_rate_continuous(self._uq_exp, uq_theo, phi_max)
+
+        return matching_rate
+
+    @property
+    def lattice(self) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Return the lattice parameters of shape (6,).&#34;&#34;&#34;
+        return self._lattice.detach()
+
+    @property
+    def omega(self) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Return the 3 elementary rotation angles of shape (3,).&#34;&#34;&#34;
+        return self._omega.detach()
+
+    def refine(
+        self, phi_max: numbers.Real, refine_abc: bool = True, refine_shear: bool = True
+    ) -&gt; float:
+        r&#34;&#34;&#34;Refine the \(\omega\) angles and the lattice parameters.
+
+        Parameters
+        ----------
+        phi_max : float
+            The maximum positive angular distance in radian
+            to consider that the rays are closed enough.
+        refine_abc : boolean, default=True
+            If True, refine the 3 lattice parameters \([a, b, c]\).
+            The initial and the final sum of these parameters is guaranteed to be the same.
+        refine_shear : boolean, default=True
+            If True, refine the 3 angle lattice parameters \([\alpha, \beta, \gamma]\).
+
+        Returns
+        -------
+        rate : float
+            The final matching rate after rafinement.
+
+        Notes
+        -----
+        You can call this function several times to rafine more.
+
+        Examples
+        --------
+        &gt;&gt;&gt; import torch
+        &gt;&gt;&gt; from laueimproc.geometry.indexation.refine import Refiner
+        &gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
+        &gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
+        &gt;&gt;&gt; angle = torch.zeros(3)
+        &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
+        &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
+        &gt;&gt;&gt; refiner = Refiner(lattice, angle, e_min=e_min, e_max=e_max, uq_exp=uq_exp)
+        &gt;&gt;&gt; rate = refiner.refine(0.5 * torch.pi/180)
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
+        assert phi_max &gt; 0, phi_max
+        assert isinstance(refine_abc, bool), refine_abc.__class__.__name__
+        assert isinstance(refine_shear, bool), refine_shear.__class__.__name__
+
+        self.to(torch.float64)  # for better gradient accuracy
+        self._omega.requires_grad = True
+        self._lattice.requires_grad = True
+        abc_sum = float(torch.sum(self._lattice[:3]))
+
+        for _ in range(100):
+            # compute grad
+            rate = self.forward(phi_max)
+            self._omega.grad = self._lattice.grad = None
+            rate.backward()
+            self._omega.grad = self._omega.grad.nan_to_num(nan=0.0).clamp(-100.0, 100.0)
+            self._lattice.grad = self._lattice.grad.nan_to_num(nan=0.0).clamp(-100.0, 100.0)
+            # update parameters
+            with torch.no_grad():
+                self._omega += 8.72e-8 * self._omega.grad  # max 0.5 degrees after 100 iterations
+                if refine_shear:
+                    self._lattice[3:] += 8.72e-8 * self._lattice.grad[3:]
+                if refine_abc:   # max 0.1% after 100 iters
+                    self._lattice[:3] *= (1.0 + 1e-6 * self._lattice.grad[:3])
+                    self._lattice[:3] += (abc_sum - torch.sum(self._lattice[:3])) / 3.0
+
+        self._omega.grad = self._lattice.grad = None
+        with torch.no_grad():
+            return float(self.forward(phi_max))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="laueimproc.geometry.indexation.Refiner.lattice"><code class="name">var <span class="ident">lattice</span> : torch.Tensor</code></dt>
+<dd>
+<div class="desc"><p>Return the lattice parameters of shape (6,).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def lattice(self) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Return the lattice parameters of shape (6,).&#34;&#34;&#34;
+    return self._lattice.detach()</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.indexation.Refiner.omega"><code class="name">var <span class="ident">omega</span> : torch.Tensor</code></dt>
+<dd>
+<div class="desc"><p>Return the 3 elementary rotation angles of shape (3,).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def omega(self) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Return the 3 elementary rotation angles of shape (3,).&#34;&#34;&#34;
+    return self._omega.detach()</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="laueimproc.geometry.indexation.Refiner.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, phi_max: numbers.Real) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the continuous matching rate.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>phi_max</code></strong> :&ensp;<code>float</code></dt>
+<dd>The maximum positive angular distance in radian
+to consider that the rays are closed enough.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>rate</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The scalar continuous matching rate.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward(self, phi_max: numbers.Real) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Compute the continuous matching rate.
+
+    Parameters
+    ----------
+    phi_max : float
+        The maximum positive angular distance in radian
+        to consider that the rays are closed enough.
+
+    Returns
+    -------
+    rate : torch.Tensor
+        The scalar continuous matching rate.
+    &#34;&#34;&#34;
+    assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
+    assert phi_max &gt; 0, phi_max
+
+    reciprocal_bc = primitive_to_reciprocal(lattice_to_primitive(self._lattice))
+    rot = omega_to_rot(*self._omega, cartesian_product=False)
+    reciprocal_bl = rotate_crystal(reciprocal_bc, rot, cartesian_product=False)
+    uq_theo, energy = hkl_reciprocal_to_uq_energy(  # (n, 3), (n,)
+        self._hkl, reciprocal_bl, cartesian_product=False
+    )
+    uq_theo = uq_theo[energy &gt;= self._e_min]  # (n&#39;, 3)
+    matching_rate = compute_matching_rate_continuous(self._uq_exp, uq_theo, phi_max)
+
+    return matching_rate</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.indexation.Refiner.refine"><code class="name flex">
+<span>def <span class="ident">refine</span></span>(<span>self, phi_max: numbers.Real, refine_abc: bool = True, refine_shear: bool = True) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Refine the <span><span class="MathJax_Preview">\omega</span><script type="math/tex">\omega</script></span> angles and the lattice parameters.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>phi_max</code></strong> :&ensp;<code>float</code></dt>
+<dd>The maximum positive angular distance in radian
+to consider that the rays are closed enough.</dd>
+<dt><strong><code>refine_abc</code></strong> :&ensp;<code>boolean</code>, default=<code>True</code></dt>
+<dd>If True, refine the 3 lattice parameters <span><span class="MathJax_Preview">[a, b, c]</span><script type="math/tex">[a, b, c]</script></span>.
+The initial and the final sum of these parameters is guaranteed to be the same.</dd>
+<dt><strong><code>refine_shear</code></strong> :&ensp;<code>boolean</code>, default=<code>True</code></dt>
+<dd>If True, refine the 3 angle lattice parameters <span><span class="MathJax_Preview">[\alpha, \beta, \gamma]</span><script type="math/tex">[\alpha, \beta, \gamma]</script></span>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>rate</code></strong> :&ensp;<code>float</code></dt>
+<dd>The final matching rate after rafinement.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>You can call this function several times to rafine more.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.geometry.indexation.refine import Refiner
+&gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
+&gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
+&gt;&gt;&gt; angle = torch.zeros(3)
+&gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
+&gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
+&gt;&gt;&gt; refiner = Refiner(lattice, angle, e_min=e_min, e_max=e_max, uq_exp=uq_exp)
+&gt;&gt;&gt; rate = refiner.refine(0.5 * torch.pi/180)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def refine(
+    self, phi_max: numbers.Real, refine_abc: bool = True, refine_shear: bool = True
+) -&gt; float:
+    r&#34;&#34;&#34;Refine the \(\omega\) angles and the lattice parameters.
+
+    Parameters
+    ----------
+    phi_max : float
+        The maximum positive angular distance in radian
+        to consider that the rays are closed enough.
+    refine_abc : boolean, default=True
+        If True, refine the 3 lattice parameters \([a, b, c]\).
+        The initial and the final sum of these parameters is guaranteed to be the same.
+    refine_shear : boolean, default=True
+        If True, refine the 3 angle lattice parameters \([\alpha, \beta, \gamma]\).
+
+    Returns
+    -------
+    rate : float
+        The final matching rate after rafinement.
+
+    Notes
+    -----
+    You can call this function several times to rafine more.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.indexation.refine import Refiner
+    &gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
+    &gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
+    &gt;&gt;&gt; angle = torch.zeros(3)
+    &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
+    &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
+    &gt;&gt;&gt; refiner = Refiner(lattice, angle, e_min=e_min, e_max=e_max, uq_exp=uq_exp)
+    &gt;&gt;&gt; rate = refiner.refine(0.5 * torch.pi/180)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
+    assert phi_max &gt; 0, phi_max
+    assert isinstance(refine_abc, bool), refine_abc.__class__.__name__
+    assert isinstance(refine_shear, bool), refine_shear.__class__.__name__
+
+    self.to(torch.float64)  # for better gradient accuracy
+    self._omega.requires_grad = True
+    self._lattice.requires_grad = True
+    abc_sum = float(torch.sum(self._lattice[:3]))
+
+    for _ in range(100):
+        # compute grad
+        rate = self.forward(phi_max)
+        self._omega.grad = self._lattice.grad = None
+        rate.backward()
+        self._omega.grad = self._omega.grad.nan_to_num(nan=0.0).clamp(-100.0, 100.0)
+        self._lattice.grad = self._lattice.grad.nan_to_num(nan=0.0).clamp(-100.0, 100.0)
+        # update parameters
+        with torch.no_grad():
+            self._omega += 8.72e-8 * self._omega.grad  # max 0.5 degrees after 100 iterations
+            if refine_shear:
+                self._lattice[3:] += 8.72e-8 * self._lattice.grad[3:]
+            if refine_abc:   # max 0.1% after 100 iters
+                self._lattice[:3] *= (1.0 + 1e-6 * self._lattice.grad[:3])
+                self._lattice[:3] += (abc_sum - torch.sum(self._lattice[:3])) / 3.0
+
+    self._omega.grad = self._lattice.grad = None
+    with torch.no_grad():
+        return float(self.forward(phi_max))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="laueimproc.geometry.indexation.StupidIndexator"><code class="flex name class">
+<span>class <span class="ident">StupidIndexator</span></span>
+<span>(</span><span>lattice: torch.Tensor, e_max: numbers.Real)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Brute force indexation method.</p>
+<p>Allows you to find, slowly but extremely reliably, all the oriantations
+of the different grains of a given material.</p>
+<p>Initialize the indexator.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>lattice</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The relaxed lattice parameters of a single grain, of shape (6,).</dd>
+<dt><strong><code>e_max</code></strong> :&ensp;<code>float</code></dt>
+<dd>The maximum energy of the beam line in J.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StupidIndexator(torch.nn.Module):
+    &#34;&#34;&#34;Brute force indexation method.
+
+    Allows you to find, slowly but extremely reliably, all the oriantations
+    of the different grains of a given material.
+    &#34;&#34;&#34;
+
+    def __init__(self, lattice: torch.Tensor, e_max: numbers.Real):
+        &#34;&#34;&#34;Initialize the indexator.
+
+        Parameters
+        ----------
+        lattice : torch.Tensor
+            The relaxed lattice parameters of a single grain, of shape (6,).
+        e_max : float
+            The maximum energy of the beam line in J.
+        &#34;&#34;&#34;
+        assert isinstance(lattice, torch.Tensor), lattice.__class__.__name__
+        assert lattice.shape == (6,), lattice.shape
+        assert isinstance(e_max, numbers.Real), e_max.__class__.__name__
+        assert 0.0 &lt; e_max &lt; torch.inf, e_max
+
+        super().__init__()
+
+        self._reciprocal = torch.nn.Parameter(
+            primitive_to_reciprocal(lattice_to_primitive(lattice)),
+            requires_grad=False,
+        )
+        self._hkl = torch.nn.Parameter(
+            select_hkl(self._reciprocal, e_max=e_max),
+            requires_grad=False,
+        )
+
+    def _compute_rate(
+        self, omega: torch.Tensor, uq_exp: torch.Tensor, phi_max: float
+    ) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Compute the matching rate of a sub patch.&#34;&#34;&#34;
+        uq_theo = self._compute_uq(omega)
+        rate = compute_matching_rate(uq_exp, uq_theo, phi_max)
+        return rate
+
+    # @torch.compile(dynamic=False)  # failed on multithreading cuda
+    def _compute_uq(self, omega: torch.Tensor) -&gt; torch.Tensor:
+        &#34;&#34;&#34;Help for ``_compute_rate``.&#34;&#34;&#34;
+        rot = omega_to_rot(*omega.movedim(1, 0), cartesian_product=False)  # (m, 3, 3)
+        reciprocal = rotate_crystal(self._reciprocal, rot, cartesian_product=False)
+        uq_theo = hkl_reciprocal_to_uq(self._hkl, reciprocal)  # (h, m, 3)
+        uq_theo = torch.movedim(uq_theo, 0, 1).contiguous()  # (m, h, 3)
+        return uq_theo
+
+    def clone(self) -&gt; typing.Self:
+        &#34;&#34;&#34;Return a deep copy of self.&#34;&#34;&#34;
+        return copy.deepcopy(self)
+
+    def forward(
+        self,
+        uf_or_point: torch.Tensor,
+        phi_max: None | numbers.Real = None,
+        omega: None | numbers.Real | torch.Tensor = None,
+        *,
+        poni: None | torch.Tensor = None,
+    ) -&gt; torch.Tensor:
+        r&#34;&#34;&#34;Return the rotations ordered by matching rate.
+
+        Parameters
+        ----------
+        uf_or_point : torch.Tensor
+            The 2d point associated to uf in the referencial of the detector of shape (n, 2).
+            Could be also the unitary vector \(u_q\) of shape (n, 3).
+        phi_max : float, optional
+            The maximum positive angular distance in radian
+            to consider that the rays are closed enough.
+            If nothing is supplied (default), the average distance between each \(u_q\),
+            and its nearset neighbour is calculated. This argument take this value.
+        omega : float or arraylike, optional
+            Corresponds to all the cristal oriantations to be tested.
+
+            * If nothing is supplied (default), this argument take this value of ``phi_max``.
+            * If a scalar is supplied, The \(SO(3)\) oriantation space is sampled uniformly
+                so that the angle between 2 rotations is approximatively equal
+                to the value of this argument, in radian. The symmetries of the crystal are
+                automatically considered to reduce the size of the space to be explored.
+            * The last option is to supply 3 elementary rotation angles
+                \(\omega_1, \omega_2, \omega_3\), in radian, as an array of shape (n, 3).
+        poni: torch.Tensor, optional
+            The 6 ordered .poni calibration parameters as a tensor of shape (6,).
+            Used only if ``uf_or_point`` is a point.
+
+        Returns
+        -------
+        omega : torch.Tensor
+            The 3 elementary rotation angles \(\omega_1, \omega_2, \omega_3\)
+            sorted by decreasing matching rate, the shape is (n, 3).
+        rate : torch.Tensor
+            All the sorted matching rates.
+
+        Notes
+        -----
+        The calculation time is independent of the number of spots in the experimental diagram.
+
+        Examples
+        --------
+        &gt;&gt;&gt; import torch
+        &gt;&gt;&gt; from laueimproc.geometry.indexation.stupid import StupidIndexator
+        &gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
+        &gt;&gt;&gt; e_max = 20e3 * 1.60e-19  # 20 keV
+        &gt;&gt;&gt; indexator = StupidIndexator(lattice, e_max)
+        &gt;&gt;&gt;
+        &gt;&gt;&gt; u_f = torch.randn(100, 3)
+        &gt;&gt;&gt; u_f /= torch.linalg.norm(u_f, dim=1, keepdim=True)
+        &gt;&gt;&gt; angle, rate = indexator(u_f)
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        assert isinstance(uf_or_point, torch.Tensor), uf_or_point.__class__.__name__
+        assert uf_or_point.ndim == 2, uf_or_point.shape
+
+        # convert point to uq
+        if uf_or_point.shape[-1] == 2:
+            assert isinstance(poni, torch.Tensor), poni.__class__.__name__
+            assert poni.shape == (6,), poni.shape
+            uf_or_point = detector_to_ray(uf_or_point, poni)
+        elif uf_or_point.shape[-1] == 3:
+            if poni is not None:
+                warnings.warn(
+                    &#34;the `poni` is ignored because uq has been provided, not point&#34;,
+                    RuntimeWarning,
+                )
+        else:
+            raise ValueError(&#34;only shape 2 and 3 allow&#34;)
+        u_q = uf_to_uq(uf_or_point)
+
+        assert u_q.shape[0] &gt;= 2, &#34;a minimum of 2 spots are required for indexation&#34;
+
+        # sampling the space of the rotations
+        if phi_max is None:
+            phi_max = float(torch.mean(torch.sort(ray_phi_dist(u_q, u_q), dim=0).values[1, :]))
+        if omega is None:
+            omega = phi_max
+        if isinstance(omega, numbers.Real):
+            omega = uniform_so3_meshgrid(
+                omega,  # check omega here
+                reduce_omega_range(
+                    ((-torch.pi, torch.pi), (-torch.pi/2, torch.pi/2), (-torch.pi, torch.pi)),
+                    find_symmetric_rotations(self._reciprocal),
+                ),
+            )
+        else:
+            omega = torch.asarray(omega, dtype=self._reciprocal.dtype)
+            assert omega.ndim == 2 and omega.shape[1] == 3, omega.shape
+
+        # split multi GPUs
+        devices = (
+            [torch.device(f&#34;cuda:{i}&#34;) for i in range(torch.cuda.device_count())]
+            or [torch.device(&#34;cpu&#34;)]
+        )
+        models = [self.clone().to(d) for d in devices]
+        omegas = [omega.to(d) for d in devices]
+
+        # compute all rates
+        batch = 512
+        total = len(omega) // batch + int(bool(len(omega) % batch))
+        with multiprocessing.pool.ThreadPool(max(NCPU, 2*len(devices))) as pool:
+            rate = torch.cat(list(
+                tqdm(
+                    pool.imap(
+                        lambda i: (
+                            models[i % len(devices)]._compute_rate(  # pylint: disable=W0212
+                                omegas[i % len(devices)][batch*i:batch*(i+1)],
+                                u_q,
+                                phi_max,
+                            )  # in u_q device
+                        ),
+                        range(total),
+                    ),
+                    total=total,
+                    unit_scale=batch,
+                )
+            ))
+
+        # sorted result
+        order = torch.argsort(rate, descending=True)
+        return omega[order], rate[order]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="laueimproc.geometry.indexation.StupidIndexator.clone"><code class="name flex">
+<span>def <span class="ident">clone</span></span>(<span>self) ‑> Self</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return a deep copy of self.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clone(self) -&gt; typing.Self:
+    &#34;&#34;&#34;Return a deep copy of self.&#34;&#34;&#34;
+    return copy.deepcopy(self)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.indexation.StupidIndexator.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, uf_or_point: torch.Tensor, phi_max: None | numbers.Real = None, omega: None | numbers.Real | torch.Tensor = None, *, poni: None | torch.Tensor = None) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the rotations ordered by matching rate.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>uf_or_point</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 2d point associated to uf in the referencial of the detector of shape (n, 2).
+Could be also the unitary vector <span><span class="MathJax_Preview">u_q</span><script type="math/tex">u_q</script></span> of shape (n, 3).</dd>
+<dt><strong><code>phi_max</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>The maximum positive angular distance in radian
+to consider that the rays are closed enough.
+If nothing is supplied (default), the average distance between each <span><span class="MathJax_Preview">u_q</span><script type="math/tex">u_q</script></span>,
+and its nearset neighbour is calculated. This argument take this value.</dd>
+<dt><strong><code>omega</code></strong> :&ensp;<code>float</code> or <code>arraylike</code>, optional</dt>
+<dd>
+<p>Corresponds to all the cristal oriantations to be tested.</p>
+<ul>
+<li>If nothing is supplied (default), this argument take this value of <code>phi_max</code>.</li>
+<li>If a scalar is supplied, The <span><span class="MathJax_Preview">SO(3)</span><script type="math/tex">SO(3)</script></span> oriantation space is sampled uniformly
+so that the angle between 2 rotations is approximatively equal
+to the value of this argument, in radian. The symmetries of the crystal are
+automatically considered to reduce the size of the space to be explored.</li>
+<li>The last option is to supply 3 elementary rotation angles
+<span><span class="MathJax_Preview">\omega_1, \omega_2, \omega_3</span><script type="math/tex">\omega_1, \omega_2, \omega_3</script></span>, in radian, as an array of shape (n, 3).</li>
+</ul>
+</dd>
+<dt><strong><code>poni</code></strong> :&ensp;<code>torch.Tensor</code>, optional</dt>
+<dd>The 6 ordered .poni calibration parameters as a tensor of shape (6,).
+Used only if <code>uf_or_point</code> is a point.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>omega</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The 3 elementary rotation angles <span><span class="MathJax_Preview">\omega_1, \omega_2, \omega_3</span><script type="math/tex">\omega_1, \omega_2, \omega_3</script></span>
+sorted by decreasing matching rate, the shape is (n, 3).</dd>
+<dt><strong><code>rate</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>All the sorted matching rates.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>The calculation time is independent of the number of spots in the experimental diagram.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.geometry.indexation.stupid import StupidIndexator
+&gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
+&gt;&gt;&gt; e_max = 20e3 * 1.60e-19  # 20 keV
+&gt;&gt;&gt; indexator = StupidIndexator(lattice, e_max)
+&gt;&gt;&gt;
+&gt;&gt;&gt; u_f = torch.randn(100, 3)
+&gt;&gt;&gt; u_f /= torch.linalg.norm(u_f, dim=1, keepdim=True)
+&gt;&gt;&gt; angle, rate = indexator(u_f)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward(
+    self,
+    uf_or_point: torch.Tensor,
+    phi_max: None | numbers.Real = None,
+    omega: None | numbers.Real | torch.Tensor = None,
+    *,
+    poni: None | torch.Tensor = None,
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Return the rotations ordered by matching rate.
+
+    Parameters
+    ----------
+    uf_or_point : torch.Tensor
+        The 2d point associated to uf in the referencial of the detector of shape (n, 2).
+        Could be also the unitary vector \(u_q\) of shape (n, 3).
+    phi_max : float, optional
+        The maximum positive angular distance in radian
+        to consider that the rays are closed enough.
+        If nothing is supplied (default), the average distance between each \(u_q\),
+        and its nearset neighbour is calculated. This argument take this value.
+    omega : float or arraylike, optional
+        Corresponds to all the cristal oriantations to be tested.
+
+        * If nothing is supplied (default), this argument take this value of ``phi_max``.
+        * If a scalar is supplied, The \(SO(3)\) oriantation space is sampled uniformly
+            so that the angle between 2 rotations is approximatively equal
+            to the value of this argument, in radian. The symmetries of the crystal are
+            automatically considered to reduce the size of the space to be explored.
+        * The last option is to supply 3 elementary rotation angles
+            \(\omega_1, \omega_2, \omega_3\), in radian, as an array of shape (n, 3).
+    poni: torch.Tensor, optional
+        The 6 ordered .poni calibration parameters as a tensor of shape (6,).
+        Used only if ``uf_or_point`` is a point.
+
+    Returns
+    -------
+    omega : torch.Tensor
+        The 3 elementary rotation angles \(\omega_1, \omega_2, \omega_3\)
+        sorted by decreasing matching rate, the shape is (n, 3).
+    rate : torch.Tensor
+        All the sorted matching rates.
+
+    Notes
+    -----
+    The calculation time is independent of the number of spots in the experimental diagram.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.indexation.stupid import StupidIndexator
+    &gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
+    &gt;&gt;&gt; e_max = 20e3 * 1.60e-19  # 20 keV
+    &gt;&gt;&gt; indexator = StupidIndexator(lattice, e_max)
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; u_f = torch.randn(100, 3)
+    &gt;&gt;&gt; u_f /= torch.linalg.norm(u_f, dim=1, keepdim=True)
+    &gt;&gt;&gt; angle, rate = indexator(u_f)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(uf_or_point, torch.Tensor), uf_or_point.__class__.__name__
+    assert uf_or_point.ndim == 2, uf_or_point.shape
+
+    # convert point to uq
+    if uf_or_point.shape[-1] == 2:
+        assert isinstance(poni, torch.Tensor), poni.__class__.__name__
+        assert poni.shape == (6,), poni.shape
+        uf_or_point = detector_to_ray(uf_or_point, poni)
+    elif uf_or_point.shape[-1] == 3:
+        if poni is not None:
+            warnings.warn(
+                &#34;the `poni` is ignored because uq has been provided, not point&#34;,
+                RuntimeWarning,
+            )
+    else:
+        raise ValueError(&#34;only shape 2 and 3 allow&#34;)
+    u_q = uf_to_uq(uf_or_point)
+
+    assert u_q.shape[0] &gt;= 2, &#34;a minimum of 2 spots are required for indexation&#34;
+
+    # sampling the space of the rotations
+    if phi_max is None:
+        phi_max = float(torch.mean(torch.sort(ray_phi_dist(u_q, u_q), dim=0).values[1, :]))
+    if omega is None:
+        omega = phi_max
+    if isinstance(omega, numbers.Real):
+        omega = uniform_so3_meshgrid(
+            omega,  # check omega here
+            reduce_omega_range(
+                ((-torch.pi, torch.pi), (-torch.pi/2, torch.pi/2), (-torch.pi, torch.pi)),
+                find_symmetric_rotations(self._reciprocal),
+            ),
+        )
+    else:
+        omega = torch.asarray(omega, dtype=self._reciprocal.dtype)
+        assert omega.ndim == 2 and omega.shape[1] == 3, omega.shape
+
+    # split multi GPUs
+    devices = (
+        [torch.device(f&#34;cuda:{i}&#34;) for i in range(torch.cuda.device_count())]
+        or [torch.device(&#34;cpu&#34;)]
+    )
+    models = [self.clone().to(d) for d in devices]
+    omegas = [omega.to(d) for d in devices]
+
+    # compute all rates
+    batch = 512
+    total = len(omega) // batch + int(bool(len(omega) % batch))
+    with multiprocessing.pool.ThreadPool(max(NCPU, 2*len(devices))) as pool:
+        rate = torch.cat(list(
+            tqdm(
+                pool.imap(
+                    lambda i: (
+                        models[i % len(devices)]._compute_rate(  # pylint: disable=W0212
+                            omegas[i % len(devices)][batch*i:batch*(i+1)],
+                            u_q,
+                            phi_max,
+                        )  # in u_q device
+                    ),
+                    range(total),
+                ),
+                total=total,
+                unit_scale=batch,
+            )
+        ))
+
+    # sorted result
+    order = torch.argsort(rate, descending=True)
+    return omega[order], rate[order]</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<form>
+<input id="lunr-search" name="q" placeholder="🔎 Search ..." aria-label="Search"
+disabled minlength="2">
+</form>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.css" integrity="sha512-j1u8eUJ4f23xPPxwOrLUPQaCD2dwzNqqmDDcWS4deWsMv2ohLqmXXuP3hU7g8TyzbMSakP/mMqoNBYWj8AEIFg==" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.js" integrity="sha512-plGUER9JkeEWPPqQBE4sdLqBoQug5Ap+BCGMc7bJ8BXkm+VVj6QzkpBz5Yv2yPkkq+cqg9IpkBaGCas6uDbW8g==" crossorigin></script>
+<style>
+.modal-dialog iframe {
+width: 100vw;
+height: calc(100vh - 80px);
+}
+@media screen and (min-width: 700px) {
+.modal-dialog iframe {
+width: 70vw;
+height: 80vh;
+}
+}
+.modal-dialog .tingle-modal-box {width: auto;}
+.modal-dialog .tingle-modal-box__content {padding: 0;}
+</style>
+<script>
+const input = document.getElementById('lunr-search');
+input.disabled = false;
+input.form.addEventListener('submit', (ev) => {
+ev.preventDefault();
+const url = new URL(window.location);
+url.searchParams.set('q', input.value);
+history.replaceState({}, null, url.toString());
+search(input.value);
+});
+const query = new URL(window.location).searchParams.get('q');
+if (query)
+search(query);
+function search(query) {
+const url = '../../../doc-search.html#' + encodeURIComponent(query);
+new tingle.modal({
+cssClass: ['modal-dialog'],
+onClose: () => {
+const url = new URL(window.location);
+url.searchParams.delete('q');
+history.replaceState({}, null, url.toString());
+setTimeout(() => input.focus(), 100);
+}
+}).setContent('<iframe src="' + url + '"></iframe>').open();
+}
+</script>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="laueimproc.geometry" href="../index.html">laueimproc.geometry</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="laueimproc.geometry.indexation.nn" href="nn.html">laueimproc.geometry.indexation.nn</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation.refine" href="refine.html">laueimproc.geometry.indexation.refine</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation.stupid" href="stupid.html">laueimproc.geometry.indexation.stupid</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="laueimproc.geometry.indexation.NNIndexator" href="#laueimproc.geometry.indexation.NNIndexator">NNIndexator</a></code></h4>
+<ul class="">
+<li><code><a title="laueimproc.geometry.indexation.NNIndexator.bins" href="#laueimproc.geometry.indexation.NNIndexator.bins">bins</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation.NNIndexator.families" href="#laueimproc.geometry.indexation.NNIndexator.families">families</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation.NNIndexator.forward" href="#laueimproc.geometry.indexation.NNIndexator.forward">forward</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation.NNIndexator.generate_diagram" href="#laueimproc.geometry.indexation.NNIndexator.generate_diagram">generate_diagram</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation.NNIndexator.generate_training_batch" href="#laueimproc.geometry.indexation.NNIndexator.generate_training_batch">generate_training_batch</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation.NNIndexator.predict_hkl" href="#laueimproc.geometry.indexation.NNIndexator.predict_hkl">predict_hkl</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation.NNIndexator.weights" href="#laueimproc.geometry.indexation.NNIndexator.weights">weights</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="laueimproc.geometry.indexation.Refiner" href="#laueimproc.geometry.indexation.Refiner">Refiner</a></code></h4>
+<ul class="">
+<li><code><a title="laueimproc.geometry.indexation.Refiner.forward" href="#laueimproc.geometry.indexation.Refiner.forward">forward</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation.Refiner.lattice" href="#laueimproc.geometry.indexation.Refiner.lattice">lattice</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation.Refiner.omega" href="#laueimproc.geometry.indexation.Refiner.omega">omega</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation.Refiner.refine" href="#laueimproc.geometry.indexation.Refiner.refine">refine</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="laueimproc.geometry.indexation.StupidIndexator" href="#laueimproc.geometry.indexation.StupidIndexator">StupidIndexator</a></code></h4>
+<ul class="">
+<li><code><a title="laueimproc.geometry.indexation.StupidIndexator.clone" href="#laueimproc.geometry.indexation.StupidIndexator.clone">clone</a></code></li>
+<li><code><a title="laueimproc.geometry.indexation.StupidIndexator.forward" href="#laueimproc.geometry.indexation.StupidIndexator.forward">forward</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

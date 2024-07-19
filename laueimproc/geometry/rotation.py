@@ -303,3 +303,70 @@ def rotate_crystal(
         rot = rot[*((None,)*len(batch_c)), ..., :, :]
 
     return rot @ crystal
+
+
+def uniform_so3_meshgrid(
+    resol: numbers.Real,
+    omega_range: tuple[tuple[float, float], tuple[float, float], tuple[float, float]],
+    **kwargs,
+) -> torch.Tensor:
+    r"""Sample the omega space to be uniformly sampled in the rotation space.
+
+    Parameters
+    ----------
+    resol : float
+        The angular resolution in radian.
+    omega_range : tuple[tuple[float, float], tuple[float, float], tuple[float, float]]
+        The min and max limits for each elementary rotation angle
+        \omega_1, \omega_2, \omega_3, in radian.
+
+    Returns
+    -------
+    omega : torch.Tensor
+        The 3 elementary rotation angles of shape (n, 3).
+
+    Examples
+    --------
+    >>> import torch
+    >>> from laueimproc.geometry.rotation import uniform_so3_meshgrid
+    >>> uniform_so3_meshgrid(
+    ...     0.7 * torch.pi/180, ((0, torch.pi/2), (-torch.pi/2, torch.pi/2), (-torch.pi, torch.pi))
+    ... )
+    tensor([[ 0.0000, -1.5708, -3.1416],
+            [ 0.0000, -1.5708, -3.1294],
+            [ 0.0000, -1.5708, -3.1172],
+            ...,
+            [ 1.5638,  1.5237,  3.1137],
+            [ 1.5638,  1.5237,  3.1259],
+            [ 1.5638,  1.5237,  3.1381]])
+    >>>
+    """
+    assert isinstance(resol, numbers.Real), resol.__class__.__name__
+    assert resol > 2.926e-9, resol  # 2*pi / resol < 2**31 - 1 because cast int32
+    assert isinstance(omega_range, tuple), omega_range.__name__.__name__
+    assert len(omega_range) == 3, omega_range
+    assert all(isinstance(mm, tuple) for mm in omega_range), omega_range
+    assert all(len(mm) == 2 for mm in omega_range), omega_range
+    (omega1_min, omega1_max), (omega2_min, omega2_max), (omega3_min, omega3_max) = omega_range
+    assert omega1_min >= -torch.pi, omega1_min
+    assert omega1_max <= torch.pi, omega1_max
+    assert omega1_min < omega1_max, (omega1_min, omega1_max)
+    assert omega2_min >= -0.5 * torch.pi, omega2_min
+    assert omega2_max <= 0.5 * torch.pi, omega2_max
+    assert omega2_min < omega2_max, (omega2_min, omega2_max)
+    assert omega3_min >= -torch.pi, omega3_min
+    assert omega3_max <= torch.pi, omega3_max
+    assert omega3_min < omega3_max, (omega3_min, omega3_max)
+
+    # If we draw a lot of uniform rotation matrix with rand_rot,
+    # and we compute the histograms of the omega, we observe that
+    # omega1 and omega3 are uniform, and the histogram of omega2 is a perfect cosinus.
+    # So we have to apply an arcsin into uniform omega2' for having unifor rotation.
+
+    all_omega1 = torch.arange(omega1_min, omega1_max, resol, **kwargs)
+    all_omega2 = torch.asin(torch.arange(omega2_min, omega2_max, resol, **kwargs) / (0.5*torch.pi))
+    all_omega3 = torch.arange(omega3_min, omega3_max, resol, **kwargs)
+
+    all_omega = torch.meshgrid(all_omega1, all_omega2, all_omega3, indexing="ij")
+    all_omega = torch.cat([o.reshape(-1, 1) for o in all_omega], dim=1)
+    return all_omega
