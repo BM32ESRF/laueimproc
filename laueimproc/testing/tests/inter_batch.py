@@ -25,6 +25,6 @@ def test_tol_random():
         assert cv2.imwrite(str(folder / f"rand_{i:04d}.tif"), img_np)
 
     dataset = DiagramsDataset(folder)
-    median = dataset.compute_inter_image(level=0.5, method="sort")
-    median_approx = dataset.compute_inter_image(level=0.5, method="snowflake", tol=1e-3)
+    median = dataset.compute_statistical_image(level=0.5, method="sort")
+    median_approx = dataset.compute_statistical_image(level=0.5, method="snowflake", tol=1e-3)
     assert abs(median - median_approx).mean() < 1e-3

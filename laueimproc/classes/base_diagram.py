@@ -698,7 +698,7 @@ class BaseDiagram:
 
         # fill figure metadata
         axes = disp  # is gonna changed
-        disp = disp or Figure(layout="tight")
+        disp = disp or Figure(layout="tight")  # pylint: disable=E1123
         if isinstance(disp, Figure):
             if isinstance(self._file_or_image, pathlib.Path):
                 disp.suptitle(f"Diagram {self._file_or_image.name}")
@@ -790,11 +790,14 @@ class BaseDiagram:
         return rawshapes2rois(datarois, bboxes[:, 2:])
 
     def set_spots(self, *new_spots: tuple):
-        """Set the new spots as the current spots, reset the history and the cache.
+        """Write or overwrite the rois and bboxes.
+
+        The input argument order are keeped.
 
         Paremeters
         ----------
         new_spots : tuple
+
             * Can be another diagram of type Diagram.
             * Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
             * Can be an anchor and a picture n * (anchor_i, anchor_j, roi).

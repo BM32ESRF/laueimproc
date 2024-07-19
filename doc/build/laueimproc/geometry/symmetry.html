@@ -66,9 +66,9 @@ def find_symmetric_rotations(crystal: torch.Tensor, tol: numbers.Real = 0.05) -&
     In particular, it is linear by rotation:
 
     \(
-        \mathbf{B_{\mathcal{B^l}}
-        = f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}} \right)
-        = \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}} \right)
+        \mathbf{B_{\mathcal{B^l}}}
+        = f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}}} \right)
+        = \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}}} \right)
     \)
 
     The symmetries (which are rotation matrices) found on \(\mathbf{A}\)
@@ -421,13 +421,13 @@ The shape is (n, 3, 3). It contains the identity matrix.</dd>
 This function is independent of the chosen orthonormal base,
 In particular, it is linear by rotation:</p>
 <p><span><span class="MathJax_Preview">
-\mathbf{B_{\mathcal{B^l}}
-= f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}} \right)
-= \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}} \right)
+\mathbf{B_{\mathcal{B^l}}}
+= f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}}} \right)
+= \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}}} \right)
 </span><script type="math/tex">
-\mathbf{B_{\mathcal{B^l}}
-= f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}} \right)
-= \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}} \right)
+\mathbf{B_{\mathcal{B^l}}}
+= f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}}} \right)
+= \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}}} \right)
 </script></span></p>
 <p>The symmetries (which are rotation matrices) found on <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span>
 are therefore the same as the symmetries found on <span><span class="MathJax_Preview">\mathbf{B}</span><script type="math/tex">\mathbf{B}</script></span>.
@@ -482,9 +482,9 @@ torch.Size([6, 3, 3])
     In particular, it is linear by rotation:
 
     \(
-        \mathbf{B_{\mathcal{B^l}}
-        = f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}} \right)
-        = \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}} \right)
+        \mathbf{B_{\mathcal{B^l}}}
+        = f\left( \mathbf{R} . \mathbf{A_{\mathcal{B^c}}} \right)
+        = \mathbf{R} . f\left( \mathbf{A_{\mathcal{B^c}}} \right)
     \)
 
     The symmetries (which are rotation matrices) found on \(\mathbf{A}\)

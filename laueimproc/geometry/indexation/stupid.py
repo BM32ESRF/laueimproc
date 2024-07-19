@@ -15,7 +15,7 @@ import torch
 from ..bragg import hkl_reciprocal_to_uq, uf_to_uq
 from ..hkl import select_hkl
 from ..lattice import lattice_to_primitive
-from ..metric import compute_matching_rate, ray_phi_dist
+from ..metric import compute_nb_matches, ray_phi_dist
 from ..projection import detector_to_ray
 from ..reciprocal import primitive_to_reciprocal
 from ..rotation import omega_to_rot, rotate_crystal, uniform_so3_meshgrid
@@ -66,7 +66,7 @@ class StupidIndexator(torch.nn.Module):
     ) -> torch.Tensor:
         """Compute the matching rate of a sub patch."""
         uq_theo = self._compute_uq(omega)
-        rate = compute_matching_rate(uq_exp, uq_theo, phi_max)
+        rate = compute_nb_matches(uq_exp, uq_theo, phi_max)
         return rate
 
     # @torch.compile(dynamic=False)  # failed on multithreading cuda

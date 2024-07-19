@@ -304,7 +304,7 @@ def rotate_crystal(
     Parameters
     ----------
     crystal : torch.Tensor
-        The primitive \((\mathbf{A})\) or reciprocal \((\mathbf{B})\) in the base \(\mathcal{B}\).
+        The primitive \(\mathbf{A}\) or reciprocal \(\mathbf{B}\) in the base \(\mathcal{B}\).
         The shape of this parameter is (\*c, 3, 3).
     rot : torch.Tensor
         The active rotation matrix, of shape (\*r, 3, 3).
@@ -916,7 +916,7 @@ tensor(30.)
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>crystal</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The primitive <span><span class="MathJax_Preview">(\mathbf{A})</span><script type="math/tex">(\mathbf{A})</script></span> or reciprocal <span><span class="MathJax_Preview">(\mathbf{B})</span><script type="math/tex">(\mathbf{B})</script></span> in the base <span><span class="MathJax_Preview">\mathcal{B}</span><script type="math/tex">\mathcal{B}</script></span>.
+<dd>The primitive <span><span class="MathJax_Preview">\mathbf{A}</span><script type="math/tex">\mathbf{A}</script></span> or reciprocal <span><span class="MathJax_Preview">\mathbf{B}</span><script type="math/tex">\mathbf{B}</script></span> in the base <span><span class="MathJax_Preview">\mathcal{B}</span><script type="math/tex">\mathcal{B}</script></span>.
 The shape of this parameter is (*c, 3, 3).</dd>
 <dt><strong><code>rot</code></strong> :&ensp;<code>torch.Tensor</code></dt>
 <dd>The active rotation matrix, of shape (*r, 3, 3).</dd>
@@ -949,7 +949,7 @@ Overwise, the batch dimensions are broadcasted like a zip.</p>
     Parameters
     ----------
     crystal : torch.Tensor
-        The primitive \((\mathbf{A})\) or reciprocal \((\mathbf{B})\) in the base \(\mathcal{B}\).
+        The primitive \(\mathbf{A}\) or reciprocal \(\mathbf{B}\) in the base \(\mathcal{B}\).
         The shape of this parameter is (\*c, 3, 3).
     rot : torch.Tensor
         The active rotation matrix, of shape (\*r, 3, 3).

@@ -31,12 +31,18 @@ class DiagramsDataset(BaseDiagramsDataset):
         from laueimproc.immix.mean import mean_stack
         return mean_stack(self)
 
-    def compute_inter_image(self, *args, method: str = "snowflake", **kwargs) -> torch.Tensor:
+    def compute_statistical_image(
+        self, level: numbers.Real, *args, method: str = "snowflake", **kwargs
+    ) -> torch.Tensor:
         """Compute the median, first quartile, third quartile or everything in between.
+
+        Compute the statistical representative image, according to statisical threshold.
+
+        For example level = 1/2 is the median.
 
         Parameters
         ----------
-        *args, **kwargs
+        level, *args, **kwargs
             Transmitted to ``laueimproc.immix.inter.sort_stack``
             or ``laueimproc.immix.inter.snowflake_stack``.
         method : str
@@ -53,10 +59,10 @@ class DiagramsDataset(BaseDiagramsDataset):
         match method:
             case "snowflake":
                 from laueimproc.immix.inter import snowflake_stack
-                return snowflake_stack(self, *args, **kwargs)
+                return snowflake_stack(self, level, *args, **kwargs)
             case "sort":
                 from laueimproc.immix.inter import sort_stack
-                return sort_stack(self, *args, **kwargs)
+                return sort_stack(self, level, *args, **kwargs)
             case _:
                 raise ValueError(f"method can only be 'snowflake' or 'sort', not {method}")
 

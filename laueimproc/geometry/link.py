@@ -55,7 +55,7 @@ GRAPH.add_nodes_from(  # functions
         ("reciprocal_bc_to_primitive_bc", {
             "value": reciprocal_to_primitive, "label": "reciprocal_to_primitive"
         }),
-        ("reciprocal_bc_to_primitive_bc", {
+        ("reciprocal_bl_to_primitive_bl", {
             "value": reciprocal_to_primitive, "label": "reciprocal_to_primitive"
         }),
         ("omega_to_rot", {
@@ -158,7 +158,7 @@ class Geometry(torch.nn.Module):
         High energy limit in J (read and write).
     lattice : None | torch.Tensor
         The lattice parameters of shape (..., 6) (read and write).
-    phi : None | torch.Tensor
+    omega : None | torch.Tensor
         The rotation angles of the different grains of shape (..., 3) (read and write).
     poni : torch.Tensor, optional
         The camera calibration parameters of shape (..., 6) (read and write).
@@ -192,12 +192,12 @@ class Geometry(torch.nn.Module):
             The light energy band in J.
         lattice : torch.Tensor, optional
             The lattice parameters of the grains to be simulated of shape (..., 6).
-        phi : torch.Tensor, optional
+        omega : torch.Tensor, optional
             The rotation angles of the different grains of shape (..., 3).
         poni : torch.Tensor, optional
             The camera calibration parameters of shape (..., 6).
         """
-        assert set(kwargs).issubset({"cam_size", "e_min", "e_max", "lattice", "poni", "phi"}), \
+        assert set(kwargs).issubset({"cam_size", "e_min", "e_max", "lattice", "poni", "omega"}), \
             sorted(kwargs)
 
         super().__init__()
@@ -205,7 +205,7 @@ class Geometry(torch.nn.Module):
         self._cam_size = None
         self._hkl_args = {}
         self._lattice = None
-        self._phi = None
+        self._omega = None
         self._poni = None
         self._cache = {}
 
@@ -214,9 +214,9 @@ class Geometry(torch.nn.Module):
         self._lattice = self._select_lattice(kwargs)
         if self._lattice is not None:
             self._lattice = torch.nn.Parameter(self._lattice)
-        self._phi = self._select_phi(kwargs)
-        if self._phi is not None:
-            self._phi = torch.nn.Parameter(self._phi)
+        self._omega = self._select_omega(kwargs)
+        if self._omega is not None:
+            self._omega = torch.nn.Parameter(self._omega)
         self._poni = self._select_poni(kwargs)
         if self._poni is not None:
             self._poni = torch.nn.Parameter(self._poni)
@@ -277,18 +277,18 @@ class Geometry(torch.nn.Module):
         assert lattice.shape[-1:] == (6,), lattice.shape
         return lattice
 
-    def _select_phi(self, kwargs: dict) -> None | torch.Tensor:
-        """Recover and checks the parameter `phi`."""
-        if (phi := kwargs.get("phi", None)) is None:
-            return self._phi
-        if self._phi is not None:
+    def _select_omega(self, kwargs: dict) -> None | torch.Tensor:
+        """Recover and checks the parameter `omega`."""
+        if (omega := kwargs.get("omega", None)) is None:
+            return self._omega
+        if self._omega is not None:
             warnings.warn(
-                "the `phi` parameter has already been supplied at initialisation",
+                "the `omega` parameter has already been supplied at initialisation",
                 RuntimeWarning,
             )
-        assert isinstance(phi, torch.Tensor), phi.__class__.__name__
-        assert phi.shape[-1:] == (3,), phi.shape
-        return phi
+        assert isinstance(omega, torch.Tensor), omega.__class__.__name__
+        assert omega.shape[-1:] == (3,), omega.shape
+        return omega
 
     def _select_poni(self, kwargs: dict) -> None | torch.Tensor:
         """Recover and checks the parameter `poni`."""
@@ -338,8 +338,8 @@ class Geometry(torch.nn.Module):
         >>> e_max = 25e3 * 1.60e-19  # 25 keV
         >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
         >>> poni = torch.tensor([0.07, 73.4e-3, 73.4e-3, 0.0, -torch.pi/2, 0.0])
-        >>> phi = torch.zeros(3)
-        >>> model = Geometry(e_max=e_max, lattice=lattice, phi=phi, poni=poni)
+        >>> omega = torch.zeros(3)
+        >>> model = Geometry(e_max=e_max, lattice=lattice, omega=omega, poni=poni)
         >>> point, energy, hkl, _ = model.compute_cam()
         >>>
         """
@@ -412,14 +412,14 @@ class Geometry(torch.nn.Module):
 
     def compute_rot(self, **kwargs) -> torch.Tensor:
         """Get the rotation matrix of shape (..., 3, 3)."""
-        if (phi := self._select_phi(kwargs)) is None:
-            raise AttributeError("`phi` parameter has to be supplied")
-        if phi.requires_grad:
-            return omega_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
-        signature = ("rot", phi.data_ptr())
+        if (omega := self._select_omega(kwargs)) is None:
+            raise AttributeError("`omega` parameter has to be supplied")
+        if omega.requires_grad:
+            return omega_to_rot(*omega.movedim(-1, 0), cartesian_product=False)
+        signature = ("rot", omega.data_ptr())
         if (rot := self._cache.get(signature, None)) is None:
             rot = self._cache[signature] = (
-                omega_to_rot(*phi.movedim(-1, 0), cartesian_product=False)
+                omega_to_rot(*omega.movedim(-1, 0), cartesian_product=False)
             )
         return rot
 
@@ -528,19 +528,19 @@ class Geometry(torch.nn.Module):
             self._lattice = torch.nn.Parameter(lattice)
 
     @property
-    def phi(self) -> None | torch.Tensor:
+    def omega(self) -> None | torch.Tensor:
         """Get the rotation angles of the different grains of shape (..., 3)."""
-        return self._phi
+        return self._omega
 
-    @phi.setter
-    def phi(self, phi: None | torch.Tensor):
+    @omega.setter
+    def omega(self, omega: None | torch.Tensor):
         """Set the rotation angles."""
-        if phi is None:
-            self._phi = None
+        if omega is None:
+            self._omega = None
         else:
-            assert isinstance(phi, torch.Tensor), phi.__class__.__name__
-            assert phi.shape[-1:] == (3,), phi.shape
-            self._phi = torch.nn.Parameter(phi)
+            assert isinstance(omega, torch.Tensor), omega.__class__.__name__
+            assert omega.shape[-1:] == (3,), omega.shape
+            self._omega = torch.nn.Parameter(omega)
 
     @property
     def poni(self) -> None | torch.Tensor:

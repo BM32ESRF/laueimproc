@@ -48,6 +48,8 @@ Geometry
 
 This module follow the `PyFai <https://www.silx.org/doc/pyFAI/latest/geometry.html#detector-position>`_ convention.
 
+All units are in the international system: angles in **radians**, lengths in **meters** and energy in **joules**.
+
 It means that the incoming ray is along L3.
 
 .. image:: /build/media/IMGBragg.avif

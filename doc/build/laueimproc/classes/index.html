@@ -1113,7 +1113,7 @@ def fit_gaussians_mse(self, **kwargs) -&gt; tuple[torch.Tensor, torch.Tensor, to
 <em>Inherited from:</em>
 <code><a title="laueimproc.classes.base_diagram.BaseDiagram" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram">BaseDiagram</a></code>.<code><a title="laueimproc.classes.base_diagram.BaseDiagram.set_spots" href="base_diagram.html#laueimproc.classes.base_diagram.BaseDiagram.set_spots">set_spots</a></code>
 </p>
-<div class="desc inherited"><p>Set the new spots as the current spots, reset the history and the cache …</p></div>
+<div class="desc inherited"><p>Write or overwrite the rois and bboxes …</p></div>
 </dd>
 </dl>
 </dd>
@@ -1162,12 +1162,18 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
         from laueimproc.immix.mean import mean_stack
         return mean_stack(self)
 
-    def compute_inter_image(self, *args, method: str = &#34;snowflake&#34;, **kwargs) -&gt; torch.Tensor:
+    def compute_statistical_image(
+        self, level: numbers.Real, *args, method: str = &#34;snowflake&#34;, **kwargs
+    ) -&gt; torch.Tensor:
         &#34;&#34;&#34;Compute the median, first quartile, third quartile or everything in between.
+
+        Compute the statistical representative image, according to statisical threshold.
+
+        For example level = 1/2 is the median.
 
         Parameters
         ----------
-        *args, **kwargs
+        level, *args, **kwargs
             Transmitted to ``laueimproc.immix.inter.sort_stack``
             or ``laueimproc.immix.inter.snowflake_stack``.
         method : str
@@ -1184,10 +1190,10 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
         match method:
             case &#34;snowflake&#34;:
                 from laueimproc.immix.inter import snowflake_stack
-                return snowflake_stack(self, *args, **kwargs)
+                return snowflake_stack(self, level, *args, **kwargs)
             case &#34;sort&#34;:
                 from laueimproc.immix.inter import sort_stack
-                return sort_stack(self, *args, **kwargs)
+                return sort_stack(self, level, *args, **kwargs)
             case _:
                 raise ValueError(f&#34;method can only be &#39;snowflake&#39; or &#39;sort&#39;, not {method}&#34;)
 
@@ -1238,6 +1244,58 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
                 ),
                 total=len(self),
                 desc=&#34;saving .dat files&#34;,
+            ):
+                pass
+
+    def save_alljp2files(self, folder: str | pathlib.Path):
+        &#34;&#34;&#34;Save all images and all properties of all dataset diagrams.
+
+        This method is based on ``laueimproc.io.write_jp2.write_jp2``.
+
+        This is a way of saving both lossless images (with a compression factor of around 4),
+        and all the results contained in the diagram properties.
+
+        Parameters
+        ----------
+        folder : pathlike
+            The parent folder, witch will contain all the jpeg200 files.
+            If it does not exists, it is created. The existing files are overwriten.
+
+        Examples
+        --------
+        &gt;&gt;&gt; import pathlib
+        &gt;&gt;&gt; import tempfile
+        &gt;&gt;&gt; import laueimproc
+        &gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())[:10]
+        &gt;&gt;&gt; dataset[0].add_property(&#34;result&#34;, &#34;wonderful result&#34;)
+        &gt;&gt;&gt; folder = tempfile.mkdtemp()
+        &gt;&gt;&gt; dataset.save_alljp2files(folder)
+        &gt;&gt;&gt; new_dataset = laueimproc.DiagramsDataset(folder)
+        &gt;&gt;&gt; new_dataset[0].get_property(&#34;result&#34;)
+        &#39;wonderful result&#39;
+        &gt;&gt;&gt;
+        &#34;&#34;&#34;
+        assert isinstance(folder, str | pathlib.Path), folder.__class__.__name__
+        folder = pathlib.Path(folder).expanduser().resolve()
+        assert not folder.is_file(), f&#34;{folder} has to be a directory, not a file&#34;
+
+        from laueimproc.io.write_jp2 import write_jp2
+
+        def write_jp2_(arg: tuple[Diagram, pathlib.Path, int]):
+            &#34;&#34;&#34;Write a single jp2 image.&#34;&#34;&#34;
+            diag, folder, i = arg
+            name = (diag.file or pathlib.Path(f&#34;notimg_{i:04d}&#34;)).with_suffix(&#34;.jp2&#34;).name
+            metadata = diag.get_properties()
+            write_jp2(folder / name, diag.image, metadata)
+
+        folder.mkdir(parents=True, exist_ok=True)
+        with multiprocessing.pool.ThreadPool() as pool:
+            for _ in tqdm(
+                pool.imap_unordered(
+                    write_jp2_, ((diag, folder, i) for i, diag in enumerate(self))
+                ),
+                total=len(self),
+                desc=&#34;saving .jp2 images&#34;,
             ):
                 pass
 
@@ -1454,60 +1512,6 @@ The function must match <code><a title="laueimproc.ml.dataset_dist.check_diag2sc
 </p>
 <div class="desc inherited"><p>Instanciate a new identical dataset …</p></div>
 </dd>
-<dt id="laueimproc.classes.DiagramsDataset.compute_inter_image"><code class="name flex">
-<span>def <span class="ident">compute_inter_image</span></span>(<span>self, *args, method: str = 'snowflake', **kwargs) ‑> torch.Tensor</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Compute the median, first quartile, third quartile or everything in between.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>*args</code></strong>, <strong><code>**kwargs</code></strong></dt>
-<dd>Transmitted to <code><a title="laueimproc.immix.inter.sort_stack" href="../immix/inter.html#laueimproc.immix.inter.sort_stack">sort_stack()</a></code>
-or <code><a title="laueimproc.immix.inter.snowflake_stack" href="../immix/inter.html#laueimproc.immix.inter.snowflake_stack">snowflake_stack()</a></code>.</dd>
-<dt><strong><code>method</code></strong> :&ensp;<code>str</code></dt>
-<dd>The algorithm used.
-It can be <code>sort</code> for the naive accurate algorithm,
-or <code>snowflake</code> for a faster algorithm on big dataset, but less accurate.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>torch.Tensor</code></dt>
-<dd>The 2d float32 grayscale image.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def compute_inter_image(self, *args, method: str = &#34;snowflake&#34;, **kwargs) -&gt; torch.Tensor:
-    &#34;&#34;&#34;Compute the median, first quartile, third quartile or everything in between.
-
-    Parameters
-    ----------
-    *args, **kwargs
-        Transmitted to ``laueimproc.immix.inter.sort_stack``
-        or ``laueimproc.immix.inter.snowflake_stack``.
-    method : str
-        The algorithm used.
-        It can be `sort` for the naive accurate algorithm,
-        or `snowflake` for a faster algorithm on big dataset, but less accurate.
-
-    Returns
-    -------
-    torch.Tensor
-        The 2d float32 grayscale image.
-    &#34;&#34;&#34;
-    assert isinstance(method, str), method.__class__.__name__
-    match method:
-        case &#34;snowflake&#34;:
-            from laueimproc.immix.inter import snowflake_stack
-            return snowflake_stack(self, *args, **kwargs)
-        case &#34;sort&#34;:
-            from laueimproc.immix.inter import sort_stack
-            return sort_stack(self, *args, **kwargs)
-        case _:
-            raise ValueError(f&#34;method can only be &#39;snowflake&#39; or &#39;sort&#39;, not {method}&#34;)</code></pre>
-</details>
-</dd>
 <dt id="laueimproc.classes.DiagramsDataset.compute_mean_image"><code class="name flex">
 <span>def <span class="ident">compute_mean_image</span></span>(<span>self) ‑> torch.Tensor</span>
 </code></dt>
@@ -1535,6 +1539,68 @@ or <code>snowflake</code> for a faster algorithm on big dataset, but less accura
     &#34;&#34;&#34;
     from laueimproc.immix.mean import mean_stack
     return mean_stack(self)</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.classes.DiagramsDataset.compute_statistical_image"><code class="name flex">
+<span>def <span class="ident">compute_statistical_image</span></span>(<span>self, level: numbers.Real, *args, method: str = 'snowflake', **kwargs) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the median, first quartile, third quartile or everything in between.</p>
+<p>Compute the statistical representative image, according to statisical threshold.</p>
+<p>For example level = 1/2 is the median.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>level</code></strong>, <strong><code>*args</code></strong>, <strong><code>**kwargs</code></strong></dt>
+<dd>Transmitted to <code><a title="laueimproc.immix.inter.sort_stack" href="../immix/inter.html#laueimproc.immix.inter.sort_stack">sort_stack()</a></code>
+or <code><a title="laueimproc.immix.inter.snowflake_stack" href="../immix/inter.html#laueimproc.immix.inter.snowflake_stack">snowflake_stack()</a></code>.</dd>
+<dt><strong><code>method</code></strong> :&ensp;<code>str</code></dt>
+<dd>The algorithm used.
+It can be <code>sort</code> for the naive accurate algorithm,
+or <code>snowflake</code> for a faster algorithm on big dataset, but less accurate.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>torch.Tensor</code></dt>
+<dd>The 2d float32 grayscale image.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_statistical_image(
+    self, level: numbers.Real, *args, method: str = &#34;snowflake&#34;, **kwargs
+) -&gt; torch.Tensor:
+    &#34;&#34;&#34;Compute the median, first quartile, third quartile or everything in between.
+
+    Compute the statistical representative image, according to statisical threshold.
+
+    For example level = 1/2 is the median.
+
+    Parameters
+    ----------
+    level, *args, **kwargs
+        Transmitted to ``laueimproc.immix.inter.sort_stack``
+        or ``laueimproc.immix.inter.snowflake_stack``.
+    method : str
+        The algorithm used.
+        It can be `sort` for the naive accurate algorithm,
+        or `snowflake` for a faster algorithm on big dataset, but less accurate.
+
+    Returns
+    -------
+    torch.Tensor
+        The 2d float32 grayscale image.
+    &#34;&#34;&#34;
+    assert isinstance(method, str), method.__class__.__name__
+    match method:
+        case &#34;snowflake&#34;:
+            from laueimproc.immix.inter import snowflake_stack
+            return snowflake_stack(self, level, *args, **kwargs)
+        case &#34;sort&#34;:
+            from laueimproc.immix.inter import sort_stack
+            return sort_stack(self, level, *args, **kwargs)
+        case _:
+            raise ValueError(f&#34;method can only be &#39;snowflake&#39; or &#39;sort&#39;, not {method}&#34;)</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.classes.DiagramsDataset.flush"><code class="name flex">
@@ -1665,6 +1731,90 @@ If it does not exists, it is created. The existing files are overwriten.</dd>
             ),
             total=len(self),
             desc=&#34;saving .dat files&#34;,
+        ):
+            pass</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.classes.DiagramsDataset.save_alljp2files"><code class="name flex">
+<span>def <span class="ident">save_alljp2files</span></span>(<span>self, folder: str | pathlib.Path)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Save all images and all properties of all dataset diagrams.</p>
+<p>This method is based on <code><a title="laueimproc.io.write_jp2.write_jp2" href="../io/write_jp2.html#laueimproc.io.write_jp2.write_jp2">write_jp2()</a></code>.</p>
+<p>This is a way of saving both lossless images (with a compression factor of around 4),
+and all the results contained in the diagram properties.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>folder</code></strong> :&ensp;<code>pathlike</code></dt>
+<dd>The parent folder, witch will contain all the jpeg200 files.
+If it does not exists, it is created. The existing files are overwriten.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import pathlib
+&gt;&gt;&gt; import tempfile
+&gt;&gt;&gt; import laueimproc
+&gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())[:10]
+&gt;&gt;&gt; dataset[0].add_property(&quot;result&quot;, &quot;wonderful result&quot;)
+&gt;&gt;&gt; folder = tempfile.mkdtemp()
+&gt;&gt;&gt; dataset.save_alljp2files(folder)
+&gt;&gt;&gt; new_dataset = laueimproc.DiagramsDataset(folder)
+&gt;&gt;&gt; new_dataset[0].get_property(&quot;result&quot;)
+'wonderful result'
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_alljp2files(self, folder: str | pathlib.Path):
+    &#34;&#34;&#34;Save all images and all properties of all dataset diagrams.
+
+    This method is based on ``laueimproc.io.write_jp2.write_jp2``.
+
+    This is a way of saving both lossless images (with a compression factor of around 4),
+    and all the results contained in the diagram properties.
+
+    Parameters
+    ----------
+    folder : pathlike
+        The parent folder, witch will contain all the jpeg200 files.
+        If it does not exists, it is created. The existing files are overwriten.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import pathlib
+    &gt;&gt;&gt; import tempfile
+    &gt;&gt;&gt; import laueimproc
+    &gt;&gt;&gt; dataset = laueimproc.DiagramsDataset(laueimproc.io.get_samples())[:10]
+    &gt;&gt;&gt; dataset[0].add_property(&#34;result&#34;, &#34;wonderful result&#34;)
+    &gt;&gt;&gt; folder = tempfile.mkdtemp()
+    &gt;&gt;&gt; dataset.save_alljp2files(folder)
+    &gt;&gt;&gt; new_dataset = laueimproc.DiagramsDataset(folder)
+    &gt;&gt;&gt; new_dataset[0].get_property(&#34;result&#34;)
+    &#39;wonderful result&#39;
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(folder, str | pathlib.Path), folder.__class__.__name__
+    folder = pathlib.Path(folder).expanduser().resolve()
+    assert not folder.is_file(), f&#34;{folder} has to be a directory, not a file&#34;
+
+    from laueimproc.io.write_jp2 import write_jp2
+
+    def write_jp2_(arg: tuple[Diagram, pathlib.Path, int]):
+        &#34;&#34;&#34;Write a single jp2 image.&#34;&#34;&#34;
+        diag, folder, i = arg
+        name = (diag.file or pathlib.Path(f&#34;notimg_{i:04d}&#34;)).with_suffix(&#34;.jp2&#34;).name
+        metadata = diag.get_properties()
+        write_jp2(folder / name, diag.image, metadata)
+
+    folder.mkdir(parents=True, exist_ok=True)
+    with multiprocessing.pool.ThreadPool() as pool:
+        for _ in tqdm(
+            pool.imap_unordered(
+                write_jp2_, ((diag, folder, i) for i, diag in enumerate(self))
+            ),
+            total=len(self),
+            desc=&#34;saving .jp2 images&#34;,
         ):
             pass</code></pre>
 </details>
@@ -2014,8 +2164,8 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="laueimproc.classes.DiagramsDataset.apply" href="base_dataset.html#laueimproc.classes.DiagramsDataset.apply">apply</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.autosave" href="base_dataset.html#laueimproc.classes.DiagramsDataset.autosave">autosave</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.clone" href="base_dataset.html#laueimproc.classes.DiagramsDataset.clone">clone</a></code></li>
-<li><code><a title="laueimproc.classes.DiagramsDataset.compute_inter_image" href="#laueimproc.classes.DiagramsDataset.compute_inter_image">compute_inter_image</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.compute_mean_image" href="#laueimproc.classes.DiagramsDataset.compute_mean_image">compute_mean_image</a></code></li>
+<li><code><a title="laueimproc.classes.DiagramsDataset.compute_statistical_image" href="#laueimproc.classes.DiagramsDataset.compute_statistical_image">compute_statistical_image</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.flush" href="base_dataset.html#laueimproc.classes.DiagramsDataset.flush">flush</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.get_property" href="base_dataset.html#laueimproc.classes.DiagramsDataset.get_property">get_property</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.get_scalars" href="base_dataset.html#laueimproc.classes.DiagramsDataset.get_scalars">get_scalars</a></code></li>
@@ -2023,6 +2173,7 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="laueimproc.classes.DiagramsDataset.restore" href="base_dataset.html#laueimproc.classes.DiagramsDataset.restore">restore</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.run" href="base_dataset.html#laueimproc.classes.DiagramsDataset.run">run</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.save_alldatfiles" href="#laueimproc.classes.DiagramsDataset.save_alldatfiles">save_alldatfiles</a></code></li>
+<li><code><a title="laueimproc.classes.DiagramsDataset.save_alljp2files" href="#laueimproc.classes.DiagramsDataset.save_alljp2files">save_alljp2files</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.select_closest" href="#laueimproc.classes.DiagramsDataset.select_closest">select_closest</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.select_closests" href="#laueimproc.classes.DiagramsDataset.select_closests">select_closests</a></code></li>
 <li><code><a title="laueimproc.classes.DiagramsDataset.state" href="base_dataset.html#laueimproc.classes.DiagramsDataset.state">state</a></code></li>

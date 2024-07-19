@@ -10,7 +10,7 @@ import torch
 from ..bragg import hkl_reciprocal_to_uq_energy, uf_to_uq
 from ..hkl import select_hkl
 from ..lattice import lattice_to_primitive
-from ..metric import compute_matching_rate_continuous
+from ..metric import compute_matching_score_continuous
 from ..projection import detector_to_ray
 from ..reciprocal import primitive_to_reciprocal
 from ..rotation import omega_to_rot, rotate_crystal
@@ -78,11 +78,11 @@ class Refiner(torch.nn.Module):
                 )
         else:
             raise ValueError("only shape 2 and 3 allow")
-        self._uq_exp = torch.nn.Parameter(uf_to_uq(uf_or_point), requires_grad=False)
 
+        # set parameters
+        self._uq_exp = torch.nn.Parameter(uf_to_uq(uf_or_point), requires_grad=False)
         self._lattice = torch.nn.Parameter(lattice.clone(), requires_grad=True)
         self._omega = torch.nn.Parameter(omega.clone(), requires_grad=True)
-        self._uq_exp = torch.nn.Parameter(kwargs["uq_exp"], requires_grad=False)
         self._hkl = torch.nn.Parameter(
             select_hkl(
                 primitive_to_reciprocal(lattice_to_primitive(lattice)), e_max=kwargs["e_max"]
@@ -115,7 +115,7 @@ class Refiner(torch.nn.Module):
             self._hkl, reciprocal_bl, cartesian_product=False
         )
         uq_theo = uq_theo[energy >= self._e_min]  # (n', 3)
-        matching_rate = compute_matching_rate_continuous(self._uq_exp, uq_theo, phi_max)
+        matching_rate = compute_matching_score_continuous(self._uq_exp, uq_theo, phi_max)
 
         return matching_rate
 
@@ -160,10 +160,10 @@ class Refiner(torch.nn.Module):
         >>> from laueimproc.geometry.indexation.refine import Refiner
         >>> lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
         >>> e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
-        >>> angle = torch.zeros(3)
+        >>> omega = torch.zeros(3)
         >>> uq_exp = torch.randn(1000, 3)
         >>> uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
-        >>> refiner = Refiner(lattice, angle, uq_exp, e_min=e_min, e_max=e_max)
+        >>> refiner = Refiner(lattice, omega, uq_exp, e_min=e_min, e_max=e_max)
         >>> rate = refiner.refine(0.5 * torch.pi/180)
         >>>
         """

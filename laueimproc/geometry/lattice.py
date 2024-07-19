@@ -14,7 +14,7 @@ def lattice_to_primitive(lattice: torch.Tensor) -> torch.Tensor:
     ----------
     lattice : torch.Tensor
         The array of lattice parameters of shape (..., 6).
-        Values are \([a, b, c, \alpha, \beta, \gamma]]\) in meters and radians.
+        Values are \([a, b, c, \alpha, \beta, \gamma]\) in meters and radians.
 
     Returns
     -------

@@ -1,0 +1,1039 @@
+****************************************
+*** Invoke Graphviz Manim and FFmpeg ***
+****************************************
+WARNING:root:failed to import laueimproc.ml.c_dist, a slow python version is used instead
+WARNING:root:failed to import laueimproc.opti.c_rois, a slow python version is used instead
+WARNING:root:failed to import laueimproc.improc.c_find_bboxes, a slow python version is used instead
+WARNING:root:failed to import laueimproc.geometry.c_metric, a slow python version is used instead
+create graph...
+    done
+Manim Community v0.18.1
+
+[07/19/24 17:36:39] INFO                                scene_file_writer.py:737
+                             File ready at                                      
+                             '/tmp/images/conv_geometry                         
+                             /IMGLauetoolsOr.png'                               
+                                                                                
+                    INFO     Rendered IMGLauetoolsOr                scene.py:247
+                             Played 0 animations                                
+[07/19/24 17:36:43] INFO                                scene_file_writer.py:737
+                             File ready at                                      
+                             '/tmp/images/conv_geometry                         
+                             /IMGPyfaiLauetools.png'                            
+                                                                                
+                    INFO     Rendered IMGPyfaiLauetools             scene.py:247
+                             Played 0 animations                                
+Manim Community v0.18.1
+
+[07/19/24 17:36:44] INFO     Animation 0 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             1722238426_879322721_223132457                     
+                             )                                                  
+Animation 0: Write(Text('Numpy convention (ij)')):   0%|          | 0/1 [00:00<?, ?it/s]                                                                                                            INFO     Animation 1 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_3379474334_11305554                     
+                             41)                                                
+Animation 1: Create(Rectangle):   0%|          | 0/1 [00:00<?, ?it/s]                                                                                         INFO     Animation 2 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_3940001507_18814807                     
+                             2)                                                 
+Animation 2: FadeIn(Group):   0%|          | 0/1 [00:00<?, ?it/s]                                                                                     INFO     Animation 3 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_4287880518_58800728                     
+                             3)                                                 
+Animation 3: Create(MathTex('i m g [ 1 : 3 ,   1 : 4 ]')):   0%|          | 0/1 [00:00<?, ?it/s]                                                                                                [07/19/24 17:36:45] INFO     Animation 4 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_2903246562_12031884                     
+                             89)                                                
+Animation 4: Create(SurroundingRectangle), etc.:   0%|          | 0/1 [00:00<?, ?it/s]                                                                                                          INFO     Animation 5 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_3298812908_17173651                     
+                             72)                                                
+Animation 5: ReplacementTransform(SurroundingRectangle), etc.:   0%|          | 0/1 [00:00<?, ?it/s]                                                                                                                        INFO     Animation 6 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_3431235960_40990706                     
+                             19)                                                
+Animation 6: ReplacementTransform(SurroundingRectangle), etc.:   0%|          | 0/1 [00:00<?, ?it/s]                                                                                                                        INFO     Animation 7 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_2380384093_25924333                     
+                             72)                                                
+Animation 7: FadeIn(Rectangle):   0%|          | 0/1 [00:00<?, ?it/s]                                                                                         INFO     Animation 8 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_88679835_1940111328                     
+                             )                                                  
+Animation 8: FadeOut(MathTex('i m g [ 1 : 3 ,   1 : 4 ]')), etc.:   0%|          | 0/1 [00:00<?, ?it/s]                                                                                                       [07/19/24 17:36:46] INFO     Animation 9 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_147094641_152587112                     
+                             8)                                                 
+Animation 9: FadeOut(MathTex('img[1:2, 1:2]')), etc.:   0%|          | 0/1 [00:00<?, ?it/s]                                                                                                               INFO     Animation 10 : Using cached    cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_1704852926_26944946                     
+                             24)                                                
+                    INFO     Animation 11 : Using cached    cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_3356486740_64290908                     
+                             0)                                                 
+Animation 11: FadeOut(Text('Numpy convention (ij)')), etc.:   0%|          | 0/1 [00:00<?, ?it/s]                                                                                                                     INFO     Animation 12 : Using cached    cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_1599795626_34448238                     
+                             05)                                                
+Animation 12: Write(MathTex('p')), etc.:   0%|          | 0/1 [00:00<?, ?it/s]                                                                              [07/19/24 17:36:47] INFO     Animation 13 : Using cached    cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_1770723888_16287215                     
+                             47)                                                
+Animation 13: ReplacementTransform(MathTex('p = (1.0, 1.0)_{ij}')), etc.:   0%|          | 0/1 [00:00<?, ?it/s]                                                                                                                                   INFO     Animation 14 : Using cached    cairo_renderer.py:88
+                             data (hash :                                       
+                             4283855371_1704852926_36227529                     
+                             30)                                                
+                    INFO     Combining to Movie file.   scene_file_writer.py:617
+                    INFO                                scene_file_writer.py:737
+                             File ready at                                      
+                             '/tmp/videos/conv_ij_xy/10                         
+                             24p25/ANIMConvIJNumpyConti                         
+                             nuity.mp4'                                         
+                                                                                
+                    INFO     Rendered ANIMConvIJNumpyContinuity     scene.py:247
+                             Played 15 animations                               
+                    INFO                                scene_file_writer.py:737
+                             File ready at                                      
+                             '/tmp/images/conv_ij_xy/IM                         
+                             GConvIJXY.png'                                     
+                                                                                
+                    INFO     Rendered IMGConvIJXY                   scene.py:247
+                             Played 0 animations                                
+Manim Community v0.18.1
+
+WARNING:root:failed to import laueimproc.ml.c_dist, a slow python version is used instead
+WARNING:root:failed to import laueimproc.opti.c_rois, a slow python version is used instead
+WARNING:root:failed to import laueimproc.improc.c_find_bboxes, a slow python version is used instead
+WARNING:root:failed to import laueimproc.geometry.c_metric, a slow python version is used instead
+[07/19/24 17:36:56] INFO     Animation 0 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             3303062456_1937013630_33069796                     
+                             69)                                                
+INFO:manim:Animation 0 : Using cached data (hash : 3303062456_1937013630_3306979669)
+Animation 0: Write(MathTex('a')):   0%|          | 0/1 [00:00<?, ?it/s]Animation 0: Write(MathTex('a')): 100%|██████████| 1/1 [00:01<00:00,  1.66s/it]                                                                               [07/19/24 17:37:02] INFO     Animation 1 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             1382144329_2603610314_25218030                     
+                             48)                                                
+INFO:manim:Animation 1 : Using cached data (hash : 1382144329_2603610314_2521803048)
+Animation 1: ReplacementTransform(Group), etc.:   0%|          | 0/1 [00:00<?, ?it/s]Animation 1: ReplacementTransform(Group), etc.: 100%|██████████| 1/1 [00:01<00:00,  1.82s/it]                                                                                             [07/19/24 17:37:10] INFO     Animation 2 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             1780793211_656078286_252180304                     
+                             8)                                                 
+INFO:manim:Animation 2 : Using cached data (hash : 1780793211_656078286_2521803048)
+Animation 2: ReplacementTransform(Group), etc.:   0%|          | 0/1 [00:00<?, ?it/s]Animation 2: ReplacementTransform(Group), etc.: 100%|██████████| 1/1 [00:01<00:00,  1.86s/it]                                                                                             [07/19/24 17:37:16] INFO     Animation 3 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             1687990287_2902617992_63688810                     
+                             7)                                                 
+INFO:manim:Animation 3 : Using cached data (hash : 1687990287_2902617992_636888107)
+Animation 3: Write(MathTex('b')):   0%|          | 0/1 [00:00<?, ?it/s]Animation 3: Write(MathTex('b')): 100%|██████████| 1/1 [00:01<00:00,  1.69s/it]                                                                               [07/19/24 17:37:22] INFO     Animation 4 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             2977357642_1172258695_40733192                     
+                             20)                                                
+INFO:manim:Animation 4 : Using cached data (hash : 2977357642_1172258695_4073319220)
+Animation 4: ReplacementTransform(Group), etc.:   0%|          | 0/1 [00:00<?, ?it/s]Animation 4: ReplacementTransform(Group), etc.: 100%|██████████| 1/1 [00:01<00:00,  1.83s/it]                                                                                             Animation 5: ReplacementTransform(Group), etc.:   0%|          | 0/38 [00:00<?, ?it/s]Animation 5: ReplacementTransform(Group), etc.:   3%|▎         | 1/38 [00:01<01:09,  1.87s/it]Animation 5: ReplacementTransform(Group), etc.:   5%|▌         | 2/38 [00:03<01:09,  1.94s/it]Animation 5: ReplacementTransform(Group), etc.:   8%|▊         | 3/38 [00:05<01:05,  1.88s/it]Animation 5: ReplacementTransform(Group), etc.:  11%|█         | 4/38 [00:07<01:02,  1.85s/it]Animation 5: ReplacementTransform(Group), etc.:  13%|█▎        | 5/38 [00:09<01:01,  1.86s/it]Animation 5: ReplacementTransform(Group), etc.:  16%|█▌        | 6/38 [00:11<00:59,  1.84s/it]Animation 5: ReplacementTransform(Group), etc.:  18%|█▊        | 7/38 [00:12<00:56,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  21%|██        | 8/38 [00:14<00:54,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  24%|██▎       | 9/38 [00:16<00:53,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  26%|██▋       | 10/38 [00:18<00:51,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  29%|██▉       | 11/38 [00:20<00:49,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  32%|███▏      | 12/38 [00:22<00:47,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  34%|███▍      | 13/38 [00:23<00:46,  1.84s/it]Animation 5: ReplacementTransform(Group), etc.:  37%|███▋      | 14/38 [00:25<00:43,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  39%|███▉      | 15/38 [00:27<00:42,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  42%|████▏     | 16/38 [00:29<00:40,  1.82s/it]Animation 5: ReplacementTransform(Group), etc.:  45%|████▍     | 17/38 [00:31<00:38,  1.82s/it]Animation 5: ReplacementTransform(Group), etc.:  47%|████▋     | 18/38 [00:33<00:36,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  50%|█████     | 19/38 [00:34<00:34,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  53%|█████▎    | 20/38 [00:36<00:32,  1.82s/it]Animation 5: ReplacementTransform(Group), etc.:  55%|█████▌    | 21/38 [00:38<00:30,  1.81s/it]Animation 5: ReplacementTransform(Group), etc.:  58%|█████▊    | 22/38 [00:40<00:29,  1.81s/it]Animation 5: ReplacementTransform(Group), etc.:  61%|██████    | 23/38 [00:42<00:27,  1.82s/it]Animation 5: ReplacementTransform(Group), etc.:  63%|██████▎   | 24/38 [00:43<00:25,  1.82s/it]Animation 5: ReplacementTransform(Group), etc.:  66%|██████▌   | 25/38 [00:45<00:23,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  68%|██████▊   | 26/38 [00:47<00:22,  1.84s/it]Animation 5: ReplacementTransform(Group), etc.:  71%|███████   | 27/38 [00:49<00:20,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  74%|███████▎  | 28/38 [00:51<00:18,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  76%|███████▋  | 29/38 [00:53<00:16,  1.82s/it]Animation 5: ReplacementTransform(Group), etc.:  79%|███████▉  | 30/38 [00:54<00:14,  1.82s/it]Animation 5: ReplacementTransform(Group), etc.:  82%|████████▏ | 31/38 [00:56<00:12,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  84%|████████▍ | 32/38 [00:58<00:10,  1.82s/it]Animation 5: ReplacementTransform(Group), etc.:  87%|████████▋ | 33/38 [01:00<00:09,  1.82s/it]Animation 5: ReplacementTransform(Group), etc.:  89%|████████▉ | 34/38 [01:02<00:07,  1.82s/it]Animation 5: ReplacementTransform(Group), etc.:  92%|█████████▏| 35/38 [01:04<00:05,  1.84s/it]Animation 5: ReplacementTransform(Group), etc.:  95%|█████████▍| 36/38 [01:05<00:03,  1.83s/it]Animation 5: ReplacementTransform(Group), etc.:  97%|█████████▋| 37/38 [01:07<00:01,  1.82s/it]Animation 5: ReplacementTransform(Group), etc.: 100%|██████████| 38/38 [01:09<00:00,  1.82s/it]                                                                                               [07/19/24 17:38:41] INFO     Animation 5 : Partial      scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/2720982448_1                         
+                             170128374_4073319220.mp4'                          
+INFO:manim:Animation 5 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/2720982448_1170128374_4073319220.mp4'
+Animation 6: Write(MathTex('c')):   0%|          | 0/13 [00:00<?, ?it/s]Animation 6: Write(MathTex('c')):   8%|▊         | 1/13 [00:01<00:20,  1.68s/it]Animation 6: Write(MathTex('c')):  15%|█▌        | 2/13 [00:03<00:18,  1.68s/it]Animation 6: Write(MathTex('c')):  23%|██▎       | 3/13 [00:05<00:16,  1.69s/it]Animation 6: Write(MathTex('c')):  31%|███       | 4/13 [00:06<00:15,  1.68s/it]Animation 6: Write(MathTex('c')):  38%|███▊      | 5/13 [00:08<00:13,  1.70s/it]Animation 6: Write(MathTex('c')):  46%|████▌     | 6/13 [00:10<00:11,  1.69s/it]Animation 6: Write(MathTex('c')):  54%|█████▍    | 7/13 [00:11<00:10,  1.70s/it]Animation 6: Write(MathTex('c')):  62%|██████▏   | 8/13 [00:13<00:08,  1.69s/it]Animation 6: Write(MathTex('c')):  69%|██████▉   | 9/13 [00:15<00:06,  1.68s/it]Animation 6: Write(MathTex('c')):  77%|███████▋  | 10/13 [00:16<00:05,  1.69s/it]Animation 6: Write(MathTex('c')):  85%|████████▍ | 11/13 [00:18<00:03,  1.68s/it]Animation 6: Write(MathTex('c')):  92%|█████████▏| 12/13 [00:20<00:01,  1.70s/it]Animation 6: Write(MathTex('c')): 100%|██████████| 13/13 [00:21<00:00,  1.69s/it]                                                                                 [07/19/24 17:39:07] INFO     Animation 6 : Partial      scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/2142130651_1                         
+                             966962661_636888107.mp4'                           
+INFO:manim:Animation 6 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/2142130651_1966962661_636888107.mp4'
+Animation 7: ReplacementTransform(Group), etc.:   0%|          | 0/50 [00:00<?, ?it/s]Animation 7: ReplacementTransform(Group), etc.:   2%|▏         | 1/50 [00:01<01:28,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:   4%|▍         | 2/50 [00:03<01:26,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:   6%|▌         | 3/50 [00:05<01:26,  1.83s/it]Animation 7: ReplacementTransform(Group), etc.:   8%|▊         | 4/50 [00:07<01:24,  1.83s/it]Animation 7: ReplacementTransform(Group), etc.:  10%|█         | 5/50 [00:09<01:22,  1.83s/it]Animation 7: ReplacementTransform(Group), etc.:  12%|█▏        | 6/50 [00:11<01:21,  1.85s/it]Animation 7: ReplacementTransform(Group), etc.:  14%|█▍        | 7/50 [00:12<01:18,  1.84s/it]Animation 7: ReplacementTransform(Group), etc.:  16%|█▌        | 8/50 [00:14<01:16,  1.83s/it]Animation 7: ReplacementTransform(Group), etc.:  18%|█▊        | 9/50 [00:16<01:14,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:  20%|██        | 10/50 [00:18<01:12,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:  22%|██▏       | 11/50 [00:19<01:10,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  24%|██▍       | 12/50 [00:21<01:08,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  26%|██▌       | 13/50 [00:23<01:06,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  28%|██▊       | 14/50 [00:25<01:04,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  30%|███       | 15/50 [00:27<01:02,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  32%|███▏      | 16/50 [00:28<01:00,  1.79s/it]Animation 7: ReplacementTransform(Group), etc.:  34%|███▍      | 17/50 [00:30<00:59,  1.79s/it]Animation 7: ReplacementTransform(Group), etc.:  36%|███▌      | 18/50 [00:32<00:58,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:  38%|███▊      | 19/50 [00:34<00:56,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:  40%|████      | 20/50 [00:36<00:54,  1.82s/it]Animation 7: ReplacementTransform(Group), etc.:  42%|████▏     | 21/50 [00:38<00:52,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:  44%|████▍     | 22/50 [00:39<00:50,  1.82s/it]Animation 7: ReplacementTransform(Group), etc.:  46%|████▌     | 23/50 [00:41<00:49,  1.83s/it]Animation 7: ReplacementTransform(Group), etc.:  48%|████▊     | 24/50 [00:43<00:47,  1.84s/it]Animation 7: ReplacementTransform(Group), etc.:  50%|█████     | 25/50 [00:45<00:45,  1.82s/it]Animation 7: ReplacementTransform(Group), etc.:  52%|█████▏    | 26/50 [00:47<00:43,  1.82s/it]Animation 7: ReplacementTransform(Group), etc.:  54%|█████▍    | 27/50 [00:49<00:41,  1.83s/it]Animation 7: ReplacementTransform(Group), etc.:  56%|█████▌    | 28/50 [00:50<00:39,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:  58%|█████▊    | 29/50 [00:52<00:38,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:  60%|██████    | 30/50 [00:54<00:36,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:  62%|██████▏   | 31/50 [00:56<00:34,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  64%|██████▍   | 32/50 [00:58<00:32,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:  66%|██████▌   | 33/50 [00:59<00:30,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  68%|██████▊   | 34/50 [01:01<00:28,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  70%|███████   | 35/50 [01:03<00:27,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  72%|███████▏  | 36/50 [01:05<00:25,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  74%|███████▍  | 37/50 [01:07<00:23,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  76%|███████▌  | 38/50 [01:08<00:21,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  78%|███████▊  | 39/50 [01:10<00:19,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:  80%|████████  | 40/50 [01:12<00:18,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  82%|████████▏ | 41/50 [01:14<00:16,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:  84%|████████▍ | 42/50 [01:16<00:14,  1.80s/it]Animation 7: ReplacementTransform(Group), etc.:  86%|████████▌ | 43/50 [01:17<00:12,  1.81s/it]Animation 7: ReplacementTransform(Group), etc.:  88%|████████▊ | 44/50 [01:19<00:10,  1.83s/it]Animation 7: ReplacementTransform(Group), etc.:  90%|█████████ | 45/50 [01:21<00:09,  1.83s/it]Animation 7: ReplacementTransform(Group), etc.:  92%|█████████▏| 46/50 [01:23<00:07,  1.83s/it]Animation 7: ReplacementTransform(Group), etc.:  94%|█████████▍| 47/50 [01:25<00:05,  1.84s/it]Animation 7: ReplacementTransform(Group), etc.:  96%|█████████▌| 48/50 [01:27<00:03,  1.82s/it]Animation 7: ReplacementTransform(Group), etc.:  98%|█████████▊| 49/50 [01:28<00:01,  1.83s/it]Animation 7: ReplacementTransform(Group), etc.: 100%|██████████| 50/50 [01:30<00:00,  1.82s/it]                                                                                               [07/19/24 17:40:43] INFO     Animation 7 : Partial      scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/3495125694_3                         
+                             874619236_681586355.mp4'                           
+INFO:manim:Animation 7 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/3495125694_3874619236_681586355.mp4'
+Animation 8: ReplacementTransform(Group), etc.:   0%|          | 0/38 [00:00<?, ?it/s]Animation 8: ReplacementTransform(Group), etc.:   3%|▎         | 1/38 [00:01<01:06,  1.79s/it]Animation 8: ReplacementTransform(Group), etc.:   5%|▌         | 2/38 [00:03<01:06,  1.84s/it]Animation 8: ReplacementTransform(Group), etc.:   8%|▊         | 3/38 [00:05<01:04,  1.84s/it]Animation 8: ReplacementTransform(Group), etc.:  11%|█         | 4/38 [00:07<01:02,  1.83s/it]Animation 8: ReplacementTransform(Group), etc.:  13%|█▎        | 5/38 [00:09<00:59,  1.81s/it]Animation 8: ReplacementTransform(Group), etc.:  16%|█▌        | 6/38 [00:10<00:58,  1.82s/it]Animation 8: ReplacementTransform(Group), etc.:  18%|█▊        | 7/38 [00:12<00:56,  1.81s/it]Animation 8: ReplacementTransform(Group), etc.:  21%|██        | 8/38 [00:14<00:54,  1.81s/it]Animation 8: ReplacementTransform(Group), etc.:  24%|██▎       | 9/38 [00:16<00:52,  1.82s/it]Animation 8: ReplacementTransform(Group), etc.:  26%|██▋       | 10/38 [00:18<00:50,  1.82s/it]Animation 8: ReplacementTransform(Group), etc.:  29%|██▉       | 11/38 [00:19<00:48,  1.81s/it]Animation 8: ReplacementTransform(Group), etc.:  32%|███▏      | 12/38 [00:21<00:47,  1.81s/it]Animation 8: ReplacementTransform(Group), etc.:  34%|███▍      | 13/38 [00:23<00:45,  1.82s/it]Animation 8: ReplacementTransform(Group), etc.:  37%|███▋      | 14/38 [00:25<00:43,  1.83s/it]Animation 8: ReplacementTransform(Group), etc.:  39%|███▉      | 15/38 [00:27<00:42,  1.83s/it]Animation 8: ReplacementTransform(Group), etc.:  42%|████▏     | 16/38 [00:29<00:40,  1.83s/it]Animation 8: ReplacementTransform(Group), etc.:  45%|████▍     | 17/38 [00:30<00:38,  1.82s/it]Animation 8: ReplacementTransform(Group), etc.:  47%|████▋     | 18/38 [00:32<00:36,  1.82s/it]Animation 8: ReplacementTransform(Group), etc.:  50%|█████     | 19/38 [00:34<00:34,  1.83s/it]Animation 8: ReplacementTransform(Group), etc.:  53%|█████▎    | 20/38 [00:36<00:32,  1.82s/it]Animation 8: ReplacementTransform(Group), etc.:  55%|█████▌    | 21/38 [00:38<00:30,  1.81s/it]Animation 8: ReplacementTransform(Group), etc.:  58%|█████▊    | 22/38 [00:40<00:28,  1.81s/it]Animation 8: ReplacementTransform(Group), etc.:  61%|██████    | 23/38 [00:41<00:27,  1.81s/it]Animation 8: ReplacementTransform(Group), etc.:  63%|██████▎   | 24/38 [00:43<00:25,  1.81s/it]Animation 8: ReplacementTransform(Group), etc.:  66%|██████▌   | 25/38 [00:45<00:23,  1.82s/it]Animation 8: ReplacementTransform(Group), etc.:  68%|██████▊   | 26/38 [00:47<00:21,  1.83s/it]Animation 8: ReplacementTransform(Group), etc.:  71%|███████   | 27/38 [00:49<00:20,  1.83s/it]Animation 8: ReplacementTransform(Group), etc.:  74%|███████▎  | 28/38 [00:50<00:18,  1.83s/it]Animation 8: ReplacementTransform(Group), etc.:  76%|███████▋  | 29/38 [00:52<00:16,  1.82s/it]Animation 8: ReplacementTransform(Group), etc.:  79%|███████▉  | 30/38 [00:54<00:14,  1.82s/it]Animation 8: ReplacementTransform(Group), etc.:  82%|████████▏ | 31/38 [00:56<00:12,  1.85s/it]Animation 8: ReplacementTransform(Group), etc.:  84%|████████▍ | 32/38 [00:58<00:11,  1.83s/it]Animation 8: ReplacementTransform(Group), etc.:  87%|████████▋ | 33/38 [01:00<00:09,  1.82s/it]Animation 8: ReplacementTransform(Group), etc.:  89%|████████▉ | 34/38 [01:01<00:07,  1.83s/it]Animation 8: ReplacementTransform(Group), etc.:  92%|█████████▏| 35/38 [01:03<00:05,  1.84s/it]Animation 8: ReplacementTransform(Group), etc.:  95%|█████████▍| 36/38 [01:05<00:03,  1.83s/it]Animation 8: ReplacementTransform(Group), etc.:  97%|█████████▋| 37/38 [01:07<00:01,  1.82s/it]Animation 8: ReplacementTransform(Group), etc.: 100%|██████████| 38/38 [01:09<00:00,  1.83s/it]                                                                                               [07/19/24 17:41:58] INFO     Animation 8 : Partial      scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/3716322254_2                         
+                             434464527_681586355.mp4'                           
+INFO:manim:Animation 8 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/3716322254_2434464527_681586355.mp4'
+Animation 9: Write(MathTex('\\alpha')), etc.:   0%|          | 0/13 [00:00<?, ?it/s]Animation 9: Write(MathTex('\\alpha')), etc.:   8%|▊         | 1/13 [00:01<00:19,  1.65s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  15%|█▌        | 2/13 [00:03<00:18,  1.69s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  23%|██▎       | 3/13 [00:05<00:16,  1.67s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  31%|███       | 4/13 [00:06<00:15,  1.67s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  38%|███▊      | 5/13 [00:08<00:13,  1.67s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  46%|████▌     | 6/13 [00:10<00:11,  1.66s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  54%|█████▍    | 7/13 [00:11<00:09,  1.66s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  62%|██████▏   | 8/13 [00:13<00:08,  1.66s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  69%|██████▉   | 9/13 [00:14<00:06,  1.66s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  77%|███████▋  | 10/13 [00:16<00:05,  1.67s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  85%|████████▍ | 11/13 [00:18<00:03,  1.68s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  92%|█████████▏| 12/13 [00:20<00:01,  1.67s/it]Animation 9: Write(MathTex('\\alpha')), etc.: 100%|██████████| 13/13 [00:21<00:00,  1.66s/it]                                                                                             [07/19/24 17:42:24] INFO     Animation 9 : Partial      scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/2439181845_9                         
+                             6771405_4285629646.mp4'                            
+INFO:manim:Animation 9 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/2439181845_96771405_4285629646.mp4'
+Animation 10: ReplacementTransform(Group), etc.:   0%|          | 0/50 [00:00<?, ?it/s]Animation 10: ReplacementTransform(Group), etc.:   2%|▏         | 1/50 [00:01<01:29,  1.82s/it]Animation 10: ReplacementTransform(Group), etc.:   4%|▍         | 2/50 [00:03<01:27,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:   6%|▌         | 3/50 [00:05<01:25,  1.82s/it]Animation 10: ReplacementTransform(Group), etc.:   8%|▊         | 4/50 [00:07<01:24,  1.84s/it]Animation 10: ReplacementTransform(Group), etc.:  10%|█         | 5/50 [00:09<01:22,  1.82s/it]Animation 10: ReplacementTransform(Group), etc.:  12%|█▏        | 6/50 [00:10<01:19,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  14%|█▍        | 7/50 [00:12<01:17,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  16%|█▌        | 8/50 [00:14<01:15,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  18%|█▊        | 9/50 [00:16<01:14,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  20%|██        | 10/50 [00:18<01:12,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  22%|██▏       | 11/50 [00:19<01:10,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  24%|██▍       | 12/50 [00:21<01:09,  1.82s/it]Animation 10: ReplacementTransform(Group), etc.:  26%|██▌       | 13/50 [00:23<01:07,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  28%|██▊       | 14/50 [00:25<01:04,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  30%|███       | 15/50 [00:27<01:03,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  32%|███▏      | 16/50 [00:28<01:01,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  34%|███▍      | 17/50 [00:30<00:59,  1.79s/it]Animation 10: ReplacementTransform(Group), etc.:  36%|███▌      | 18/50 [00:32<00:57,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  38%|███▊      | 19/50 [00:34<00:55,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  40%|████      | 20/50 [00:36<00:54,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  42%|████▏     | 21/50 [00:37<00:52,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  44%|████▍     | 22/50 [00:39<00:50,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  46%|████▌     | 23/50 [00:41<00:48,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  48%|████▊     | 24/50 [00:43<00:46,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  50%|█████     | 25/50 [00:45<00:44,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  52%|█████▏    | 26/50 [00:46<00:43,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  54%|█████▍    | 27/50 [00:48<00:41,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  56%|█████▌    | 28/50 [00:50<00:39,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  58%|█████▊    | 29/50 [00:52<00:37,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  60%|██████    | 30/50 [00:54<00:35,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  62%|██████▏   | 31/50 [00:55<00:34,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  64%|██████▍   | 32/50 [00:57<00:32,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  66%|██████▌   | 33/50 [00:59<00:30,  1.79s/it]Animation 10: ReplacementTransform(Group), etc.:  68%|██████▊   | 34/50 [01:01<00:28,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  70%|███████   | 35/50 [01:03<00:27,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  72%|███████▏  | 36/50 [01:05<00:25,  1.82s/it]Animation 10: ReplacementTransform(Group), etc.:  74%|███████▍  | 37/50 [01:06<00:23,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  76%|███████▌  | 38/50 [01:08<00:21,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  78%|███████▊  | 39/50 [01:10<00:20,  1.82s/it]Animation 10: ReplacementTransform(Group), etc.:  80%|████████  | 40/50 [01:12<00:18,  1.82s/it]Animation 10: ReplacementTransform(Group), etc.:  82%|████████▏ | 41/50 [01:14<00:16,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  84%|████████▍ | 42/50 [01:15<00:14,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  86%|████████▌ | 43/50 [01:17<00:12,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  88%|████████▊ | 44/50 [01:19<00:10,  1.82s/it]Animation 10: ReplacementTransform(Group), etc.:  90%|█████████ | 45/50 [01:21<00:09,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  92%|█████████▏| 46/50 [01:23<00:07,  1.81s/it]Animation 10: ReplacementTransform(Group), etc.:  94%|█████████▍| 47/50 [01:24<00:05,  1.80s/it]Animation 10: ReplacementTransform(Group), etc.:  96%|█████████▌| 48/50 [01:26<00:03,  1.83s/it]Animation 10: ReplacementTransform(Group), etc.:  98%|█████████▊| 49/50 [01:28<00:01,  1.82s/it]Animation 10: ReplacementTransform(Group), etc.: 100%|██████████| 50/50 [01:30<00:00,  1.82s/it]                                                                                                [07/19/24 17:44:00] INFO     Animation 10 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/1820433545_3                         
+                             114791289_791720016.mp4'                           
+INFO:manim:Animation 10 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/1820433545_3114791289_791720016.mp4'
+Animation 11: ReplacementTransform(Group), etc.:   0%|          | 0/38 [00:00<?, ?it/s]Animation 11: ReplacementTransform(Group), etc.:   3%|▎         | 1/38 [00:01<01:06,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:   5%|▌         | 2/38 [00:03<01:04,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:   8%|▊         | 3/38 [00:05<01:02,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:  11%|█         | 4/38 [00:07<01:01,  1.81s/it]Animation 11: ReplacementTransform(Group), etc.:  13%|█▎        | 5/38 [00:09<01:00,  1.83s/it]Animation 11: ReplacementTransform(Group), etc.:  16%|█▌        | 6/38 [00:10<00:58,  1.83s/it]Animation 11: ReplacementTransform(Group), etc.:  18%|█▊        | 7/38 [00:12<00:56,  1.82s/it]Animation 11: ReplacementTransform(Group), etc.:  21%|██        | 8/38 [00:14<00:54,  1.81s/it]Animation 11: ReplacementTransform(Group), etc.:  24%|██▎       | 9/38 [00:16<00:52,  1.81s/it]Animation 11: ReplacementTransform(Group), etc.:  26%|██▋       | 10/38 [00:18<00:50,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:  29%|██▉       | 11/38 [00:19<00:48,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:  32%|███▏      | 12/38 [00:21<00:47,  1.81s/it]Animation 11: ReplacementTransform(Group), etc.:  34%|███▍      | 13/38 [00:23<00:45,  1.81s/it]Animation 11: ReplacementTransform(Group), etc.:  37%|███▋      | 14/38 [00:25<00:43,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:  39%|███▉      | 15/38 [00:27<00:41,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:  42%|████▏     | 16/38 [00:28<00:40,  1.82s/it]Animation 11: ReplacementTransform(Group), etc.:  45%|████▍     | 17/38 [00:30<00:38,  1.84s/it]Animation 11: ReplacementTransform(Group), etc.:  47%|████▋     | 18/38 [00:32<00:36,  1.82s/it]Animation 11: ReplacementTransform(Group), etc.:  50%|█████     | 19/38 [00:34<00:34,  1.82s/it]Animation 11: ReplacementTransform(Group), etc.:  53%|█████▎    | 20/38 [00:36<00:32,  1.82s/it]Animation 11: ReplacementTransform(Group), etc.:  55%|█████▌    | 21/38 [00:38<00:30,  1.81s/it]Animation 11: ReplacementTransform(Group), etc.:  58%|█████▊    | 22/38 [00:39<00:28,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:  61%|██████    | 23/38 [00:41<00:27,  1.81s/it]Animation 11: ReplacementTransform(Group), etc.:  63%|██████▎   | 24/38 [00:43<00:25,  1.81s/it]Animation 11: ReplacementTransform(Group), etc.:  66%|██████▌   | 25/38 [00:45<00:23,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:  68%|██████▊   | 26/38 [00:47<00:21,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:  71%|███████   | 27/38 [00:48<00:19,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:  74%|███████▎  | 28/38 [00:50<00:18,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:  76%|███████▋  | 29/38 [00:52<00:16,  1.81s/it]Animation 11: ReplacementTransform(Group), etc.:  79%|███████▉  | 30/38 [00:54<00:14,  1.82s/it]Animation 11: ReplacementTransform(Group), etc.:  82%|████████▏ | 31/38 [00:56<00:12,  1.82s/it]Animation 11: ReplacementTransform(Group), etc.:  84%|████████▍ | 32/38 [00:57<00:10,  1.81s/it]Animation 11: ReplacementTransform(Group), etc.:  87%|████████▋ | 33/38 [00:59<00:09,  1.80s/it]Animation 11: ReplacementTransform(Group), etc.:  89%|████████▉ | 34/38 [01:01<00:07,  1.81s/it]Animation 11: ReplacementTransform(Group), etc.:  92%|█████████▏| 35/38 [01:03<00:05,  1.85s/it]Animation 11: ReplacementTransform(Group), etc.:  95%|█████████▍| 36/38 [01:05<00:03,  1.83s/it]Animation 11: ReplacementTransform(Group), etc.:  97%|█████████▋| 37/38 [01:07<00:01,  1.83s/it]Animation 11: ReplacementTransform(Group), etc.: 100%|██████████| 38/38 [01:08<00:00,  1.84s/it]                                                                                                [07/19/24 17:45:15] INFO     Animation 11 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/4246686833_1                         
+                             981036434_791720016.mp4'                           
+INFO:manim:Animation 11 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/4246686833_1981036434_791720016.mp4'
+Animation 12: Write(MathTex('\\beta')), etc.:   0%|          | 0/13 [00:00<?, ?it/s]Animation 12: Write(MathTex('\\beta')), etc.:   8%|▊         | 1/13 [00:01<00:20,  1.69s/it]Animation 12: Write(MathTex('\\beta')), etc.:  15%|█▌        | 2/13 [00:03<00:18,  1.71s/it]Animation 12: Write(MathTex('\\beta')), etc.:  23%|██▎       | 3/13 [00:05<00:16,  1.68s/it]Animation 12: Write(MathTex('\\beta')), etc.:  31%|███       | 4/13 [00:06<00:15,  1.67s/it]Animation 12: Write(MathTex('\\beta')), etc.:  38%|███▊      | 5/13 [00:08<00:13,  1.67s/it]Animation 12: Write(MathTex('\\beta')), etc.:  46%|████▌     | 6/13 [00:10<00:11,  1.68s/it]Animation 12: Write(MathTex('\\beta')), etc.:  54%|█████▍    | 7/13 [00:11<00:10,  1.68s/it]Animation 12: Write(MathTex('\\beta')), etc.:  62%|██████▏   | 8/13 [00:13<00:08,  1.67s/it]Animation 12: Write(MathTex('\\beta')), etc.:  69%|██████▉   | 9/13 [00:15<00:06,  1.67s/it]Animation 12: Write(MathTex('\\beta')), etc.:  77%|███████▋  | 10/13 [00:16<00:04,  1.67s/it]Animation 12: Write(MathTex('\\beta')), etc.:  85%|████████▍ | 11/13 [00:18<00:03,  1.67s/it]Animation 12: Write(MathTex('\\beta')), etc.:  92%|█████████▏| 12/13 [00:20<00:01,  1.67s/it]Animation 12: Write(MathTex('\\beta')), etc.: 100%|██████████| 13/13 [00:21<00:00,  1.67s/it]                                                                                             [07/19/24 17:45:41] INFO     Animation 12 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/2591264036_2                         
+                             935148994_4285629646.mp4'                          
+INFO:manim:Animation 12 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/2591264036_2935148994_4285629646.mp4'
+Animation 13: ReplacementTransform(Group), etc.:   0%|          | 0/50 [00:00<?, ?it/s]Animation 13: ReplacementTransform(Group), etc.:   2%|▏         | 1/50 [00:01<01:28,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:   4%|▍         | 2/50 [00:03<01:26,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:   6%|▌         | 3/50 [00:05<01:24,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:   8%|▊         | 4/50 [00:07<01:22,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  10%|█         | 5/50 [00:08<01:20,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  12%|█▏        | 6/50 [00:10<01:19,  1.81s/it]Animation 13: ReplacementTransform(Group), etc.:  14%|█▍        | 7/50 [00:12<01:17,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  16%|█▌        | 8/50 [00:14<01:15,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  18%|█▊        | 9/50 [00:16<01:13,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  20%|██        | 10/50 [00:18<01:12,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  22%|██▏       | 11/50 [00:19<01:10,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  24%|██▍       | 12/50 [00:21<01:08,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  26%|██▌       | 13/50 [00:23<01:06,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  28%|██▊       | 14/50 [00:25<01:04,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  30%|███       | 15/50 [00:27<01:03,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  32%|███▏      | 16/50 [00:28<01:01,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  34%|███▍      | 17/50 [00:30<00:59,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  36%|███▌      | 18/50 [00:32<00:57,  1.81s/it]Animation 13: ReplacementTransform(Group), etc.:  38%|███▊      | 19/50 [00:34<00:55,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  40%|████      | 20/50 [00:36<00:53,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  42%|████▏     | 21/50 [00:37<00:52,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  44%|████▍     | 22/50 [00:39<00:50,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  46%|████▌     | 23/50 [00:41<00:48,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  48%|████▊     | 24/50 [00:43<00:46,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  50%|█████     | 25/50 [00:45<00:44,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  52%|█████▏    | 26/50 [00:46<00:42,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  54%|█████▍    | 27/50 [00:48<00:41,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  56%|█████▌    | 28/50 [00:50<00:39,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  58%|█████▊    | 29/50 [00:52<00:37,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  60%|██████    | 30/50 [00:54<00:36,  1.82s/it]Animation 13: ReplacementTransform(Group), etc.:  62%|██████▏   | 31/50 [00:55<00:34,  1.81s/it]Animation 13: ReplacementTransform(Group), etc.:  64%|██████▍   | 32/50 [00:57<00:32,  1.81s/it]Animation 13: ReplacementTransform(Group), etc.:  66%|██████▌   | 33/50 [00:59<00:30,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  68%|██████▊   | 34/50 [01:01<00:28,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  70%|███████   | 35/50 [01:02<00:26,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  72%|███████▏  | 36/50 [01:04<00:25,  1.80s/it]Animation 13: ReplacementTransform(Group), etc.:  74%|███████▍  | 37/50 [01:06<00:23,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  76%|███████▌  | 38/50 [01:08<00:21,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  78%|███████▊  | 39/50 [01:10<00:19,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  80%|████████  | 40/50 [01:11<00:17,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  82%|████████▏ | 41/50 [01:13<00:16,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  84%|████████▍ | 42/50 [01:15<00:14,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  86%|████████▌ | 43/50 [01:17<00:12,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  88%|████████▊ | 44/50 [01:19<00:10,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  90%|█████████ | 45/50 [01:20<00:08,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  92%|█████████▏| 46/50 [01:22<00:07,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  94%|█████████▍| 47/50 [01:24<00:05,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  96%|█████████▌| 48/50 [01:26<00:03,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.:  98%|█████████▊| 49/50 [01:28<00:01,  1.79s/it]Animation 13: ReplacementTransform(Group), etc.: 100%|██████████| 50/50 [01:29<00:00,  1.79s/it]                                                                                                [07/19/24 17:47:16] INFO     Animation 13 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/2775678042_2                         
+                             491766330_791720016.mp4'                           
+INFO:manim:Animation 13 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/2775678042_2491766330_791720016.mp4'
+Animation 14: ReplacementTransform(Group), etc.:   0%|          | 0/38 [00:00<?, ?it/s]Animation 14: ReplacementTransform(Group), etc.:   3%|▎         | 1/38 [00:01<01:07,  1.82s/it]Animation 14: ReplacementTransform(Group), etc.:   5%|▌         | 2/38 [00:03<01:05,  1.81s/it]Animation 14: ReplacementTransform(Group), etc.:   8%|▊         | 3/38 [00:05<01:03,  1.81s/it]Animation 14: ReplacementTransform(Group), etc.:  11%|█         | 4/38 [00:07<01:02,  1.84s/it]Animation 14: ReplacementTransform(Group), etc.:  13%|█▎        | 5/38 [00:09<01:00,  1.82s/it]Animation 14: ReplacementTransform(Group), etc.:  16%|█▌        | 6/38 [00:10<00:58,  1.82s/it]Animation 14: ReplacementTransform(Group), etc.:  18%|█▊        | 7/38 [00:12<00:56,  1.82s/it]Animation 14: ReplacementTransform(Group), etc.:  21%|██        | 8/38 [00:14<00:54,  1.81s/it]Animation 14: ReplacementTransform(Group), etc.:  24%|██▎       | 9/38 [00:16<00:52,  1.81s/it]Animation 14: ReplacementTransform(Group), etc.:  26%|██▋       | 10/38 [00:18<00:50,  1.80s/it]Animation 14: ReplacementTransform(Group), etc.:  29%|██▉       | 11/38 [00:19<00:48,  1.80s/it]Animation 14: ReplacementTransform(Group), etc.:  32%|███▏      | 12/38 [00:21<00:46,  1.80s/it]Animation 14: ReplacementTransform(Group), etc.:  34%|███▍      | 13/38 [00:23<00:44,  1.79s/it]Animation 14: ReplacementTransform(Group), etc.:  37%|███▋      | 14/38 [00:25<00:43,  1.80s/it]Animation 14: ReplacementTransform(Group), etc.:  39%|███▉      | 15/38 [00:27<00:41,  1.80s/it]Animation 14: ReplacementTransform(Group), etc.:  42%|████▏     | 16/38 [00:28<00:39,  1.79s/it]Animation 14: ReplacementTransform(Group), etc.:  45%|████▍     | 17/38 [00:30<00:37,  1.79s/it]Animation 14: ReplacementTransform(Group), etc.:  47%|████▋     | 18/38 [00:32<00:35,  1.80s/it]Animation 14: ReplacementTransform(Group), etc.:  50%|█████     | 19/38 [00:34<00:34,  1.83s/it]Animation 14: ReplacementTransform(Group), etc.:  53%|█████▎    | 20/38 [00:36<00:32,  1.83s/it]Animation 14: ReplacementTransform(Group), etc.:  55%|█████▌    | 21/38 [00:38<00:30,  1.82s/it]Animation 14: ReplacementTransform(Group), etc.:  58%|█████▊    | 22/38 [00:39<00:28,  1.81s/it]Animation 14: ReplacementTransform(Group), etc.:  61%|██████    | 23/38 [00:41<00:27,  1.81s/it]Animation 14: ReplacementTransform(Group), etc.:  63%|██████▎   | 24/38 [00:43<00:25,  1.80s/it]Animation 14: ReplacementTransform(Group), etc.:  66%|██████▌   | 25/38 [00:45<00:23,  1.81s/it]Animation 14: ReplacementTransform(Group), etc.:  68%|██████▊   | 26/38 [00:47<00:21,  1.80s/it]Animation 14: ReplacementTransform(Group), etc.:  71%|███████   | 27/38 [00:48<00:19,  1.81s/it]Animation 14: ReplacementTransform(Group), etc.:  74%|███████▎  | 28/38 [00:50<00:18,  1.81s/it]Animation 14: ReplacementTransform(Group), etc.:  76%|███████▋  | 29/38 [00:52<00:16,  1.80s/it]Animation 14: ReplacementTransform(Group), etc.:  79%|███████▉  | 30/38 [00:54<00:14,  1.80s/it]Animation 14: ReplacementTransform(Group), etc.:  82%|████████▏ | 31/38 [00:56<00:12,  1.83s/it]Animation 14: ReplacementTransform(Group), etc.:  84%|████████▍ | 32/38 [00:57<00:11,  1.83s/it]Animation 14: ReplacementTransform(Group), etc.:  87%|████████▋ | 33/38 [00:59<00:09,  1.83s/it]Animation 14: ReplacementTransform(Group), etc.:  89%|████████▉ | 34/38 [01:01<00:07,  1.84s/it]Animation 14: ReplacementTransform(Group), etc.:  92%|█████████▏| 35/38 [01:03<00:05,  1.83s/it]Animation 14: ReplacementTransform(Group), etc.:  95%|█████████▍| 36/38 [01:05<00:03,  1.85s/it]Animation 14: ReplacementTransform(Group), etc.:  97%|█████████▋| 37/38 [01:07<00:01,  1.84s/it]Animation 14: ReplacementTransform(Group), etc.: 100%|██████████| 38/38 [01:08<00:00,  1.82s/it]                                                                                                [07/19/24 17:48:31] INFO     Animation 14 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/3133765549_2                         
+                             24317617_791720016.mp4'                            
+INFO:manim:Animation 14 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/3133765549_224317617_791720016.mp4'
+Animation 15: Write(MathTex('\\gamma')), etc.:   0%|          | 0/13 [00:00<?, ?it/s]Animation 15: Write(MathTex('\\gamma')), etc.:   8%|▊         | 1/13 [00:01<00:19,  1.64s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  15%|█▌        | 2/13 [00:03<00:18,  1.65s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  23%|██▎       | 3/13 [00:04<00:16,  1.66s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  31%|███       | 4/13 [00:06<00:14,  1.67s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  38%|███▊      | 5/13 [00:08<00:13,  1.67s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  46%|████▌     | 6/13 [00:09<00:11,  1.65s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  54%|█████▍    | 7/13 [00:11<00:10,  1.67s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  62%|██████▏   | 8/13 [00:13<00:08,  1.66s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  69%|██████▉   | 9/13 [00:14<00:06,  1.67s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  77%|███████▋  | 10/13 [00:16<00:05,  1.67s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  85%|████████▍ | 11/13 [00:18<00:03,  1.66s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  92%|█████████▏| 12/13 [00:19<00:01,  1.65s/it]Animation 15: Write(MathTex('\\gamma')), etc.: 100%|██████████| 13/13 [00:21<00:00,  1.66s/it]                                                                                              [07/19/24 17:48:57] INFO     Animation 15 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/3323468214_1                         
+                             168401092_4285629646.mp4'                          
+INFO:manim:Animation 15 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/3323468214_1168401092_4285629646.mp4'
+Animation 16: ReplacementTransform(Group), etc.:   0%|          | 0/50 [00:00<?, ?it/s]Animation 16: ReplacementTransform(Group), etc.:   2%|▏         | 1/50 [00:01<01:33,  1.91s/it]Animation 16: ReplacementTransform(Group), etc.:   4%|▍         | 2/50 [00:03<01:28,  1.84s/it]Animation 16: ReplacementTransform(Group), etc.:   6%|▌         | 3/50 [00:05<01:25,  1.82s/it]Animation 16: ReplacementTransform(Group), etc.:   8%|▊         | 4/50 [00:07<01:23,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.:  10%|█         | 5/50 [00:09<01:21,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  12%|█▏        | 6/50 [00:10<01:19,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  14%|█▍        | 7/50 [00:12<01:16,  1.79s/it]Animation 16: ReplacementTransform(Group), etc.:  16%|█▌        | 8/50 [00:14<01:15,  1.79s/it]Animation 16: ReplacementTransform(Group), etc.:  18%|█▊        | 9/50 [00:16<01:13,  1.79s/it]Animation 16: ReplacementTransform(Group), etc.:  20%|██        | 10/50 [00:18<01:11,  1.79s/it]Animation 16: ReplacementTransform(Group), etc.:  22%|██▏       | 11/50 [00:19<01:09,  1.79s/it]Animation 16: ReplacementTransform(Group), etc.:  24%|██▍       | 12/50 [00:21<01:08,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  26%|██▌       | 13/50 [00:23<01:06,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  28%|██▊       | 14/50 [00:25<01:04,  1.79s/it]Animation 16: ReplacementTransform(Group), etc.:  30%|███       | 15/50 [00:26<01:02,  1.79s/it]Animation 16: ReplacementTransform(Group), etc.:  32%|███▏      | 16/50 [00:28<01:00,  1.78s/it]Animation 16: ReplacementTransform(Group), etc.:  34%|███▍      | 17/50 [00:30<00:59,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  36%|███▌      | 18/50 [00:32<00:57,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  38%|███▊      | 19/50 [00:34<00:55,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  40%|████      | 20/50 [00:36<00:54,  1.83s/it]Animation 16: ReplacementTransform(Group), etc.:  42%|████▏     | 21/50 [00:37<00:53,  1.83s/it]Animation 16: ReplacementTransform(Group), etc.:  44%|████▍     | 22/50 [00:39<00:51,  1.82s/it]Animation 16: ReplacementTransform(Group), etc.:  46%|████▌     | 23/50 [00:41<00:49,  1.82s/it]Animation 16: ReplacementTransform(Group), etc.:  48%|████▊     | 24/50 [00:43<00:47,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.:  50%|█████     | 25/50 [00:45<00:45,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.:  52%|█████▏    | 26/50 [00:46<00:43,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.:  54%|█████▍    | 27/50 [00:48<00:41,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.:  56%|█████▌    | 28/50 [00:50<00:39,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.:  58%|█████▊    | 29/50 [00:52<00:37,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  60%|██████    | 30/50 [00:54<00:35,  1.79s/it]Animation 16: ReplacementTransform(Group), etc.:  62%|██████▏   | 31/50 [00:55<00:34,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  64%|██████▍   | 32/50 [00:57<00:32,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  66%|██████▌   | 33/50 [00:59<00:30,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  68%|██████▊   | 34/50 [01:01<00:28,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.:  70%|███████   | 35/50 [01:03<00:27,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  72%|███████▏  | 36/50 [01:04<00:25,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  74%|███████▍  | 37/50 [01:06<00:23,  1.79s/it]Animation 16: ReplacementTransform(Group), etc.:  76%|███████▌  | 38/50 [01:08<00:21,  1.79s/it]Animation 16: ReplacementTransform(Group), etc.:  78%|███████▊  | 39/50 [01:10<00:19,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  80%|████████  | 40/50 [01:12<00:18,  1.83s/it]Animation 16: ReplacementTransform(Group), etc.:  82%|████████▏ | 41/50 [01:14<00:16,  1.82s/it]Animation 16: ReplacementTransform(Group), etc.:  84%|████████▍ | 42/50 [01:15<00:14,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.:  86%|████████▌ | 43/50 [01:17<00:12,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.:  88%|████████▊ | 44/50 [01:19<00:10,  1.80s/it]Animation 16: ReplacementTransform(Group), etc.:  90%|█████████ | 45/50 [01:21<00:09,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.:  92%|█████████▏| 46/50 [01:23<00:07,  1.82s/it]Animation 16: ReplacementTransform(Group), etc.:  94%|█████████▍| 47/50 [01:24<00:05,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.:  96%|█████████▌| 48/50 [01:26<00:03,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.:  98%|█████████▊| 49/50 [01:28<00:01,  1.81s/it]Animation 16: ReplacementTransform(Group), etc.: 100%|██████████| 50/50 [01:30<00:00,  1.82s/it]                                                                                                [07/19/24 17:50:32] INFO     Animation 16 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/1567343474_3                         
+                             028233744_791720016.mp4'                           
+INFO:manim:Animation 16 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/1567343474_3028233744_791720016.mp4'
+Animation 17: ReplacementTransform(Group), etc.:   0%|          | 0/38 [00:00<?, ?it/s]Animation 17: ReplacementTransform(Group), etc.:   3%|▎         | 1/38 [00:01<01:05,  1.78s/it]Animation 17: ReplacementTransform(Group), etc.:   5%|▌         | 2/38 [00:03<01:04,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:   8%|▊         | 3/38 [00:05<01:02,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  11%|█         | 4/38 [00:07<01:01,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  13%|█▎        | 5/38 [00:08<00:59,  1.80s/it]Animation 17: ReplacementTransform(Group), etc.:  16%|█▌        | 6/38 [00:10<00:57,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  18%|█▊        | 7/38 [00:12<00:55,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  21%|██        | 8/38 [00:14<00:54,  1.80s/it]Animation 17: ReplacementTransform(Group), etc.:  24%|██▎       | 9/38 [00:16<00:52,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  26%|██▋       | 10/38 [00:17<00:50,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  29%|██▉       | 11/38 [00:19<00:48,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  32%|███▏      | 12/38 [00:21<00:46,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  34%|███▍      | 13/38 [00:23<00:44,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  37%|███▋      | 14/38 [00:25<00:42,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  39%|███▉      | 15/38 [00:26<00:41,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  42%|████▏     | 16/38 [00:28<00:39,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  45%|████▍     | 17/38 [00:30<00:37,  1.80s/it]Animation 17: ReplacementTransform(Group), etc.:  47%|████▋     | 18/38 [00:32<00:35,  1.80s/it]Animation 17: ReplacementTransform(Group), etc.:  50%|█████     | 19/38 [00:34<00:34,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  53%|█████▎    | 20/38 [00:35<00:32,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  55%|█████▌    | 21/38 [00:37<00:30,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  58%|█████▊    | 22/38 [00:39<00:28,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  61%|██████    | 23/38 [00:41<00:27,  1.80s/it]Animation 17: ReplacementTransform(Group), etc.:  63%|██████▎   | 24/38 [00:43<00:25,  1.81s/it]Animation 17: ReplacementTransform(Group), etc.:  66%|██████▌   | 25/38 [00:44<00:23,  1.80s/it]Animation 17: ReplacementTransform(Group), etc.:  68%|██████▊   | 26/38 [00:46<00:21,  1.80s/it]Animation 17: ReplacementTransform(Group), etc.:  71%|███████   | 27/38 [00:48<00:19,  1.80s/it]Animation 17: ReplacementTransform(Group), etc.:  74%|███████▎  | 28/38 [00:50<00:17,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  76%|███████▋  | 29/38 [00:52<00:16,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  79%|███████▉  | 30/38 [00:53<00:14,  1.81s/it]Animation 17: ReplacementTransform(Group), etc.:  82%|████████▏ | 31/38 [00:55<00:12,  1.80s/it]Animation 17: ReplacementTransform(Group), etc.:  84%|████████▍ | 32/38 [00:57<00:10,  1.80s/it]Animation 17: ReplacementTransform(Group), etc.:  87%|████████▋ | 33/38 [00:59<00:09,  1.80s/it]Animation 17: ReplacementTransform(Group), etc.:  89%|████████▉ | 34/38 [01:01<00:07,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  92%|█████████▏| 35/38 [01:02<00:05,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  95%|█████████▍| 36/38 [01:04<00:03,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.:  97%|█████████▋| 37/38 [01:06<00:01,  1.79s/it]Animation 17: ReplacementTransform(Group), etc.: 100%|██████████| 38/38 [01:08<00:00,  1.81s/it]                                                                                                [07/19/24 17:51:47] INFO     Animation 17 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMLatticeBc/2357693787_2                         
+                             776227909_791720016.mp4'                           
+INFO:manim:Animation 17 : Partial movie file written in '/tmp/videos/lattice_bc/1024p25/partial_movie_files/ANIMLatticeBc/2357693787_2776227909_791720016.mp4'
+                    INFO     Combining to Movie file.   scene_file_writer.py:617
+INFO:manim:Combining to Movie file.
+                    INFO                                scene_file_writer.py:737
+                             File ready at                                      
+                             '/tmp/videos/lattice_bc/10                         
+                             24p25/ANIMLatticeBc.mp4'                           
+                                                                                
+INFO:manim:
+File ready at '/tmp/videos/lattice_bc/1024p25/ANIMLatticeBc.mp4'
+
+                    INFO     Rendered ANIMLatticeBc                 scene.py:247
+                             Played 18 animations                               
+INFO:manim:Rendered ANIMLatticeBc
+Played 18 animations
+[07/19/24 17:51:50] INFO                                scene_file_writer.py:737
+                             File ready at                                      
+                             '/tmp/images/lattice_bc/IM                         
+                             GLattice.png'                                      
+                                                                                
+INFO:manim:
+File ready at '/tmp/images/lattice_bc/IMGLattice.png'
+
+                    INFO     Rendered IMGLattice                    scene.py:247
+                             Played 0 animations                                
+INFO:manim:Rendered IMGLattice
+Played 0 animations
+[07/19/24 17:51:54] INFO                                scene_file_writer.py:737
+                             File ready at                                      
+                             '/tmp/images/lattice_bc/IM                         
+                             GLatticeBc.png'                                    
+                                                                                
+INFO:manim:
+File ready at '/tmp/images/lattice_bc/IMGLatticeBc.png'
+
+                    INFO     Rendered IMGLatticeBc                  scene.py:247
+                             Played 0 animations                                
+INFO:manim:Rendered IMGLatticeBc
+Played 0 animations
+Manim Community v0.18.1
+
+WARNING:root:failed to import laueimproc.ml.c_dist, a slow python version is used instead
+WARNING:root:failed to import laueimproc.opti.c_rois, a slow python version is used instead
+WARNING:root:failed to import laueimproc.improc.c_find_bboxes, a slow python version is used instead
+WARNING:root:failed to import laueimproc.geometry.c_metric, a slow python version is used instead
+[07/19/24 17:52:03] INFO     Animation 0 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             1204185256_524047293_974638439                     
+                             )                                                  
+INFO:manim:Animation 0 : Using cached data (hash : 1204185256_524047293_974638439)
+Animation 0: Write(MathTex('a')):   0%|          | 0/1 [00:00<?, ?it/s]Animation 0: Write(MathTex('a')): 100%|██████████| 1/1 [00:01<00:00,  1.53s/it]                                                                               [07/19/24 17:52:10] INFO     Animation 1 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             1522066891_1873914782_34623041                     
+                             96)                                                
+INFO:manim:Animation 1 : Using cached data (hash : 1522066891_1873914782_3462304196)
+Animation 1: ReplacementTransform(Group), etc.:   0%|          | 0/1 [00:00<?, ?it/s]Animation 1: ReplacementTransform(Group), etc.: 100%|██████████| 1/1 [00:01<00:00,  1.67s/it]                                                                                             [07/19/24 17:52:19] INFO     Animation 2 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             1660781561_3584169784_34623041                     
+                             96)                                                
+INFO:manim:Animation 2 : Using cached data (hash : 1660781561_3584169784_3462304196)
+Animation 2: ReplacementTransform(Group), etc.:   0%|          | 0/1 [00:00<?, ?it/s]Animation 2: ReplacementTransform(Group), etc.: 100%|██████████| 1/1 [00:01<00:00,  1.65s/it]                                                                                             [07/19/24 17:52:26] INFO     Animation 3 : Using cached     cairo_renderer.py:88
+                             data (hash :                                       
+                             1816497293_1301497834_25318516                     
+                             7)                                                 
+INFO:manim:Animation 3 : Using cached data (hash : 1816497293_1301497834_253185167)
+Animation 3: Write(MathTex('b')):   0%|          | 0/1 [00:00<?, ?it/s]Animation 3: Write(MathTex('b')): 100%|██████████| 1/1 [00:01<00:00,  1.54s/it]                                                                               Animation 4: ReplacementTransform(Group), etc.:   0%|          | 0/50 [00:00<?, ?it/s]Animation 4: ReplacementTransform(Group), etc.:   2%|▏         | 1/50 [00:01<01:19,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:   4%|▍         | 2/50 [00:03<01:18,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:   6%|▌         | 3/50 [00:04<01:16,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:   8%|▊         | 4/50 [00:06<01:14,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  10%|█         | 5/50 [00:08<01:13,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  12%|█▏        | 6/50 [00:09<01:11,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  14%|█▍        | 7/50 [00:11<01:10,  1.65s/it]Animation 4: ReplacementTransform(Group), etc.:  16%|█▌        | 8/50 [00:13<01:08,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  18%|█▊        | 9/50 [00:14<01:07,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  20%|██        | 10/50 [00:16<01:05,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  22%|██▏       | 11/50 [00:17<01:03,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  24%|██▍       | 12/50 [00:19<01:02,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  26%|██▌       | 13/50 [00:21<01:00,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  28%|██▊       | 14/50 [00:22<00:58,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  30%|███       | 15/50 [00:24<00:56,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  32%|███▏      | 16/50 [00:26<00:55,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  34%|███▍      | 17/50 [00:27<00:54,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  36%|███▌      | 18/50 [00:29<00:52,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  38%|███▊      | 19/50 [00:31<00:50,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  40%|████      | 20/50 [00:32<00:49,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  42%|████▏     | 21/50 [00:34<00:47,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  44%|████▍     | 22/50 [00:35<00:45,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  46%|████▌     | 23/50 [00:37<00:44,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  48%|████▊     | 24/50 [00:39<00:42,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  50%|█████     | 25/50 [00:40<00:40,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  52%|█████▏    | 26/50 [00:42<00:39,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  54%|█████▍    | 27/50 [00:44<00:37,  1.65s/it]Animation 4: ReplacementTransform(Group), etc.:  56%|█████▌    | 28/50 [00:45<00:36,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  58%|█████▊    | 29/50 [00:47<00:34,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  60%|██████    | 30/50 [00:49<00:32,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  62%|██████▏   | 31/50 [00:50<00:30,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  64%|██████▍   | 32/50 [00:52<00:29,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  66%|██████▌   | 33/50 [00:53<00:27,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  68%|██████▊   | 34/50 [00:55<00:26,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  70%|███████   | 35/50 [00:57<00:24,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  72%|███████▏  | 36/50 [00:58<00:22,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  74%|███████▍  | 37/50 [01:00<00:21,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  76%|███████▌  | 38/50 [01:02<00:19,  1.66s/it]Animation 4: ReplacementTransform(Group), etc.:  78%|███████▊  | 39/50 [01:03<00:18,  1.65s/it]Animation 4: ReplacementTransform(Group), etc.:  80%|████████  | 40/50 [01:05<00:16,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  82%|████████▏ | 41/50 [01:07<00:14,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  84%|████████▍ | 42/50 [01:08<00:13,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  86%|████████▌ | 43/50 [01:10<00:11,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  88%|████████▊ | 44/50 [01:11<00:09,  1.63s/it]Animation 4: ReplacementTransform(Group), etc.:  90%|█████████ | 45/50 [01:13<00:08,  1.64s/it]Animation 4: ReplacementTransform(Group), etc.:  92%|█████████▏| 46/50 [01:15<00:06,  1.67s/it]Animation 4: ReplacementTransform(Group), etc.:  94%|█████████▍| 47/50 [01:16<00:04,  1.66s/it]Animation 4: ReplacementTransform(Group), etc.:  96%|█████████▌| 48/50 [01:18<00:03,  1.66s/it]Animation 4: ReplacementTransform(Group), etc.:  98%|█████████▊| 49/50 [01:20<00:01,  1.67s/it]Animation 4: ReplacementTransform(Group), etc.: 100%|██████████| 50/50 [01:22<00:00,  1.68s/it]                                                                                               [07/19/24 17:53:56] INFO     Animation 4 : Partial      scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/31                         
+                             15312072_1899046420_150312                         
+                             0611.mp4'                                          
+INFO:manim:Animation 4 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/3115312072_1899046420_1503120611.mp4'
+Animation 5: ReplacementTransform(Group), etc.:   0%|          | 0/38 [00:00<?, ?it/s]Animation 5: ReplacementTransform(Group), etc.:   3%|▎         | 1/38 [00:01<01:00,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:   5%|▌         | 2/38 [00:03<00:59,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:   8%|▊         | 3/38 [00:04<00:57,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  11%|█         | 4/38 [00:06<00:55,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  13%|█▎        | 5/38 [00:08<00:54,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  16%|█▌        | 6/38 [00:09<00:52,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  18%|█▊        | 7/38 [00:11<00:51,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  21%|██        | 8/38 [00:13<00:49,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  24%|██▎       | 9/38 [00:14<00:47,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  26%|██▋       | 10/38 [00:16<00:46,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  29%|██▉       | 11/38 [00:18<00:44,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  32%|███▏      | 12/38 [00:19<00:42,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  34%|███▍      | 13/38 [00:21<00:41,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  37%|███▋      | 14/38 [00:23<00:39,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  39%|███▉      | 15/38 [00:24<00:37,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  42%|████▏     | 16/38 [00:26<00:36,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  45%|████▍     | 17/38 [00:28<00:34,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  47%|████▋     | 18/38 [00:29<00:32,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  50%|█████     | 19/38 [00:31<00:31,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  53%|█████▎    | 20/38 [00:32<00:29,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  55%|█████▌    | 21/38 [00:34<00:28,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  58%|█████▊    | 22/38 [00:36<00:26,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  61%|██████    | 23/38 [00:37<00:24,  1.65s/it]Animation 5: ReplacementTransform(Group), etc.:  63%|██████▎   | 24/38 [00:39<00:22,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  66%|██████▌   | 25/38 [00:41<00:21,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  68%|██████▊   | 26/38 [00:42<00:19,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  71%|███████   | 27/38 [00:44<00:18,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  74%|███████▎  | 28/38 [00:46<00:16,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  76%|███████▋  | 29/38 [00:47<00:14,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  79%|███████▉  | 30/38 [00:49<00:13,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  82%|████████▏ | 31/38 [00:51<00:11,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  84%|████████▍ | 32/38 [00:52<00:09,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  87%|████████▋ | 33/38 [00:54<00:08,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  89%|████████▉ | 34/38 [00:55<00:06,  1.64s/it]Animation 5: ReplacementTransform(Group), etc.:  92%|█████████▏| 35/38 [00:57<00:04,  1.66s/it]Animation 5: ReplacementTransform(Group), etc.:  95%|█████████▍| 36/38 [00:59<00:03,  1.66s/it]Animation 5: ReplacementTransform(Group), etc.:  97%|█████████▋| 37/38 [01:00<00:01,  1.66s/it]Animation 5: ReplacementTransform(Group), etc.: 100%|██████████| 38/38 [01:02<00:00,  1.65s/it]                                                                                               [07/19/24 17:55:06] INFO     Animation 5 : Partial      scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/34                         
+                             53451418_1780975095_150312                         
+                             0611.mp4'                                          
+INFO:manim:Animation 5 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/3453451418_1780975095_1503120611.mp4'
+Animation 6: Write(MathTex('c')):   0%|          | 0/13 [00:00<?, ?it/s]Animation 6: Write(MathTex('c')):   8%|▊         | 1/13 [00:01<00:18,  1.56s/it]Animation 6: Write(MathTex('c')):  15%|█▌        | 2/13 [00:03<00:17,  1.55s/it]Animation 6: Write(MathTex('c')):  23%|██▎       | 3/13 [00:04<00:15,  1.54s/it]Animation 6: Write(MathTex('c')):  31%|███       | 4/13 [00:06<00:13,  1.54s/it]Animation 6: Write(MathTex('c')):  38%|███▊      | 5/13 [00:07<00:12,  1.54s/it]Animation 6: Write(MathTex('c')):  46%|████▌     | 6/13 [00:09<00:10,  1.54s/it]Animation 6: Write(MathTex('c')):  54%|█████▍    | 7/13 [00:10<00:09,  1.54s/it]Animation 6: Write(MathTex('c')):  62%|██████▏   | 8/13 [00:12<00:07,  1.53s/it]Animation 6: Write(MathTex('c')):  69%|██████▉   | 9/13 [00:13<00:06,  1.53s/it]Animation 6: Write(MathTex('c')):  77%|███████▋  | 10/13 [00:15<00:04,  1.53s/it]Animation 6: Write(MathTex('c')):  85%|████████▍ | 11/13 [00:16<00:03,  1.53s/it]Animation 6: Write(MathTex('c')):  92%|█████████▏| 12/13 [00:18<00:01,  1.53s/it]Animation 6: Write(MathTex('c')): 100%|██████████| 13/13 [00:19<00:00,  1.54s/it]                                                                                 [07/19/24 17:55:31] INFO     Animation 6 : Partial      scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/28                         
+                             61857859_1538459213_253185                         
+                             167.mp4'                                           
+INFO:manim:Animation 6 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/2861857859_1538459213_253185167.mp4'
+Animation 7: ReplacementTransform(Group), etc.:   0%|          | 0/50 [00:00<?, ?it/s]Animation 7: ReplacementTransform(Group), etc.:   2%|▏         | 1/50 [00:01<01:19,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:   4%|▍         | 2/50 [00:03<01:18,  1.64s/it]Animation 7: ReplacementTransform(Group), etc.:   6%|▌         | 3/50 [00:04<01:16,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:   8%|▊         | 4/50 [00:06<01:15,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  10%|█         | 5/50 [00:08<01:13,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  12%|█▏        | 6/50 [00:09<01:11,  1.64s/it]Animation 7: ReplacementTransform(Group), etc.:  14%|█▍        | 7/50 [00:11<01:10,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  16%|█▌        | 8/50 [00:13<01:08,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  18%|█▊        | 9/50 [00:14<01:06,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  20%|██        | 10/50 [00:16<01:06,  1.67s/it]Animation 7: ReplacementTransform(Group), etc.:  22%|██▏       | 11/50 [00:18<01:04,  1.65s/it]Animation 7: ReplacementTransform(Group), etc.:  24%|██▍       | 12/50 [00:19<01:02,  1.64s/it]Animation 7: ReplacementTransform(Group), etc.:  26%|██▌       | 13/50 [00:21<01:00,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  28%|██▊       | 14/50 [00:22<00:58,  1.62s/it]Animation 7: ReplacementTransform(Group), etc.:  30%|███       | 15/50 [00:24<00:56,  1.62s/it]Animation 7: ReplacementTransform(Group), etc.:  32%|███▏      | 16/50 [00:26<00:54,  1.61s/it]Animation 7: ReplacementTransform(Group), etc.:  34%|███▍      | 17/50 [00:27<00:53,  1.61s/it]Animation 7: ReplacementTransform(Group), etc.:  36%|███▌      | 18/50 [00:29<00:51,  1.61s/it]Animation 7: ReplacementTransform(Group), etc.:  38%|███▊      | 19/50 [00:30<00:49,  1.61s/it]Animation 7: ReplacementTransform(Group), etc.:  40%|████      | 20/50 [00:32<00:48,  1.61s/it]Animation 7: ReplacementTransform(Group), etc.:  42%|████▏     | 21/50 [00:34<00:46,  1.60s/it]Animation 7: ReplacementTransform(Group), etc.:  44%|████▍     | 22/50 [00:35<00:45,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  46%|████▌     | 23/50 [00:37<00:43,  1.62s/it]Animation 7: ReplacementTransform(Group), etc.:  48%|████▊     | 24/50 [00:39<00:42,  1.62s/it]Animation 7: ReplacementTransform(Group), etc.:  50%|█████     | 25/50 [00:40<00:40,  1.62s/it]Animation 7: ReplacementTransform(Group), etc.:  52%|█████▏    | 26/50 [00:42<00:38,  1.62s/it]Animation 7: ReplacementTransform(Group), etc.:  54%|█████▍    | 27/50 [00:43<00:37,  1.62s/it]Animation 7: ReplacementTransform(Group), etc.:  56%|█████▌    | 28/50 [00:45<00:35,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  58%|█████▊    | 29/50 [00:47<00:34,  1.62s/it]Animation 7: ReplacementTransform(Group), etc.:  60%|██████    | 30/50 [00:48<00:32,  1.62s/it]Animation 7: ReplacementTransform(Group), etc.:  62%|██████▏   | 31/50 [00:50<00:31,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  64%|██████▍   | 32/50 [00:52<00:29,  1.62s/it]Animation 7: ReplacementTransform(Group), etc.:  66%|██████▌   | 33/50 [00:53<00:27,  1.65s/it]Animation 7: ReplacementTransform(Group), etc.:  68%|██████▊   | 34/50 [00:55<00:26,  1.64s/it]Animation 7: ReplacementTransform(Group), etc.:  70%|███████   | 35/50 [00:57<00:24,  1.65s/it]Animation 7: ReplacementTransform(Group), etc.:  72%|███████▏  | 36/50 [00:58<00:22,  1.64s/it]Animation 7: ReplacementTransform(Group), etc.:  74%|███████▍  | 37/50 [01:00<00:21,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  76%|███████▌  | 38/50 [01:01<00:19,  1.62s/it]Animation 7: ReplacementTransform(Group), etc.:  78%|███████▊  | 39/50 [01:03<00:17,  1.62s/it]Animation 7: ReplacementTransform(Group), etc.:  80%|████████  | 40/50 [01:05<00:16,  1.64s/it]Animation 7: ReplacementTransform(Group), etc.:  82%|████████▏ | 41/50 [01:06<00:14,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  84%|████████▍ | 42/50 [01:08<00:13,  1.64s/it]Animation 7: ReplacementTransform(Group), etc.:  86%|████████▌ | 43/50 [01:10<00:11,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  88%|████████▊ | 44/50 [01:11<00:09,  1.63s/it]Animation 7: ReplacementTransform(Group), etc.:  90%|█████████ | 45/50 [01:13<00:08,  1.65s/it]Animation 7: ReplacementTransform(Group), etc.:  92%|█████████▏| 46/50 [01:15<00:06,  1.68s/it]Animation 7: ReplacementTransform(Group), etc.:  94%|█████████▍| 47/50 [01:16<00:05,  1.68s/it]Animation 7: ReplacementTransform(Group), etc.:  96%|█████████▌| 48/50 [01:18<00:03,  1.66s/it]Animation 7: ReplacementTransform(Group), etc.:  98%|█████████▊| 49/50 [01:19<00:01,  1.64s/it]Animation 7: ReplacementTransform(Group), etc.: 100%|██████████| 50/50 [01:21<00:00,  1.63s/it]                                                                                               [07/19/24 17:56:58] INFO     Animation 7 : Partial      scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/23                         
+                             73308693_3864345211_189065                         
+                             3791.mp4'                                          
+INFO:manim:Animation 7 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/2373308693_3864345211_1890653791.mp4'
+Animation 8: ReplacementTransform(Group), etc.:   0%|          | 0/38 [00:00<?, ?it/s]Animation 8: ReplacementTransform(Group), etc.:   3%|▎         | 1/38 [00:01<01:00,  1.62s/it]Animation 8: ReplacementTransform(Group), etc.:   5%|▌         | 2/38 [00:03<00:58,  1.62s/it]Animation 8: ReplacementTransform(Group), etc.:   8%|▊         | 3/38 [00:04<00:56,  1.61s/it]Animation 8: ReplacementTransform(Group), etc.:  11%|█         | 4/38 [00:06<00:55,  1.63s/it]Animation 8: ReplacementTransform(Group), etc.:  13%|█▎        | 5/38 [00:08<00:53,  1.63s/it]Animation 8: ReplacementTransform(Group), etc.:  16%|█▌        | 6/38 [00:09<00:52,  1.64s/it]Animation 8: ReplacementTransform(Group), etc.:  18%|█▊        | 7/38 [00:11<00:51,  1.66s/it]Animation 8: ReplacementTransform(Group), etc.:  21%|██        | 8/38 [00:13<00:49,  1.64s/it]Animation 8: ReplacementTransform(Group), etc.:  24%|██▎       | 9/38 [00:14<00:47,  1.64s/it]Animation 8: ReplacementTransform(Group), etc.:  26%|██▋       | 10/38 [00:16<00:45,  1.63s/it]Animation 8: ReplacementTransform(Group), etc.:  29%|██▉       | 11/38 [00:17<00:43,  1.63s/it]Animation 8: ReplacementTransform(Group), etc.:  32%|███▏      | 12/38 [00:19<00:42,  1.63s/it]Animation 8: ReplacementTransform(Group), etc.:  34%|███▍      | 13/38 [00:21<00:41,  1.65s/it]Animation 8: ReplacementTransform(Group), etc.:  37%|███▋      | 14/38 [00:22<00:39,  1.64s/it]Animation 8: ReplacementTransform(Group), etc.:  39%|███▉      | 15/38 [00:24<00:37,  1.64s/it]Animation 8: ReplacementTransform(Group), etc.:  42%|████▏     | 16/38 [00:26<00:36,  1.65s/it]Animation 8: ReplacementTransform(Group), etc.:  45%|████▍     | 17/38 [00:27<00:34,  1.64s/it]Animation 8: ReplacementTransform(Group), etc.:  47%|████▋     | 18/38 [00:29<00:32,  1.64s/it]Animation 8: ReplacementTransform(Group), etc.:  50%|█████     | 19/38 [00:31<00:30,  1.63s/it]Animation 8: ReplacementTransform(Group), etc.:  53%|█████▎    | 20/38 [00:32<00:29,  1.63s/it]Animation 8: ReplacementTransform(Group), etc.:  55%|█████▌    | 21/38 [00:34<00:27,  1.65s/it]Animation 8: ReplacementTransform(Group), etc.:  58%|█████▊    | 22/38 [00:36<00:26,  1.64s/it]Animation 8: ReplacementTransform(Group), etc.:  61%|██████    | 23/38 [00:37<00:24,  1.66s/it]Animation 8: ReplacementTransform(Group), etc.:  63%|██████▎   | 24/38 [00:39<00:23,  1.65s/it]Animation 8: ReplacementTransform(Group), etc.:  66%|██████▌   | 25/38 [00:40<00:21,  1.64s/it]Animation 8: ReplacementTransform(Group), etc.:  68%|██████▊   | 26/38 [00:42<00:19,  1.63s/it]Animation 8: ReplacementTransform(Group), etc.:  71%|███████   | 27/38 [00:44<00:18,  1.64s/it]Animation 8: ReplacementTransform(Group), etc.:  74%|███████▎  | 28/38 [00:45<00:16,  1.65s/it]Animation 8: ReplacementTransform(Group), etc.:  76%|███████▋  | 29/38 [00:47<00:14,  1.65s/it]Animation 8: ReplacementTransform(Group), etc.:  79%|███████▉  | 30/38 [00:49<00:13,  1.64s/it]Animation 8: ReplacementTransform(Group), etc.:  82%|████████▏ | 31/38 [00:50<00:11,  1.65s/it]Animation 8: ReplacementTransform(Group), etc.:  84%|████████▍ | 32/38 [00:52<00:09,  1.65s/it]Animation 8: ReplacementTransform(Group), etc.:  87%|████████▋ | 33/38 [00:54<00:08,  1.64s/it]Animation 8: ReplacementTransform(Group), etc.:  89%|████████▉ | 34/38 [00:55<00:06,  1.65s/it]Animation 8: ReplacementTransform(Group), etc.:  92%|█████████▏| 35/38 [00:57<00:04,  1.65s/it]Animation 8: ReplacementTransform(Group), etc.:  95%|█████████▍| 36/38 [00:59<00:03,  1.66s/it]Animation 8: ReplacementTransform(Group), etc.:  97%|█████████▋| 37/38 [01:00<00:01,  1.65s/it]Animation 8: ReplacementTransform(Group), etc.: 100%|██████████| 38/38 [01:02<00:00,  1.66s/it]                                                                                               [07/19/24 17:58:08] INFO     Animation 8 : Partial      scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/59                         
+                             095943_2182544959_18906537                         
+                             91.mp4'                                            
+INFO:manim:Animation 8 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/59095943_2182544959_1890653791.mp4'
+Animation 9: Write(MathTex('\\alpha')), etc.:   0%|          | 0/13 [00:00<?, ?it/s]Animation 9: Write(MathTex('\\alpha')), etc.:   8%|▊         | 1/13 [00:01<00:19,  1.60s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  15%|█▌        | 2/13 [00:03<00:17,  1.62s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  23%|██▎       | 3/13 [00:04<00:15,  1.59s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  31%|███       | 4/13 [00:06<00:14,  1.60s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  38%|███▊      | 5/13 [00:08<00:12,  1.61s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  46%|████▌     | 6/13 [00:09<00:11,  1.60s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  54%|█████▍    | 7/13 [00:11<00:09,  1.60s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  62%|██████▏   | 8/13 [00:12<00:07,  1.59s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  69%|██████▉   | 9/13 [00:14<00:06,  1.59s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  77%|███████▋  | 10/13 [00:15<00:04,  1.58s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  85%|████████▍ | 11/13 [00:17<00:03,  1.59s/it]Animation 9: Write(MathTex('\\alpha')), etc.:  92%|█████████▏| 12/13 [00:19<00:01,  1.58s/it]Animation 9: Write(MathTex('\\alpha')), etc.: 100%|██████████| 13/13 [00:20<00:00,  1.59s/it]                                                                                             [07/19/24 17:58:34] INFO     Animation 9 : Partial      scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/37                         
+                             97084169_3523274877_131025                         
+                             063.mp4'                                           
+INFO:manim:Animation 9 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/3797084169_3523274877_131025063.mp4'
+Animation 10: ReplacementTransform(Group), etc.:   0%|          | 0/50 [00:00<?, ?it/s]Animation 10: ReplacementTransform(Group), etc.:   2%|▏         | 1/50 [00:01<01:21,  1.66s/it]Animation 10: ReplacementTransform(Group), etc.:   4%|▍         | 2/50 [00:03<01:19,  1.66s/it]Animation 10: ReplacementTransform(Group), etc.:   6%|▌         | 3/50 [00:04<01:17,  1.64s/it]Animation 10: ReplacementTransform(Group), etc.:   8%|▊         | 4/50 [00:06<01:15,  1.63s/it]Animation 10: ReplacementTransform(Group), etc.:  10%|█         | 5/50 [00:08<01:13,  1.63s/it]Animation 10: ReplacementTransform(Group), etc.:  12%|█▏        | 6/50 [00:09<01:12,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  14%|█▍        | 7/50 [00:11<01:10,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  16%|█▌        | 8/50 [00:13<01:08,  1.64s/it]Animation 10: ReplacementTransform(Group), etc.:  18%|█▊        | 9/50 [00:14<01:07,  1.66s/it]Animation 10: ReplacementTransform(Group), etc.:  20%|██        | 10/50 [00:16<01:05,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  22%|██▏       | 11/50 [00:18<01:03,  1.64s/it]Animation 10: ReplacementTransform(Group), etc.:  24%|██▍       | 12/50 [00:19<01:02,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  26%|██▌       | 13/50 [00:21<01:01,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  28%|██▊       | 14/50 [00:23<00:59,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  30%|███       | 15/50 [00:24<00:57,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  32%|███▏      | 16/50 [00:26<00:56,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  34%|███▍      | 17/50 [00:27<00:54,  1.64s/it]Animation 10: ReplacementTransform(Group), etc.:  36%|███▌      | 18/50 [00:29<00:53,  1.67s/it]Animation 10: ReplacementTransform(Group), etc.:  38%|███▊      | 19/50 [00:31<00:51,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  40%|████      | 20/50 [00:32<00:49,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  42%|████▏     | 21/50 [00:34<00:47,  1.64s/it]Animation 10: ReplacementTransform(Group), etc.:  44%|████▍     | 22/50 [00:36<00:46,  1.67s/it]Animation 10: ReplacementTransform(Group), etc.:  46%|████▌     | 23/50 [00:38<00:45,  1.68s/it]Animation 10: ReplacementTransform(Group), etc.:  48%|████▊     | 24/50 [00:39<00:43,  1.67s/it]Animation 10: ReplacementTransform(Group), etc.:  50%|█████     | 25/50 [00:41<00:41,  1.68s/it]Animation 10: ReplacementTransform(Group), etc.:  52%|█████▏    | 26/50 [00:43<00:39,  1.66s/it]Animation 10: ReplacementTransform(Group), etc.:  54%|█████▍    | 27/50 [00:44<00:38,  1.66s/it]Animation 10: ReplacementTransform(Group), etc.:  56%|█████▌    | 28/50 [00:46<00:37,  1.68s/it]Animation 10: ReplacementTransform(Group), etc.:  58%|█████▊    | 29/50 [00:48<00:35,  1.67s/it]Animation 10: ReplacementTransform(Group), etc.:  60%|██████    | 30/50 [00:49<00:33,  1.68s/it]Animation 10: ReplacementTransform(Group), etc.:  62%|██████▏   | 31/50 [00:51<00:31,  1.67s/it]Animation 10: ReplacementTransform(Group), etc.:  64%|██████▍   | 32/50 [00:52<00:29,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  66%|██████▌   | 33/50 [00:54<00:28,  1.66s/it]Animation 10: ReplacementTransform(Group), etc.:  68%|██████▊   | 34/50 [00:56<00:26,  1.66s/it]Animation 10: ReplacementTransform(Group), etc.:  70%|███████   | 35/50 [00:57<00:24,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  72%|███████▏  | 36/50 [00:59<00:23,  1.66s/it]Animation 10: ReplacementTransform(Group), etc.:  74%|███████▍  | 37/50 [01:01<00:21,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  76%|███████▌  | 38/50 [01:02<00:19,  1.66s/it]Animation 10: ReplacementTransform(Group), etc.:  78%|███████▊  | 39/50 [01:04<00:18,  1.65s/it]Animation 10: ReplacementTransform(Group), etc.:  80%|████████  | 40/50 [01:06<00:16,  1.67s/it]Animation 10: ReplacementTransform(Group), etc.:  82%|████████▏ | 41/50 [01:07<00:15,  1.67s/it]Animation 10: ReplacementTransform(Group), etc.:  84%|████████▍ | 42/50 [01:09<00:13,  1.67s/it]Animation 10: ReplacementTransform(Group), etc.:  86%|████████▌ | 43/50 [01:11<00:11,  1.68s/it]Animation 10: ReplacementTransform(Group), etc.:  88%|████████▊ | 44/50 [01:13<00:10,  1.70s/it]Animation 10: ReplacementTransform(Group), etc.:  90%|█████████ | 45/50 [01:14<00:08,  1.72s/it]Animation 10: ReplacementTransform(Group), etc.:  92%|█████████▏| 46/50 [01:16<00:06,  1.72s/it]Animation 10: ReplacementTransform(Group), etc.:  94%|█████████▍| 47/50 [01:18<00:05,  1.70s/it]Animation 10: ReplacementTransform(Group), etc.:  96%|█████████▌| 48/50 [01:19<00:03,  1.70s/it]Animation 10: ReplacementTransform(Group), etc.:  98%|█████████▊| 49/50 [01:21<00:01,  1.69s/it]Animation 10: ReplacementTransform(Group), etc.: 100%|██████████| 50/50 [01:23<00:00,  1.70s/it]                                                                                                [07/19/24 18:00:03] INFO     Animation 10 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/25                         
+                             42025919_1058067860_238392                         
+                             5580.mp4'                                          
+INFO:manim:Animation 10 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/2542025919_1058067860_2383925580.mp4'
+Animation 11: ReplacementTransform(Group), etc.:   0%|          | 0/38 [00:00<?, ?it/s]Animation 11: ReplacementTransform(Group), etc.:   3%|▎         | 1/38 [00:01<01:04,  1.73s/it]Animation 11: ReplacementTransform(Group), etc.:   5%|▌         | 2/38 [00:03<01:00,  1.67s/it]Animation 11: ReplacementTransform(Group), etc.:   8%|▊         | 3/38 [00:05<00:58,  1.67s/it]Animation 11: ReplacementTransform(Group), etc.:  11%|█         | 4/38 [00:06<00:56,  1.66s/it]Animation 11: ReplacementTransform(Group), etc.:  13%|█▎        | 5/38 [00:08<00:55,  1.67s/it]Animation 11: ReplacementTransform(Group), etc.:  16%|█▌        | 6/38 [00:10<00:53,  1.68s/it]Animation 11: ReplacementTransform(Group), etc.:  18%|█▊        | 7/38 [00:11<00:51,  1.67s/it]Animation 11: ReplacementTransform(Group), etc.:  21%|██        | 8/38 [00:13<00:50,  1.69s/it]Animation 11: ReplacementTransform(Group), etc.:  24%|██▎       | 9/38 [00:15<00:49,  1.69s/it]Animation 11: ReplacementTransform(Group), etc.:  26%|██▋       | 10/38 [00:16<00:46,  1.68s/it]Animation 11: ReplacementTransform(Group), etc.:  29%|██▉       | 11/38 [00:18<00:45,  1.68s/it]Animation 11: ReplacementTransform(Group), etc.:  32%|███▏      | 12/38 [00:20<00:43,  1.67s/it]Animation 11: ReplacementTransform(Group), etc.:  34%|███▍      | 13/38 [00:21<00:41,  1.67s/it]Animation 11: ReplacementTransform(Group), etc.:  37%|███▋      | 14/38 [00:23<00:40,  1.69s/it]Animation 11: ReplacementTransform(Group), etc.:  39%|███▉      | 15/38 [00:25<00:38,  1.69s/it]Animation 11: ReplacementTransform(Group), etc.:  42%|████▏     | 16/38 [00:26<00:37,  1.70s/it]Animation 11: ReplacementTransform(Group), etc.:  45%|████▍     | 17/38 [00:28<00:36,  1.71s/it]Animation 11: ReplacementTransform(Group), etc.:  47%|████▋     | 18/38 [00:30<00:34,  1.72s/it]Animation 11: ReplacementTransform(Group), etc.:  50%|█████     | 19/38 [00:32<00:32,  1.69s/it]Animation 11: ReplacementTransform(Group), etc.:  53%|█████▎    | 20/38 [00:33<00:30,  1.67s/it]Animation 11: ReplacementTransform(Group), etc.:  55%|█████▌    | 21/38 [00:35<00:28,  1.65s/it]Animation 11: ReplacementTransform(Group), etc.:  58%|█████▊    | 22/38 [00:36<00:26,  1.64s/it]Animation 11: ReplacementTransform(Group), etc.:  61%|██████    | 23/38 [00:38<00:24,  1.67s/it]Animation 11: ReplacementTransform(Group), etc.:  63%|██████▎   | 24/38 [00:40<00:23,  1.67s/it]Animation 11: ReplacementTransform(Group), etc.:  66%|██████▌   | 25/38 [00:41<00:21,  1.65s/it]Animation 11: ReplacementTransform(Group), etc.:  68%|██████▊   | 26/38 [00:43<00:19,  1.65s/it]Animation 11: ReplacementTransform(Group), etc.:  71%|███████   | 27/38 [00:45<00:18,  1.64s/it]Animation 11: ReplacementTransform(Group), etc.:  74%|███████▎  | 28/38 [00:46<00:16,  1.64s/it]Animation 11: ReplacementTransform(Group), etc.:  76%|███████▋  | 29/38 [00:48<00:14,  1.63s/it]Animation 11: ReplacementTransform(Group), etc.:  79%|███████▉  | 30/38 [00:50<00:13,  1.63s/it]Animation 11: ReplacementTransform(Group), etc.:  82%|████████▏ | 31/38 [00:51<00:11,  1.65s/it]Animation 11: ReplacementTransform(Group), etc.:  84%|████████▍ | 32/38 [00:53<00:09,  1.66s/it]Animation 11: ReplacementTransform(Group), etc.:  87%|████████▋ | 33/38 [00:55<00:08,  1.68s/it]Animation 11: ReplacementTransform(Group), etc.:  89%|████████▉ | 34/38 [00:56<00:06,  1.68s/it]Animation 11: ReplacementTransform(Group), etc.:  92%|█████████▏| 35/38 [00:58<00:05,  1.67s/it]Animation 11: ReplacementTransform(Group), etc.:  95%|█████████▍| 36/38 [01:00<00:03,  1.68s/it]Animation 11: ReplacementTransform(Group), etc.:  97%|█████████▋| 37/38 [01:01<00:01,  1.68s/it]Animation 11: ReplacementTransform(Group), etc.: 100%|██████████| 38/38 [01:03<00:00,  1.68s/it]                                                                                                [07/19/24 18:01:14] INFO     Animation 11 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/21                         
+                             04184319_2340195186_238392                         
+                             5580.mp4'                                          
+INFO:manim:Animation 11 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/2104184319_2340195186_2383925580.mp4'
+Animation 12: Write(MathTex('\\beta')), etc.:   0%|          | 0/13 [00:00<?, ?it/s]Animation 12: Write(MathTex('\\beta')), etc.:   8%|▊         | 1/13 [00:01<00:18,  1.57s/it]Animation 12: Write(MathTex('\\beta')), etc.:  15%|█▌        | 2/13 [00:03<00:16,  1.54s/it]Animation 12: Write(MathTex('\\beta')), etc.:  23%|██▎       | 3/13 [00:04<00:15,  1.53s/it]Animation 12: Write(MathTex('\\beta')), etc.:  31%|███       | 4/13 [00:06<00:13,  1.53s/it]Animation 12: Write(MathTex('\\beta')), etc.:  38%|███▊      | 5/13 [00:07<00:12,  1.54s/it]Animation 12: Write(MathTex('\\beta')), etc.:  46%|████▌     | 6/13 [00:09<00:10,  1.53s/it]Animation 12: Write(MathTex('\\beta')), etc.:  54%|█████▍    | 7/13 [00:10<00:09,  1.53s/it]Animation 12: Write(MathTex('\\beta')), etc.:  62%|██████▏   | 8/13 [00:12<00:07,  1.53s/it]Animation 12: Write(MathTex('\\beta')), etc.:  69%|██████▉   | 9/13 [00:13<00:06,  1.53s/it]Animation 12: Write(MathTex('\\beta')), etc.:  77%|███████▋  | 10/13 [00:15<00:04,  1.53s/it]Animation 12: Write(MathTex('\\beta')), etc.:  85%|████████▍ | 11/13 [00:16<00:03,  1.53s/it]Animation 12: Write(MathTex('\\beta')), etc.:  92%|█████████▏| 12/13 [00:18<00:01,  1.54s/it]Animation 12: Write(MathTex('\\beta')), etc.: 100%|██████████| 13/13 [00:19<00:00,  1.53s/it]                                                                                             [07/19/24 18:01:39] INFO     Animation 12 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/11                         
+                             43908110_3736638202_102536                         
+                             1329.mp4'                                          
+INFO:manim:Animation 12 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/1143908110_3736638202_1025361329.mp4'
+Animation 13: ReplacementTransform(Group), etc.:   0%|          | 0/50 [00:00<?, ?it/s]Animation 13: ReplacementTransform(Group), etc.:   2%|▏         | 1/50 [00:01<01:19,  1.61s/it]Animation 13: ReplacementTransform(Group), etc.:   4%|▍         | 2/50 [00:03<01:17,  1.62s/it]Animation 13: ReplacementTransform(Group), etc.:   6%|▌         | 3/50 [00:04<01:16,  1.62s/it]Animation 13: ReplacementTransform(Group), etc.:   8%|▊         | 4/50 [00:06<01:14,  1.62s/it]Animation 13: ReplacementTransform(Group), etc.:  10%|█         | 5/50 [00:08<01:13,  1.64s/it]Animation 13: ReplacementTransform(Group), etc.:  12%|█▏        | 6/50 [00:09<01:12,  1.64s/it]Animation 13: ReplacementTransform(Group), etc.:  14%|█▍        | 7/50 [00:11<01:10,  1.65s/it]Animation 13: ReplacementTransform(Group), etc.:  16%|█▌        | 8/50 [00:13<01:09,  1.65s/it]Animation 13: ReplacementTransform(Group), etc.:  18%|█▊        | 9/50 [00:14<01:07,  1.64s/it]Animation 13: ReplacementTransform(Group), etc.:  20%|██        | 10/50 [00:16<01:05,  1.64s/it]Animation 13: ReplacementTransform(Group), etc.:  22%|██▏       | 11/50 [00:18<01:04,  1.66s/it]Animation 13: ReplacementTransform(Group), etc.:  24%|██▍       | 12/50 [00:19<01:03,  1.66s/it]Animation 13: ReplacementTransform(Group), etc.:  26%|██▌       | 13/50 [00:21<01:01,  1.66s/it]Animation 13: ReplacementTransform(Group), etc.:  28%|██▊       | 14/50 [00:23<00:59,  1.66s/it]Animation 13: ReplacementTransform(Group), etc.:  30%|███       | 15/50 [00:24<00:58,  1.66s/it]Animation 13: ReplacementTransform(Group), etc.:  32%|███▏      | 16/50 [00:26<00:57,  1.68s/it]Animation 13: ReplacementTransform(Group), etc.:  34%|███▍      | 17/50 [00:28<00:54,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  36%|███▌      | 18/50 [00:29<00:52,  1.65s/it]Animation 13: ReplacementTransform(Group), etc.:  38%|███▊      | 19/50 [00:31<00:51,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  40%|████      | 20/50 [00:33<00:50,  1.68s/it]Animation 13: ReplacementTransform(Group), etc.:  42%|████▏     | 21/50 [00:34<00:48,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  44%|████▍     | 22/50 [00:36<00:46,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  46%|████▌     | 23/50 [00:38<00:45,  1.68s/it]Animation 13: ReplacementTransform(Group), etc.:  48%|████▊     | 24/50 [00:39<00:43,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  50%|█████     | 25/50 [00:41<00:41,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  52%|█████▏    | 26/50 [00:43<00:39,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  54%|█████▍    | 27/50 [00:44<00:38,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  56%|█████▌    | 28/50 [00:46<00:36,  1.68s/it]Animation 13: ReplacementTransform(Group), etc.:  58%|█████▊    | 29/50 [00:48<00:35,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  60%|██████    | 30/50 [00:49<00:33,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  62%|██████▏   | 31/50 [00:51<00:32,  1.68s/it]Animation 13: ReplacementTransform(Group), etc.:  64%|██████▍   | 32/50 [00:53<00:30,  1.68s/it]Animation 13: ReplacementTransform(Group), etc.:  66%|██████▌   | 33/50 [00:54<00:28,  1.66s/it]Animation 13: ReplacementTransform(Group), etc.:  68%|██████▊   | 34/50 [00:56<00:26,  1.65s/it]Animation 13: ReplacementTransform(Group), etc.:  70%|███████   | 35/50 [00:58<00:24,  1.64s/it]Animation 13: ReplacementTransform(Group), etc.:  72%|███████▏  | 36/50 [00:59<00:22,  1.64s/it]Animation 13: ReplacementTransform(Group), etc.:  74%|███████▍  | 37/50 [01:01<00:21,  1.66s/it]Animation 13: ReplacementTransform(Group), etc.:  76%|███████▌  | 38/50 [01:03<00:19,  1.66s/it]Animation 13: ReplacementTransform(Group), etc.:  78%|███████▊  | 39/50 [01:04<00:18,  1.66s/it]Animation 13: ReplacementTransform(Group), etc.:  80%|████████  | 40/50 [01:06<00:16,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  82%|████████▏ | 41/50 [01:08<00:15,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  84%|████████▍ | 42/50 [01:09<00:13,  1.66s/it]Animation 13: ReplacementTransform(Group), etc.:  86%|████████▌ | 43/50 [01:11<00:11,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  88%|████████▊ | 44/50 [01:13<00:10,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  90%|█████████ | 45/50 [01:14<00:08,  1.66s/it]Animation 13: ReplacementTransform(Group), etc.:  92%|█████████▏| 46/50 [01:16<00:06,  1.65s/it]Animation 13: ReplacementTransform(Group), etc.:  94%|█████████▍| 47/50 [01:18<00:04,  1.66s/it]Animation 13: ReplacementTransform(Group), etc.:  96%|█████████▌| 48/50 [01:19<00:03,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.:  98%|█████████▊| 49/50 [01:21<00:01,  1.67s/it]Animation 13: ReplacementTransform(Group), etc.: 100%|██████████| 50/50 [01:23<00:00,  1.66s/it]                                                                                                [07/19/24 18:03:08] INFO     Animation 13 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/42                         
+                             72041886_258714172_3392712                         
+                             172.mp4'                                           
+INFO:manim:Animation 13 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/4272041886_258714172_3392712172.mp4'
+Animation 14: ReplacementTransform(Group), etc.:   0%|          | 0/38 [00:00<?, ?it/s]Animation 14: ReplacementTransform(Group), etc.:   3%|▎         | 1/38 [00:01<01:00,  1.62s/it]Animation 14: ReplacementTransform(Group), etc.:   5%|▌         | 2/38 [00:03<00:58,  1.63s/it]Animation 14: ReplacementTransform(Group), etc.:   8%|▊         | 3/38 [00:04<00:57,  1.63s/it]Animation 14: ReplacementTransform(Group), etc.:  11%|█         | 4/38 [00:06<00:56,  1.65s/it]Animation 14: ReplacementTransform(Group), etc.:  13%|█▎        | 5/38 [00:08<00:54,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  16%|█▌        | 6/38 [00:09<00:52,  1.65s/it]Animation 14: ReplacementTransform(Group), etc.:  18%|█▊        | 7/38 [00:11<00:51,  1.65s/it]Animation 14: ReplacementTransform(Group), etc.:  21%|██        | 8/38 [00:13<00:49,  1.65s/it]Animation 14: ReplacementTransform(Group), etc.:  24%|██▎       | 9/38 [00:14<00:47,  1.65s/it]Animation 14: ReplacementTransform(Group), etc.:  26%|██▋       | 10/38 [00:16<00:46,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  29%|██▉       | 11/38 [00:18<00:44,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  32%|███▏      | 12/38 [00:19<00:42,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  34%|███▍      | 13/38 [00:21<00:40,  1.63s/it]Animation 14: ReplacementTransform(Group), etc.:  37%|███▋      | 14/38 [00:22<00:39,  1.63s/it]Animation 14: ReplacementTransform(Group), etc.:  39%|███▉      | 15/38 [00:24<00:37,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  42%|████▏     | 16/38 [00:26<00:36,  1.66s/it]Animation 14: ReplacementTransform(Group), etc.:  45%|████▍     | 17/38 [00:27<00:34,  1.65s/it]Animation 14: ReplacementTransform(Group), etc.:  47%|████▋     | 18/38 [00:29<00:33,  1.65s/it]Animation 14: ReplacementTransform(Group), etc.:  50%|█████     | 19/38 [00:31<00:31,  1.65s/it]Animation 14: ReplacementTransform(Group), etc.:  53%|█████▎    | 20/38 [00:32<00:29,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  55%|█████▌    | 21/38 [00:34<00:27,  1.63s/it]Animation 14: ReplacementTransform(Group), etc.:  58%|█████▊    | 22/38 [00:36<00:26,  1.63s/it]Animation 14: ReplacementTransform(Group), etc.:  61%|██████    | 23/38 [00:37<00:24,  1.63s/it]Animation 14: ReplacementTransform(Group), etc.:  63%|██████▎   | 24/38 [00:39<00:22,  1.63s/it]Animation 14: ReplacementTransform(Group), etc.:  66%|██████▌   | 25/38 [00:41<00:21,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  68%|██████▊   | 26/38 [00:42<00:19,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  71%|███████   | 27/38 [00:44<00:18,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  74%|███████▎  | 28/38 [00:45<00:16,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  76%|███████▋  | 29/38 [00:47<00:14,  1.66s/it]Animation 14: ReplacementTransform(Group), etc.:  79%|███████▉  | 30/38 [00:49<00:13,  1.65s/it]Animation 14: ReplacementTransform(Group), etc.:  82%|████████▏ | 31/38 [00:50<00:11,  1.65s/it]Animation 14: ReplacementTransform(Group), etc.:  84%|████████▍ | 32/38 [00:52<00:09,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  87%|████████▋ | 33/38 [00:54<00:08,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  89%|████████▉ | 34/38 [00:55<00:06,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  92%|█████████▏| 35/38 [00:57<00:04,  1.64s/it]Animation 14: ReplacementTransform(Group), etc.:  95%|█████████▍| 36/38 [00:59<00:03,  1.66s/it]Animation 14: ReplacementTransform(Group), etc.:  97%|█████████▋| 37/38 [01:00<00:01,  1.65s/it]Animation 14: ReplacementTransform(Group), etc.: 100%|██████████| 38/38 [01:02<00:00,  1.67s/it]                                                                                                [07/19/24 18:04:18] INFO     Animation 14 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/38                         
+                             97069492_2804338918_339271                         
+                             2172.mp4'                                          
+INFO:manim:Animation 14 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/3897069492_2804338918_3392712172.mp4'
+Animation 15: Write(MathTex('\\gamma')), etc.:   0%|          | 0/13 [00:00<?, ?it/s]Animation 15: Write(MathTex('\\gamma')), etc.:   8%|▊         | 1/13 [00:01<00:19,  1.59s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  15%|█▌        | 2/13 [00:03<00:17,  1.56s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  23%|██▎       | 3/13 [00:04<00:15,  1.55s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  31%|███       | 4/13 [00:06<00:14,  1.58s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  38%|███▊      | 5/13 [00:07<00:12,  1.57s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  46%|████▌     | 6/13 [00:09<00:10,  1.56s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  54%|█████▍    | 7/13 [00:10<00:09,  1.56s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  62%|██████▏   | 8/13 [00:12<00:07,  1.56s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  69%|██████▉   | 9/13 [00:14<00:06,  1.56s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  77%|███████▋  | 10/13 [00:15<00:04,  1.56s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  85%|████████▍ | 11/13 [00:17<00:03,  1.57s/it]Animation 15: Write(MathTex('\\gamma')), etc.:  92%|█████████▏| 12/13 [00:18<00:01,  1.56s/it]Animation 15: Write(MathTex('\\gamma')), etc.: 100%|██████████| 13/13 [00:20<00:00,  1.56s/it]                                                                                              [07/19/24 18:04:44] INFO     Animation 15 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/11                         
+                             54875809_633452189_1479461                         
+                             80.mp4'                                            
+INFO:manim:Animation 15 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/1154875809_633452189_147946180.mp4'
+Animation 16: ReplacementTransform(Group), etc.:   0%|          | 0/50 [00:00<?, ?it/s]Animation 16: ReplacementTransform(Group), etc.:   2%|▏         | 1/50 [00:01<01:23,  1.70s/it]Animation 16: ReplacementTransform(Group), etc.:   4%|▍         | 2/50 [00:03<01:18,  1.64s/it]Animation 16: ReplacementTransform(Group), etc.:   6%|▌         | 3/50 [00:04<01:16,  1.64s/it]Animation 16: ReplacementTransform(Group), etc.:   8%|▊         | 4/50 [00:06<01:15,  1.63s/it]Animation 16: ReplacementTransform(Group), etc.:  10%|█         | 5/50 [00:08<01:13,  1.63s/it]Animation 16: ReplacementTransform(Group), etc.:  12%|█▏        | 6/50 [00:09<01:11,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  14%|█▍        | 7/50 [00:11<01:09,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  16%|█▌        | 8/50 [00:13<01:07,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  18%|█▊        | 9/50 [00:14<01:06,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  20%|██        | 10/50 [00:16<01:05,  1.63s/it]Animation 16: ReplacementTransform(Group), etc.:  22%|██▏       | 11/50 [00:17<01:03,  1.63s/it]Animation 16: ReplacementTransform(Group), etc.:  24%|██▍       | 12/50 [00:19<01:01,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  26%|██▌       | 13/50 [00:21<00:59,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  28%|██▊       | 14/50 [00:22<00:58,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  30%|███       | 15/50 [00:24<00:56,  1.61s/it]Animation 16: ReplacementTransform(Group), etc.:  32%|███▏      | 16/50 [00:25<00:54,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  34%|███▍      | 17/50 [00:27<00:53,  1.61s/it]Animation 16: ReplacementTransform(Group), etc.:  36%|███▌      | 18/50 [00:29<00:51,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  38%|███▊      | 19/50 [00:30<00:51,  1.65s/it]Animation 16: ReplacementTransform(Group), etc.:  40%|████      | 20/50 [00:32<00:49,  1.64s/it]Animation 16: ReplacementTransform(Group), etc.:  42%|████▏     | 21/50 [00:34<00:47,  1.63s/it]Animation 16: ReplacementTransform(Group), etc.:  44%|████▍     | 22/50 [00:35<00:45,  1.63s/it]Animation 16: ReplacementTransform(Group), etc.:  46%|████▌     | 23/50 [00:37<00:44,  1.64s/it]Animation 16: ReplacementTransform(Group), etc.:  48%|████▊     | 24/50 [00:39<00:42,  1.63s/it]Animation 16: ReplacementTransform(Group), etc.:  50%|█████     | 25/50 [00:40<00:40,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  52%|█████▏    | 26/50 [00:42<00:38,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  54%|█████▍    | 27/50 [00:43<00:37,  1.61s/it]Animation 16: ReplacementTransform(Group), etc.:  56%|█████▌    | 28/50 [00:45<00:35,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  58%|█████▊    | 29/50 [00:47<00:33,  1.61s/it]Animation 16: ReplacementTransform(Group), etc.:  60%|██████    | 30/50 [00:48<00:32,  1.61s/it]Animation 16: ReplacementTransform(Group), etc.:  62%|██████▏   | 31/50 [00:50<00:30,  1.61s/it]Animation 16: ReplacementTransform(Group), etc.:  64%|██████▍   | 32/50 [00:52<00:29,  1.64s/it]Animation 16: ReplacementTransform(Group), etc.:  66%|██████▌   | 33/50 [00:53<00:27,  1.63s/it]Animation 16: ReplacementTransform(Group), etc.:  68%|██████▊   | 34/50 [00:55<00:26,  1.63s/it]Animation 16: ReplacementTransform(Group), etc.:  70%|███████   | 35/50 [00:56<00:24,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  72%|███████▏  | 36/50 [00:58<00:22,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  74%|███████▍  | 37/50 [01:00<00:20,  1.61s/it]Animation 16: ReplacementTransform(Group), etc.:  76%|███████▌  | 38/50 [01:01<00:19,  1.61s/it]Animation 16: ReplacementTransform(Group), etc.:  78%|███████▊  | 39/50 [01:03<00:17,  1.61s/it]Animation 16: ReplacementTransform(Group), etc.:  80%|████████  | 40/50 [01:04<00:16,  1.61s/it]Animation 16: ReplacementTransform(Group), etc.:  82%|████████▏ | 41/50 [01:06<00:14,  1.64s/it]Animation 16: ReplacementTransform(Group), etc.:  84%|████████▍ | 42/50 [01:08<00:13,  1.65s/it]Animation 16: ReplacementTransform(Group), etc.:  86%|████████▌ | 43/50 [01:09<00:11,  1.65s/it]Animation 16: ReplacementTransform(Group), etc.:  88%|████████▊ | 44/50 [01:11<00:09,  1.64s/it]Animation 16: ReplacementTransform(Group), etc.:  90%|█████████ | 45/50 [01:13<00:08,  1.63s/it]Animation 16: ReplacementTransform(Group), etc.:  92%|█████████▏| 46/50 [01:14<00:06,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  94%|█████████▍| 47/50 [01:16<00:04,  1.63s/it]Animation 16: ReplacementTransform(Group), etc.:  96%|█████████▌| 48/50 [01:17<00:03,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.:  98%|█████████▊| 49/50 [01:19<00:01,  1.62s/it]Animation 16: ReplacementTransform(Group), etc.: 100%|██████████| 50/50 [01:21<00:00,  1.64s/it]                                                                                                [07/19/24 18:06:10] INFO     Animation 16 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/29                         
+                             21457598_2729948374_413998                         
+                             8456.mp4'                                          
+INFO:manim:Animation 16 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/2921457598_2729948374_4139988456.mp4'
+Animation 17: ReplacementTransform(Group), etc.:   0%|          | 0/38 [00:00<?, ?it/s]Animation 17: ReplacementTransform(Group), etc.:   3%|▎         | 1/38 [00:01<00:59,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:   5%|▌         | 2/38 [00:03<00:58,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:   8%|▊         | 3/38 [00:04<00:56,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  11%|█         | 4/38 [00:06<00:55,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  13%|█▎        | 5/38 [00:08<00:53,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  16%|█▌        | 6/38 [00:09<00:51,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  18%|█▊        | 7/38 [00:11<00:50,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  21%|██        | 8/38 [00:12<00:48,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  24%|██▎       | 9/38 [00:14<00:46,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  26%|██▋       | 10/38 [00:16<00:45,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  29%|██▉       | 11/38 [00:17<00:43,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  32%|███▏      | 12/38 [00:19<00:42,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  34%|███▍      | 13/38 [00:21<00:40,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  37%|███▋      | 14/38 [00:22<00:38,  1.61s/it]Animation 17: ReplacementTransform(Group), etc.:  39%|███▉      | 15/38 [00:24<00:37,  1.61s/it]Animation 17: ReplacementTransform(Group), etc.:  42%|████▏     | 16/38 [00:25<00:35,  1.63s/it]Animation 17: ReplacementTransform(Group), etc.:  45%|████▍     | 17/38 [00:27<00:34,  1.63s/it]Animation 17: ReplacementTransform(Group), etc.:  47%|████▋     | 18/38 [00:29<00:32,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  50%|█████     | 19/38 [00:30<00:30,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  53%|█████▎    | 20/38 [00:32<00:29,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  55%|█████▌    | 21/38 [00:34<00:27,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  58%|█████▊    | 22/38 [00:35<00:25,  1.61s/it]Animation 17: ReplacementTransform(Group), etc.:  61%|██████    | 23/38 [00:37<00:24,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  63%|██████▎   | 24/38 [00:38<00:22,  1.63s/it]Animation 17: ReplacementTransform(Group), etc.:  66%|██████▌   | 25/38 [00:40<00:21,  1.63s/it]Animation 17: ReplacementTransform(Group), etc.:  68%|██████▊   | 26/38 [00:42<00:19,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  71%|███████   | 27/38 [00:43<00:17,  1.62s/it]Animation 17: ReplacementTransform(Group), etc.:  74%|███████▎  | 28/38 [00:45<00:16,  1.63s/it]Animation 17: ReplacementTransform(Group), etc.:  76%|███████▋  | 29/38 [00:47<00:14,  1.64s/it]Animation 17: ReplacementTransform(Group), etc.:  79%|███████▉  | 30/38 [00:48<00:13,  1.63s/it]Animation 17: ReplacementTransform(Group), etc.:  82%|████████▏ | 31/38 [00:50<00:11,  1.66s/it]Animation 17: ReplacementTransform(Group), etc.:  84%|████████▍ | 32/38 [00:52<00:09,  1.64s/it]Animation 17: ReplacementTransform(Group), etc.:  87%|████████▋ | 33/38 [00:53<00:08,  1.63s/it]Animation 17: ReplacementTransform(Group), etc.:  89%|████████▉ | 34/38 [00:55<00:06,  1.63s/it]Animation 17: ReplacementTransform(Group), etc.:  92%|█████████▏| 35/38 [00:56<00:04,  1.65s/it]Animation 17: ReplacementTransform(Group), etc.:  95%|█████████▍| 36/38 [00:58<00:03,  1.65s/it]Animation 17: ReplacementTransform(Group), etc.:  97%|█████████▋| 37/38 [01:00<00:01,  1.66s/it]Animation 17: ReplacementTransform(Group), etc.: 100%|██████████| 38/38 [01:01<00:00,  1.65s/it]                                                                                                [07/19/24 18:07:20] INFO     Animation 17 : Partial     scene_file_writer.py:527
+                             movie file written in                              
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/partial_movie_files/                         
+                             ANIMPrimitiveReciprocal/35                         
+                             30324867_2293297569_413998                         
+                             8456.mp4'                                          
+INFO:manim:Animation 17 : Partial movie file written in '/tmp/videos/reciprocal/1024p25/partial_movie_files/ANIMPrimitiveReciprocal/3530324867_2293297569_4139988456.mp4'
+                    INFO     Combining to Movie file.   scene_file_writer.py:617
+INFO:manim:Combining to Movie file.
+                    INFO                                scene_file_writer.py:737
+                             File ready at                                      
+                             '/tmp/videos/reciprocal/10                         
+                             24p25/ANIMPrimitiveRecipro                         
+                             cal.mp4'                                           
+                                                                                
+INFO:manim:
+File ready at '/tmp/videos/reciprocal/1024p25/ANIMPrimitiveReciprocal.mp4'
+
+                    INFO     Rendered ANIMPrimitiveReciprocal       scene.py:247
+                             Played 18 animations                               
+INFO:manim:Rendered ANIMPrimitiveReciprocal
+Played 18 animations
+[07/19/24 18:07:24] INFO                                scene_file_writer.py:737
+                             File ready at                                      
+                             '/tmp/images/reciprocal/IM                         
+                             GPrimitiveReciprocal.png'                          
+                                                                                
+INFO:manim:
+File ready at '/tmp/images/reciprocal/IMGPrimitiveReciprocal.png'
+
+                    INFO     Rendered IMGPrimitiveReciprocal        scene.py:247
+                             Played 0 animations                                
+INFO:manim:Rendered IMGPrimitiveReciprocal
+Played 0 animations
+Manim Community v0.18.1
+
+[07/19/24 18:07:28] INFO                                scene_file_writer.py:737
+                             File ready at                                      
+                             '/tmp/images/bragg/IMGBrag                         
+                             g.png'                                             
+                                                                                
+                    INFO     Rendered IMGBragg                      scene.py:247
+                             Played 0 animations                                
+[07/19/24 18:07:32] INFO                                scene_file_writer.py:737
+                             File ready at                                      
+                             '/tmp/images/bragg/IMGThet                         
+                             aChi.png'                                          
+                                                                                
+                    INFO     Rendered IMGThetaChi                   scene.py:247
+                             Played 0 animations                                
+Manim Community v0.18.1
+
+[07/19/24 18:07:33] ERROR                                       module_ops.py:79
+                                There are no scenes inside that                 
+                             module                                             
+                                                                                
+Manim Community v0.18.1
+
+WARNING:root:failed to import laueimproc.ml.c_dist, a slow python version is used instead
+WARNING:root:failed to import laueimproc.opti.c_rois, a slow python version is used instead
+WARNING:root:failed to import laueimproc.improc.c_find_bboxes, a slow python version is used instead
+WARNING:root:failed to import laueimproc.geometry.c_metric, a slow python version is used instead
+[07/19/24 18:07:35] ERROR                                       module_ops.py:79
+                                There are no scenes inside that                 
+                             module                                             
+                                                                                
+ERROR:manim:
+   There are no scenes inside that module
+
+ffmpeg version 6.1.1-4+b4 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Debian 13.3.0-1)
+  configuration: --prefix=/usr --extra-version=4+b4 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/tmp/videos/reciprocal/1024p25/ANIMPrimitiveReciprocal.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+    comment         : Rendered with Manim Community v0.18.1
+  Duration: 00:00:24.24, start: 0.000000, bitrate: 283 kb/s
+  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1024x1024, 281 kb/s, 25 fps, 25 tbr, 12800 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> av1 (libsvtav1))
+Press [q] to stop, [?] for help
+Svt[info]: -------------------------------------------
+Svt[info]: SVT [version]:	SVT-AV1 Encoder Lib v1.7.0
+Svt[info]: SVT [build]  :	GCC 13.2.0	 64 bit
+Svt[info]: -------------------------------------------
+Svt[warn]: Instance 1: tune ssim (2) is supported for testing and debugging purposes.This configuration should not be used for any benchmarking analysis at this stage
+Svt[info]: Number of logical cores available: 8
+Svt[info]: Number of PPCS 59
+Svt[info]: [asm level on system : up to avx2]
+Svt[info]: [asm level selected : up to avx2]
+Svt[info]: -------------------------------------------
+Svt[info]: SVT [config]: main profile	tier (auto)	level (auto)
+Svt[info]: SVT [config]: width / height / fps numerator / fps denominator 		: 512 / 512 / 25 / 1
+Svt[info]: SVT [config]: bit-depth / color format 					: 10 / YUV420
+Svt[info]: SVT [config]: preset / tune / pred struct 					: 6 / SSIM / random access
+Svt[info]: SVT [config]: gop size / mini-gop size / key-frame type 			: 126 / 16 / key frame
+Svt[info]: SVT [config]: BRC mode / rate factor 					: CRF / 48 
+Svt[info]: -------------------------------------------
+Output #0, webm, to 'build/media/ANIMPrimitiveReciprocal.webm':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    comment         : Rendered with Manim Community v0.18.1
+    encoder         : Lavf60.16.100
+  Stream #0:0(und): Video: av1, yuv420p10le(tv, progressive), 512x512, q=2-31, 25 fps, 1k tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libsvtav1
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/A    frame=    1 fps=0.0 q=18.0 size=       1kB time=00:00:00.00 bitrate=N/A speed=   0x    frame=   45 fps= 42 q=43.0 size=       1kB time=00:00:01.76 bitrate=   3.2kbits/s speed=1.64x    frame=   91 fps= 58 q=48.0 size=       1kB time=00:00:03.64 bitrate=   1.6kbits/s speed= 2.3x    frame=  127 fps= 61 q=48.0 size=       1kB time=00:00:05.08 bitrate=   1.1kbits/s speed=2.43x    frame=  174 fps= 67 q=27.0 size=      16kB time=00:00:06.96 bitrate=  18.8kbits/s speed=2.67x    frame=  223 fps= 71 q=48.0 size=      16kB time=00:00:08.92 bitrate=  14.7kbits/s speed=2.85x    frame=  254 fps= 70 q=45.0 size=      32kB time=00:00:10.16 bitrate=  26.0kbits/s speed= 2.8x    frame=  298 fps= 72 q=45.0 size=      32kB time=00:00:11.92 bitrate=  22.1kbits/s speed=2.88x    frame=  332 fps= 72 q=32.0 size=      32kB time=00:00:13.28 bitrate=  19.9kbits/s speed=2.86x    frame=  368 fps= 70 q=40.0 size=      32kB time=00:00:14.72 bitrate=  17.9kbits/s speed=2.82x    frame=  397 fps= 69 q=48.0 size=      51kB time=00:00:15.88 bitrate=  26.3kbits/s speed=2.77x    frame=  432 fps= 69 q=46.0 size=      51kB time=00:00:17.28 bitrate=  24.2kbits/s speed=2.77x    frame=  475 fps= 70 q=48.0 size=      51kB time=00:00:19.00 bitrate=  22.0kbits/s speed=2.81x    frame=  507 fps= 70 q=48.0 size=      76kB time=00:00:20.28 bitrate=  30.8kbits/s speed=2.79x    [out#0/webm @ 0x556c8eab7800] video:92kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 3.584612%
+frame=  606 fps= 71 q=48.0 Lsize=      96kB time=00:00:24.20 bitrate=  32.4kbits/s speed=2.85x    
+ffmpeg version 6.1.1-4+b4 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Debian 13.3.0-1)
+  configuration: --prefix=/usr --extra-version=4+b4 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/tmp/videos/lattice_bc/1024p25/ANIMLatticeBc.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+    comment         : Rendered with Manim Community v0.18.1
+  Duration: 00:00:24.24, start: 0.000000, bitrate: 301 kb/s
+  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1024x1024, 298 kb/s, 25 fps, 25 tbr, 12800 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> av1 (libsvtav1))
+Press [q] to stop, [?] for help
+Svt[info]: -------------------------------------------
+Svt[info]: SVT [version]:	SVT-AV1 Encoder Lib v1.7.0
+Svt[info]: SVT [build]  :	GCC 13.2.0	 64 bit
+Svt[info]: -------------------------------------------
+Svt[warn]: Instance 1: tune ssim (2) is supported for testing and debugging purposes.This configuration should not be used for any benchmarking analysis at this stage
+Svt[info]: Number of logical cores available: 8
+Svt[info]: Number of PPCS 59
+Svt[info]: [asm level on system : up to avx2]
+Svt[info]: [asm level selected : up to avx2]
+Svt[info]: -------------------------------------------
+Svt[info]: SVT [config]: main profile	tier (auto)	level (auto)
+Svt[info]: SVT [config]: width / height / fps numerator / fps denominator 		: 512 / 512 / 25 / 1
+Svt[info]: SVT [config]: bit-depth / color format 					: 10 / YUV420
+Svt[info]: SVT [config]: preset / tune / pred struct 					: 6 / SSIM / random access
+Svt[info]: SVT [config]: gop size / mini-gop size / key-frame type 			: 126 / 16 / key frame
+Svt[info]: SVT [config]: BRC mode / rate factor 					: CRF / 48 
+Svt[info]: -------------------------------------------
+Output #0, webm, to 'build/media/ANIMLatticeBc.webm':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    comment         : Rendered with Manim Community v0.18.1
+    encoder         : Lavf60.16.100
+  Stream #0:0(und): Video: av1, yuv420p10le(tv, progressive), 512x512, q=2-31, 25 fps, 1k tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libsvtav1
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/A    frame=    1 fps=0.0 q=16.0 size=       1kB time=00:00:00.00 bitrate=N/A speed=   0x    frame=   36 fps= 34 q=42.0 size=       1kB time=00:00:01.44 bitrate=   3.9kbits/s speed=1.35x    frame=   84 fps= 54 q=41.0 size=       1kB time=00:00:03.36 bitrate=   1.7kbits/s speed=2.14x    frame=  116 fps= 55 q=39.0 size=       1kB time=00:00:04.64 bitrate=   1.2kbits/s speed=2.18x    frame=  162 fps= 62 q=40.0 size=      16kB time=00:00:06.48 bitrate=  20.4kbits/s speed=2.46x    frame=  204 fps= 65 q=44.0 size=      16kB time=00:00:08.16 bitrate=  16.2kbits/s speed= 2.6x    frame=  242 fps= 66 q=42.0 size=      16kB time=00:00:09.68 bitrate=  13.7kbits/s speed=2.62x    frame=  288 fps= 68 q=41.0 size=      32kB time=00:00:11.52 bitrate=  22.8kbits/s speed=2.74x    frame=  331 fps= 70 q=48.0 size=      32kB time=00:00:13.24 bitrate=  19.9kbits/s speed=2.81x    frame=  368 fps= 70 q=41.0 size=      32kB time=00:00:14.72 bitrate=  17.9kbits/s speed=2.78x    frame=  405 fps= 70 q=48.0 size=      49kB time=00:00:16.20 bitrate=  25.0kbits/s speed= 2.8x    frame=  444 fps= 70 q=45.0 size=      49kB time=00:00:17.76 bitrate=  22.8kbits/s speed=2.82x    frame=  489 fps= 72 q=48.0 size=      49kB time=00:00:19.56 bitrate=  20.7kbits/s speed=2.88x    frame=  523 fps= 71 q=48.0 size=      70kB time=00:00:20.92 bitrate=  27.4kbits/s speed=2.86x    [out#0/webm @ 0x5563d61c5240] video:83kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 3.975925%
+frame=  606 fps= 75 q=48.0 Lsize=      86kB time=00:00:24.20 bitrate=  29.1kbits/s speed=   3x    
+ffmpeg version 6.1.1-4+b4 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Debian 13.3.0-1)
+  configuration: --prefix=/usr --extra-version=4+b4 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/tmp/videos/conv_ij_xy/1024p25/ANIMConvIJNumpyContinuity.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+    comment         : Rendered with Manim Community v0.18.1
+  Duration: 00:00:16.00, start: 0.000000, bitrate: 137 kb/s
+  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1024x1024, 134 kb/s, 25 fps, 25 tbr, 12800 tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> av1 (libsvtav1))
+Press [q] to stop, [?] for help
+Svt[info]: -------------------------------------------
+Svt[info]: SVT [version]:	SVT-AV1 Encoder Lib v1.7.0
+Svt[info]: SVT [build]  :	GCC 13.2.0	 64 bit
+Svt[info]: -------------------------------------------
+Svt[warn]: Instance 1: tune ssim (2) is supported for testing and debugging purposes.This configuration should not be used for any benchmarking analysis at this stage
+Svt[info]: Number of logical cores available: 8
+Svt[info]: Number of PPCS 59
+Svt[info]: [asm level on system : up to avx2]
+Svt[info]: [asm level selected : up to avx2]
+Svt[info]: -------------------------------------------
+Svt[info]: SVT [config]: main profile	tier (auto)	level (auto)
+Svt[info]: SVT [config]: width / height / fps numerator / fps denominator 		: 512 / 512 / 25 / 1
+Svt[info]: SVT [config]: bit-depth / color format 					: 10 / YUV420
+Svt[info]: SVT [config]: preset / tune / pred struct 					: 6 / SSIM / random access
+Svt[info]: SVT [config]: gop size / mini-gop size / key-frame type 			: 126 / 16 / key frame
+Svt[info]: SVT [config]: BRC mode / rate factor 					: CRF / 48 
+Svt[info]: -------------------------------------------
+Output #0, webm, to 'build/media/ANIMConvIJNumpyContinuity.webm':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    comment         : Rendered with Manim Community v0.18.1
+    encoder         : Lavf60.16.100
+  Stream #0:0(und): Video: av1, yuv420p10le(tv, progressive), 512x512, q=2-31, 25 fps, 1k tbn (default)
+    Metadata:
+      handler_name    : VideoHandler
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libsvtav1
+frame=    0 fps=0.0 q=0.0 size=       0kB time=N/A bitrate=N/A speed=N/A    frame=    5 fps=0.0 q=48.0 size=       1kB time=00:00:00.20 bitrate=  28.4kbits/s speed=0.37x    frame=   59 fps= 57 q=48.0 size=       1kB time=00:00:02.36 bitrate=   2.4kbits/s speed=2.26x    frame=  116 fps= 69 q=40.0 size=       1kB time=00:00:04.64 bitrate=   1.2kbits/s speed=2.77x    frame=  172 fps= 79 q=47.0 size=      12kB time=00:00:06.88 bitrate=  14.3kbits/s speed=3.16x    frame=  230 fps= 85 q=41.0 size=      12kB time=00:00:09.20 bitrate=  10.7kbits/s speed=3.42x    frame=  275 fps= 86 q=48.0 size=      27kB time=00:00:11.00 bitrate=  20.0kbits/s speed=3.44x    [out#0/webm @ 0x5632de6cf380] video:44kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 5.465168%
+frame=  400 fps= 97 q=48.0 Lsize=      47kB time=00:00:15.96 bitrate=  24.0kbits/s speed=3.88x    
+ffmpeg version 6.1.1-4+b4 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Debian 13.3.0-1)
+  configuration: --prefix=/usr --extra-version=4+b4 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, png_pipe, from '/tmp/images/IMGGeometryGraph.png':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1351x1499, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (png (native) -> av1 (libaom-av1))
+Press [q] to stop, [?] for help
+[libaom-av1 @ 0x563969a1d680] v3.9.1
+Output #0, avif, to 'build/media/IMGGeometryGraph.avif':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: av1 (av01 / 0x31307661), yuv444p12le(tv, progressive), 1351x1499, q=2-31, 25 fps, 12800 tbn (default)
+    Metadata:
+      encoder         : Lavc60.31.102 libaom-av1
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    frame=    1 fps=0.2 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    [out#0/avif @ 0x563969a1c440] video:29kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 0.959485%
+frame=    1 fps=0.2 q=0.0 Lsize=      29kB time=00:00:00.00 bitrate=N/A speed=   0x    
+ffmpeg version 6.1.1-4+b4 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Debian 13.3.0-1)
+  configuration: --prefix=/usr --extra-version=4+b4 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, png_pipe, from '/tmp/images/bragg/IMGThetaChi.png':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1024x1024, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (png (native) -> av1 (libaom-av1))
+Press [q] to stop, [?] for help
+[libaom-av1 @ 0x55a137e96680] v3.9.1
+Output #0, avif, to 'build/media/IMGThetaChi.avif':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: av1 (av01 / 0x31307661), yuv444p12le(tv, progressive), 1024x1024, q=2-31, 25 fps, 12800 tbn (default)
+    Metadata:
+      encoder         : Lavc60.31.102 libaom-av1
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    frame=    1 fps=0.4 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    [out#0/avif @ 0x55a137e95440] video:4kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 7.802592%
+frame=    1 fps=0.4 q=0.0 Lsize=       4kB time=00:00:00.00 bitrate=N/A speed=   0x    
+ffmpeg version 6.1.1-4+b4 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Debian 13.3.0-1)
+  configuration: --prefix=/usr --extra-version=4+b4 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, png_pipe, from '/tmp/images/bragg/IMGBragg.png':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1024x1024, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (png (native) -> av1 (libaom-av1))
+Press [q] to stop, [?] for help
+[libaom-av1 @ 0x557b6ed7c680] v3.9.1
+Output #0, avif, to 'build/media/IMGBragg.avif':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: av1 (av01 / 0x31307661), yuv444p12le(tv, progressive), 1024x1024, q=2-31, 25 fps, 12800 tbn (default)
+    Metadata:
+      encoder         : Lavc60.31.102 libaom-av1
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    frame=    1 fps=0.5 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    [out#0/avif @ 0x557b6ed7b440] video:2kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 12.068230%
+frame=    1 fps=0.5 q=0.0 Lsize=       3kB time=00:00:00.00 bitrate=N/A speed=   0x    
+ffmpeg version 6.1.1-4+b4 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Debian 13.3.0-1)
+  configuration: --prefix=/usr --extra-version=4+b4 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, png_pipe, from '/tmp/images/reciprocal/IMGPrimitiveReciprocal.png':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1024x1024, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (png (native) -> av1 (libaom-av1))
+Press [q] to stop, [?] for help
+[libaom-av1 @ 0x5646ae598740] v3.9.1
+Output #0, avif, to 'build/media/IMGPrimitiveReciprocal.avif':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: av1 (av01 / 0x31307661), yuv444p12le(tv, progressive), 1024x1024, q=2-31, 25 fps, 12800 tbn (default)
+    Metadata:
+      encoder         : Lavc60.31.102 libaom-av1
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    frame=    1 fps=0.4 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    [out#0/avif @ 0x5646ae597500] video:4kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 7.694399%
+frame=    1 fps=0.4 q=0.0 Lsize=       4kB time=00:00:00.00 bitrate=N/A speed=   0x    
+ffmpeg version 6.1.1-4+b4 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Debian 13.3.0-1)
+  configuration: --prefix=/usr --extra-version=4+b4 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, png_pipe, from '/tmp/images/lattice_bc/IMGLatticeBc.png':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1024x1024, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (png (native) -> av1 (libaom-av1))
+Press [q] to stop, [?] for help
+[libaom-av1 @ 0x55f4c3741680] v3.9.1
+Output #0, avif, to 'build/media/IMGLatticeBc.avif':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: av1 (av01 / 0x31307661), yuv444p12le(tv, progressive), 1024x1024, q=2-31, 25 fps, 12800 tbn (default)
+    Metadata:
+      encoder         : Lavc60.31.102 libaom-av1
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    frame=    1 fps=0.3 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    [out#0/avif @ 0x55f4c3740440] video:4kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 6.862270%
+frame=    1 fps=0.3 q=0.0 Lsize=       4kB time=00:00:00.00 bitrate=N/A speed=   0x    
+ffmpeg version 6.1.1-4+b4 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Debian 13.3.0-1)
+  configuration: --prefix=/usr --extra-version=4+b4 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, png_pipe, from '/tmp/images/lattice_bc/IMGLattice.png':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1024x1024, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (png (native) -> av1 (libaom-av1))
+Press [q] to stop, [?] for help
+[libaom-av1 @ 0x55c548a3d680] v3.9.1
+Output #0, avif, to 'build/media/IMGLattice.avif':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: av1 (av01 / 0x31307661), yuv444p12le(tv, progressive), 1024x1024, q=2-31, 25 fps, 12800 tbn (default)
+    Metadata:
+      encoder         : Lavc60.31.102 libaom-av1
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    frame=    1 fps=0.4 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    [out#0/avif @ 0x55c548a3c440] video:3kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 8.291825%
+frame=    1 fps=0.4 q=0.0 Lsize=       4kB time=00:00:00.00 bitrate=N/A speed=   0x    
+ffmpeg version 6.1.1-4+b4 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Debian 13.3.0-1)
+  configuration: --prefix=/usr --extra-version=4+b4 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, png_pipe, from '/tmp/images/conv_ij_xy/IMGConvIJXY.png':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1024x1024, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (png (native) -> av1 (libaom-av1))
+Press [q] to stop, [?] for help
+[libaom-av1 @ 0x55ebe97d4680] v3.9.1
+Output #0, avif, to 'build/media/IMGConvIJXY.avif':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: av1 (av01 / 0x31307661), yuv444p12le(tv, progressive), 1024x1024, q=2-31, 25 fps, 12800 tbn (default)
+    Metadata:
+      encoder         : Lavc60.31.102 libaom-av1
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    frame=    1 fps=0.0 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    [out#0/avif @ 0x55ebe97d3440] video:4kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 6.184441%
+frame=    1 fps=0.0 q=0.0 Lsize=       5kB time=00:00:00.00 bitrate=N/A speed=   0x    
+ffmpeg version 6.1.1-4+b4 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Debian 13.3.0-1)
+  configuration: --prefix=/usr --extra-version=4+b4 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, png_pipe, from '/tmp/images/conv_geometry/IMGPyfaiLauetools.png':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1024x1024, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (png (native) -> av1 (libaom-av1))
+Press [q] to stop, [?] for help
+[libaom-av1 @ 0x56306c773740] v3.9.1
+Output #0, avif, to 'build/media/IMGPyfaiLauetools.avif':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: av1 (av01 / 0x31307661), yuv444p12le(tv, progressive), 1024x1024, q=2-31, 25 fps, 12800 tbn (default)
+    Metadata:
+      encoder         : Lavc60.31.102 libaom-av1
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    frame=    1 fps=0.4 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    [out#0/avif @ 0x56306c772500] video:5kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 5.918026%
+frame=    1 fps=0.4 q=0.0 Lsize=       5kB time=00:00:00.00 bitrate=N/A speed=   0x    
+ffmpeg version 6.1.1-4+b4 Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 13 (Debian 13.3.0-1)
+  configuration: --prefix=/usr --extra-version=4+b4 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, png_pipe, from '/tmp/images/conv_geometry/IMGLauetoolsOr.png':
+  Duration: N/A, bitrate: N/A
+  Stream #0:0: Video: png, rgba(pc, gbr/unknown/unknown), 1024x1024, 25 fps, 25 tbr, 25 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (png (native) -> av1 (libaom-av1))
+Press [q] to stop, [?] for help
+[libaom-av1 @ 0x558ba6010740] v3.9.1
+Output #0, avif, to 'build/media/IMGLauetoolsOr.avif':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: av1 (av01 / 0x31307661), yuv444p12le(tv, progressive), 1024x1024, q=2-31, 25 fps, 12800 tbn (default)
+    Metadata:
+      encoder         : Lavc60.31.102 libaom-av1
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+frame=    0 fps=0.0 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    frame=    1 fps=0.3 q=0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    [out#0/avif @ 0x558ba600f500] video:4kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 6.516233%
+frame=    1 fps=0.3 q=0.0 Lsize=       5kB time=00:00:00.00 bitrate=N/A speed=   0x    
+****************************************
+************** Invoke Pdoc *************
+****************************************
+WARNING:root:failed to import laueimproc.ml.c_dist, a slow python version is used instead
+WARNING:root:failed to import laueimproc.opti.c_rois, a slow python version is used instead
+WARNING:root:failed to import laueimproc.improc.c_find_bboxes, a slow python version is used instead
+WARNING:root:failed to import laueimproc.improc.spot.c_basic, a slow python version is used instead
+WARNING:root:failed to import laueimproc.improc.spot.c_pca, a slow python version is used instead
+WARNING:root:failed to import laueimproc.gmm.em.c_em, a slow python version is used instead
+WARNING:root:failed to import laueimproc.improc.spot.c_extrema, a slow python version is used instead
+WARNING:root:failed to import laueimproc.gmm.c_gmm, a slow python version is used instead
+WARNING:root:failed to import laueimproc.geometry.c_metric, a slow python version is used instead
+/home/robin/.pyenv/versions/3.11.9/envs/laueenv3.11/lib/python3.11/site-packages/pylama/lint/__init__.py:10: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+  from pkg_resources import iter_entry_points
+/home/robin/.pyenv/versions/3.11.9/envs/laueenv3.11/lib/python3.11/site-packages/pkg_resources/__init__.py:2825: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('sphinxcontrib')`.
+Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+  declare_namespace(pkg)
+/home/robin/.pyenv/versions/3.11.9/envs/laueenv3.11/lib/python3.11/site-packages/pdoc/html_helpers.py:526: ReferenceWarning: Code reference `laueimproc.gmm.fit.fit_mse` in module "laueimproc" does not match any documented object.
+  linked = re.sub(r'[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*(?:\(\))?', handle_refname, code_span)
+/home/robin/.pyenv/versions/3.11.9/envs/laueenv3.11/lib/python3.11/site-packages/pdoc/html_helpers.py:526: ReferenceWarning: Code reference `laueimproc.gmm.fit.fit_mse` in module "laueimproc.classes" does not match any documented object.
+  linked = re.sub(r'[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*(?:\(\))?', handle_refname, code_span)
+/home/robin/.pyenv/versions/3.11.9/envs/laueenv3.11/lib/python3.11/site-packages/pdoc/html_helpers.py:526: ReferenceWarning: Code reference `laueimproc.gmm.fit.fit_mse` in module "laueimproc.classes.diagram" does not match any documented object.
+  linked = re.sub(r'[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*(?:\(\))?', handle_refname, code_span)
+/home/robin/.pyenv/versions/3.11.9/envs/laueenv3.11/lib/python3.11/site-packages/pdoc/html_helpers.py:526: ReferenceWarning: Code reference `laueimproc.gmm.fit.fit_mse` in module "laueimproc.improc.spot.fit" does not match any documented object.
+  linked = re.sub(r'[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*(?:\(\))?', handle_refname, code_span)
+build/laueimproc/index.html
+build/laueimproc/classes/index.html
+build/laueimproc/classes/base_dataset.html
+build/laueimproc/classes/base_diagram.html
+build/laueimproc/classes/dataset.html
+build/laueimproc/classes/diagram.html
+build/laueimproc/common.html
+build/laueimproc/convention.html
+build/laueimproc/geometry/index.html
+build/laueimproc/geometry/bragg.html
+build/laueimproc/geometry/hkl.html
+build/laueimproc/geometry/indexation/index.html
+build/laueimproc/geometry/indexation/nn.html
+build/laueimproc/geometry/indexation/refine.html
+build/laueimproc/geometry/indexation/stupid.html
+build/laueimproc/geometry/lattice.html
+build/laueimproc/geometry/link.html
+build/laueimproc/geometry/metric.html
+build/laueimproc/geometry/projection.html
+build/laueimproc/geometry/reciprocal.html
+build/laueimproc/geometry/rotation.html
+build/laueimproc/geometry/symmetry.html
+build/laueimproc/geometry/thetachi.html
+build/laueimproc/gmm/index.html
+build/laueimproc/gmm/check.html
+build/laueimproc/gmm/fit.html
+build/laueimproc/gmm/gauss.html
+build/laueimproc/gmm/gmm.html
+build/laueimproc/gmm/linalg.html
+build/laueimproc/gmm/metric.html
+build/laueimproc/immix/index.html
+build/laueimproc/immix/inter.html
+build/laueimproc/immix/mean.html
+build/laueimproc/improc/index.html
+build/laueimproc/improc/find_bboxes.html
+build/laueimproc/improc/morpho.html
+build/laueimproc/improc/peaks_search.html
+build/laueimproc/improc/spot/index.html
+build/laueimproc/improc/spot/basic.html
+build/laueimproc/improc/spot/extrema.html
+build/laueimproc/improc/spot/fit.html
+build/laueimproc/improc/spot/pca.html
+build/laueimproc/io/index.html
+build/laueimproc/io/comp_lm.html
+build/laueimproc/io/convert.html
+build/laueimproc/io/download.html
+build/laueimproc/io/read.html
+build/laueimproc/io/save_dataset.html
+build/laueimproc/io/write_dat.html
+build/laueimproc/io/write_jp2.html
+build/laueimproc/ml/index.html
+build/laueimproc/ml/dataset_dist.html
+build/laueimproc/ml/spot_dist.html
+build/laueimproc/nn/index.html
+build/laueimproc/nn/dataaug/index.html
+build/laueimproc/nn/dataaug/patch.html
+build/laueimproc/nn/dataaug/scale.html
+build/laueimproc/nn/loader.html
+build/laueimproc/nn/train.html
+build/laueimproc/nn/vae_spot_classifier.html
+build/laueimproc/opti/index.html
+build/laueimproc/opti/cache.html
+build/laueimproc/opti/gpu.html
+build/laueimproc/opti/memory.html
+build/laueimproc/opti/rois.html
+build/laueimproc/opti/singleton.html
+build/laueimproc/testing/index.html
+build/laueimproc/testing/coding_style.html
+build/laueimproc/testing/install.html
+build/laueimproc/testing/run.html
+build/laueimproc/testing/tests/index.html
+build/laueimproc/testing/tests/bragg.html
+build/laueimproc/testing/tests/inter_batch.html
+build/laueimproc/testing/tests/lattice.html
+build/laueimproc/testing/tests/metric.html
+build/laueimproc/testing/tests/projection.html
+build/laueimproc/testing/tests/reciprocal.html
+build/laueimproc/testing/tests/rotation.html
+build/laueimproc/testing/tests/set_spots.html
+build/index.js
+build/doc-search.html
+****************************************
+************* Invoke Sphinx ************
+****************************************
+Sphinx v7.3.7 en cours d'exécution
+WARNING:root:failed to import laueimproc.ml.c_dist, a slow python version is used instead
+WARNING:root:failed to import laueimproc.opti.c_rois, a slow python version is used instead
+WARNING:root:failed to import laueimproc.improc.c_find_bboxes, a slow python version is used instead
+[autosummary] engendrement d’un auto-sommaire pour : index.rst, usage/conventions.rst, usage/developer.rst, usage/installation.rst
+chargement de l'inventaire intersphinx de https://docs.python.org/3/objects.inv...
+construction en cours [mo] : cibles périmées pour les fichiers po 0
+Écriture... 
+construction [html] : cibles périmées pour les fichiers sources 4
+mise à jour de l'environnement : [nouvelle configuration] 4 ajouté(s), 0 modifié(s), 0 supprimé(s)
+lecture des sources... [ 25%] index
+lecture des sources... [ 50%] usage/conventions
+lecture des sources... [ 75%] usage/developer
+lecture des sources... [100%] usage/installation
+
+Recherche des fichiers périmés... aucun résultat trouvé
+Environnement de sérialisation... fait
+vérification de la cohérence... fait
+documents en préparation... fait
+copie des ressources... Copie des fichiers statiques... fait
+copie des fichiers complémentaires... fait
+fait
+Écriture... [ 25%] index
+Écriture... [ 50%] usage/conventions
+Écriture... [ 75%] usage/developer
+Écriture... [100%] usage/installation
+
+génération des index... genindex fait
+Coloration syntaxique du code du module...
+Écriture des pages additionnelles... search fait
+Copie des images... [ 20%] build/media/ANIMConvIJNumpyContinuity.webm
+Copie des images... [ 40%] build/media/ANIMLatticeBc.webm
+Copie des images... [ 60%] build/media/ANIMPrimitiveReciprocal.webm
+Copie des images... [ 80%] build/media/IMGConvIJXY.avif
+Copie des images... [100%] build/media/IMGBragg.avif
+
+Export de l'index de recherche en English (code: en)... fait
+Export de l'inventaire des objets... fait
+La compilation a réussi.
+
+Les pages HTML sont dans build/html.

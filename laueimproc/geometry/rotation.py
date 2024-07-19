@@ -274,7 +274,7 @@ def rotate_crystal(
     Parameters
     ----------
     crystal : torch.Tensor
-        The primitive \((\mathbf{A})\) or reciprocal \((\mathbf{B})\) in the base \(\mathcal{B}\).
+        The primitive \(\mathbf{A}\) or reciprocal \(\mathbf{B}\) in the base \(\mathcal{B}\).
         The shape of this parameter is (\*c, 3, 3).
     rot : torch.Tensor
         The active rotation matrix, of shape (\*r, 3, 3).

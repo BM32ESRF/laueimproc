@@ -23,7 +23,7 @@ Welcome to LaueImProc's DOCUMENTATION!
     :alt: [testing]
     :target: https://docs.pytest.org/
 
-.. image:: https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue
+.. image:: https://img.shields.io/badge/python-3.11%20%7C%203.12-blue
     :alt: [versions]
     :target: https://github.com/BM32ESRF/laueimproc/laueimproc/testing
 
@@ -44,11 +44,3 @@ Overview
     usage/installation.rst
     usage/conventions.rst
     usage/developer.rst
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

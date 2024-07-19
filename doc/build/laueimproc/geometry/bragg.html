@@ -82,10 +82,6 @@ def hkl_reciprocal_to_uq_energy(
             \sin(\theta) = \left| \langle u_i, u_q \rangle \right| \\
         \end{cases}\)
 
-    Notes
-    -----
-    * According the pyfai convention, \(u_i = \mathbf{L_1}\).
-
     Examples
     --------
     &gt;&gt;&gt; import torch
@@ -275,10 +271,6 @@ E = \frac{hc}{\lambda} \\
 \sin(\theta) = \left| \langle u_i, u_q \rangle \right| \\
 \end{cases}</script></span></dd>
 </dl>
-<h2 id="notes">Notes</h2>
-<ul>
-<li>According the pyfai convention, <span><span class="MathJax_Preview">u_i = \mathbf{L_1}</span><script type="math/tex">u_i = \mathbf{L_1}</script></span>.</li>
-</ul>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.geometry.bragg import hkl_reciprocal_to_uq_energy
@@ -328,10 +320,6 @@ tensor(9200.6816)
             \lambda = 2d\sin(\theta) \\
             \sin(\theta) = \left| \langle u_i, u_q \rangle \right| \\
         \end{cases}\)
-
-    Notes
-    -----
-    * According the pyfai convention, \(u_i = \mathbf{L_1}\).
 
     Examples
     --------

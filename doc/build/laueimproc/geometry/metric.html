@@ -236,92 +236,15 @@ def ray_phi_dist(
     return phi
 
 
-def compute_matching_rate(
+def compute_matching_score_continuous(
     uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
 ) -&gt; torch.Tensor:
-    r&#34;&#34;&#34;Compute the matching rate.
-
-    It is the number of ray in ``uq_theo``, close engouth to at least one ray of ``uq_exp``.
-
-    Parameters
-    ----------
-    uq_exp : torch.Tensor
-        The unitary experimental uq vector of shape (\*n, e, 3).
-    uq_theo : torch.Tensor
-        The unitary simulated theorical uq vector of shape (\*n&#39;, t, 3).
-        It can be in any device.
-    phi_max : float
-        The maximum positive angular distance in radian to consider that the rays are closed enough.
-
-    Returns
-    -------
-    match : torch.Tensor
-        The matching rate of shape broadcast(n, n&#39;) in the ``uq_exp`` device.
-
-    Examples
-    --------
-    &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate
-    &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
-    &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
-    &gt;&gt;&gt; uq_theo = torch.randn(5000, 3)
-    &gt;&gt;&gt; uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
-    &gt;&gt;&gt; rate = compute_matching_rate(uq_exp, uq_theo, 0.5 * torch.pi/180)
-    &gt;&gt;&gt;
-    &#34;&#34;&#34;
-    assert isinstance(uq_exp, torch.Tensor), uq_exp.__class__.__name__
-    assert uq_exp.ndim &gt;= 2 and uq_exp.shape[-1] == 3, uq_exp.shape
-    assert isinstance(uq_theo, torch.Tensor), uq_theo.__class__.__name__
-    assert uq_theo.ndim &gt;= 2 and uq_theo.shape[-1] == 3, uq_theo.shape
-    *batch_exp, size_e, _ = uq_exp.shape
-    *batch_theo, size_t, _ = uq_theo.shape
-    assert size_e * size_t, &#34;can not compute distance of empty matrix&#34;
-
-    if not _no_c and c_metric is not None:
-        batch_n = torch.broadcast_shapes(batch_exp, batch_theo)
-        uq_exp = torch.broadcast_to(
-            uq_exp, batch_n + (size_e, 3)
-        ).reshape(int(np.prod(batch_n)), size_e, 3)
-        uq_theo = torch.broadcast_to(
-            uq_theo, batch_n + (size_t, 3)
-        ).reshape(int(np.prod(batch_n)), size_t, 3)
-        if threading.current_thread().name == &#34;MainThread&#34;:
-            with multiprocessing.pool.ThreadPool() as pool:
-                rate = pool.starmap(
-                    c_metric.matching_rate,
-                    (
-                        (theo, phi_max, exp, 4.0*phi_max, ray_to_table(exp, 4.0*phi_max))
-                        for theo, exp in zip(uq_theo.numpy(force=True), uq_exp.numpy(force=True))
-                    ),
-                )
-        else:
-            rate = [
-                c_metric.matching_rate(
-                    theo, phi_max, exp, 4.0*phi_max, ray_to_table(exp, 4.0*phi_max),
-                )
-                for theo, exp in zip(uq_theo.numpy(force=True), uq_exp.numpy(force=True))
-            ]
-        return torch.asarray(rate, dtype=torch.int32, device=uq_exp.device).reshape(batch_n)
-
-    assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
-    assert 0 &lt;= phi_max &lt; math.pi, phi_max
-    dist = ray_cosine_dist(uq_exp, uq_theo.to(uq_exp.device))  # (*n, e, t)
-    dist = dist &gt; math.cos(phi_max)
-    dist = torch.any(dist, dim=-2)  # (*n, t)
-    rate = torch.count_nonzero(dist, dim=-1)  # (*n,)
-    rate = rate.to(torch.int32)
-    return rate
-
-
-def compute_matching_rate_continuous(
-    uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
-) -&gt; torch.Tensor:
-    r&#34;&#34;&#34;Compute the matching rate.
+    r&#34;&#34;&#34;Compute the matching score.
 
     This is a continuity extension of the disctere function
-    ``laueimproc.geometry.metric.compute_matching_rate``.
+    ``laueimproc.geometry.metric.compute_nb_matches``.
     Let \(\phi\) be the angle between two rays.
-    The matching rate is defined with \(r = \sum f(\phi_i)\)
+    The matching score is defined with \(r = \sum f(\phi_i)\)
     with \(f(\phi) = e^{-\frac{\log(2)}{\phi_{max}}\phi}\).
 
     Parameters
@@ -335,18 +258,18 @@ def compute_matching_rate_continuous(
 
     Returns
     -------
-    rate : torch.Tensor
-        The continuous matching rate of shape broadcast(n, n&#39;).
+    score : torch.Tensor
+        The continuous matching score of shape broadcast(n, n&#39;).
 
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate_continuous
+    &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_score_continuous
     &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
     &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
     &gt;&gt;&gt; uq_theo = torch.randn(5000, 3)
     &gt;&gt;&gt; uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
-    &gt;&gt;&gt; rate = compute_matching_rate_continuous(uq_exp, uq_theo, 0.5 * torch.pi/180)
+    &gt;&gt;&gt; score = compute_matching_score_continuous(uq_exp, uq_theo, 0.5 * torch.pi/180)
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     assert isinstance(uq_exp, torch.Tensor), uq_exp.__class__.__name__
@@ -404,66 +327,24 @@ def compute_matching_rate_continuous(
     phi = torch.amin(phi, dim=-2)  # (*n, t)
     dist = torch.exp(factor * phi)
     dist = dist.where(dist &gt; 0.5, 0.0)  # (*n, t), &#34;dist[dist &lt; 0.5] = 0.0&#34; failed backward
-    rate = torch.sum(dist, dim=-1)  # (*n,)
-    return rate</code></pre>
-</details>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="laueimproc.geometry.metric.compute_matching_rate"><code class="name flex">
-<span>def <span class="ident">compute_matching_rate</span></span>(<span>uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real) ‑> torch.Tensor</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Compute the matching rate.</p>
-<p>It is the number of ray in <code>uq_theo</code>, close engouth to at least one ray of <code>uq_exp</code>.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>uq_exp</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The unitary experimental uq vector of shape (*n, e, 3).</dd>
-<dt><strong><code>uq_theo</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The unitary simulated theorical uq vector of shape (*n', t, 3).
-It can be in any device.</dd>
-<dt><strong><code>phi_max</code></strong> :&ensp;<code>float</code></dt>
-<dd>The maximum positive angular distance in radian to consider that the rays are closed enough.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>match</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The matching rate of shape broadcast(n, n') in the <code>uq_exp</code> device.</dd>
-</dl>
-<h2 id="examples">Examples</h2>
-<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate
-&gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
-&gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
-&gt;&gt;&gt; uq_theo = torch.randn(5000, 3)
-&gt;&gt;&gt; uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
-&gt;&gt;&gt; rate = compute_matching_rate(uq_exp, uq_theo, 0.5 * torch.pi/180)
-&gt;&gt;&gt;
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def compute_matching_rate(
+    score = torch.sum(dist, dim=-1)  # (*n,)
+    return score
+
+
+def compute_nb_matches(
     uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
 ) -&gt; torch.Tensor:
-    r&#34;&#34;&#34;Compute the matching rate.
+    r&#34;&#34;&#34;Compute the matching.
 
     It is the number of ray in ``uq_theo``, close engouth to at least one ray of ``uq_exp``.
 
     Parameters
     ----------
     uq_exp : torch.Tensor
-        The unitary experimental uq vector of shape (\*n, e, 3).
+        The unitary experimental uq vector of shape (\*n, n_exp, 3).
     uq_theo : torch.Tensor
-        The unitary simulated theorical uq vector of shape (\*n&#39;, t, 3).
-        It can be in any device.
+        The unitary simulated theorical uq vector of shape (\*n&#39;, n_theo, 3).
+        It can be in any torch device (ex cpu or cuda).
     phi_max : float
         The maximum positive angular distance in radian to consider that the rays are closed enough.
 
@@ -475,12 +356,12 @@ It can be in any device.</dd>
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate
+    &gt;&gt;&gt; from laueimproc.geometry.metric import compute_nb_matches
     &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
     &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
     &gt;&gt;&gt; uq_theo = torch.randn(5000, 3)
     &gt;&gt;&gt; uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
-    &gt;&gt;&gt; rate = compute_matching_rate(uq_exp, uq_theo, 0.5 * torch.pi/180)
+    &gt;&gt;&gt; nbr = compute_nb_matches(uq_exp, uq_theo, 0.5 * torch.pi/180)
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     assert isinstance(uq_exp, torch.Tensor), uq_exp.__class__.__name__
@@ -501,7 +382,7 @@ It can be in any device.</dd>
         ).reshape(int(np.prod(batch_n)), size_t, 3)
         if threading.current_thread().name == &#34;MainThread&#34;:
             with multiprocessing.pool.ThreadPool() as pool:
-                rate = pool.starmap(
+                nbr = pool.starmap(
                     c_metric.matching_rate,
                     (
                         (theo, phi_max, exp, 4.0*phi_max, ray_to_table(exp, 4.0*phi_max))
@@ -509,33 +390,40 @@ It can be in any device.</dd>
                     ),
                 )
         else:
-            rate = [
+            nbr = [
                 c_metric.matching_rate(
                     theo, phi_max, exp, 4.0*phi_max, ray_to_table(exp, 4.0*phi_max),
                 )
                 for theo, exp in zip(uq_theo.numpy(force=True), uq_exp.numpy(force=True))
             ]
-        return torch.asarray(rate, dtype=torch.int32, device=uq_exp.device).reshape(batch_n)
+        return torch.asarray(nbr, dtype=torch.int32, device=uq_exp.device).reshape(batch_n)
 
     assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
     assert 0 &lt;= phi_max &lt; math.pi, phi_max
     dist = ray_cosine_dist(uq_exp, uq_theo.to(uq_exp.device))  # (*n, e, t)
     dist = dist &gt; math.cos(phi_max)
     dist = torch.any(dist, dim=-2)  # (*n, t)
-    rate = torch.count_nonzero(dist, dim=-1)  # (*n,)
-    rate = rate.to(torch.int32)
-    return rate</code></pre>
+    nbr = torch.count_nonzero(dist, dim=-1)  # (*n,)
+    nbr = nbr.to(torch.int32)
+    return nbr</code></pre>
 </details>
-</dd>
-<dt id="laueimproc.geometry.metric.compute_matching_rate_continuous"><code class="name flex">
-<span>def <span class="ident">compute_matching_rate_continuous</span></span>(<span>uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real) ‑> torch.Tensor</span>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="laueimproc.geometry.metric.compute_matching_score_continuous"><code class="name flex">
+<span>def <span class="ident">compute_matching_score_continuous</span></span>(<span>uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real) ‑> torch.Tensor</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compute the matching rate.</p>
+<div class="desc"><p>Compute the matching score.</p>
 <p>This is a continuity extension of the disctere function
-<code><a title="laueimproc.geometry.metric.compute_matching_rate" href="#laueimproc.geometry.metric.compute_matching_rate">compute_matching_rate()</a></code>.
+<code><a title="laueimproc.geometry.metric.compute_nb_matches" href="#laueimproc.geometry.metric.compute_nb_matches">compute_nb_matches()</a></code>.
 Let <span><span class="MathJax_Preview">\phi</span><script type="math/tex">\phi</script></span> be the angle between two rays.
-The matching rate is defined with <span><span class="MathJax_Preview">r = \sum f(\phi_i)</span><script type="math/tex">r = \sum f(\phi_i)</script></span>
+The matching score is defined with <span><span class="MathJax_Preview">r = \sum f(\phi_i)</span><script type="math/tex">r = \sum f(\phi_i)</script></span>
 with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}}\phi}</span><script type="math/tex">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}}\phi}</script></span>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -548,32 +436,32 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>rate</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The continuous matching rate of shape broadcast(n, n').</dd>
+<dt><strong><code>score</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The continuous matching score of shape broadcast(n, n').</dd>
 </dl>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
-&gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate_continuous
+&gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_score_continuous
 &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
 &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
 &gt;&gt;&gt; uq_theo = torch.randn(5000, 3)
 &gt;&gt;&gt; uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
-&gt;&gt;&gt; rate = compute_matching_rate_continuous(uq_exp, uq_theo, 0.5 * torch.pi/180)
+&gt;&gt;&gt; score = compute_matching_score_continuous(uq_exp, uq_theo, 0.5 * torch.pi/180)
 &gt;&gt;&gt;
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def compute_matching_rate_continuous(
+<pre><code class="python">def compute_matching_score_continuous(
     uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
 ) -&gt; torch.Tensor:
-    r&#34;&#34;&#34;Compute the matching rate.
+    r&#34;&#34;&#34;Compute the matching score.
 
     This is a continuity extension of the disctere function
-    ``laueimproc.geometry.metric.compute_matching_rate``.
+    ``laueimproc.geometry.metric.compute_nb_matches``.
     Let \(\phi\) be the angle between two rays.
-    The matching rate is defined with \(r = \sum f(\phi_i)\)
+    The matching score is defined with \(r = \sum f(\phi_i)\)
     with \(f(\phi) = e^{-\frac{\log(2)}{\phi_{max}}\phi}\).
 
     Parameters
@@ -587,18 +475,18 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
 
     Returns
     -------
-    rate : torch.Tensor
-        The continuous matching rate of shape broadcast(n, n&#39;).
+    score : torch.Tensor
+        The continuous matching score of shape broadcast(n, n&#39;).
 
     Examples
     --------
     &gt;&gt;&gt; import torch
-    &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_rate_continuous
+    &gt;&gt;&gt; from laueimproc.geometry.metric import compute_matching_score_continuous
     &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
     &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
     &gt;&gt;&gt; uq_theo = torch.randn(5000, 3)
     &gt;&gt;&gt; uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
-    &gt;&gt;&gt; rate = compute_matching_rate_continuous(uq_exp, uq_theo, 0.5 * torch.pi/180)
+    &gt;&gt;&gt; score = compute_matching_score_continuous(uq_exp, uq_theo, 0.5 * torch.pi/180)
     &gt;&gt;&gt;
     &#34;&#34;&#34;
     assert isinstance(uq_exp, torch.Tensor), uq_exp.__class__.__name__
@@ -656,8 +544,120 @@ with <span><span class="MathJax_Preview">f(\phi) = e^{-\frac{\log(2)}{\phi_{max}
     phi = torch.amin(phi, dim=-2)  # (*n, t)
     dist = torch.exp(factor * phi)
     dist = dist.where(dist &gt; 0.5, 0.0)  # (*n, t), &#34;dist[dist &lt; 0.5] = 0.0&#34; failed backward
-    rate = torch.sum(dist, dim=-1)  # (*n,)
-    return rate</code></pre>
+    score = torch.sum(dist, dim=-1)  # (*n,)
+    return score</code></pre>
+</details>
+</dd>
+<dt id="laueimproc.geometry.metric.compute_nb_matches"><code class="name flex">
+<span>def <span class="ident">compute_nb_matches</span></span>(<span>uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real) ‑> torch.Tensor</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the matching.</p>
+<p>It is the number of ray in <code>uq_theo</code>, close engouth to at least one ray of <code>uq_exp</code>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>uq_exp</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The unitary experimental uq vector of shape (*n, n_exp, 3).</dd>
+<dt><strong><code>uq_theo</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The unitary simulated theorical uq vector of shape (*n', n_theo, 3).
+It can be in any torch device (ex cpu or cuda).</dd>
+<dt><strong><code>phi_max</code></strong> :&ensp;<code>float</code></dt>
+<dd>The maximum positive angular distance in radian to consider that the rays are closed enough.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>match</code></strong> :&ensp;<code>torch.Tensor</code></dt>
+<dd>The matching rate of shape broadcast(n, n') in the <code>uq_exp</code> device.</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import torch
+&gt;&gt;&gt; from laueimproc.geometry.metric import compute_nb_matches
+&gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
+&gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
+&gt;&gt;&gt; uq_theo = torch.randn(5000, 3)
+&gt;&gt;&gt; uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
+&gt;&gt;&gt; nbr = compute_nb_matches(uq_exp, uq_theo, 0.5 * torch.pi/180)
+&gt;&gt;&gt;
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_nb_matches(
+    uq_exp: torch.Tensor, uq_theo: torch.Tensor, phi_max: numbers.Real, *, _no_c: bool = False
+) -&gt; torch.Tensor:
+    r&#34;&#34;&#34;Compute the matching.
+
+    It is the number of ray in ``uq_theo``, close engouth to at least one ray of ``uq_exp``.
+
+    Parameters
+    ----------
+    uq_exp : torch.Tensor
+        The unitary experimental uq vector of shape (\*n, n_exp, 3).
+    uq_theo : torch.Tensor
+        The unitary simulated theorical uq vector of shape (\*n&#39;, n_theo, 3).
+        It can be in any torch device (ex cpu or cuda).
+    phi_max : float
+        The maximum positive angular distance in radian to consider that the rays are closed enough.
+
+    Returns
+    -------
+    match : torch.Tensor
+        The matching rate of shape broadcast(n, n&#39;) in the ``uq_exp`` device.
+
+    Examples
+    --------
+    &gt;&gt;&gt; import torch
+    &gt;&gt;&gt; from laueimproc.geometry.metric import compute_nb_matches
+    &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
+    &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
+    &gt;&gt;&gt; uq_theo = torch.randn(5000, 3)
+    &gt;&gt;&gt; uq_theo /= torch.linalg.norm(uq_theo, dim=1, keepdims=True)
+    &gt;&gt;&gt; nbr = compute_nb_matches(uq_exp, uq_theo, 0.5 * torch.pi/180)
+    &gt;&gt;&gt;
+    &#34;&#34;&#34;
+    assert isinstance(uq_exp, torch.Tensor), uq_exp.__class__.__name__
+    assert uq_exp.ndim &gt;= 2 and uq_exp.shape[-1] == 3, uq_exp.shape
+    assert isinstance(uq_theo, torch.Tensor), uq_theo.__class__.__name__
+    assert uq_theo.ndim &gt;= 2 and uq_theo.shape[-1] == 3, uq_theo.shape
+    *batch_exp, size_e, _ = uq_exp.shape
+    *batch_theo, size_t, _ = uq_theo.shape
+    assert size_e * size_t, &#34;can not compute distance of empty matrix&#34;
+
+    if not _no_c and c_metric is not None:
+        batch_n = torch.broadcast_shapes(batch_exp, batch_theo)
+        uq_exp = torch.broadcast_to(
+            uq_exp, batch_n + (size_e, 3)
+        ).reshape(int(np.prod(batch_n)), size_e, 3)
+        uq_theo = torch.broadcast_to(
+            uq_theo, batch_n + (size_t, 3)
+        ).reshape(int(np.prod(batch_n)), size_t, 3)
+        if threading.current_thread().name == &#34;MainThread&#34;:
+            with multiprocessing.pool.ThreadPool() as pool:
+                nbr = pool.starmap(
+                    c_metric.matching_rate,
+                    (
+                        (theo, phi_max, exp, 4.0*phi_max, ray_to_table(exp, 4.0*phi_max))
+                        for theo, exp in zip(uq_theo.numpy(force=True), uq_exp.numpy(force=True))
+                    ),
+                )
+        else:
+            nbr = [
+                c_metric.matching_rate(
+                    theo, phi_max, exp, 4.0*phi_max, ray_to_table(exp, 4.0*phi_max),
+                )
+                for theo, exp in zip(uq_theo.numpy(force=True), uq_exp.numpy(force=True))
+            ]
+        return torch.asarray(nbr, dtype=torch.int32, device=uq_exp.device).reshape(batch_n)
+
+    assert isinstance(phi_max, numbers.Real), phi_max.__class__.__name__
+    assert 0 &lt;= phi_max &lt; math.pi, phi_max
+    dist = ray_cosine_dist(uq_exp, uq_theo.to(uq_exp.device))  # (*n, e, t)
+    dist = dist &gt; math.cos(phi_max)
+    dist = torch.any(dist, dim=-2)  # (*n, t)
+    nbr = torch.count_nonzero(dist, dim=-1)  # (*n,)
+    nbr = nbr.to(torch.int32)
+    return nbr</code></pre>
 </details>
 </dd>
 <dt id="laueimproc.geometry.metric.ray_cosine_dist"><code class="name flex">
@@ -946,8 +946,8 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="laueimproc.geometry.metric.compute_matching_rate" href="#laueimproc.geometry.metric.compute_matching_rate">compute_matching_rate</a></code></li>
-<li><code><a title="laueimproc.geometry.metric.compute_matching_rate_continuous" href="#laueimproc.geometry.metric.compute_matching_rate_continuous">compute_matching_rate_continuous</a></code></li>
+<li><code><a title="laueimproc.geometry.metric.compute_matching_score_continuous" href="#laueimproc.geometry.metric.compute_matching_score_continuous">compute_matching_score_continuous</a></code></li>
+<li><code><a title="laueimproc.geometry.metric.compute_nb_matches" href="#laueimproc.geometry.metric.compute_nb_matches">compute_nb_matches</a></code></li>
 <li><code><a title="laueimproc.geometry.metric.ray_cosine_dist" href="#laueimproc.geometry.metric.ray_cosine_dist">ray_cosine_dist</a></code></li>
 <li><code><a title="laueimproc.geometry.metric.ray_phi_dist" href="#laueimproc.geometry.metric.ray_phi_dist">ray_phi_dist</a></code></li>
 </ul>

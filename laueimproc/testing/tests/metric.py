@@ -5,7 +5,7 @@
 import torch
 
 from laueimproc.geometry.metric import (
-    compute_matching_rate, compute_matching_rate_continuous, ray_cosine_dist, ray_phi_dist
+    compute_nb_matches, compute_matching_score_continuous, ray_cosine_dist, ray_phi_dist
 )
 
 
@@ -18,22 +18,24 @@ UQ_THEO /= torch.linalg.norm(UQ_THEO, dim=1, keepdims=True)
 
 def test_batch_matching_rate():
     """Test batch dimension."""
-    assert compute_matching_rate(UQ_EXP, UQ_THEO, PHI_MAX, _no_c=True).shape == ()
-    assert compute_matching_rate(UQ_EXP, UQ_THEO, PHI_MAX).shape == ()
+    assert compute_nb_matches(UQ_EXP, UQ_THEO, PHI_MAX, _no_c=True).shape == ()
+    assert compute_nb_matches(UQ_EXP, UQ_THEO, PHI_MAX).shape == ()
     uq_exp = UQ_EXP[None, None, None, :, :].expand(1, 3, 4, -1, -1)
     uq_theo = UQ_THEO[None, None, None, :, :].expand(2, 1, 4, -1, -1)
-    assert compute_matching_rate(uq_exp, uq_theo, PHI_MAX, _no_c=True).shape == (2, 3, 4)
-    assert compute_matching_rate(uq_exp, uq_theo, PHI_MAX).shape == (2, 3, 4)
+    assert compute_nb_matches(uq_exp, uq_theo, PHI_MAX, _no_c=True).shape == (2, 3, 4)
+    assert compute_nb_matches(uq_exp, uq_theo, PHI_MAX).shape == (2, 3, 4)
 
 
 def test_batch_matching_rate_continuous():
     """Test batch dimension."""
-    assert compute_matching_rate_continuous(UQ_EXP, UQ_THEO, PHI_MAX, _no_c=True).shape == ()
-    assert compute_matching_rate_continuous(UQ_EXP, UQ_THEO, PHI_MAX).shape == ()
+    assert compute_matching_score_continuous(UQ_EXP, UQ_THEO, PHI_MAX, _no_c=True).shape == ()
+    assert compute_matching_score_continuous(UQ_EXP, UQ_THEO, PHI_MAX).shape == ()
     uq_exp = UQ_EXP[None, None, None, :, :].expand(1, 3, 4, -1, -1)
     uq_theo = UQ_THEO[None, None, None, :, :].expand(2, 1, 4, -1, -1)
-    assert compute_matching_rate_continuous(uq_exp, uq_theo, PHI_MAX, _no_c=True).shape == (2, 3, 4)
-    assert compute_matching_rate_continuous(uq_exp, uq_theo, PHI_MAX).shape == (2, 3, 4)
+    assert compute_matching_score_continuous(
+        uq_exp, uq_theo, PHI_MAX, _no_c=True
+    ).shape == (2, 3, 4)
+    assert compute_matching_score_continuous(uq_exp, uq_theo, PHI_MAX).shape == (2, 3, 4)
 
 
 def test_cosine_eq_phi():
@@ -51,7 +53,7 @@ def test_grad_matching_rate_continuous():
     """Test the continuous matching rate is differenciable."""
     uq_theo = UQ_THEO.clone()
     uq_theo.requires_grad = True
-    rate = compute_matching_rate_continuous(UQ_EXP, uq_theo, PHI_MAX)
+    rate = compute_matching_score_continuous(UQ_EXP, uq_theo, PHI_MAX)
     rate.backward()
     assert not uq_theo.grad.isnan().any()
 
@@ -70,17 +72,17 @@ def test_grad_matching_rate_continuous():
 
 def test_value_matching_rate():
     """Test if the result of the matching rate is correct."""
-    assert int(compute_matching_rate(UQ_EXP, UQ_EXP, PHI_MAX, _no_c=True)) == len(UQ_EXP)
-    assert int(compute_matching_rate(UQ_EXP, UQ_EXP, PHI_MAX)) == len(UQ_EXP)
-    assert int(compute_matching_rate(
+    assert int(compute_nb_matches(UQ_EXP, UQ_EXP, PHI_MAX, _no_c=True)) == len(UQ_EXP)
+    assert int(compute_nb_matches(UQ_EXP, UQ_EXP, PHI_MAX)) == len(UQ_EXP)
+    assert int(compute_nb_matches(
         torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.6 * torch.pi, _no_c=True
     )) == 1
-    assert int(compute_matching_rate(
+    assert int(compute_nb_matches(
         torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.6 * torch.pi
     )) == 1
-    assert int(compute_matching_rate(
+    assert int(compute_nb_matches(
         torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.4 * torch.pi, _no_c=True
     )) == 0
-    assert int(compute_matching_rate(
+    assert int(compute_nb_matches(
         torch.tensor([[1.0, 0.0, 0.0]]), torch.tensor([[0.0, 1.0, 0.0]]), 0.4 * torch.pi
     )) == 0

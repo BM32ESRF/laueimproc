@@ -78,8 +78,7 @@ class BaseDiagram:
     Attributes
     ----------
     areas : torch.Tensor
-        The int32 area of each bboxes.
-        Return None until spots are initialized.
+        The int32 area of each bboxes. Return None until spots are initialized.
     bboxes : torch.Tensor or None
         The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
         for each spots, of shape (n, 4) (readonly).
@@ -729,7 +728,7 @@ class BaseDiagram:
 
         # fill figure metadata
         axes = disp  # is gonna changed
-        disp = disp or Figure(layout=&#34;tight&#34;)
+        disp = disp or Figure(layout=&#34;tight&#34;)  # pylint: disable=E1123
         if isinstance(disp, Figure):
             if isinstance(self._file_or_image, pathlib.Path):
                 disp.suptitle(f&#34;Diagram {self._file_or_image.name}&#34;)
@@ -821,11 +820,14 @@ class BaseDiagram:
         return rawshapes2rois(datarois, bboxes[:, 2:])
 
     def set_spots(self, *new_spots: tuple):
-        &#34;&#34;&#34;Set the new spots as the current spots, reset the history and the cache.
+        &#34;&#34;&#34;Write or overwrite the rois and bboxes.
+
+        The input argument order are keeped.
 
         Paremeters
         ----------
         new_spots : tuple
+
             * Can be another diagram of type Diagram.
             * Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
             * Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
@@ -1002,8 +1004,7 @@ class BaseDiagram:
 <h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>areas</code></strong> :&ensp;<code>torch.Tensor</code></dt>
-<dd>The int32 area of each bboxes.
-Return None until spots are initialized.</dd>
+<dd>The int32 area of each bboxes. Return None until spots are initialized.</dd>
 <dt><strong><code>bboxes</code></strong> :&ensp;<code>torch.Tensor</code> or <code>None</code></dt>
 <dd>The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
 for each spots, of shape (n, 4) (readonly).
@@ -1041,8 +1042,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
     Attributes
     ----------
     areas : torch.Tensor
-        The int32 area of each bboxes.
-        Return None until spots are initialized.
+        The int32 area of each bboxes. Return None until spots are initialized.
     bboxes : torch.Tensor or None
         The int16 tensor of the bounding boxes (anchor_i, anchor_j, height, width)
         for each spots, of shape (n, 4) (readonly).
@@ -1692,7 +1692,7 @@ For memory management, it is better to provide a pathlike rather than an array.<
 
         # fill figure metadata
         axes = disp  # is gonna changed
-        disp = disp or Figure(layout=&#34;tight&#34;)
+        disp = disp or Figure(layout=&#34;tight&#34;)  # pylint: disable=E1123
         if isinstance(disp, Figure):
             if isinstance(self._file_or_image, pathlib.Path):
                 disp.suptitle(f&#34;Diagram {self._file_or_image.name}&#34;)
@@ -1784,11 +1784,14 @@ For memory management, it is better to provide a pathlike rather than an array.<
         return rawshapes2rois(datarois, bboxes[:, 2:])
 
     def set_spots(self, *new_spots: tuple):
-        &#34;&#34;&#34;Set the new spots as the current spots, reset the history and the cache.
+        &#34;&#34;&#34;Write or overwrite the rois and bboxes.
+
+        The input argument order are keeped.
 
         Paremeters
         ----------
         new_spots : tuple
+
             * Can be another diagram of type Diagram.
             * Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
             * Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
@@ -2853,7 +2856,7 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
 
     # fill figure metadata
     axes = disp  # is gonna changed
-    disp = disp or Figure(layout=&#34;tight&#34;)
+    disp = disp or Figure(layout=&#34;tight&#34;)  # pylint: disable=E1123
     if isinstance(disp, Figure):
         if isinstance(self._file_or_image, pathlib.Path):
             disp.suptitle(f&#34;Diagram {self._file_or_image.name}&#34;)
@@ -2916,13 +2919,15 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
 <span>def <span class="ident">set_spots</span></span>(<span>self, *new_spots: tuple)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Set the new spots as the current spots, reset the history and the cache.</p>
+<div class="desc"><p>Write or overwrite the rois and bboxes.</p>
+<p>The input argument order are keeped.</p>
 <h2 id="paremeters">Paremeters</h2>
-<p>new_spots : tuple
-* Can be another diagram of type Diagram.
+<p>new_spots : tuple</p>
+<pre><code>* Can be another diagram of type Diagram.
 * Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
 * Can be an anchor and a picture n * (anchor_i, anchor_j, roi).
-* It can also be a combination of the above elements to unite the spots.</p>
+* It can also be a combination of the above elements to unite the spots.
+</code></pre>
 <h2 id="examples">Examples</h2>
 <pre><code class="language-python-repl">&gt;&gt;&gt; import torch
 &gt;&gt;&gt; from laueimproc.classes.base_diagram import BaseDiagram
@@ -2951,11 +2956,14 @@ Use <code>self.show()</code> to Display the diagram from scratch.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set_spots(self, *new_spots: tuple):
-    &#34;&#34;&#34;Set the new spots as the current spots, reset the history and the cache.
+    &#34;&#34;&#34;Write or overwrite the rois and bboxes.
+
+    The input argument order are keeped.
 
     Paremeters
     ----------
     new_spots : tuple
+
         * Can be another diagram of type Diagram.
         * Can be an arraylike of bounding boxes n * (anchor_i, anchor_j, height, width).
         * Can be an anchor and a picture n * (anchor_i, anchor_j, roi).

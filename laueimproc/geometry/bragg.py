@@ -52,10 +52,6 @@ def hkl_reciprocal_to_uq_energy(
             \sin(\theta) = \left| \langle u_i, u_q \rangle \right| \\
         \end{cases}\)
 
-    Notes
-    -----
-    * According the pyfai convention, \(u_i = \mathbf{L_1}\).
-
     Examples
     --------
     >>> import torch

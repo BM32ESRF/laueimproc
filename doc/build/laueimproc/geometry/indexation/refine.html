@@ -33,13 +33,15 @@
 &#34;&#34;&#34;Refine omega and lattice parameters by maximizing the matching rate through gradient ascent.&#34;&#34;&#34;
 
 import numbers
+import warnings
 
 import torch
 
-from ..bragg import hkl_reciprocal_to_uq_energy
+from ..bragg import hkl_reciprocal_to_uq_energy, uf_to_uq
 from ..hkl import select_hkl
 from ..lattice import lattice_to_primitive
-from ..metric import compute_matching_rate_continuous
+from ..metric import compute_matching_score_continuous
+from ..projection import detector_to_ray
 from ..reciprocal import primitive_to_reciprocal
 from ..rotation import omega_to_rot, rotate_crystal
 
@@ -101,16 +103,16 @@ class Refiner(torch.nn.Module):
         elif uf_or_point.shape[-1] == 3:
             if poni is not None:
                 warnings.warn(
-                    &#34;the `poni` is ignored because uq has been provided, not point&#34;,
+                    &#34;the `poni` is ignored because uf has been provided, not point&#34;,
                     RuntimeWarning,
                 )
         else:
             raise ValueError(&#34;only shape 2 and 3 allow&#34;)
-        u_q = uf_to_uq(uf_or_point)
 
+        # set parameters
+        self._uq_exp = torch.nn.Parameter(uf_to_uq(uf_or_point), requires_grad=False)
         self._lattice = torch.nn.Parameter(lattice.clone(), requires_grad=True)
         self._omega = torch.nn.Parameter(omega.clone(), requires_grad=True)
-        self._uq_exp = torch.nn.Parameter(kwargs[&#34;uq_exp&#34;], requires_grad=False)
         self._hkl = torch.nn.Parameter(
             select_hkl(
                 primitive_to_reciprocal(lattice_to_primitive(lattice)), e_max=kwargs[&#34;e_max&#34;]
@@ -143,7 +145,7 @@ class Refiner(torch.nn.Module):
             self._hkl, reciprocal_bl, cartesian_product=False
         )
         uq_theo = uq_theo[energy &gt;= self._e_min]  # (n&#39;, 3)
-        matching_rate = compute_matching_rate_continuous(self._uq_exp, uq_theo, phi_max)
+        matching_rate = compute_matching_score_continuous(self._uq_exp, uq_theo, phi_max)
 
         return matching_rate
 
@@ -188,10 +190,10 @@ class Refiner(torch.nn.Module):
         &gt;&gt;&gt; from laueimproc.geometry.indexation.refine import Refiner
         &gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
         &gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
-        &gt;&gt;&gt; angle = torch.zeros(3)
+        &gt;&gt;&gt; omega = torch.zeros(3)
         &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
         &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
-        &gt;&gt;&gt; refiner = Refiner(lattice, angle, e_min=e_min, e_max=e_max, uq_exp=uq_exp)
+        &gt;&gt;&gt; refiner = Refiner(lattice, omega, uq_exp, e_min=e_min, e_max=e_max)
         &gt;&gt;&gt; rate = refiner.refine(0.5 * torch.pi/180)
         &gt;&gt;&gt;
         &#34;&#34;&#34;
@@ -328,16 +330,16 @@ Used only if <code>uf_or_point</code> is a point.</dd>
         elif uf_or_point.shape[-1] == 3:
             if poni is not None:
                 warnings.warn(
-                    &#34;the `poni` is ignored because uq has been provided, not point&#34;,
+                    &#34;the `poni` is ignored because uf has been provided, not point&#34;,
                     RuntimeWarning,
                 )
         else:
             raise ValueError(&#34;only shape 2 and 3 allow&#34;)
-        u_q = uf_to_uq(uf_or_point)
 
+        # set parameters
+        self._uq_exp = torch.nn.Parameter(uf_to_uq(uf_or_point), requires_grad=False)
         self._lattice = torch.nn.Parameter(lattice.clone(), requires_grad=True)
         self._omega = torch.nn.Parameter(omega.clone(), requires_grad=True)
-        self._uq_exp = torch.nn.Parameter(kwargs[&#34;uq_exp&#34;], requires_grad=False)
         self._hkl = torch.nn.Parameter(
             select_hkl(
                 primitive_to_reciprocal(lattice_to_primitive(lattice)), e_max=kwargs[&#34;e_max&#34;]
@@ -370,7 +372,7 @@ Used only if <code>uf_or_point</code> is a point.</dd>
             self._hkl, reciprocal_bl, cartesian_product=False
         )
         uq_theo = uq_theo[energy &gt;= self._e_min]  # (n&#39;, 3)
-        matching_rate = compute_matching_rate_continuous(self._uq_exp, uq_theo, phi_max)
+        matching_rate = compute_matching_score_continuous(self._uq_exp, uq_theo, phi_max)
 
         return matching_rate
 
@@ -415,10 +417,10 @@ Used only if <code>uf_or_point</code> is a point.</dd>
         &gt;&gt;&gt; from laueimproc.geometry.indexation.refine import Refiner
         &gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
         &gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
-        &gt;&gt;&gt; angle = torch.zeros(3)
+        &gt;&gt;&gt; omega = torch.zeros(3)
         &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
         &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
-        &gt;&gt;&gt; refiner = Refiner(lattice, angle, e_min=e_min, e_max=e_max, uq_exp=uq_exp)
+        &gt;&gt;&gt; refiner = Refiner(lattice, omega, uq_exp, e_min=e_min, e_max=e_max)
         &gt;&gt;&gt; rate = refiner.refine(0.5 * torch.pi/180)
         &gt;&gt;&gt;
         &#34;&#34;&#34;
@@ -531,7 +533,7 @@ to consider that the rays are closed enough.</dd>
         self._hkl, reciprocal_bl, cartesian_product=False
     )
     uq_theo = uq_theo[energy &gt;= self._e_min]  # (n&#39;, 3)
-    matching_rate = compute_matching_rate_continuous(self._uq_exp, uq_theo, phi_max)
+    matching_rate = compute_matching_score_continuous(self._uq_exp, uq_theo, phi_max)
 
     return matching_rate</code></pre>
 </details>
@@ -564,10 +566,10 @@ The initial and the final sum of these parameters is guaranteed to be the same.<
 &gt;&gt;&gt; from laueimproc.geometry.indexation.refine import Refiner
 &gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
 &gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
-&gt;&gt;&gt; angle = torch.zeros(3)
+&gt;&gt;&gt; omega = torch.zeros(3)
 &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
 &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
-&gt;&gt;&gt; refiner = Refiner(lattice, angle, e_min=e_min, e_max=e_max, uq_exp=uq_exp)
+&gt;&gt;&gt; refiner = Refiner(lattice, omega, uq_exp, e_min=e_min, e_max=e_max)
 &gt;&gt;&gt; rate = refiner.refine(0.5 * torch.pi/180)
 &gt;&gt;&gt;
 </code></pre></div>
@@ -606,10 +608,10 @@ The initial and the final sum of these parameters is guaranteed to be the same.<
     &gt;&gt;&gt; from laueimproc.geometry.indexation.refine import Refiner
     &gt;&gt;&gt; lattice = torch.tensor([3.6e-10, 3.6e-10, 3.6e-10, torch.pi/2, torch.pi/2, torch.pi/2])
     &gt;&gt;&gt; e_min, e_max = 5e3 * 1.60e-19, 25e3 * 1.60e-19  # 5-25 keV
-    &gt;&gt;&gt; angle = torch.zeros(3)
+    &gt;&gt;&gt; omega = torch.zeros(3)
     &gt;&gt;&gt; uq_exp = torch.randn(1000, 3)
     &gt;&gt;&gt; uq_exp /= torch.linalg.norm(uq_exp, dim=1, keepdims=True)
-    &gt;&gt;&gt; refiner = Refiner(lattice, angle, e_min=e_min, e_max=e_max, uq_exp=uq_exp)
+    &gt;&gt;&gt; refiner = Refiner(lattice, omega, uq_exp, e_min=e_min, e_max=e_max)
     &gt;&gt;&gt; rate = refiner.refine(0.5 * torch.pi/180)
     &gt;&gt;&gt;
     &#34;&#34;&#34;
