@@ -184,6 +184,8 @@ class StupidIndexator(torch.nn.Module):
             or [torch.device("cpu")]
         )
         models = [self.clone().to(d) for d in devices]
+        # for model in models:  # compilation is not allways working with cuda and multithreading
+        #     model._compute_uq = torch.compile(model._compute_uq, dynamic=False)
         omegas = [omega.to(d) for d in devices]
 
         # compute all rates
@@ -195,15 +197,15 @@ class StupidIndexator(torch.nn.Module):
                     pool.imap(
                         lambda i: (
                             models[i % len(devices)]._compute_rate(  # pylint: disable=W0212
-                                omegas[i % len(devices)][batch*i:batch*(i+1)],
-                                u_q,
-                                phi_max,
+                                omegas[i % len(devices)][batch*i:batch*(i+1)], u_q, phi_max
                             )  # in u_q device
                         ),
                         range(total),
                     ),
                     total=total,
+                    unit="simul",
                     unit_scale=batch,
+                    smoothing=0.01,
                 )
             ))
 

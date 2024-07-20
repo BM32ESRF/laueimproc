@@ -60,6 +60,3 @@ There are a lot of jupyter-notebook examples in the folder ``notebooks`` and a l
     diagrams[:10].apply(init)  # init the 10 first diagrams
 
     diagrams[6].plot(plt.figure(layout="tight")); plt.show()
-
-.. image:: https://github.com/BM32ESRF/laueimproc/doc/images/diag_06.avif
-    :alt: matplotlib figure of diagram 6
