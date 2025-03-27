@@ -28,6 +28,28 @@
             "email": "micha@esrf.fr",
             "familyName": "MICHA",
             "givenName": "Jean-Sébastien"
+        },
+        {
+            "id": "https://orcid.org/0000-0003-2738-7279",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "CEA-Grenoble/IRIG/MEM/NRX"
+            },
+            "email": "odile.robach@esrf.fr",
+            "familyName": "Robach",
+            "givenName": "Odile"
+        },
+        {
+            "id": "https://orcid.org/0000-0002-1786-8581",
+            "type": "Person",
+            "affiliation": {
+                "type": "Organization",
+                "name": "CEA-Grenoble/IRIG/MEM/NRX"
+            },
+            "email": "samuel.tardif@cea.fr",
+            "familyName": "Tardif",
+            "givenName": "Samuel"
         }
     ],
     "codeRepository": "https://github.com/BM32ESRF/laueimproc",
