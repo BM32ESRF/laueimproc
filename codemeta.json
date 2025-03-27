@@ -8,7 +8,7 @@
             "type": "Person",
             "affiliation": {
                 "type": "Organization",
-                "name": "Université Grenoble Alpes, CEA-Grenoble/IRIG/MEM"
+                "name": "CEA-Grenoble/IRIG/MEM/NRX"
             },
             "email": "robin.oz@free.fr",
             "familyName": "Richard",
@@ -23,7 +23,7 @@
             "type": "Person",
             "affiliation": {
                 "type": "Organization",
-                "name": "Université Grenoble Alpes, UMR SyMMES CNRS/CEA-Grenoble/IRIG"
+                "name": "UMR SyMMES CNRS/CEA-Grenoble/IRIG"
             },
             "email": "micha@esrf.fr",
             "familyName": "MICHA",
